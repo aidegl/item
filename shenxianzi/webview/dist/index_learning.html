@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>index.html - 交互式层级树代码学习页面</title>
+    <style>
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        /* 主容器 */
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 左侧树面板 */
+        .tree-panel {
+            width: 300px;
+            background-color: #f5f5f5;
+            border-right: 1px solid #e8e8e8;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        /* 树节点样式 */
+        .tree-node {
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tree-node:hover {
+            background-color: #e6f7ff;
+        }
+
+        .tree-node.active {
+            background-color: #1890ff;
+            color: white;
+        }
+
+        /* 节点层级缩进 */
+        .level-0 { padding-left: 20px; }
+        .level-1 { padding-left: 40px; }
+        .level-2 { padding-left: 60px; }
+        .level-3 { padding-left: 80px; }
+        .level-4 { padding-left: 100px; }
+        .level-5 { padding-left: 120px; }
+        .level-6 { padding-left: 140px; }
+
+        /* 右侧内容面板 */
+        .content-panel {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* 内容项 */
+        .content-item {
+            display: none;
+        }
+
+        .content-item.active {
+            display: block;
+        }
+
+        /* 代码块样式 */
+        pre {
+            background-color: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 3px;
+            padding: 16px;
+            overflow-x: auto;
+            font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        code {
+            font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+            background-color: rgba(27, 31, 35, 0.05);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 85%;
+        }
+
+        /* 标题样式 */
+        h2 {
+            margin-bottom: 16px;
+            color: #2c3e50;
+            font-size: 20px;
+        }
+
+        h3 {
+            margin-bottom: 12px;
+            color: #34495e;
+            font-size: 16px;
+            margin-top: 24px;
+        }
+
+        /* 解释文本样式 */
+        .explanation {
+            margin-bottom: 16px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* 知识点标签 */
+        .knowledge-point {
+            background-color: #e6f7ff;
+            color: #1890ff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧层级树面板 -->
+        <div class="tree-panel">
+            <div class="tree-node level-0" data-node="root">index.html 总览</div>
+            
+            <!-- HTML结构 -->
+            <div class="tree-node level-0" data-node="html-structure">HTML结构</div>
+            <div class="tree-node level-1" data-node="html-head">头部(Head)部分</div>
+            <div class="tree-node level-2" data-node="html-meta">元信息(Meta)</div>
+            <div class="tree-node level-2" data-node="html-scripts">外部脚本</div>
+            <div class="tree-node level-1" data-node="html-body">主体(Body)部分</div>
+            <div class="tree-node level-2" data-node="html-pages">页面容器</div>
+            <div class="tree-node level-3" data-node="html-page-agent">智能体页面</div>
+            <div class="tree-node level-3" data-node="html-page-patient">患者库页面</div>
+            <div class="tree-node level-3" data-node="html-page-memo">备忘录页面</div>
+            <div class="tree-node level-3" data-node="html-page-settings">设置页面</div>
+            <div class="tree-node level-2" data-node="html-bottom-menu">底部导航</div>
+            
+            <!-- CSS样式 -->
+            <div class="tree-node level-0" data-node="css-styles">CSS样式</div>
+            <div class="tree-node level-1" data-node="css-variables">CSS变量定义</div>
+            <div class="tree-node level-1" data-node="css-layout">页面布局</div>
+            <div class="tree-node level-1" data-node="css-components">组件样式</div>
+            <div class="tree-node level-2" data-node="css-profile">个人中心样式</div>
+            <div class="tree-node level-2" data-node="css-bottom-menu">底部导航样式</div>
+            
+            <!-- JavaScript逻辑 -->
+            <div class="tree-node level-0" data-node="js-logic">JavaScript逻辑</div>
+            <div class="tree-node level-1" data-node="js-global-config">全局配置</div>
+            <div class="tree-node level-1" data-node="js-utils">工具函数</div>
+            <div class="tree-node level-2" data-node="js-log">日志函数(log)</div>
+            <div class="tree-node level-2" data-node="js-err">错误函数(err)</div>
+            <div class="tree-node level-1" data-node="js-api">API模块</div>
+            <div class="tree-node level-2" data-node="js-mdyapi">MdyAPI对象</div>
+            <div class="tree-node level-3" data-node="js-fetchuserinfo">fetchUserInfo方法</div>
+            <div class="tree-node level-4" data-node="js-request-body">请求体构造</div>
+            <div class="tree-node level-4" data-node="js-timeout-control">超时控制</div>
+            <div class="tree-node level-4" data-node="js-response-handling">响应处理</div>
+            <div class="tree-node level-3" data-node="js-processuserdata">processUserData方法</div>
+            <div class="tree-node level-1" data-node="js-page">页面交互逻辑</div>
+            <div class="tree-node level-2" data-node="js-state">状态管理</div>
+            <div class="tree-node level-2" data-node="js-switchtab">switchTab方法</div>
+            <div class="tree-node level-2" data-node="js-wxlogin">微信登录方法</div>
+            <div class="tree-node level-2" data-node="js-testfetch">测试数据获取</div>
+            <div class="tree-node level-2" data-node="js-updateui">UI更新方法</div>
+            <div class="tree-node level-2" data-node="js-init">初始化方法</div>
+        </div>
+
+        <!-- 右侧代码/解释展示面板 -->
+        <div class="content-panel">
+            <!-- 根节点内容 -->
+            <div class="content-item active" id="root">
+                <h2>index.html 总览</h2>
+                <div class="explanation">
+                    这是一个微信小程序内嵌网页的主页面，包含智能体、患者库、备忘录和设置四个主要功能模块。页面采用单页应用(SPA)的设计模式，通过JavaScript实现页面切换和数据交互。
+                </div>
+                <div class="knowledge-point">单页应用</div>
+                <div class="knowledge-point">微信小程序</div>
+                <div class="knowledge-point">明道云API</div>
+                <div class="knowledge-point">移动端适配</div>
+            </div>
+
+            <!-- HTML结构部分 -->
+            <div class="content-item" id="html-structure">
+                <h2>HTML结构</h2>
+                <div class="explanation">
+                    页面采用标准的HTML5结构，包含头部(Head)和主体(Body)两大部分。头部主要包含元信息、外部脚本和CSS样式，主体包含四个功能页面和底部导航。
+                </div>
+                <pre>&lt;!doctype html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+    &lt;!-- 头部内容 --&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- 页面容器 --&gt;
+    &lt;div id="page-agent" class="page active"&gt;...&lt;/div&gt;
+    &lt;div id="page-patient" class="page"&gt;...&lt;/div&gt;
+    &lt;div id="page-memo" class="page"&gt;...&lt;/div&gt;
+    &lt;div id="page-settings" class="page"&gt;...&lt;/div&gt;
+    
+    &lt;!-- 底部导航 --&gt;
+    &lt;div class="bottom-menu"&gt;...&lt;/div&gt;
+    
+    &lt;!-- 加载遮罩 --&gt;
+    &lt;div id="loading" class="loading-mask"&gt;...&lt;/div&gt;
+    
+    &lt;!-- JavaScript代码 --&gt;
+    &lt;script&gt;...&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+            </div>
+
+            <div class="content-item" id="html-head">
+                <h2>头部(Head)部分</h2>
+                <div class="explanation">
+                    头部包含页面的元信息、外部脚本和CSS样式定义。主要引入了微信JS-SDK和vConsole调试工具。
+                </div>
+                <pre>&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"&gt;
+  &lt;!-- 防缓存 Meta --&gt;
+  &lt;meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /&gt;
+  &lt;meta http-equiv="Pragma" content="no-cache" /&gt;
+  &lt;meta http-equiv="Expires" content="0" /&gt;
+  
+  &lt;script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"&gt;&lt;/script&gt;
+  &lt;!-- 引入 vConsole 方便调试 --&gt;
+  &lt;script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"&gt;&lt;/script&gt;
+  &lt;script&gt;var vConsole = new VConsole();&lt;/script&gt;
+  &lt;!-- 复用组件：用户数据获取 --&gt;
+  &lt;script src="./components/MingdaoQuery.js"&gt;&lt;/script&gt;
+  &lt;title&gt;神仙子&lt;/title&gt;
+  &lt;style&gt;...&lt;/style&gt;
+&lt;/head&gt;</pre>
+            </div>
+
+            <div class="content-item" id="html-meta">
+                <h2>元信息(Meta)</h2>
+                <div class="explanation">
+                    元信息定义了页面的字符集、视口设置和缓存策略，确保页面在移动端正确显示并强制每次请求最新资源。
+                </div>
+                <pre>&lt;meta charset="utf-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"&gt;
+&lt;!-- 防缓存 Meta --&gt;
+&lt;meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /&gt;
+&lt;meta http-equiv="Pragma" content="no-cache" /&gt;
+&lt;meta http-equiv="Expires" content="0" /&gt;</pre>
+            </div>
+
+            <div class="content-item" id="html-scripts">
+                <h2>外部脚本</h2>
+                <div class="explanation">
+                    引入了微信JS-SDK用于小程序交互、vConsole用于调试，以及MingdaoQuery.js组件用于数据获取。
+                </div>
+                <pre>&lt;script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"&gt;&lt;/script&gt;
+&lt;!-- 引入 vConsole 方便调试 --&gt;
+&lt;script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;var vConsole = new VConsole();&lt;/script&gt;
+&lt;!-- 复用组件：用户数据获取 --&gt;
+&lt;script src="./components/MingdaoQuery.js"&gt;&lt;/script&gt;</pre>
+            </div>
+
+            <div class="content-item" id="html-body">
+                <h2>主体(Body)部分</h2>
+                <div class="explanation">
+                    主体包含四个功能页面容器、底部导航菜单和加载遮罩层。
+                </div>
+                <pre>&lt;body&gt;
+  &lt;!-- 页面容器 --&gt;
+  &lt;div id="page-agent" class="page active"&gt;...&lt;/div&gt;
+  &lt;div id="page-patient" class="page"&gt;...&lt;/div&gt;
+  &lt;div id="page-memo" class="page"&gt;...&lt;/div&gt;
+  &lt;div id="page-settings" class="page"&gt;...&lt;/div&gt;
+  
+  &lt;!-- 底部导航 --&gt;
+  &lt;div class="bottom-menu"&gt;...&lt;/div&gt;
+  
+  &lt;div id="loading" class="loading-mask"&gt;加载中...&lt;/div&gt;
+  
+  &lt;script&gt;...&lt;/script&gt;
+&lt;/body&gt;</pre>
+            </div>
+
+            <div class="content-item" id="html-pages">
+                <h2>页面容器</h2>
+                <div class="explanation">
+                    页面使用多个div容器实现单页应用的多页面切换效果，通过active类控制显示。
+                </div>
+                <pre>&lt;!-- 页面容器 --&gt;
+&lt;div id="page-agent" class="page active"&gt;...&lt;/div&gt;
+&lt;div id="page-patient" class="page"&gt;...&lt;/div&gt;
+&lt;div id="page-memo" class="page"&gt;...&lt;/div&gt;
+&lt;div id="page-settings" class="page"&gt;...&lt;/div&gt;</pre>
+            </div>
+
+            <div class="content-item" id="html-page-agent">
+                <h2>智能体页面</h2>
+                <div class="explanation">
+                    智能体页面是应用的主页面，包含功能开发中的提示和调试日志区域。
+                </div>
+                <pre>&lt;div id="page-agent" class="page active"&gt;
+  &lt;div style="padding:20px;text-align:center;margin-top:50px"&gt;
+    &lt;h3&gt;智能体&lt;/h3&gt;
+    &lt;p style="color:#999"&gt;功能开发中...&lt;/p&gt;
+    &lt;div id="global-debug" style="font-size:12px;text-align:left;background:#eee;padding:10px;margin-top:20px;word-break:break-all"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+            </div>
+
+            <div class="content-item" id="html-page-patient">
+                <h2>患者库页面</h2>
+                <div class="explanation">
+                    患者库页面目前显示功能开发中的提示。
+                </div>
+                <pre>&lt;div id="page-patient" class="page"&gt;
+  &lt;div style="padding:20px;text-align:center;margin-top:50px"&gt;
+    &lt;h3&gt;患者库&lt;/h3&gt;
+    &lt;p style="color:#999"&gt;功能开发中...&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+            </div>
+
+            <div class="content-item" id="html-page-memo">
+                <h2>备忘录页面</h2>
+                <div class="explanation">
+                    备忘录页面目前显示功能开发中的提示。
+                </div>
+                <pre>&lt;div id="page-memo" class="page"&gt;
+  &lt;div style="padding:20px;text-align:center;margin-top:50px"&gt;
+    &lt;h3&gt;备忘录&lt;/h3&gt;
+    &lt;p style="color:#999"&gt;功能开发中...&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+            </div>
+
+            <div class="content-item" id="html-page-settings">
+                <h2>设置页面</h2>
+                <div class="explanation">
+                    设置页面包含用户信息展示、功能菜单和测试按钮。
+                </div>
+                <pre>&lt;div id="page-settings" class="page"&gt;
+  &lt;div class="profile-header"&gt;
+    &lt;div class="avatar" style="background-image:url('./assets/avatar_placeholder.png');background-size:cover;background-color:#eee"&gt;&lt;/div&gt;
+    &lt;div class="user-info"&gt;
+      &lt;div class="name" id="user-name"&gt;未登录&lt;/div&gt;
+      &lt;div class="desc" id="user-desc"&gt;请点击下方按钮登录&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  
+  &lt;div class="section"&gt;
+    &lt;div class="cell"&gt;意见反馈 &lt;span&gt;&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="cell"&gt;我的订单 &lt;span&gt;&gt;&lt;/span&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  
+  &lt;div class="section"&gt;
+    &lt;div class="cell"&gt;资源点与会员 &lt;span&gt;&gt;&lt;/span&gt;&lt;/div&gt;
+    &lt;div class="cell"&gt;优惠码兑换 &lt;span&gt;&gt;&lt;/span&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  
+  &lt;div class="btn-group"&gt;
+    &lt;button id="btnLogin" class="btn-block btn-primary" onclick="toWxLogin()"&gt;立即登录&lt;/button&gt;
+    &lt;button id="btnLogout" class="btn-block" style="display:none" onclick="toWxLogout()"&gt;退出登录&lt;/button&gt;
+    &lt;button id="btnTestFetch" class="btn-block" onclick="testFetchData()"&gt;测试获取用户数据&lt;/button&gt;
+  &lt;/div&gt;
+  
+  &lt;!-- 版本信息和调试日志窗口 --&gt;
+&lt;/div&gt;</pre>
+            </div>
+
+            <div class="content-item" id="html-bottom-menu">
+                <h2>底部导航</h2>
+                <div class="explanation">
+                    底部导航包含四个菜单项，用于在不同功能页面之间切换。
+                </div>
+                <pre>&lt;!-- 底部导航 --&gt;
+&lt;div class="bottom-menu"&gt;
+  &lt;div class="menu-item active" onclick="switchTab('agent')"&gt;
+    &lt;img src="./assets/agent1.png" class="menu-icon" id="icon-agent"&gt;
+    &lt;span&gt;智能体&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="menu-item" onclick="switchTab('patient')"&gt;
+    &lt;img src="./assets/huanzheku0.png" class="menu-icon" id="icon-patient"&gt;
+    &lt;span&gt;患者库&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="menu-item" onclick="switchTab('memo')"&gt;
+    &lt;img src="./assets/beiwanglu0.png" class="menu-icon" id="icon-memo"&gt;
+    &lt;span&gt;备忘录&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="menu-item" onclick="switchTab('settings')"&gt;
+    &lt;img src="./assets/shezhi0.png" class="menu-icon" id="icon-settings"&gt;
+    &lt;span&gt;设置&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+            </div>
+
+            <!-- CSS样式部分 -->
+            <div class="content-item" id="css-styles">
+                <h2>CSS样式</h2>
+                <div class="explanation">
+                    CSS样式定义了页面的布局、颜色主题和组件样式，使用CSS变量实现主题统一。
+                </div>
+                <pre>&lt;style&gt;
+  :root{--primary-color:#0DA2E7;--text-color:#1f2328;--muted:#667085;--bg-color:#ECF5FB;--white:#fff}
+  body{margin:0;font-family:PingFang SC,Microsoft YaHei,system-ui,Arial;color:var(--text-color);background:var(--bg-color);padding-bottom:60px}
+  .page{display:none;min-height:100vh;background:var(--bg-color)}
+  .page.active{display:block}
+  
+  /* 底部导航 */
+  .bottom-menu{position:fixed;bottom:0;left:0;right:0;height:50px;background:var(--white);display:grid;grid-template-columns:repeat(4,1fr);align-items:center;border-top:1px solid #eee;z-index:999;padding-bottom:env(safe-area-inset-bottom)}
+  /* ... 更多样式 ... */
+&lt;/style&gt;</pre>
+            </div>
+
+            <div class="content-item" id="css-variables">
+                <h2>CSS变量定义</h2>
+                <div class="explanation">
+                    使用CSS变量定义全局颜色主题，方便统一管理和修改。
+                </div>
+                <pre>:root{
+  --primary-color:#0DA2E7;
+  --text-color:#1f2328;
+  --muted:#667085;
+  --bg-color:#ECF5FB;
+  --white:#fff
+}</pre>
+            </div>
+
+            <div class="content-item" id="css-layout">
+                <h2>页面布局</h2>
+                <div class="explanation">
+                    定义了页面的基础布局，包括body样式、页面容器和响应式设计。
+                </div>
+                <pre>body{
+  margin:0;
+  font-family:PingFang SC,Microsoft YaHei,system-ui,Arial;
+  color:var(--text-color);
+  background:var(--bg-color);
+  padding-bottom:60px
+}
+
+.page{
+  display:none;
+  min-height:100vh;
+  background:var(--bg-color)
+}
+
+.page.active{
+  display:block
+}</pre>
+            </div>
+
+            <div class="content-item" id="css-components">
+                <h2>组件样式</h2>
+                <div class="explanation">
+                    定义了应用中使用的各种UI组件样式，如按钮、单元格、section等。
+                </div>
+                <pre>.btn-group{padding:20px}
+.btn-block{display:block;width:100%;padding:12px 0;border-radius:8px;border:none;font-size:16px;margin-bottom:16px;background:var(--white);color:var(--text-color)}
+.btn-primary{background:var(--primary-color);color:var(--white)}
+
+.section{background:var(--white);margin-bottom:12px}
+.cell{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #f9f9f9;font-size:15px}</pre>
+            </div>
+
+            <div class="content-item" id="css-profile">
+                <h2>个人中心样式</h2>
+                <div class="explanation">
+                    定义了个人中心页面的头像、用户信息等样式。
+                </div>
+                <pre>.profile-header{background:var(--white);padding:30px 20px;display:flex;align-items:center;margin-bottom:12px}
+.avatar{width:60px;height:60px;border-radius:50%;background:#eee;margin-right:16px}
+.user-info .name{font-size:18px;font-weight:600;margin-bottom:4px}
+.user-info .desc{font-size:12px;color:var(--muted)}</pre>
+            </div>
+
+            <div class="content-item" id="css-bottom-menu">
+                <h2>底部导航样式</h2>
+                <div class="explanation">
+                    定义了底部导航栏的布局、菜单项和图标的样式。
+                </div>
+                <pre>.bottom-menu{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  height:50px;
+  background:var(--white);
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  align-items:center;
+  border-top:1px solid #eee;
+  z-index:999;
+  padding-bottom:env(safe-area-inset-bottom)
+}
+
+.menu-item{
+  text-align:center;
+  font-size:10px;
+  color:var(--muted);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center
+}
+
+.menu-item.active{
+  color:var(--primary-color)
+}
+
+.menu-icon{
+  width:24px;
+  height:24px;
+  margin-bottom:2px
+}</pre>
+            </div>
+
+            <!-- JavaScript逻辑部分 -->
+            <div class="content-item" id="js-logic">
+                <h2>JavaScript逻辑</h2>
+                <div class="explanation">
+                    JavaScript代码实现了应用的核心功能，包括日志记录、API调用、页面交互和状态管理。
+                </div>
+                <pre>&lt;script&gt;
+  window.__MDY_CONFIG__ = {...};
+  
+  // 日志辅助函数：同时输出到控制台和屏幕
+  const log = (t, m, d) =&gt; {...}
+  const err = (t, m, d) =&gt; {...}
+  
+  // API模块：明道云接口封装
+  const MdyAPI = {...}
+  
+  // 页面交互逻辑
+  const state = {...}
+  window.switchTab = (key) =&gt; {...}
+  window.toWxLogin = () =&gt; {...}
+  window.toWxLogout = () =&gt; {...}
+  window.testFetchData = async () =&gt; {...}
+  
+  // ... 更多逻辑 ...
+&lt;/script&gt;</pre>
+            </div>
+
+            <div class="content-item" id="js-global-config">
+                <h2>全局配置</h2>
+                <div class="explanation">
+                    定义了应用的全局配置参数，包括明道云API的密钥和工作表信息。
+                </div>
+                <pre>window.__MDY_CONFIG__ = {
+  appKey: '59c7bdc2cdf74e5e',
+  sign: 'YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==',
+  worksheetId: 'qjsz',
+  rowId: '9e5a5ed8-258b-4f20-a5c0-a1d9b9a97c2f',
+  apiUrl: 'https://api.mingdao.com/v2/open/worksheet/getRowByIdPost'
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-utils">
+                <h2>工具函数</h2>
+                <div class="explanation">
+                    提供了日志记录和错误处理的工具函数，方便调试和问题追踪。
+                </div>
+                <pre>// 日志辅助函数：同时输出到控制台和屏幕
+const log = (t, m, d) =&gt; {
+  const time = new Date().toLocaleTimeString();
+  // 控制台输出
+  console.log(`[${t}] ${time} - ${m}`, d || '');
+  // 屏幕输出
+  // ...
+}
+
+const err = (t, m, d) =&gt; {
+  const time = new Date().toLocaleTimeString();
+  console.error(`[${t}] ${time} - ${m}`, d || '');
+  // 屏幕输出
+  // ...
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-log">
+                <h2>日志函数(log)</h2>
+                <div class="explanation">
+                    日志函数用于记录应用运行时的信息，同时输出到控制台和页面上的日志窗口。
+                </div>
+                <pre>const log = (t, m, d) =&gt; {
+  const time = new Date().toLocaleTimeString();
+  // 控制台输出
+  console.log(`[${t}] ${time} - ${m}`, d || '');
+  
+  // 屏幕输出
+  const logEl = document.getElementById('app-logs');
+  if (logEl) {
+    const line = document.createElement('div');
+    line.style.marginBottom = '4px';
+    line.style.borderBottom = '1px dashed #333';
+    
+    let detailStr = '';
+    try {
+      if (d) detailStr = typeof d === 'object' ? JSON.stringify(d) : String(d);
+    } catch(e) { detailStr = '[对象循环引用]'; }
+    
+    line.innerHTML = `&lt;span style="color:#888"&gt;[${time}]&lt;/span&gt; &lt;span style="color:#4facfe"&gt;[${t}]&lt;/span&gt; ${m} &lt;span style="color:#aaa"&gt;${detailStr}&lt;/span&gt;`;
+    const anchor = logEl.children.length > 1 ? logEl.children[1] : null;
+    logEl.insertBefore(line, anchor);
+  }
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-err">
+                <h2>错误函数(err)</h2>
+                <div class="explanation">
+                    错误函数用于记录应用运行时的错误信息，使用红色显示并输出到控制台和页面日志窗口。
+                </div>
+                <pre>const err = (t, m, d) =&gt; {
+  const time = new Date().toLocaleTimeString();
+  console.error(`[${t}] ${time} - ${m}`, d || '');
+  
+  const logEl = document.getElementById('app-logs');
+  if (logEl) {
+    const line = document.createElement('div');
+    line.style.marginBottom = '4px';
+    line.style.color = '#ff6b6b';
+    line.style.borderBottom = '1px dashed #333';
+    
+    let detailStr = '';
+    try {
+       if (d) detailStr = typeof d === 'object' ? JSON.stringify(d) : String(d);
+    } catch(e) { detailStr = '[Error Object]'; }
+
+    line.innerHTML = `&lt;span style="color:#888"&gt;[${time}]&lt;/span&gt; &lt;span style="color:#ff6b6b"&gt;[${t}]&lt;/span&gt; ${m} &lt;span&gt;${detailStr}&lt;/span&gt;`;
+    const anchor = logEl.children.length > 1 ? logEl.children[1] : null;
+    logEl.insertBefore(line, anchor);
+  }
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-api">
+                <h2>API模块</h2>
+                <div class="explanation">
+                    封装了与明道云API的交互，包括用户信息获取和数据处理功能。
+                </div>
+                <pre>// ----------------------------------------------------------------------
+// API模块：明道云接口封装
+// ----------------------------------------------------------------------
+const MdyAPI = {
+  async fetchUserInfo(openid) {
+    // ...
+  },
+
+  processUserData(row) {
+    // ...
+  }
+};</pre>
+            </div>
+
+            <div class="content-item" id="js-mdyapi">
+                <h2>MdyAPI对象</h2>
+                <div class="explanation">
+                    MdyAPI对象封装了与明道云API的所有交互方法，实现了数据获取和处理的逻辑。
+                </div>
+                <pre>const MdyAPI = {
+  async fetchUserInfo(openid) {
+    // 获取用户信息的异步方法
+  },
+
+  processUserData(row) {
+    // 处理用户数据的同步方法
+  }
+};</pre>
+            </div>
+
+            <div class="content-item" id="js-fetchuserinfo">
+                <h2>fetchUserInfo方法</h2>
+                <div class="explanation">
+                    fetchUserInfo方法是获取用户信息的核心方法，实现了与明道云API的异步通信。
+                </div>
+                <pre>async fetchUserInfo(openid) {
+  log('数据获取', '开始获取用户信息', { openid });
+  
+  // 直接实现通过openid获取用户数据的逻辑
+  const appKey = "59c7bdc2cdf74e5e";
+  const sign = "YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==";
+  const baseUrl = "https://api.mingdao.com/v2/open/worksheet/getFilterRows";
+  const worksheetId = "yonghu";
+  
+  try {
+    // 构造请求体
+    const requestBody = {...};
+    
+    // 发送请求
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() =&gt; controller.abort(), 5000);
+    
+    const response = await fetch(baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    const res = await response.json();
+    // 处理返回结果
+    // ...
+    
+    return userData;
+  } catch (error) {
+    log('数据获取', 'API调用异常', { error: error.message });
+    return null;
+  }
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-request-body">
+                <h2>请求体构造</h2>
+                <div class="explanation">
+                    构造API请求的请求体，包含应用密钥、签名、工作表ID和查询条件等信息。
+                </div>
+                <pre>// 构造请求体
+const requestBody = {
+  "appKey": appKey,
+  "sign": sign,
+  "worksheetId": worksheetId,
+  "viewId": "",
+  "pageSize": 50,
+  "pageIndex": 1,
+  "keyWords": "",
+  "listType": 0,
+  "filters": [
+    {
+      "controlId": "openId",
+      "dataType": 2,
+      "spliceType": 1,
+      "filterType": 2,
+      "value": openid
+    },
+    {
+      "controlId": "del",
+      "dataType": 2,
+      "spliceType": 1,
+      "filterType": 6,
+      "value": true
+    }
+  ],
+  "sortId": "ctime",
+  "isAsc": "true",
+  "notGetTotal": "false",
+  "useControlId": "false",
+  "getSystemControl": "false"
+};</pre>
+            </div>
+
+            <div class="content-item" id="js-timeout-control">
+                <h2>超时控制</h2>
+                <div class="explanation">
+                    使用AbortController实现请求超时控制，防止请求长时间无响应导致应用卡顿。
+                </div>
+                <pre>// 发送请求
+const controller = new AbortController();
+const timeoutId = setTimeout(() =&gt; controller.abort(), 5000);
+
+const response = await fetch(baseUrl, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(requestBody),
+  signal: controller.signal
+});
+
+clearTimeout(timeoutId);</pre>
+            </div>
+
+            <div class="content-item" id="js-response-handling">
+                <h2>响应处理</h2>
+                <div class="explanation">
+                    对API返回的响应进行处理，包括错误检查、数据验证和格式化。
+                </div>
+                <pre>// 处理返回结果
+if (!res) {
+  log('数据获取', 'API调用失败：未返回任何结果');
+  return null;
+}
+
+if (!res.success) {
+  log('数据获取', 'API调用失败', { errorCode: res.error_code, errorMsg: res.error_msg });
+  return null;
+}
+
+if (!res.data) {
+  log('数据获取', 'API返回成功但无数据');
+  return null;
+}
+
+if (!Array.isArray(res.data.rows)) {
+  log('数据获取', 'API返回的数据结构不符合预期：rows不是数组', { rowsType: typeof res.data.rows, rowsContent: res.data.rows });
+  return null;
+}
+
+if (res.data.rows.length === 0) {
+  log('数据获取', '未找到匹配的用户数据');
+  return null;
+}
+
+// 获取到有效用户数据
+log('数据获取', '获取到有效用户数据，开始处理', { rowCount: res.data.rows.length });
+const userData = this.processUserData(res.data.rows[0]);
+log('数据获取', '用户数据处理完成', userData);
+return userData;</pre>
+            </div>
+
+            <div class="content-item" id="js-processuserdata">
+                <h2>processUserData方法</h2>
+                <div class="explanation">
+                    处理从API获取的原始用户数据，提取需要的信息并格式化。
+                </div>
+                <pre>processUserData(row) {
+  const name = row && row.mingcheng ? row.mingcheng : '未命名用户';
+  let avatarUrl = './assets/avatar_placeholder.png';
+  try {
+    if (row && row.touxiang) {
+      let avatarData = row.touxiang;
+      if (typeof avatarData === 'string') avatarData = JSON.parse(avatarData);
+      if (Array.isArray(avatarData) && avatarData.length > 0) {
+        const fileObj = avatarData[0];
+        if (fileObj && fileObj.large_thumbnail_full_path) {
+          avatarUrl = fileObj.large_thumbnail_full_path;
+        } else if (fileObj && fileObj.file_url) {
+          avatarUrl = String(fileObj.file_url).split('?')[0] + '?imageView2/2/w/1280/h/800';
+        } else if (fileObj) {
+          avatarUrl = fileObj.url || fileObj.original_file_full_path || avatarUrl;
+        }
+      }
+    }
+  } catch (e) {
+    err('数据处理', '头像解析失败', e);
+  }
+  return { name, avatar: avatarUrl, raw: row };
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-page">
+                <h2>页面交互逻辑</h2>
+                <div class="explanation">
+                    实现了页面的交互功能，包括状态管理、Tab切换、微信登录和数据测试等。
+                </div>
+                <pre>// ----------------------------------------------------------------------
+// 页面交互逻辑
+// ----------------------------------------------------------------------
+
+// 状态管理
+const state = {
+  isLoggedIn: false,
+  userInfo: null,
+  openid: null
+}
+
+// 切换Tab
+window.switchTab = (key) => {...}
+
+// 小程序跳转
+window.toWxLogin = () => {...}
+window.toWxLogout = () => {...}
+
+window.testFetchData = async () => {...}
+
+// 更新UI状态
+const updateAuthUI = () => {...}
+
+// 明道云全局数据获取
+const initGlobalData = async () => {...}</pre>
+            </div>
+
+            <div class="content-item" id="js-state">
+                <h2>状态管理</h2>
+                <div class="explanation">
+                    使用简单的对象实现状态管理，跟踪用户登录状态和用户信息。
+                </div>
+                <pre>// 状态管理
+const state = {
+  isLoggedIn: false,
+  userInfo: null,
+  openid: null
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-switchtab">
+                <h2>switchTab方法</h2>
+                <div class="explanation">
+                    switchTab方法实现了页面之间的切换功能，包括页面显示控制和图标状态更新。
+                </div>
+                <pre>// 切换Tab
+window.switchTab = (key) => {
+  // 1. 隐藏所有页面
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'))
+  // 2. 显示目标页面
+  document.getElementById(`page-${key}`).classList.add('active')
+  
+  // 3. 更新图标状态
+  const icons = {
+    agent: 'agent',
+    patient: 'huanzheku',
+    memo: 'beiwanglu',
+    settings: 'shezhi'
+  }
+  
+  Object.keys(icons).forEach(k => {
+    const iconEl = document.getElementById(`icon-${k}`)
+    const baseName = icons[k]
+    const isCurrent = k === key
+    // 0为未选中，1为选中
+    iconEl.src = `./assets/${baseName}${isCurrent ? '1' : '0'}.png`
+    iconEl.parentElement.classList.toggle('active', isCurrent)
+  })
+  
+  log('交互日志', `切换到了 ${key} 页面`)
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-wxlogin">
+                <h2>微信登录方法</h2>
+                <div class="explanation">
+                    toWxLogin和toWxLogout方法实现了与微信小程序的登录和退出交互。
+                </div>
+                <pre>// 小程序跳转
+window.toWxLogin = () => {
+  log('交互日志', '点击立即登录，跳转小程序')
+  if(window.wx && window.wx.miniProgram) {
+    wx.miniProgram.navigateTo({url: '/pages/login/index'})
+  } else {
+    alert('请在微信小程序中打开')
+  }
+}
+
+window.toWxLogout = () => {
+  log('交互日志', '点击退出登录，跳转小程序')
+  if(window.wx && window.wx.miniProgram) {
+    wx.miniProgram.navigateTo({url: '/pages/logout/index'})
+  }
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-testfetch">
+                <h2>测试数据获取</h2>
+                <div class="explanation">
+                    testFetchData方法用于测试MingdaoQuery组件的数据获取功能。
+                </div>
+                <pre>window.testFetchData = async () => {
+  // 使用全局配置中的rowid和worksheetId进行测试
+  const { rowId, worksheetId } = window.__MDY_CONFIG__;
+  log('测试组件', '开始测试MingdaoQuery组件调用', { rowId, worksheetId });
+
+  if (!window.MingDaoYunAPI) {
+    err('测试组件', '组件未加载');
+    return;
+  }
+  
+  try {
+    const api = new window.MingDaoYunAPI();
+    const res = await api.getData(rowId, worksheetId);
+    log('测试组件', 'API返回(原文)', res);
+    if (!res) return;
+    if (!res.success) {
+      err('测试组件', 'API调用失败', res);
+      return;
+    }
+    log('测试组件', '数据获取成功', res.data);
+  } catch (e) {
+    err('测试组件', '组件调用失败', e);
+  }
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-updateui">
+                <h2>UI更新方法</h2>
+                <div class="explanation">
+                    updateAuthUI方法根据用户登录状态更新页面UI，包括按钮显示和用户信息展示。
+                </div>
+                <pre>// 更新UI状态
+const updateAuthUI = () => {
+  const btnLogin = document.getElementById('btnLogin')
+  const btnLogout = document.getElementById('btnLogout')
+  const nameEl = document.getElementById('user-name')
+  const descEl = document.getElementById('user-desc')
+  const avatarEl = document.querySelector('.profile-header .avatar') // 获取头像元素
+  
+  if(state.isLoggedIn) {
+    btnLogin.style.display = 'none'
+    btnLogout.style.display = 'block'
+    
+    // 更新文本
+    nameEl.textContent = state.userInfo ? (state.userInfo.name || '用户') : '用户'
+    descEl.textContent = '欢迎回来'
+    
+    // 更新头像
+    if (state.userInfo && state.userInfo.avatar) {
+      avatarEl.style.backgroundImage = `url('${state.userInfo.avatar}')`
+    }
+  } else {
+    btnLogin.style.display = 'block'
+    btnLogout.style.display = 'none'
+    nameEl.textContent = '未登录'
+    descEl.textContent = '请点击下方按钮登录'
+    avatarEl.style.backgroundImage = "url('./assets/avatar_placeholder.png')"
+  }
+}</pre>
+            </div>
+
+            <div class="content-item" id="js-init">
+                <h2>初始化方法</h2>
+                <div class="explanation">
+                    initGlobalData方法用于初始化应用的全局数据，调用MingdaoQuery组件获取配置信息。
+                </div>
+                <pre>// 明道云全局数据获取
+const initGlobalData = async () => {
+  const { rowId, worksheetId } = window.__MDY_CONFIG__
+  const debugEl = document.getElementById('global-debug')
+  
+  try {
+    log('明道云日志', '开始获取全局配置', { rowId, worksheetId })
+    
+    if (!window.MingDaoYunAPI) {
+      throw new Error('MingdaoQuery组件未加载')
+    }
+    
+    const api = new window.MingDaoYunAPI()
+    const res = await api.getData(rowId, worksheetId)
+    // ... 数据处理和初始化 ...
+  } catch (error) {
+    // ... 错误处理 ...
+  }
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM加载完成后绑定事件
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取所有树节点
+            const treeNodes = document.querySelectorAll('.tree-node');
+            // 获取所有内容项
+            const contentItems = document.querySelectorAll('.content-item');
+
+            // 给每个树节点绑定点击事件
+            treeNodes.forEach(node => {
+                node.addEventListener('click', function() {
+                    // 移除所有节点的active类
+                    treeNodes.forEach(n => n.classList.remove('active'));
+                    // 给当前节点添加active类
+                    this.classList.add('active');
+
+                    // 获取当前节点对应的内容项ID
+                    const contentId = this.getAttribute('data-node');
+                    // 移除所有内容项的active类
+                    contentItems.forEach(item => item.classList.remove('active'));
+                    // 给对应内容项添加active类
+                    document.getElementById(contentId).classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

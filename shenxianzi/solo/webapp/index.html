@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>神仙子陪诊助手</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Icons (using simple unicode/text for now, or CDN if allowed, sticking to text/css shapes for offline safety) -->
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="app-header">
+        <button id="backBtn" class="back-btn" style="display: none;">←</button>
+        <h1 id="pageTitle">任务中心</h1>
+        <div style="width: 24px;"></div> <!-- Spacer for balance -->
+    </header>
+
+    <div class="container">
+        
+        <!-- SECTION: Dashboard (Task List) -->
+        <section id="dashboard" class="section active">
+            <div class="card">
+                <h2>当前任务</h2>
+                <div class="task-list">
+                    <div class="task-item active" onclick="app.navigateTo('pre-diagnosis')">
+                        <span class="task-icon">📞</span>
+                        <div>
+                            <h3>1. 诊前沟通</h3>
+                            <p>电话采集患者信息</p>
+                        </div>
+                    </div>
+                    <div class="task-item" onclick="app.navigateTo('visit-record')">
+                        <span class="task-icon">🏥</span>
+                        <div>
+                            <h3>2. 就诊登记</h3>
+                            <p>到院签到与信息关联</p>
+                        </div>
+                    </div>
+                    <div class="task-item" onclick="app.navigateTo('report-gen')">
+                        <span class="task-icon">📄</span>
+                        <div>
+                            <h3>3. 报告生成</h3>
+                            <p>OCR识别与总结报告</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Module 1 - Pre-diagnosis -->
+        <section id="pre-diagnosis" class="section">
+            <div class="card">
+                <h2>电话沟通助手</h2>
+                <p class="text-muted">系统将自动录音并转写</p>
+                <button class="btn" id="startCallBtn" onclick="app.toggleCallState()">📞 开始通话</button>
+                <div id="recordingIndicator" style="display:none; color: red; text-align: center; margin: 10px;">
+                    ● 正在录音... (00:00)
+                </div>
+            </div>
+
+            <!-- Teleprompter -->
+            <div id="teleprompter" class="card" style="display:none;">
+                <h3>话术提词器</h3>
+                <div class="form-group">
+                    <label>1. 询问症状 <span class="tooltip-icon" title="询问具体表现、部位、程度">?</span></label>
+                    <p class="guide-text">"您好，请问您目前最明显的不舒服是在哪里？具体是什么感觉？"</p>
+                </div>
+                <div class="form-group">
+                    <label>2. 询问起病时间</label>
+                    <p class="guide-text">"这个症状大概是从什么时候开始的？"</p>
+                </div>
+                <div class="form-group">
+                    <label>3. 核心疑问</label>
+                    <p class="guide-text">"这次去医院，您最想解决什么问题？"</p>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="app.endCall()">结束通话并生成需求书</button>
+            </div>
+
+            <!-- AI Result Preview -->
+            <div id="aiResult" class="card" style="display:none;">
+                <h3>AI 自动填充结果</h3>
+                <form id="preDiagForm">
+                    <div class="form-group">
+                        <label>核心症状</label>
+                        <input type="text" id="symptom" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>起病时间</label>
+                        <input type="text" id="startTime" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>核心疑问</label>
+                        <textarea id="coreQuestion"></textarea>
+                    </div>
+                    <button class="btn" type="button" onclick="app.savePreDiag()">确认并保存</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION: Module 2 - Visit Record -->
+        <section id="visit-record" class="section">
+            <div class="card">
+                <h2>患者信息关联</h2>
+                <div class="form-group">
+                    <label>选择患者</label>
+                    <select id="patientSelect" onchange="app.loadPatientData()">
+                        <option value="">请选择...</option>
+                        <option value="1">张三 (男, 56岁)</option>
+                        <option value="2">李四 (女, 32岁)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="patientInfo" class="card" style="display:none;">
+                <h3>基本档案 (自动导入)</h3>
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" id="pName" readonly>
+                </div>
+                <div class="form-group">
+                    <label>药物过敏史 <span style="color:red; font-weight:bold;">(重要)</span></label>
+                    <input type="text" id="pAllergy" readonly style="color:red; background:#fff0f0;">
+                </div>
+                
+                <h3>本次就诊类型</h3>
+                <div class="tags-container">
+                    <div class="tag" onclick="app.selectVisitType(this, 'first')">首诊</div>
+                    <div class="tag" onclick="app.selectVisitType(this, 'return')">复诊</div>
+                </div>
+                <br>
+                <button class="btn" onclick="app.saveVisitRecord()">确认登记</button>
+            </div>
+        </section>
+
+        <!-- SECTION: Module 3 - Report Generation -->
+        <section id="report-gen" class="section">
+            <div class="card">
+                <h2>诊后总结报告</h2>
+                
+                <h3>1. 诊前回顾 (自动引用)</h3>
+                <div class="form-group">
+                    <label>就诊诉求</label>
+                    <input type="text" id="reportRequest" readonly>
+                </div>
+
+                <h3>2. 资料扫描 (OCR)</h3>
+                <div class="camera-box" onclick="app.simulateOCR()">
+                    📷 点击拍摄病历/检查单
+                    <br><small>(模拟OCR识别)</small>
+                </div>
+
+                <div id="ocrResult" style="display:none;">
+                    <div class="form-group">
+                        <label>识别结果 - 诊断</label>
+                        <input type="text" id="ocrDiagnosis">
+                    </div>
+                    <div class="form-group">
+                        <label>识别结果 - 医嘱</label>
+                        <textarea id="ocrAdvice" rows="3"></textarea>
+                    </div>
+                    <p class="text-muted"><small>* 请核对识别结果，如有误可手动修改</small></p>
+                </div>
+
+                <h3>3. 补充说明</h3>
+                <div class="form-group">
+                    <textarea placeholder="输入其他医嘱或备注..." rows="3"></textarea>
+                </div>
+
+                <button class="btn" onclick="alert('报告已生成并发送！')">生成最终报告</button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/mock-data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

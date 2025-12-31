@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="18px" height="14px" viewBox="0 0 18 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>终身荣誉版</title>
+    <defs>
+        <linearGradient x1="44.7769143%" y1="0%" x2="53.1848694%" y2="97.62731%" id="linearGradient-1">
+            <stop stop-color="#FFE586" offset="0%"></stop>
+            <stop stop-color="#FFE384" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="44.7769143%" y1="0%" x2="52.7753741%" y2="100%" id="linearGradient-2">
+            <stop stop-color="#E47800" offset="0%"></stop>
+            <stop stop-color="#F69200" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="100%" x2="50%" y2="6.16297582e-31%" id="linearGradient-3">
+            <stop stop-color="#E67B01" offset="0%"></stop>
+            <stop stop-color="#D06801" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-4">
+            <stop stop-color="#EF8B00" offset="0%"></stop>
+            <stop stop-color="#FFA300" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="100%" y1="35.1847651%" x2="0%" y2="62.1879553%" id="linearGradient-5">
+            <stop stop-color="#FFDC6C" offset="0%"></stop>
+            <stop stop-color="#FFDF6F" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-6">
+            <stop stop-color="#FFED94" offset="0%"></stop>
+            <stop stop-color="#FFFFBB" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="100%" y1="35.1847651%" x2="0%" y2="62.1879553%" id="linearGradient-7">
+            <stop stop-color="#F79300" offset="0%"></stop>
+            <stop stop-color="#FFB710" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-8">
+            <stop stop-color="#FFCB3E" offset="0%"></stop>
+            <stop stop-color="#FFA100" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-9">
+            <stop stop-color="#FFD355" offset="0%"></stop>
+            <stop stop-color="#FFC12E" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-10">
+            <stop stop-color="#FFFFFF" offset="0%"></stop>
+            <stop stop-color="#FFFFFF" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-11">
+            <stop stop-color="#FFFFFF" offset="0%"></stop>
+            <stop stop-color="#FFFFFF" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-12">
+            <stop stop-color="#DF7B00" offset="0%"></stop>
+            <stop stop-color="#D54D00" offset="100%"></stop>
+        </linearGradient>
+        <radialGradient cx="84.5185107%" cy="77.3034224%" fx="84.5185107%" fy="77.3034224%" r="93.1508613%" id="radialGradient-13">
+            <stop stop-color="#EC7B00" offset="0%"></stop>
+            <stop stop-color="#FC9D00" offset="57.0921873%"></stop>
+            <stop stop-color="#FFD661" offset="100%"></stop>
+        </radialGradient>
+    </defs>
+    <g id="头像菜单" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="用户头像菜单" transform="translate(-1140, -135)">
+            <g id="终身荣誉版" transform="translate(1140, 135)">
+                <polygon id="路径-12" fill="#ECFFFF" points="1.5 5 3.75 14 14.25 14 16.5 5 12 6.5 9 1.75 6 6.5"></polygon>
+                <polygon id="路径-13" fill="url(#linearGradient-1)" points="3.75 14 4.75 12.75 3.5 7 1.5 5"></polygon>
+                <polygon id="路径-13" fill="url(#linearGradient-2)" transform="translate(14.875, 9.5) scale(-1, 1) translate(-14.875, -9.5)" points="15.5 14 16.5 12.75 15.25 7 13.25 5"></polygon>
+                <polygon id="路径-14" fill="url(#linearGradient-3)" points="3.75 14 14.25 14 13.25 12.75 4.75 12.75"></polygon>
+                <polygon id="路径-15" fill="url(#linearGradient-4)" points="9 1.75 9 4 11.5 8 12 6.5"></polygon>
+                <polygon id="路径-16" fill="url(#linearGradient-5)" points="11.5 8 12 6.5 16.5 5 14.5 7"></polygon>
+                <polygon id="路径-15" fill="url(#linearGradient-6)" transform="translate(7.5, 4.875) scale(-1, 1) translate(-7.5, -4.875)" points="6 1.75 6 4 8.5 8 9 6.5"></polygon>
+                <polygon id="路径-16" fill="url(#linearGradient-7)" transform="translate(4, 6.5) scale(-1, 1) translate(-4, -6.5)" points="1.5 8 2 6.5 6.5 5 4.5 7"></polygon>
+                <polygon id="路径-17" fill="url(#linearGradient-8)" points="3.5 7 4.75 12.75 13.25 12.75 14.5 7 11.5 8 9 4 6.5 8"></polygon>
+                <path d="M3.5,7 L4.75,12.75 L6.75,12.75 C7.58333333,11.5833333 8.16666667,10.4166667 8.5,9.25 C8.83333333,8.08333333 9,6.33333333 9,4 L6.5,8 L3.5,7 Z" id="路径-17" fill="url(#linearGradient-9)"></path>
+                <polygon id="路径-18" fill="url(#linearGradient-10)" points="6.5 8 9 4 11.5 8 9 4.18083777"></polygon>
+                <polygon id="路径-19" fill="url(#linearGradient-11)" points="3.5 7 4.75 12.75 3.61635594 7.02748766"></polygon>
+                <path d="M6.5,8.5 L7.5,8.5 L9,10.75 L10.5,8.5 L11.5,8.5 L9.42399915,11.8216014 C9.27764399,12.0557696 8.9691688,12.1269562 8.73500053,11.980601 C8.67061596,11.9403607 8.6162412,11.8859859 8.57600085,11.8216014 L6.5,8.5 L6.5,8.5 Z" id="路径-20" fill="url(#linearGradient-12)"></path>
+                <circle id="椭圆形备份-3" fill="url(#radialGradient-13)" cx="1.25" cy="4.75" r="1.25"></circle>
+                <circle id="椭圆形备份-2" fill="url(#radialGradient-13)" cx="16.75" cy="4.75" r="1.25"></circle>
+                <circle id="椭圆形备份" fill="url(#radialGradient-13)" cx="9" cy="1.25" r="1.25"></circle>
+            </g>
+        </g>
+    </g>
+</svg>

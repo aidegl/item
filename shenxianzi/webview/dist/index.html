@@ -1,0 +1,2740 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <!-- 防缓存 Meta -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+  <!-- 引入 vConsole 方便调试 -->
+  <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+  <script>var vConsole = new VConsole();</script>
+  <!-- 引入 Markdown 渲染库 -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- 复用组件：用户数据获取 -->
+  <script src="/components/MingdaoQuery.js"></script>
+  <script src="/components/MingdaoAdd.js"></script>
+  <script src="/components/MingdaoUpdate.js"></script>
+  <script src="/components/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
+    onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/index.css">
+  <title>神仙子</title>
+
+  <script>
+    window.__MDY_CONFIG__ = {
+      appKey: '59c7bdc2cdf74e5e',
+      sign: 'YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==',
+      worksheetId: 'qjsz',
+      rowId: '9e5a5ed8-258b-4f20-a5c0-a1d9b9a97c2f',
+      apiUrl: 'https://api.mingdao.com/v2/open/worksheet/getRowByIdPost'
+    }
+  </script>
+</head>
+
+<body>
+
+  <!-- 页面容器 -->
+  <!-- 智能体对话页面 -->
+  <div id="page-agent" class="page active">
+    <div class="chat-container">
+
+
+      <!-- 消息区域 -->
+      <div class="chat-messages" id="chat-messages">
+        <!-- 欢迎消息 -->
+        <div class="message message-bot">
+          <div class="message-avatar bot-avatar">
+            <img src="./assets/agent1.png" alt="智能体">
+          </div>
+          <div class="message-content-wrapper">
+            <div class="message-bubble bot-bubble">
+              <p>你好！我是Coze智能体助手，很高兴为你服务。</p>
+              <p>有什么我可以帮助你的吗？</p>
+            </div>
+            <div class="message-time">现在</div>
+          </div>
+        </div>
+
+        <!-- 消息模板（用于JavaScript动态插入） -->
+        <template id="message-template-user">
+          <div class="message message-user">
+            <div class="message-content-wrapper">
+              <div class="message-bubble user-bubble"></div>
+              <div class="message-time"></div>
+            </div>
+            <div class="message-avatar user-avatar">
+              <img src="./assets/avatar_placeholder.png" alt="用户">
+            </div>
+          </div>
+        </template>
+
+        <template id="message-template-bot">
+          <div class="message message-bot">
+            <div class="message-avatar bot-avatar">
+              <img src="./assets/agent1.png" alt="智能体">
+            </div>
+            <div class="message-content-wrapper">
+              <div class="message-bubble bot-bubble">
+                <div class="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+              <div class="message-time"></div>
+            </div>
+          </div>
+        </template>
+
+        <template id="message-template-bot-streaming">
+          <div class="message message-bot">
+            <div class="message-avatar bot-avatar">
+              <img src="./assets/agent1.png" alt="智能体">
+            </div>
+            <div class="message-content-wrapper">
+              <div class="message-bubble bot-bubble streaming">
+                <span class="stream-content"></span>
+                <span class="cursor">|</span>
+              </div>
+              <div class="message-time"></div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- 输入区域 -->
+      <div class="chat-input-area">
+        <div class="input-wrapper">
+          <textarea id="chat-input" class="chat-input" placeholder="输入消息..." rows="1" onkeydown="handleKeyDown(event)"
+            oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+            </svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 调试日志 -->
+    <div id="agent-debug"
+      style="font-size:12px;text-align:left;background:#222;color:#0f0;padding:10px;margin:10px;border-radius:4px;word-break:break-all;font-family:monospace;border:1px solid #444;display:none;">
+      <div style="color:#666;border-bottom:1px solid #444;padding-bottom:5px;margin-bottom:5px;cursor:pointer;"
+        onclick="toggleAgentDebug()">-- 智能体调试日志 (点击隐藏) --</div>
+      <div id="agent-logs"></div>
+    </div>
+  </div>
+
+  <script>
+    // 智能体对话状态管理
+    const chatState = {
+      conversation_id: "",
+      isStreaming: false,
+      messages: [],
+      streamingMessage: null
+    };
+
+    // 智能体日志
+    const chatLog = (t, m, d) => {
+      const time = new Date().toLocaleTimeString();
+      const logEl = document.getElementById('agent-logs');
+      if (logEl) {
+        const line = document.createElement('div');
+        line.style.marginBottom = '4px';
+        line.style.borderBottom = '1px dashed #333';
+        let detailStr = '';
+        try {
+          if (d) detailStr = typeof d === 'object' ? JSON.stringify(d) : String(d);
+        } catch (e) { detailStr = '[对象循环引用]'; }
+        line.innerHTML = `<span style="color:#888">[${time}]</span> <span style="color:#4facfe">[${t}]</span> ${m} <span style="color:#aaa">${detailStr}</span>`;
+        logEl.insertBefore(line, logEl.firstChild);
+      }
+      console.log(`[${t}] ${time} - ${m}`, d || '');
+    };
+
+    const chatErr = (t, m, d) => {
+      const time = new Date().toLocaleTimeString();
+      const logEl = document.getElementById('agent-logs');
+      if (logEl) {
+        const line = document.createElement('div');
+        line.style.marginBottom = '4px';
+        line.style.color = '#ff6b6b';
+        line.style.borderBottom = '1px dashed #333';
+        let detailStr = '';
+        try {
+          if (d) detailStr = typeof d === 'object' ? JSON.stringify(d) : String(d);
+        } catch (e) { detailStr = '[Error Object]'; }
+        line.innerHTML = `<span style="color:#888">[${time}]</span> <span style="color:#ff6b6b">[${t}]</span> ${m} <span>${detailStr}</span>`;
+        logEl.insertBefore(line, logEl.firstChild);
+      }
+      console.error(`[${t}] ${time} - ${m}`, d || '');
+    };
+
+    // 切换调试日志显示
+    window.toggleAgentDebug = () => {
+      const debugEl = document.getElementById('agent-debug');
+      debugEl.style.display = debugEl.style.display === 'none' ? 'block' : 'none';
+    };
+
+    // 自动调整输入框高度
+    window.autoResize = function (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+      updateSendButtonState();
+    };
+
+    // 处理键盘事件
+    window.handleKeyDown = function (event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    };
+
+    // 更新发送按钮状态
+    function updateSendButtonState() {
+      const input = document.getElementById('chat-input');
+      const sendBtn = document.getElementById('send-btn');
+      const isEmpty = !input.value.trim();
+      sendBtn.disabled = isEmpty || chatState.isStreaming;
+      sendBtn.style.opacity = (isEmpty || chatState.isStreaming) ? '0.5' : '1';
+    };
+
+    // 获取当前时间
+    function getCurrentTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    };
+
+    // 格式化消息内容（支持换行）
+    function formatMessageContent(content) {
+      if (!content) return '';
+      // chatLog('formatMessageContent', '原始内容', content);
+      return content.split('\n').map(line => `<p>${escapeHtml(line)}</p>`).join('');
+    };
+
+    // 格式化Markdown内容（智能体专用）
+    function formatMarkdownContent(content) {
+      if (!content) return '';
+      // chatLog('formatMarkdownContent', 'Markdown原始', content);
+      try {
+        const html = marked.parse(content);
+        // chatLog('formatMarkdownContent', '渲染结果', html);
+        return html;
+      } catch (e) {
+        // chatErr('Markdown渲染失败', e.message, content);
+        return content.split('\n').map(line => `<p>${escapeHtml(line)}</p>`).join('');
+      }
+    };
+
+    // HTML转义
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+
+    // 添加用户消息
+    function addUserMessage(content) {
+      const messagesContainer = document.getElementById('chat-messages');
+      const template = document.getElementById('message-template-user');
+      const clone = template.content.cloneNode(true);
+
+      const bubble = clone.querySelector('.message-bubble');
+      bubble.innerHTML = formatMessageContent(content);
+
+      clone.querySelector('.message-time').textContent = getCurrentTime();
+
+      messagesContainer.appendChild(clone);
+      scrollToBottom();
+
+      chatState.messages.push({
+        role: 'user',
+        content: content,
+        time: getCurrentTime()
+      });
+
+      saveChatHistory();
+    };
+
+    // 添加机器人消息（加载中）
+    function addBotMessageLoading() {
+      const messagesContainer = document.getElementById('chat-messages');
+      const template = document.getElementById('message-template-bot');
+
+      if (!template) {
+        chatErr('模板错误', 'message-template-bot 未找到');
+        return null;
+      }
+
+      // 克隆模板内容
+      const clone = document.importNode(template.content, true);
+
+      // 在 clone 中查找 bubble
+      const bubble = clone.querySelector('.message-bubble');
+
+      if (!bubble) {
+        chatErr('模板错误', 'message-bubble 未找到');
+        return null;
+      }
+
+      clone.querySelector('.message-time').textContent = getCurrentTime();
+
+      messagesContainer.appendChild(clone);
+      scrollToBottom();
+
+      chatState.streamingMessage = {
+        role: 'bot',
+        content: '',
+        time: getCurrentTime()
+      };
+
+      return bubble;
+    };
+
+    // 更新流式消息内容
+    function updateStreamingMessage(content) {
+      if (!chatState.streamingMessage) return;
+
+      const messages = document.querySelectorAll('.message');
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage.classList.contains('message-bot')) return;
+
+      const bubble = lastMessage.querySelector('.message-bubble');
+      if (bubble.querySelector('.typing-indicator')) {
+        bubble.innerHTML = formatMessageContent(content);
+        bubble.classList.add('streaming');
+      } else {
+        bubble.innerHTML = formatMessageContent(content);
+      }
+
+      chatState.streamingMessage.content = content;
+      scrollToBottom();
+    };
+
+    // 完成流式消息
+    function finishStreamingMessage() {
+      if (!chatState.streamingMessage) return;
+
+      const messages = document.querySelectorAll('.message');
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage.classList.contains('message-bot')) return;
+
+      const bubble = lastMessage.querySelector('.message-bubble');
+      bubble.classList.remove('streaming');
+      bubble.querySelectorAll('.cursor').forEach(c => c.remove());
+
+      chatState.messages.push({ ...chatState.streamingMessage });
+      chatState.streamingMessage = null;
+
+      saveChatHistory();
+    };
+
+    // 滚动到底部
+    function scrollToBottom() {
+      const messagesContainer = document.getElementById('chat-messages');
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    };
+
+    // 保存聊天记录
+    function saveChatHistory() {
+      try {
+        localStorage.setItem('chatHistory', JSON.stringify({
+          conversation_id: chatState.conversation_id,
+          messages: chatState.messages
+        }));
+      } catch (e) {
+        chatErr('聊天记录', '保存失败', e);
+      }
+    };
+
+    // 加载聊天记录
+    function loadChatHistory() {
+      try {
+        const saved = localStorage.getItem('chatHistory');
+        if (saved) {
+          const data = JSON.parse(saved);
+          chatState.conversation_id = data.conversation_id || '';
+          chatState.messages = data.messages || [];
+
+          // 渲染历史消息
+          const messagesContainer = document.getElementById('chat-messages');
+          // 移除欢迎消息
+          const welcomeMsg = messagesContainer.querySelector('.message-bot');
+          if (welcomeMsg) welcomeMsg.remove();
+
+          chatState.messages.forEach(msg => {
+            const template = document.getElementById(msg.role === 'user' ? 'message-template-user' : 'message-template-bot');
+            const clone = template.content.cloneNode(true);
+
+            const bubble = clone.querySelector('.message-bubble');
+            // 机器人消息使用Markdown渲染，用户消息使用普通文本
+            bubble.innerHTML = msg.role === 'bot' ? formatMarkdownContent(msg.content) : formatMessageContent(msg.content);
+
+            clone.querySelector('.message-time').textContent = msg.time;
+
+            messagesContainer.appendChild(clone);
+          });
+
+          scrollToBottom();
+          chatLog('聊天记录', '已加载历史记录', { count: chatState.messages.length });
+        }
+      } catch (e) {
+        chatErr('聊天记录', '加载失败', e);
+      }
+    };
+
+    // 发送消息
+    window.sendMessage = async function () {
+      const input = document.getElementById('chat-input');
+      const content = input.value.trim();
+
+      chatLog('状态检查', { isEmpty: !content, isStreaming: chatState.isStreaming });
+
+      if (!content || chatState.isStreaming) {
+        chatLog('状态检查', '拦截发送');
+        return;
+      }
+
+      chatLog('发送消息', '开始发送', { content, conversation_id: chatState.conversation_id });
+
+      // 清空输入框
+      input.value = '';
+      input.style.height = 'auto';
+      updateSendButtonState();
+
+      // 添加用户消息
+      addUserMessage(content);
+
+      // 显示加载状态
+      const bubble = addBotMessageLoading();
+      if (!bubble) {
+        chatErr('UI错误', '消息气泡模板未找到');
+        return;
+      }
+
+      chatState.isStreaming = true;
+      chatLog('状态变更', 'isStreaming = true');
+      updateSendButtonState();
+
+      try {
+        const url = chatState.conversation_id
+          ? `https://api.coze.cn/v3/chat?conversation_id=${chatState.conversation_id}`
+          : 'https://api.coze.cn/v3/chat';
+
+        const requestBody = {
+          bot_id: '7584776894743085106',
+          user_id: '111',
+          stream: true,
+          additional_messages: [{ content, content_type: 'text', role: 'user', type: 'answer' }],
+          parameters: '{}'
+        };
+
+        chatLog('请求体', JSON.stringify(requestBody));
+        chatLog('请求URL', url);
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer pat_aSwaHdpGjZkBvWAuvs3MSs1Tn4PfMjD41W2WoVfGpcW4diQ7rdvduHvAfSOJob9C',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          const err = await response.text();
+          chatErr('请求失败', `状态:${response.status}`, err);
+          throw new Error(err);
+        }
+
+        chatLog('API响应', '状态: ' + response.status);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let streamingContent = '';
+        let currentEvent = '';
+        let currentData = '';
+        let messageData = null;
+        let lastDisplayedContent = '';
+
+        // chatLog('开始读取', '流式响应');
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            // chatLog('读取完成', '流式结束');
+            break;
+          }
+
+          const chunk = decoder.decode(value, { stream: true });
+          // chatLog('收到数据块', { 长度: chunk.length, 内容: chunk.substring(0, 300) });
+
+          // 解析SSE格式
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('event:')) {
+              currentEvent = line.slice(6).trim();
+              // chatLog('事件类型', currentEvent);
+            } else if (line.startsWith('data:')) {
+              currentData = line.slice(5).trim();
+            } else if (line === '') {
+              // 空行，触发事件处理
+              if (currentEvent && currentData) {
+                // chatLog('处理事件', { event: currentEvent, data长度: currentData.length });
+
+                try {
+                  messageData = JSON.parse(currentData);
+
+                  // 更新conversation_id（所有事件都需要）
+                  if (messageData.conversation_id) {
+                    chatState.conversation_id = messageData.conversation_id;
+                    // chatLog('对话ID更新', chatState.conversation_id);
+                  }
+
+                  // 只有 delta 事件才需要逐字显示内容
+                  if (currentEvent === 'conversation.message.delta') {
+                    // chatLog('Delta事件', JSON.stringify(messageData).substring(0, 200));
+
+                    // 提取内容增量，直接追加到累积内容
+                    if (messageData.content) {
+                      const newContent = messageData.content;
+                      const prevLength = streamingContent.length;
+                      // chatLog('提取内容', { 前长度: prevLength, 新内容长度: newContent.length, 新内容: newContent });
+
+                      // 字符逐个累积显示（打字机效果）
+                      if (bubble) {
+                        for (let i = 0; i < newContent.length; i++) {
+                          const char = newContent[i];
+                          streamingContent += char;
+                          lastDisplayedContent += char;
+                          bubble.innerHTML = formatMarkdownContent(streamingContent);
+                          scrollToBottom();
+                          // 打字机速度：中文快一些，英文慢一些
+                          const delay = char.match(/[a-zA-Z]/) ? 15 : 20;
+                          await new Promise(resolve => setTimeout(resolve, delay));
+                        }
+                        // chatLog('打字机效果', `累积显示${streamingContent.length}个字符`);
+                      }
+                    } else {
+                      // chatLog('Delta事件无content');
+                    }
+                  } else {
+                    // 非delta事件只打印事件类型，不打印内容
+                    // chatLog('跳过内容', `event=${currentEvent}`);
+                  }
+                } catch (e) {
+                  chatErr('JSON解析失败', e.message);
+                }
+              }
+              currentEvent = '';
+              currentData = '';
+            }
+          }
+        }
+
+        // chatLog('流式完成', '最终内容: ' + (streamingContent ? streamingContent.substring(0, 100) : '(空)'));
+        if (bubble) {
+          bubble.classList.remove('streaming');
+        }
+
+        // 保存到聊天状态
+        if (streamingContent) {
+          chatState.streamingMessage.content = streamingContent;
+          chatState.messages.push({ ...chatState.streamingMessage });
+          chatState.streamingMessage = null;
+          saveChatHistory();
+        }
+
+      } catch (e) {
+        chatErr('请求异常', e.message, e);
+        if (bubble) {
+          bubble.innerHTML = '<p style="color:#ff6b6b">网络错误，请检查连接后重试。</p>';
+        }
+        chatLog('请求异常', '准备关闭加载状态');
+      } finally {
+        chatLog('finally块', '开始执行');
+        chatLog('状态变更前', { isStreaming: chatState.isStreaming });
+        chatState.isStreaming = false;
+        chatLog('状态变更后', { isStreaming: chatState.isStreaming });
+        updateSendButtonState();
+        chatLog('finally块', '执行完成');
+      }
+    };
+
+    // 初始化聊天页面
+    function initChatPage() {
+      const input = document.getElementById('chat-input');
+
+      // 监听输入事件
+      input.addEventListener('input', updateSendButtonState);
+
+      // 加载聊天记录
+      loadChatHistory();
+
+      // 显示调试日志（开发环境）
+      if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        document.getElementById('agent-debug').style.display = 'block';
+      }
+
+      chatLog('智能体', '页面初始化完成');
+    };
+
+    // 页面加载完成后初始化
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initChatPage);
+    } else {
+      initChatPage();
+    }
+
+    // 页面加载时打印环境信息
+    const ua = navigator.userAgent;
+    console.log('[环境检测] 页面加载 - UserAgent:', ua);
+
+    // 初始化时设置导航栏阴影（默认为agent页面，无阴影）
+    document.addEventListener('DOMContentLoaded', () => {
+      const bottomMenu = document.querySelector('.bottom-menu');
+      if (bottomMenu) {
+        bottomMenu.classList.remove('with-shadow');
+      }
+    });
+  </script>
+
+  <style>
+    /* 智能体对话页面样式 */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100% - 83px - env(safe-area-inset-bottom));
+      background: var(--bg-color);
+    }
+
+
+
+    /* 消息区域 */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+
+    /* 消息样式 */
+    .message {
+      display: flex;
+      gap: 12px;
+      max-width: 85%;
+      animation: messageIn 0.3s ease-out;
+      transform: translateY(10px);
+      margin-top: 15px;
+    }
+
+    @keyframes messageIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-user {
+      align-self: flex-end;
+    }
+
+    .message-user .message-avatar {
+      order: 2;
+    }
+
+    .message-user .message-content-wrapper {
+      order: 1;
+      align-items: flex-end;
+    }
+
+    .message-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .message-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .bot-avatar {
+      background: linear-gradient(135deg, #0DA2E7 0%, #0a8fd4 100%);
+    }
+
+    .user-avatar {
+      background: #e0e0e0;
+    }
+
+    .message-content-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .message-user .message-content-wrapper {
+      align-items: flex-end;
+    }
+
+    .message-bot .message-content-wrapper {
+      align-items: flex-start;
+    }
+
+    .message-bubble {
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 15px;
+      line-height: 1.2;
+      word-wrap: break-word;
+      position: relative;
+    }
+
+    .user-bubble {
+      background: linear-gradient(135deg, #0DA2E7 0%, #0a8fd4 100%);
+      color: white;
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+      border-top-right-radius: 4px;
+    }
+
+    .bot-bubble {
+      background: white;
+      color: #1f2328;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 10px;
+      border-bottom-right-radius: 10px;
+      border-bottom-left-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .bot-bubble p {
+      margin: 0;
+    }
+
+    .bot-bubble p+p {
+      margin-top: 4px;
+    }
+
+    /* Markdown 样式 */
+    .bot-bubble h1,
+    .bot-bubble h2,
+    .bot-bubble h3,
+    .bot-bubble h4,
+    .bot-bubble h5,
+    .bot-bubble h6 {
+      margin: 12px 0 8px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .bot-bubble h1 {
+      font-size: 1.5em;
+    }
+
+    .bot-bubble h2 {
+      font-size: 1.3em;
+    }
+
+    .bot-bubble h3 {
+      font-size: 1.1em;
+    }
+
+    .bot-bubble p {
+      margin: 8px 0;
+    }
+
+    .bot-bubble ul,
+    .bot-bubble ol {
+      margin: 8px 0;
+      padding-left: 24px;
+    }
+
+    .bot-bubble li {
+      margin: 4px 0;
+    }
+
+    .bot-bubble blockquote {
+      margin: 12px 0;
+      padding: 8px 12px;
+      border-left: 4px solid #0DA2E7;
+      background: #f5f7fa;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .bot-bubble code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 0.9em;
+      color: #e74c3c;
+    }
+
+    .bot-bubble pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+
+    .bot-bubble pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font-size: 0.85em;
+      line-height: 1.5;
+    }
+
+    .bot-bubble table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+    }
+
+    .bot-bubble th,
+    .bot-bubble td {
+      border: 1px solid #e0e0e0;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .bot-bubble th {
+      background: #f5f7fa;
+      font-weight: 600;
+    }
+
+    .bot-bubble tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .bot-bubble a {
+      color: #0DA2E7;
+      text-decoration: none;
+    }
+
+    .bot-bubble a:hover {
+      text-decoration: underline;
+    }
+
+    .bot-bubble hr {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 16px 0;
+    }
+
+    .bot-bubble img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 8px 0;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: #999;
+      padding: 0 4px;
+    }
+
+    /* 输入区域 */
+    .chat-input-area {
+      background: white;
+      padding: 12px 16px;
+      /* 移除底部的border，只保留顶部阴影和border */
+      border-top: 1px solid #eee;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      position: relative;
+      /* 确保层级 */
+      z-index: 1000;
+      /* 高于底部导航栏的999，或者持平但利用阴影覆盖 */
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      background: var(--bg-color);
+      /* 改为页面背景色，增加融合感 */
+      border-radius: 24px;
+      padding: 8px 8px 8px 16px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: #0DA2E7;
+      box-shadow: 0 0 0 3px rgba(13, 162, 231, 0.2);
+    }
+
+    .chat-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+      max-height: 120px;
+      min-height: 24px;
+      padding: 4px 0;
+    }
+
+    .chat-input::placeholder {
+      color: #999;
+    }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #0DA2E7 0%, #0a8fd4 100%);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, opacity 0.2s;
+      flex-shrink: 0;
+    }
+
+    .send-btn:hover:not(:disabled) {
+      transform: scale(1.05);
+    }
+
+    .send-btn:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .send-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .send-btn svg {
+      width: 20px;
+      height: 20px;
+      margin-left: 2px;
+    }
+
+
+
+    /* 打字指示器 */
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 4px 0;
+    }
+
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: #0DA2E7;
+      border-radius: 50%;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+        opacity: 0.4;
+      }
+
+      30% {
+        transform: translateY(-8px);
+        opacity: 1;
+      }
+    }
+
+    /* 流式输出光标 */
+    .cursor {
+      display: inline-block;
+      color: #0DA2E7;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      50% {
+        opacity: 1;
+      }
+
+      51%,
+      100% {
+        opacity: 0;
+      }
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 480px) {
+      .message {
+        max-width: 90%;
+      }
+
+      .chat-header {
+        padding: 12px 16px;
+      }
+
+      .chat-title {
+        font-size: 16px;
+      }
+
+      .chat-messages {
+        padding: 12px;
+      }
+
+      .message-bubble {
+        font-size: 14px;
+        padding: 7px 12px;
+      }
+    }
+
+    /* 暗色模式支持 */
+    @media (prefers-color-scheme: dark) {
+      .chat-container {
+        background: #1a1a2e;
+      }
+
+      .chat-messages {
+        background: #1a1a2e;
+      }
+
+      .chat-input-area {
+        background: #16213e;
+        border-top-color: #2a2a4a;
+      }
+
+      .input-wrapper {
+        background: #2a2a4a;
+      }
+
+      .user-avatar {
+        background: #3a3a5a;
+      }
+
+      .bot-bubble {
+        background: #2a2a4a;
+        color: #e0e0e0;
+      }
+    }
+  </style>
+
+  <div id="page-patient" class="page">
+    <div class="patient-header">
+      <div class="patient-search">
+        <input type="text" id="patient-search-input" placeholder="搜索患者姓名、疾病..." oninput="onPatientSearchInput()">
+        <img class="search-icon" src="./assets/search.png" alt="搜索">
+      </div>
+      <div class="patient-actions">
+        <button class="btn-create-patient" onclick="onCreatePatient()">创建</button>
+      </div>
+    </div>
+    <div id="patient-list" class="patient-list">
+    </div>
+
+    <!-- 患者详情页面 -->
+    <div id="patient-detail-page" class="patient-detail-page" style="display: none;">
+      <!-- 页面头部 -->
+      <div class="patient-detail-header">
+        <button class="btn-back" onclick="onBackToPatientList()">返回</button>
+        <h1 class="page-title">患者详情</h1>
+        <div class="header-actions"></div>
+      </div>
+
+      <!-- 基本信息部分 -->
+      <div class="patient-info-section">
+        <div class="patient-basic-info">
+          <div class="name-row">
+            <div class="patient-name-large">
+              <span id="patient-detail-name">患者姓名</span>
+              <div id="patient-detail-gender-age" class="patient-meta">性别 · 年龄</div>
+            </div>
+            <button class="btn-edit" onclick="onEditPatient()">
+              <img src="./assets/bianji.png" alt="编辑" class="edit-icon">
+            </button>
+          </div>
+          <div class="phone-row">
+            <img src="./assets/phone.png" alt="电话" class="phone-icon">
+            <span id="patient-detail-phone">联系电话</span>
+          </div>
+          <div class="history-row">
+            <div class="history-label">既往病史</div>
+            <div class="history-content">
+              <span id="patient-detail-history">暂无病史记录</span>
+              <button class="btn-edit-history" onclick="onEditPatientHistory()">
+                <img src="./assets/edit.png" alt="编辑" class="edit-icon-small">
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 就诊记录部分 -->
+      <div class="visit-records-section">
+        <div class="section-header">
+          <div class="section-title">
+            <img src="./assets/record-icon.png" alt="记录" class="record-icon"
+              style="width: 18px; height: 18px; margin-right: 8px;">
+            就诊记录
+          </div>
+          <button class="btn-add-record" onclick="onAddVisitRecord()">新增</button>
+        </div>
+        <div id="visit-records-list" class="visit-records-list">
+          <!-- 就诊记录列表将动态生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 编辑姓名弹窗 -->
+    <div id="edit-name-modal" class="modal" style="display: none;" onclick="closeEditNameModal(event);">
+      <div class="modal-content" onclick="event.stopPropagation();">
+        <div class="modal-header">
+          <h3>编辑姓名</h3>
+          <button class="btn-close" onclick="closeEditNameModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="edit-name-input" class="edit-input" placeholder="请输入新姓名">
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeEditNameModal()">取消</button>
+          <button class="btn-save" onclick="savePatientName()">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 编辑既往病史弹窗 -->
+    <div id="edit-history-modal" class="modal" style="display: none;" onclick="closeEditHistoryModal(event);">
+      <div class="modal-content" onclick="event.stopPropagation();">
+        <div class="modal-header">
+          <h3>编辑既往病史</h3>
+          <button class="btn-close" onclick="closeEditHistoryModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <textarea id="edit-history-input" class="edit-textarea" placeholder="请输入既往病史"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeEditHistoryModal()">取消</button>
+          <button class="btn-save" onclick="savePatientHistory()">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 综合编辑患者信息弹窗 -->
+
+
+    <!-- 创建患者模态框 -->
+    <div id="patient-modal" class="patient-modal" onclick="closePatientModal(event)">
+      <div class="patient-modal-content" onclick="event.stopPropagation()">
+        <div class="patient-modal-header">
+          <div class="patient-modal-title">创建患者</div>
+          <div class="patient-modal-close" onclick="closePatientModal()">&times;</div>
+        </div>
+        <div class="patient-modal-body">
+          <div class="patient-form-group">
+            <label class="patient-form-label">患者姓名 <span style="color:#f56c6c">*</span></label>
+            <input type="text" id="patient-name" class="patient-form-input" placeholder="请输入患者姓名" maxlength="20">
+          </div>
+          <div class="patient-form-group">
+            <label class="patient-form-label">联系电话 <span style="color:#f56c6c">*</span></label>
+            <input type="tel" id="patient-phone" class="patient-form-input" placeholder="请输入患者联系电话" maxlength="20">
+          </div>
+          <div class="patient-form-row">
+            <div class="patient-form-group">
+              <label class="patient-form-label">年龄</label>
+              <input type="number" id="patient-age" class="patient-form-input" placeholder="请输入年龄" min="0" max="150">
+            </div>
+            <div class="patient-form-group">
+              <label class="patient-form-label">性别</label>
+              <div class="patient-gender-options">
+                <div class="patient-gender-option" data-gender="男" onclick="selectGender(this)">男</div>
+                <div class="patient-gender-option" data-gender="女" onclick="selectGender(this)">女</div>
+              </div>
+              <input type="hidden" id="patient-gender" value="">
+            </div>
+          </div>
+          <div class="patient-form-group">
+            <label class="patient-form-label">主要状况/疾病</label>
+            <textarea id="patient-history" class="patient-form-textarea" placeholder="请描述患者的主要状况或疾病史"
+              maxlength="500"></textarea>
+          </div>
+          <div class="patient-form-group">
+            <label class="patient-form-label">居住地址</label>
+            <input type="text" id="patient-address" class="patient-form-input" placeholder="请输入患者居住地址" maxlength="200">
+          </div>
+        </div>
+        <div class="patient-modal-footer">
+          <button class="patient-modal-btn patient-modal-btn-cancel" onclick="closePatientModal()">取消</button>
+          <button class="patient-modal-btn patient-modal-btn-submit" onclick="submitPatient()">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div id="patient-toast" class="patient-toast"></div>
+  </div>
+
+  <div id="page-memo" class="page">
+    <div class="memo-header">
+      <div class="memo-title">备忘录</div>
+      <button class="memo-btn-add" onclick="onCreateMemo()">创建</button>
+    </div>
+    <div id="memo-list" class="memo-list">
+      <div class="memo-loading">加载中...</div>
+    </div>
+
+    <!-- 备忘录详情模态框 -->
+    <div id="memo-modal" class="memo-modal" onclick="closeMemoModal(event)">
+      <div class="memo-modal-content" onclick="event.stopPropagation()">
+        <div class="memo-modal-header">
+          <div class="memo-modal-title">备忘录详情</div>
+          <div class="memo-modal-close" onclick="closeMemoModal()">&times;</div>
+        </div>
+        <div class="memo-modal-body" id="memo-detail-content">
+          <!-- 详情内容动态填充 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-settings" class="page">
+    <div class="profile-header">
+      <div class="profile-avatar" id="profile-avatar">
+        <img src="./assets/avatar_placeholder.png" alt="头像">
+      </div>
+      <div class="user-info">
+        <div class="name" id="user-name">未登录</div>
+        <div class="desc" id="user-desc">请点击下方按钮登录</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="cell">意见反馈 <span>></span></div>
+      <div class="cell">我的订单 <span>></span></div>
+    </div>
+
+    <div class="section">
+      <div class="cell">资源点与会员 <span>></span></div>
+      <div class="cell">优惠码兑换 <span>></span></div>
+    </div>
+
+    <div class="btn-group">
+      <button id="btnLogin" class="btn-block btn-primary" onclick="toWxLogin()">立即登录</button>
+      <button id="btnLogout" class="btn-block" style="display:none" onclick="toWxLogout()">退出登录</button>
+      <button id="btnTestFetch" class="btn-block" onclick="testFetchData()">模拟登录测试</button>
+      <button id="btnTestPatient" class="btn-block" onclick="testPatientData()">测试获取备忘录数据</button>
+    </div>
+
+    <!-- 版本信息 -->
+    <div style="text-align:center;color:#999;font-size:12px;margin-top:20px;">v2.0.5 (防缓存优化版)</div>
+
+    <!-- 测试日志显示区域 -->
+    <div id="app-logs"
+      style="text-align:left;background:#222;color:#0f0;font-size:11px;padding:10px;margin-top:10px;height:300px;overflow-y:auto;border-radius:4px;word-break:break-all;font-family:monospace;border:1px solid #444;margin-bottom:20px;">
+      <div style="color:#666;border-bottom:1px solid #444;padding-bottom:5px;margin-bottom:5px;">-- 调试日志窗口 (v2.0.4) --
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部导航 -->
+  <div class="bottom-menu">
+    <div class="menu-item active" onclick="switchTab('agent')">
+      <img src="./assets/agent1.png" class="menu-icon" id="icon-agent">
+      <span>智能体</span>
+    </div>
+    <div class="menu-item" onclick="switchTab('patient')">
+      <img src="./assets/huanzheku0.png" class="menu-icon" id="icon-patient">
+      <span>患者库</span>
+    </div>
+    <div class="menu-item" onclick="switchTab('memo')">
+      <img src="./assets/beiwanglu0.png" class="menu-icon" id="icon-memo">
+      <span>备忘录</span>
+    </div>
+    <div class="menu-item" onclick="switchTab('settings')">
+      <img src="./assets/shezhi0.png" class="menu-icon" id="icon-settings">
+      <span>设置</span>
+    </div>
+  </div>
+
+  <div id="loading" class="loading-mask">加载中...</div>
+
+  <script>
+    // 弹窗使用规范
+    /* 
+       所有弹窗关闭函数必须遵循以下规范：
+       1. 函数名：以 close 开头，如 closePatientDetailModal
+       2. 参数：支持 event 参数，用于判断点击目标
+       3. 逻辑：添加点击目标判断，仅点击蒙版时关闭弹窗
+       4. 实现：if (event && event.target !== event.currentTarget) return;
+       5. 调用：在弹窗根元素的 onclick 事件中调用，如 onclick="closeModal(event);"
+       6. 内容区域：在 .modal-content 上添加 onclick="event.stopPropagation();"
+    */
+
+    // 日志辅助函数：同时输出到控制台和屏幕
+    const log = (t, m, d) => {
+      const time = new Date().toLocaleTimeString();
+      // 控制台输出
+      console.log(`[${t}] ${time} - ${m}`, d || '');
+
+      // 屏幕输出
+      const logEl = document.getElementById('app-logs');
+      if (logEl) {
+        const line = document.createElement('div');
+        line.style.marginBottom = '4px';
+        line.style.borderBottom = '1px dashed #333';
+
+        let detailStr = '';
+        try {
+          if (d) detailStr = typeof d === 'object' ? JSON.stringify(d) : String(d);
+        } catch (e) { detailStr = '[对象循环引用]'; }
+
+        line.innerHTML = `<span style="color:#888">[${time}]</span> <span style="color:#4facfe">[${t}]</span> ${m} <span style="color:#aaa">${detailStr}</span>`;
+        const anchor = logEl.children.length > 1 ? logEl.children[1] : null;
+        logEl.insertBefore(line, anchor);
+      }
+    }
+
+    const err = (t, m, d) => {
+      const time = new Date().toLocaleTimeString();
+      console.error(`[${t}] ${time} - ${m}`, d || '');
+
+      const logEl = document.getElementById('app-logs');
+      if (logEl) {
+        const line = document.createElement('div');
+        line.style.marginBottom = '4px';
+        line.style.color = '#ff6b6b';
+        line.style.borderBottom = '1px dashed #333';
+
+        let detailStr = '';
+        try {
+          if (d) detailStr = typeof d === 'object' ? JSON.stringify(d) : String(d);
+        } catch (e) { detailStr = '[Error Object]'; }
+
+        line.innerHTML = `<span style="color:#888">[${time}]</span> <span style="color:#ff6b6b">[${t}]</span> ${m} <span>${detailStr}</span>`;
+        const anchor = logEl.children.length > 1 ? logEl.children[1] : null;
+        logEl.insertBefore(line, anchor);
+      }
+    }
+
+    // 处理用户数据的独立函数
+    function processUserData(row) {
+      const name = row && row.mingcheng ? row.mingcheng : '未命名用户';
+      let avatarUrl = './assets/avatar_placeholder.png';
+      try {
+        if (row && row.touxiang) {
+          let avatarData = row.touxiang;
+          if (typeof avatarData === 'string') avatarData = JSON.parse(avatarData);
+          if (Array.isArray(avatarData) && avatarData.length > 0) {
+            const fileObj = avatarData[0];
+            if (fileObj && fileObj.large_thumbnail_full_path) {
+              avatarUrl = fileObj.large_thumbnail_full_path;
+            } else if (fileObj && fileObj.file_url) {
+              avatarUrl = String(fileObj.file_url).split('?')[0] + '?imageView2/2/w/1280/h/800';
+            } else if (fileObj) {
+              avatarUrl = fileObj.url || fileObj.original_file_full_path || avatarUrl;
+            }
+          }
+        }
+      } catch (e) {
+        err('数据处理', '头像解析失败', e);
+      }
+      return { name, avatar: avatarUrl, raw: row };
+    }
+
+    // ----------------------------------------------------------------------
+    // 页面交互逻辑
+    // ----------------------------------------------------------------------
+
+    // 状态管理
+    const state = window.state || {
+      isLoggedIn: false,
+      userInfo: null,
+      openid: null
+    }
+
+    // 切换Tab
+    window.switchTab = (key) => {
+      // 1. 隐藏所有页面
+      document.querySelectorAll('.page').forEach(el => el.classList.remove('active'))
+      // 2. 显示目标页面
+      document.getElementById(`page-${key}`).classList.add('active')
+
+      // 3. 控制底部导航阴影（智能体页面不显示阴影，其他页面显示）
+      const bottomMenu = document.querySelector('.bottom-menu');
+      if (key === 'agent') {
+        bottomMenu.classList.remove('with-shadow');
+      } else {
+        bottomMenu.classList.add('with-shadow');
+      }
+
+      // 4. 切换到患者库页面时加载数据
+      if (key === 'patient') {
+        window.loadPatientData();
+      }
+
+      // 5. 切换到备忘录页面时加载数据
+      if (key === 'memo') {
+        window.loadMemoData();
+      }
+
+      // 6. 更新图标状态
+      const icons = {
+        agent: 'agent',
+        patient: 'huanzheku',
+        memo: 'beiwanglu',
+        settings: 'shezhi'
+      }
+
+      Object.keys(icons).forEach(k => {
+        const iconEl = document.getElementById(`icon-${k}`)
+        const baseName = icons[k]
+        const isCurrent = k === key
+        // 0为未选中，1为选中
+        iconEl.src = `./assets/${baseName}${isCurrent ? '1' : '0'}.png`
+        iconEl.parentElement.classList.toggle('active', isCurrent)
+      })
+
+      log('交互日志', `切换到了 ${key} 页面`)
+    }
+
+    // 小程序跳转
+    window.toWxLogin = () => {
+      log('交互日志', '点击立即登录，跳转小程序')
+      if (window.wx && window.wx.miniProgram) {
+        wx.miniProgram.navigateTo({ url: '/pages/login/index' })
+      } else {
+        alert('请在微信小程序中打开')
+      }
+    }
+
+    window.toWxLogout = () => {
+      log('交互日志', '点击退出登录，跳转小程序')
+      if (window.wx && window.wx.miniProgram) {
+        wx.miniProgram.navigateTo({ url: '/pages/logout/index' })
+      }
+    }
+
+    // 接受openid参数的登录函数
+    window.loginWithOpenid = async (openid) => {
+      console.log('[登录] 开始执行登录流程，openid:', openid);
+
+      if (!openid) {
+        console.error('[登录] 错误: openid不能为空');
+        return false;
+      }
+
+      // 构造包含openid的filters参数
+      const filters = [
+        { "controlId": "openId", "dataType": "2", "spliceType": "1", "filterType": "2", "value": openid },
+        { "controlId": "del", "dataType": "2", "spliceType": "1", "filterType": "2", "value": 0 }
+      ];
+
+      try {
+        if (!window.MingDaoYunArrayAPI) {
+          console.error('[登录] 错误: MingDaoYunArrayAPI 组件未加载');
+          return false;
+        }
+
+        const api = new window.MingDaoYunArrayAPI();
+        const res = await api.getData({
+          worksheetId: 'yonghu',
+          filters: JSON.stringify(filters),
+          pageSize: 1
+        });
+
+        if (res && res.success && res.data && res.data.rows && res.data.rows.length > 0) {
+          const userData = res.data.rows[0];
+          console.log('[登录] 登录成功，用户数据获取完成');
+
+          const processed = processUserData(userData);
+          state.userInfo = processed;
+          state.isLoggedIn = true;
+          state.openid = openid;
+          updateAuthUI();
+
+          // 存储到localStorage
+          localStorage.setItem('openid', openid);
+          console.log('[登录] 登录状态已保存到本地存储');
+
+          return true;
+        } else {
+          console.error('[登录] 错误: 获取数据失败或无数据');
+          return false;
+        }
+
+      } catch (e) {
+        console.error('[登录] 错误: 调用过程异常', e.message);
+        return false;
+      }
+    }
+
+    window.testFetchData = async () => {
+      console.log('[模拟登录] 开始执行模拟登录流程');
+
+      // 使用测试openid调用登录函数
+      const testOpenid = "oJZJz1xpX5ftzwXZhP31nKYIGeYM";
+      console.log('[模拟登录] 传参openid:', testOpenid);
+
+      const success = await window.loginWithOpenid(testOpenid);
+      if (success) {
+        alert('模拟登录成功：' + state.userInfo.name);
+      } else {
+        alert('模拟登录失败');
+      }
+    }
+
+    window.testPatientData = async () => {
+      console.log('[测试] 开始调用备忘录数据信息组件');
+
+      const userRowid = state.userInfo && state.userInfo.raw && state.userInfo.raw.rowid;
+      if (!userRowid) {
+        console.error('[测试] 错误: 无法获取用户rowid，请先进行模拟登录');
+        return;
+      }
+
+      console.log('[测试] 用户rowid:', userRowid);
+      console.log('[测试] 用户完整信息:', JSON.stringify(state.userInfo, null, 2));
+
+      const api = new window.MingDaoYunArrayAPI();
+      const params = {
+        worksheetId: "bwlgl",
+        filters: JSON.stringify([
+          { "controlId": "yonghu", "dataType": "2", "spliceType": "1", "filterType": "24", "value": userRowid },
+          { "controlId": "del", "dataType": "2", "spliceType": "1", "filterType": "2", "value": 0 }
+        ]),
+        pageSize: 10
+      };
+
+      console.log('[测试] 请求参数:', params);
+
+      try {
+        console.log('[测试] 开始请求备忘录数据...');
+        const result = await api.getData(params);
+
+        console.log('[测试] 数据请求完成，结果:', result);
+
+        if (result.success) {
+          console.log('[测试] 数据请求成功，共返回', result.data.rows.length, '条记录');
+          console.log('[测试] 详细数据:', result.data.rows);
+
+          if (result.data.rows.length === 10) {
+            console.log('[测试] 数据数量验证通过');
+          } else {
+            console.warn('[测试] 数据数量验证警告: 预期10条，实际返回', result.data.rows.length, '条');
+          }
+        } else {
+          console.error('[测试] 数据请求失败:', result.error_msg);
+        }
+      } catch (error) {
+        console.error('[测试] 请求过程发生错误:', error);
+      }
+    }
+
+    window.allPatientData = [];
+
+    window.loadPatientData = async () => {
+      const listEl = document.getElementById('patient-list');
+      listEl.innerHTML = '<div class="patient-loading">加载中...</div>';
+
+      const userRowid = state.userInfo && state.userInfo.raw && state.userInfo.raw.rowid;
+      if (!userRowid) {
+        listEl.innerHTML = '<div class="patient-empty">请先登录后再查看患者数据</div>';
+        return;
+      }
+
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        const params = {
+          worksheetId: "hzxxgl",
+          filters: JSON.stringify([
+            { "controlId": "yonghu", "dataType": "2", "spliceType": "1", "filterType": "24", "value": userRowid },
+            { "controlId": "del", "dataType": "2", "spliceType": "1", "filterType": "2", "value": 0 }
+          ]),
+          pageSize: 100
+        };
+
+        const result = await api.getData(params);
+
+        if (result.success && result.data && result.data.rows) {
+          window.allPatientData = result.data.rows;
+          window.renderPatientList(window.allPatientData);
+        } else {
+          listEl.innerHTML = '<div class="patient-empty">加载失败，请稍后重试</div>';
+        }
+      } catch (error) {
+        console.error('[患者库] 加载数据失败:', error);
+        listEl.innerHTML = '<div class="patient-empty">加载失败，请稍后重试</div>';
+      }
+    };
+
+    window.renderPatientList = (patients) => {
+      const listEl = document.getElementById('patient-list');
+
+      if (!patients || patients.length === 0) {
+        listEl.innerHTML = '<div class="patient-empty">暂无患者数据</div>';
+        return;
+      }
+
+      listEl.innerHTML = patients.map((patient, index) => {
+        const genderClass = patient.gender === '男' ? 'male' : (patient.gender === '女' ? 'female' : 'none');
+        const history = patient.pastMedicalHistory || '暂无病史记录';
+
+        return `
+          <div class="patient-item" onclick="openPatientDetail(${index})">
+            <div class="patient-item-header">
+              <div class="patient-info">
+                <div class="patient-name-row">
+                  <div class="patient-name">${patient.name || '未知姓名'}</div>
+                  <div class="patient-meta ${genderClass}">
+                    <span class="patient-meta-text">${patient.gender || '未知'} · ${patient.age ? patient.age + '岁' : ''}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="patient-detail">${history}</div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.currentPatientId = null;
+
+    // 打开患者详情弹窗
+    window.openPatientDetail = async (patientIndex) => {
+      console.log('openPatientDetail 调用，参数 patientIndex:', patientIndex);
+      // 从全局患者数据中获取当前患者
+      const patient = window.allPatientData[patientIndex];
+      if (!patient) {
+        console.error('未找到患者数据，索引:', patientIndex);
+        showToast('未找到患者数据');
+        return;
+      }
+
+      window.currentPatientId = patient.rowid;
+      window.currentPatient = patient;
+      // 显示患者详情弹窗
+      document.getElementById('patient-detail-modal').style.display = 'flex';
+      // 更新患者详情弹窗
+      updatePatientDetailModal(patient);
+      // 获取并显示陪诊服务记录
+      await getVisitRecordsForModal(patient.rowid);
+    };
+
+    // 返回患者列表页面
+    window.onBackToPatientList = () => {
+      document.getElementById('patient-detail-page').style.display = 'none';
+      document.getElementById('page-patient').style.display = 'block';
+      window.currentPatientId = null;
+    };
+
+    // 关闭患者详情弹窗
+    window.closePatientDetailModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('patient-detail-modal').style.display = 'none';
+      window.currentPatientId = null;
+    };
+
+    // 从明道云API获取患者基本信息
+    // 更新患者详情页面
+    window.updatePatientDetailPage = (patient) => {
+      console.log('updatePatientDetailPage 调用，患者数据:', patient);
+      // 更新患者详情页面
+      document.getElementById('patient-detail-name').textContent = patient.name || '未知姓名';
+      const genderClass = patient.gender === '男' ? 'male' : (patient.gender === '女' ? 'female' : 'none');
+      document.getElementById('patient-detail-gender-age').className = `patient-meta ${genderClass}`;
+      document.getElementById('patient-detail-gender-age').textContent = `${patient.gender || '未知'} · ${patient.age ? patient.age + '岁' : ''}`;
+      document.getElementById('patient-detail-phone').textContent = patient.phone || '暂无电话';
+      document.getElementById('patient-detail-history').textContent = patient.pastMedicalHistory || '暂无病史记录';
+    };
+
+    // 更新患者详情弹窗
+    window.updatePatientDetailModal = (patient) => {
+      console.log('updatePatientDetailModal 调用，患者数据:', patient);
+      // 更新患者详情弹窗
+      document.getElementById('modal-patient-name').textContent = patient.name || '未知姓名';
+      const genderClass = patient.gender === '男' ? 'male' : (patient.gender === '女' ? 'female' : 'none');
+      document.getElementById('modal-patient-gender-age').className = `patient-meta ${genderClass}`;
+      document.getElementById('modal-patient-gender-age').textContent = `${patient.gender || '未知'} · ${patient.age ? patient.age + '岁' : ''}`;
+      document.getElementById('modal-patient-phone').textContent = patient.phone || '暂无电话';
+      document.getElementById('modal-patient-history').textContent = patient.pastMedicalHistory || '暂无病史记录';
+    };
+
+    // 从明道云API获取患者就诊记录（用于页面）
+    window.getVisitRecords = async (patientRowid) => {
+      console.log('getVisitRecords 调用，参数 patientRowid:', patientRowid);
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        // 陪诊服务记录表表别名: pzfwjl
+        const params = {
+          worksheetId: 'pzfwjl',
+          filters: [
+            {
+              "controlId": "patientId",
+              "dataType": 2,
+              "spliceType": 1,
+              "filterType": 24,
+              "value": patientRowid
+            }
+          ]
+        };
+
+        console.log('getVisitRecords 请求参数:', JSON.stringify(params, null, 2));
+        const response = await api.getData(params);
+
+        const visitRecordsList = document.getElementById('visit-records-list');
+
+        if (response && response.data && response.data.rows && response.data.rows.length > 0) {
+          const visitRecords = response.data.rows;
+          // 打印陪诊服务记录表数据
+          console.log('陪诊服务记录表数据（共', visitRecords.length, '条）:', JSON.stringify(visitRecords, null, 2));
+          // 时间格式化函数：将2024-06-06 08:00:00格式转换为2024-06-06 上午8点00分
+          function formatVisitTime(timeStr) {
+            if (!timeStr) return '';
+            const date = new Date(timeStr);
+            // 提取年月日
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            // 提取时分
+            const hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const period = hours >= 12 ? '下午' : '上午';
+            const formattedHours = hours % 12 || 12;
+            return `${year}-${month}-${day} ${period} ${formattedHours}点${minutes}分`;
+          }
+
+          // 渲染就诊记录列表
+          visitRecordsList.innerHTML = visitRecords.map((record, index) => {
+            // 根据实际的字段名映射调整
+            const appointmentTime = record.appointmentTime || record['预约时间'] || '';
+            const serviceTitle = record.serviceTitle || record['求诊诉求'] || '';
+            const nextAction = record.nextAction || record['下一步陪诊说明'] || '';
+
+            // 格式化时间
+            const formattedTime = formatVisitTime(appointmentTime);
+
+            // 只在最新记录（索引为0）且下一步建议不为空时显示
+            const nextActionHtml = index === 0 && nextAction ? `<div class="visit-record-next-action">下一步建议：${nextAction}</div>` : '';
+
+            return `
+              <div class="visit-record-item">
+                <div class="visit-record-date">${formattedTime}</div>
+                <div class="visit-record-content">${serviceTitle}</div>
+                ${nextActionHtml}
+              </div>
+            `;
+          }).join('');
+        } else {
+          visitRecordsList.innerHTML = '<div class="visit-records-empty">暂无就诊记录</div>';
+        }
+      } catch (error) {
+        console.error('获取就诊记录失败:', error);
+        showToast('获取就诊记录失败');
+      }
+    };
+
+    // 从明道云API获取患者就诊记录（用于弹窗）
+    window.getVisitRecordsForModal = async (patientRowid) => {
+      console.log('getVisitRecordsForModal 调用，参数 patientRowid:', patientRowid);
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        // 陪诊服务记录表表别名: pzfwjl
+        const params = {
+          worksheetId: 'pzfwjl',
+          filters: [
+            {
+              "controlId": "patientId",
+              "dataType": 2,
+              "spliceType": 1,
+              "filterType": 24,
+              "value": patientRowid
+            }
+          ]
+        };
+
+        console.log('getVisitRecordsForModal 请求参数:', JSON.stringify(params, null, 2));
+        const response = await api.getData(params);
+
+        const visitRecordsList = document.getElementById('modal-visit-records-list');
+
+        if (response && response.data && response.data.rows && response.data.rows.length > 0) {
+          const visitRecords = response.data.rows;
+          // 打印陪诊服务记录表数据
+          console.log('陪诊服务记录表数据（共', visitRecords.length, '条）:', JSON.stringify(visitRecords, null, 2));
+          // 时间格式化函数：将2024-06-06 08:00:00格式转换为2024-06-06 上午8点00分
+          function formatVisitTime(timeStr) {
+            if (!timeStr) return '';
+            const date = new Date(timeStr);
+            // 提取年月日
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            // 提取时分
+            const hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const period = hours >= 12 ? '下午' : '上午';
+            const formattedHours = hours % 12 || 12;
+            return `${year}-${month}-${day} ${period} ${formattedHours}点${minutes}分`;
+          }
+          // 渲染就诊记录列表
+          visitRecordsList.innerHTML = visitRecords.map((record, index) => {
+            // 根据实际的字段名映射调整
+            const appointmentTime = record.appointmentTime || record['预约时间'] || '';
+            const serviceTitle = record.serviceTitle || record['求诊诉求'] || '';
+            const nextAction = record.nextAction || record['下一步陪诊说明'] || '';
+
+            // 格式化时间
+            const formattedTime = formatVisitTime(appointmentTime);
+
+            // 只在最新记录（索引为0）且下一步建议不为空时显示
+            const nextActionHtml = index === 0 && nextAction ? `<div class="visit-record-next-action">下一步建议：${nextAction}</div>` : '';
+
+            return `
+              <div class="visit-record-item">
+                <div class="visit-record-date">${formattedTime}</div>
+                <div class="visit-record-content">${serviceTitle}</div>
+                ${nextActionHtml}
+              </div>
+            `;
+          }).join('');
+        } else {
+          visitRecordsList.innerHTML = '<div class="visit-records-empty">暂无就诊记录</div>';
+        }
+      } catch (error) {
+        console.error('获取就诊记录失败:', error);
+        showToast('获取就诊记录失败');
+      }
+    };
+
+    // 打开编辑姓名弹窗
+    window.onEditPatientName = () => {
+      const currentName = document.getElementById('patient-detail-name').textContent;
+      document.getElementById('edit-name-input').value = currentName;
+      document.getElementById('edit-name-modal').style.display = 'block';
+    };
+
+    // 关闭编辑姓名弹窗
+    window.closeEditNameModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('edit-name-modal').style.display = 'none';
+    };
+
+    // 保存患者姓名
+    window.savePatientName = async () => {
+      const newName = document.getElementById('edit-name-input').value.trim();
+      if (!newName) {
+        showToast('姓名不能为空');
+        return;
+      }
+
+      if (!window.currentPatientId) {
+        showToast('未找到患者信息');
+        return;
+      }
+
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        const response = await api.updateData({
+          rowId: window.currentPatientId,
+          data: {
+            name: newName
+          }
+        });
+
+        if (response && response.success) {
+          // 更新页面显示
+          document.getElementById('patient-detail-name').textContent = newName;
+          // 关闭弹窗
+          closeEditNameModal();
+          showToast('姓名修改成功');
+          // 刷新患者列表
+          renderPatientList(window.allPatientData);
+        } else {
+          showToast('姓名修改失败');
+        }
+      } catch (error) {
+        console.error('修改姓名失败:', error);
+        showToast('修改姓名失败');
+      }
+    };
+
+    // 打开编辑既往病史弹窗
+    window.onEditPatientHistory = () => {
+      const currentHistory = document.getElementById('patient-detail-history').textContent;
+      document.getElementById('edit-history-input').value = currentHistory === '暂无病史记录' ? '' : currentHistory;
+      document.getElementById('edit-history-modal').style.display = 'block';
+    };
+
+    // 关闭编辑既往病史弹窗
+    window.closeEditHistoryModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('edit-history-modal').style.display = 'none';
+    };
+
+    // 保存患者既往病史
+    window.savePatientHistory = async () => {
+      const newHistory = document.getElementById('edit-history-input').value.trim();
+
+      if (!window.currentPatientId) {
+        showToast('未找到患者信息');
+        return;
+      }
+
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        const response = await api.updateData({
+          rowId: window.currentPatientId,
+          data: {
+            pastMedicalHistory: newHistory
+          }
+        });
+
+        if (response && response.success) {
+          // 更新页面显示
+          document.getElementById('patient-detail-history').textContent = newHistory || '暂无病史记录';
+          // 关闭弹窗
+          closeEditHistoryModal();
+          showToast('既往病史修改成功');
+          // 刷新患者列表
+          renderPatientList(window.allPatientData);
+        } else {
+          showToast('既往病史修改失败');
+        }
+      } catch (error) {
+        console.error('修改既往病史失败:', error);
+        showToast('修改既往病史失败');
+      }
+    };
+
+    // 打开综合编辑患者信息弹窗
+    window.onEditPatient = async () => {
+      console.log('onEditPatient 调用');
+      if (!window.currentPatientId) {
+        showToast('未找到患者信息');
+        return;
+      }
+
+      try {
+        // 获取患者基本信息
+        const currentName = document.getElementById('patient-detail-name').textContent;
+        const currentPhone = document.getElementById('patient-detail-phone').textContent;
+
+        // 获取最新的就诊记录 (暂保留逻辑，用于获取可能的关联信息)
+        const api = new window.MingDaoYunArrayAPI();
+        const params = {
+          worksheetId: 'pzfwjl',
+          filters: [
+            {
+              "controlId": "patientId",
+              "dataType": 2,
+              "spliceType": 1,
+              "filterType": 24,
+              "value": window.currentPatientId
+            }
+          ],
+          sort: [
+            {
+              "controlId": "actualStartDate",
+              "sortType": 2 // 降序排列，获取最新记录
+            }
+          ],
+          limit: 1
+        };
+
+        const response = await api.getData(params);
+        const latestRecord = response.data && response.data.rows && response.data.rows.length > 0 ? response.data.rows[0] : {};
+
+        // 填充表单数据
+        document.getElementById('edit-patient-name').value = currentName;
+        document.getElementById('edit-patient-phone').value = currentPhone;
+        // 映射已有字段 (根据之前的逻辑映射)
+        // 注意事项 <- zhjy (注意事项)
+        document.getElementById('edit-precautions').value = latestRecord.zhjy || latestRecord['注意事项'] || '';
+        // 症状备注 <- serviceTitle (求诊诉求 - 暂定)
+        document.getElementById('edit-symptom-note').value = latestRecord.serviceTitle || latestRecord['求诊诉求'] || '';
+        // 病情备注 <- zjbz (总结备注 - 暂定)
+        document.getElementById('edit-condition-note').value = latestRecord.zjbz || latestRecord['总结备注'] || '';
+        // 过敏源 (无对应字段，留空)
+        document.getElementById('edit-allergies').value = '';
+
+        // 显示模态框
+        document.getElementById('edit-patient-modal').style.display = 'flex';
+      } catch (error) {
+        console.error('获取患者信息失败:', error);
+        showToast('获取患者信息失败');
+      }
+    };
+
+    // 关闭综合编辑患者信息弹窗
+    window.closeEditModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('edit-patient-modal').style.display = 'none';
+    };
+
+    // 保存患者信息修改
+    window.savePatientChanges = async () => {
+      // 获取表单数据
+      const name = document.getElementById('edit-patient-name').value.trim();
+      const phone = document.getElementById('edit-patient-phone').value.trim();
+      const symptom = document.getElementById('edit-symptom-note').value.trim();
+      const allergies = document.getElementById('edit-allergies').value.trim();
+      const condition = document.getElementById('edit-condition-note').value.trim();
+      const precautions = document.getElementById('edit-precautions').value.trim();
+
+      if (!name || !phone) {
+        showToast('姓名和电话不能为空');
+        return;
+      }
+
+      // 构造请求体（用于调试）
+      const requestBody = {
+        rowId: window.currentPatientId,
+        worksheetId: "675bc860897b774c76743940",
+        controls: [
+          { controlId: "name", value: name }, // 姓名
+          { controlId: "phone", value: phone }, // 电话
+          { controlId: "symptom_note", value: symptom }, // 症状备注
+          { controlId: "allergies", value: allergies }, // 过敏源
+          { controlId: "condition_note", value: condition }, // 病情备注
+          { controlId: "precautions", value: precautions } // 注意事项
+        ]
+      };
+
+      console.log('【调试】保存修改 - 请求体:', JSON.stringify(requestBody, null, 2));
+      showToast('调试模式：请求体已打印到控制台');
+
+      // 暂时注释掉实际调用
+      /*
+      try {
+        // showLoading(true);
+        // 原有保存逻辑已暂停，等待接口对接
+      } catch (error) {
+        console.error("保存失败:", error);
+        showToast("保存失败，请重试");
+      } finally {
+        // showLoading(false);
+      }
+      */
+    };
+
+    // 删除患者记录
+    window.deletePatientRecord = async () => {
+      if (!window.currentPatientId) {
+        showToast('未找到患者信息');
+        return;
+      }
+
+      if (!confirm('确定要删除这条患者记录吗？此操作不可恢复。')) {
+        return;
+      }
+
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        const response = await api.deleteData({
+          worksheetId: 'hzxxgl',
+          rowId: window.currentPatientId
+        });
+
+        if (response && response.success) {
+          showToast('患者记录删除成功');
+          // 返回患者列表页面
+          document.getElementById('edit-patient-modal').style.display = 'none';
+          document.getElementById('patient-detail-page').style.display = 'none';
+          document.getElementById('page-patients').style.display = 'block';
+          // 刷新患者列表
+          loadPatients();
+        } else {
+          showToast('患者记录删除失败');
+        }
+      } catch (error) {
+        console.error('删除患者记录失败:', error);
+        showToast('删除患者记录失败');
+      }
+    };
+
+    // 新增就诊记录
+    window.onAddVisitRecord = () => {
+      showToast('新增就诊记录功能开发中');
+      // 这里可以实现打开新增就诊记录的弹窗或页面
+    };
+
+    window.onPatientSearchInput = () => {
+      const keyword = document.getElementById('patient-search-input').value.trim().toLowerCase();
+
+      if (!keyword) {
+        window.renderPatientList(window.allPatientData);
+        return;
+      }
+
+      const filtered = window.allPatientData.filter(patient => {
+        const name = (patient.name || '').toLowerCase();
+        const history = (patient.pastMedicalHistory || '').toLowerCase();
+        return name.includes(keyword) || history.includes(keyword);
+      });
+
+      window.renderPatientList(filtered);
+    };
+
+    window.onCreatePatient = () => {
+      const userRowid = state.userInfo && state.userInfo.raw && state.userInfo.raw.rowid;
+      if (!userRowid) {
+        showToast('请先登录后再创建患者');
+        return;
+      }
+      document.getElementById('patient-modal').classList.add('active');
+      document.getElementById('patient-name').value = '';
+      document.getElementById('patient-age').value = '';
+      document.getElementById('patient-gender').value = '';
+      document.getElementById('patient-history').value = '';
+      document.getElementById('patient-address').value = '';
+      document.getElementById('patient-phone').value = '';
+      document.querySelectorAll('.patient-gender-option').forEach(el => el.classList.remove('active'));
+    };
+
+    window.closePatientModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('patient-modal').classList.remove('active');
+    };
+
+    window.selectGender = (element) => {
+      document.querySelectorAll('.patient-gender-option').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+      document.getElementById('patient-gender').value = element.dataset.gender;
+    };
+
+    window.submitPatient = async () => {
+      const name = document.getElementById('patient-name').value.trim();
+      const phone = document.getElementById('patient-phone').value.trim();
+      const age = document.getElementById('patient-age').value.trim();
+      const gender = document.getElementById('patient-gender').value;
+      const history = document.getElementById('patient-history').value.trim();
+      const address = document.getElementById('patient-address').value.trim();
+
+      if (!name) {
+        showToast('请输入患者姓名');
+        return;
+      }
+
+      if (!phone) {
+        showToast('请输入联系电话');
+        return;
+      }
+
+      const userRowid = state.userInfo && state.userInfo.raw && state.userInfo.raw.rowid;
+      if (!userRowid) {
+        showToast('请先登录后再创建患者');
+        return;
+      }
+
+      try {
+        const api = new window.MingDaoYunAddAPI();
+        const controls = [
+          { id: 'name', value: name },
+          { id: 'yonghu', value: userRowid },
+          { id: 'del', value: 0 }
+        ];
+
+        if (age) {
+          controls.push({ id: 'age', value: parseInt(age) || 0 });
+        }
+
+        if (gender) {
+          controls.push({ id: 'gender', value: gender });
+        }
+
+        if (history) {
+          controls.push({ id: 'pastMedicalHistory', value: history });
+        }
+
+        if (address) {
+          controls.push({ id: 'address', value: address });
+        }
+
+        if (phone) {
+          controls.push({ id: 'phone', value: phone });
+        }
+
+        console.log('[创建患者] 提交数据:', controls);
+        const result = await api.getData('hzxxgl', controls);
+
+        if (result.success) {
+          showToast('创建成功');
+          closePatientModal();
+          window.loadPatientData();
+        } else {
+          showToast(result.error_msg || '创建失败');
+        }
+      } catch (error) {
+        console.error('[创建患者] 失败:', error);
+        showToast('创建失败，请稍后重试');
+      }
+    };
+
+    window.showToast = (message) => {
+      const toast = document.getElementById('patient-toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    };
+
+    // ==================== 备忘录相关函数 ====================
+
+    window.allMemoData = [];
+
+    window.loadMemoData = async () => {
+      const listEl = document.getElementById('memo-list');
+      listEl.innerHTML = '<div class="memo-loading">加载中...</div>';
+
+      const userRowid = state.userInfo && state.userInfo.raw && state.userInfo.raw.rowid;
+      if (!userRowid) {
+        listEl.innerHTML = '<div class="memo-empty">请先登录后再查看备忘录</div>';
+        return;
+      }
+
+      console.log('[备忘录] 用户rowid:', userRowid);
+
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        const params = {
+          worksheetId: "bwlgl",
+          filters: JSON.stringify([
+            { "controlId": "yonghu", "dataType": "2", "spliceType": "1", "filterType": "24", "value": userRowid },
+            { "controlId": "del", "dataType": "2", "spliceType": "1", "filterType": "2", "value": 0 }
+          ]),
+          pageSize: 50,
+          orderBy: [{ "field": "createdTime", "order": "desc" }]
+        };
+
+        console.log('[备忘录] 请求参数:', params);
+        const result = await api.getData(params);
+
+        console.log('[备忘录] 请求结果:', result);
+
+        if (result.success && result.data && result.data.rows) {
+          window.allMemoData = result.data.rows;
+          window.renderMemoList(window.allMemoData);
+        } else {
+          listEl.innerHTML = '<div class="memo-empty">暂无备忘录</div>';
+        }
+      } catch (error) {
+        console.error('[备忘录] 加载失败:', error);
+        listEl.innerHTML = '<div class="memo-empty">加载失败，请稍后重试</div>';
+      }
+    };
+
+    // 计算相对时间的辅助函数
+    const getRelativeDateInfo = (dateStr) => {
+      if (!dateStr) return { text: '', color: 'green' };
+
+      const target = new Date(dateStr);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      target.setHours(0, 0, 0, 0);
+
+      const diffDays = Math.round((target - now) / (1000 * 60 * 60 * 24));
+
+      let text = '';
+      let color = 'green'; // 默认绿色
+
+      if (diffDays === 0) {
+        text = '今天';
+        color = 'red'; // 今天比较紧急，红色
+      } else if (diffDays === 1) {
+        text = '明天';
+        color = 'yellow'; // 明天，黄色
+      } else if (diffDays === 2) {
+        text = '后天';
+        color = 'yellow';
+      } else if (diffDays > 2) {
+        text = `${diffDays}天后`;
+        color = 'green';
+      } else if (diffDays === -1) {
+        text = '昨天';
+        color = 'red';
+      } else {
+        text = `${Math.abs(diffDays)}天前`;
+        color = 'red';
+      }
+
+      const dateDisplay = `${target.getMonth() + 1}月${target.getDate()}日`;
+      return { text, color, dateDisplay };
+    };
+
+    window.renderMemoList = (memoList) => {
+      const listEl = document.getElementById('memo-list');
+
+      if (!memoList || memoList.length === 0) {
+        listEl.innerHTML = '<div class="memo-empty">暂无备忘录</div>';
+        return;
+      }
+
+      listEl.innerHTML = memoList.map(memo => {
+        const deadline = memo.deadline || '';
+        const status = memo.status || 'pending';
+        const isCompleted = status === 'completed';
+
+        const patientName = memo.patientName || '未知患者';
+        const hospital = memo.hospital || '未填写医院';
+        const remark = memo.memoContent || '';
+
+        const dateInfo = getRelativeDateInfo(deadline);
+
+        return `
+          <div class="memo-item ${isCompleted ? 'completed' : ''}" onclick="viewMemoDetail('${memo.rowid}')">
+            <div class="memo-item-header-date ${dateInfo.color}">
+              <span>📅 ${dateInfo.dateDisplay || '未设置日期'}</span>
+              <span>${dateInfo.text}</span>
+            </div>
+            <div class="memo-item-content">
+              <div class="memo-item-main-info">
+                <div class="memo-patient-name">${patientName}</div>
+                <div class="memo-item-status-tag ${isCompleted ? 'completed' : 'pending'}">
+                  ${isCompleted ? '已完成' : '待办'}
+                </div>
+              </div>
+              
+              <div class="memo-item-details">
+                <div class="memo-detail-row">
+                  <span class="label">医院信息</span>
+                  <span class="value">${hospital}</span>
+                </div>
+              </div>
+
+              ${remark ? `
+                <div class="memo-item-remark">
+                  ${remark}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.viewMemoDetail = (rowid) => {
+      const memo = window.allMemoData.find(m => m.rowid === rowid);
+      if (!memo) return;
+
+      const modalContent = document.querySelector('#memo-modal .memo-modal-content');
+      const headerEl = modalContent.querySelector('.memo-modal-header');
+      const titleEl = modalContent.querySelector('.memo-modal-title');
+      const contentEl = document.getElementById('memo-detail-content');
+
+      const memoContent = memo.memoContent || '暂无详细说明';
+      const deadline = memo.deadline || '';
+      const status = memo.status || 'pending';
+      const patientName = memo.patientName || '未知患者';
+      const hospital = memo.hospital || '未填写医院';
+      const department = memo.department || '';
+      const isCompleted = status === 'completed';
+
+      const dateInfo = getRelativeDateInfo(deadline);
+
+      // 更新页眉颜色和状态
+      headerEl.className = `memo-modal-header ${isCompleted ? 'completed' : dateInfo.color}`;
+      titleEl.innerHTML = `<span>📅 ${dateInfo.dateDisplay || '未设置日期'}</span><span style="font-size:12px;opacity:0.8;margin-left:6px;">· ${dateInfo.text || '无期限'}</span>`;
+
+      let todoHtml = '';
+      const todoDetailArray = Array.isArray(memo.todoDetail) ? memo.todoDetail : [];
+      if (todoDetailArray.length > 0) {
+        todoHtml = `
+          <div class="memo-todo-list">
+            <div class="memo-todo-title">待办事项明细</div>
+            ${todoDetailArray.map(todo => {
+          const pzxn = todo.pzxn || '';
+          const todoHospital = todo.hospital || '';
+          const todoDepartment = todo.department || '';
+          return `
+                <div class="memo-todo-item">
+                  <div class="memo-todo-checkbox"></div>
+                  <div class="memo-todo-content">
+                    <div style="font-weight:500;">${pzxn}</div>
+                    ${todoHospital || todoDepartment ? `<div style="font-size:12px;color:#999;margin-top:2px;">${todoHospital} ${todoDepartment}</div>` : ''}
+                  </div>
+                </div>
+              `;
+        }).join('')}
+          </div>
+        `;
+      }
+
+      contentEl.innerHTML = `
+        <div class="memo-detail-patient-section">
+          <div class="memo-detail-patient-name">${patientName}</div>
+        </div>
+
+        ${memoContent ? `
+        <div class="memo-detail-item" style="margin-top: 12px;">
+          <span class="label">备注说明</span>
+          <span class="value">${memoContent}</span>
+        </div>
+        ` : ''}
+
+        <div class="memo-detail-info-grid" style="margin-top: 16px;">
+          <div class="memo-detail-item">
+            <span class="label">就诊医院</span>
+            <span class="value">${hospital || '未填写'}</span>
+          </div>
+          
+          <div class="memo-detail-item">
+            <span class="label">就诊科室</span>
+            <span class="value">${department || '未填写'}</span>
+          </div>
+        </div>
+
+        ${todoHtml}
+      `;
+
+      document.getElementById('memo-modal').classList.add('active');
+    };
+
+    window.closeMemoModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('memo-modal').classList.remove('active');
+    };
+
+    window.onCreateMemo = () => {
+      showToast('创建备忘录功能开发中...');
+    };
+
+    // 更新UI状态
+    const updateAuthUI = () => {
+      const btnLogin = document.getElementById('btnLogin')
+      const btnLogout = document.getElementById('btnLogout')
+      const nameEl = document.getElementById('user-name')
+      const descEl = document.getElementById('user-desc')
+      const avatarEl = document.getElementById('profile-avatar')
+
+      if (state.isLoggedIn) {
+        btnLogin.style.display = 'none'
+        btnLogout.style.display = 'block'
+
+        // 更新文本
+        nameEl.textContent = state.userInfo ? (state.userInfo.name || '用户') : '用户'
+        descEl.textContent = '欢迎回来'
+
+        // 更新头像
+        if (avatarEl) {
+          const img = avatarEl.querySelector('img')
+          if (img) {
+            const avatar = state.userInfo && state.userInfo.avatar
+            if (avatar) {
+              img.src = avatar
+            } else {
+              img.src = './assets/avatar_placeholder.png'
+            }
+          }
+        }
+      } else {
+        btnLogin.style.display = 'block'
+        btnLogout.style.display = 'none'
+        nameEl.textContent = '未登录'
+        descEl.textContent = '请点击下方按钮登录'
+
+        // 重置头像为默认
+        if (avatarEl) {
+          const img = avatarEl.querySelector('img')
+          if (img) {
+            img.src = './assets/avatar_placeholder.png'
+          }
+        }
+      }
+    }
+
+    // 明道云全局数据获取
+    const initGlobalData = async () => {
+      const { rowId, worksheetId } = window.__MDY_CONFIG__
+      const debugEl = document.getElementById('global-debug')
+
+      try {
+        log('明道云日志', '开始获取全局配置', { rowId, worksheetId })
+
+        if (!window.MingDaoYunAPI) {
+          throw new Error('MingdaoQuery组件未加载')
+        }
+
+        const api = new window.MingDaoYunAPI()
+        const res = await api.getData(rowId, worksheetId)
+
+        log('明道云日志', '全局配置获取成功', res)
+        log('明道云日志', '加载成功的全局设置', window.__MDY_CONFIG__)
+        log('明道云日志', '全局数据完整结构', JSON.stringify(res.data, null, 2))
+
+        // 打印智能体头像路径
+        let avatarPath = null
+        try {
+          avatarPath = JSON.parse(res.data.logo)[0].large_thumbnail_full_path
+          log('明道云日志', '智能体头像路径', avatarPath)
+
+          // 保存到全局配置
+          window.__AGENT_AVATAR__ = avatarPath
+
+          // 更新所有智能体头像
+          updateAgentAvatar(avatarPath)
+        } catch (e) {
+          err('明道云日志', '解析头像路径失败', e)
+        }
+
+        // 打印用户默认头像路径
+        let userAvatarPath = null
+        try {
+          userAvatarPath = JSON.parse(res.data.mryhtx)[0].large_thumbnail_full_path
+          log('明道云日志', '用户默认头像路径', userAvatarPath)
+
+          // 保存到全局配置
+          window.__USER_DEFAULT_AVATAR__ = userAvatarPath
+        } catch (e) {
+          log('明道云日志', '用户默认头像解析失败（可能未设置）', e.message)
+          window.__USER_DEFAULT_AVATAR__ = null
+        }
+
+        if (debugEl) {
+          if (res && res.success && res.data) {
+            debugEl.textContent = '全局数据加载成功：' + JSON.stringify(res.data).slice(0, 100) + '...'
+          } else {
+            debugEl.textContent = '全局数据加载失败：' + (res.error_msg || '未知错误')
+          }
+        }
+      } catch (e) {
+        err('明道云日志', '全局配置获取失败', e)
+        if (debugEl) {
+          debugEl.textContent = '全局数据加载失败'
+        }
+      }
+    }
+
+    // 更新所有智能体头像
+    const updateAgentAvatar = (avatarPath) => {
+      const avatarElements = document.querySelectorAll('.chat-icon, .bot-avatar img')
+      avatarElements.forEach(img => {
+        img.src = avatarPath
+      })
+      log('明道云日志', '智能体头像已更新', { count: avatarElements.length, path: avatarPath })
+    }
+
+    // 监听 URL Hash 变化
+    const observeUrlChanges = () => {
+      let currentUrl = window.location.href;
+
+      // 初始日志
+      log('URL监听', '页面加载完成，当前URL:', currentUrl);
+
+      // 定时检查URL变化（兼容所有浏览器）
+      setInterval(() => {
+        if (window.location.href !== currentUrl) {
+          const oldUrl = currentUrl;
+          currentUrl = window.location.href;
+          log('URL监听', 'URL发生变化', {
+            oldUrl: oldUrl,
+            newUrl: currentUrl,
+            hash: window.location.hash
+          });
+
+          // 触发认证逻辑
+          handleAuthLogic();
+        }
+      }, 100);
+    };
+
+    // 初始化
+    window.onload = async () => {
+      // 监听 Hash 变化 (核心改动: 避免页面刷新)
+      window.addEventListener('hashchange', handleAuthLogic);
+
+      // 启动URL变化监听
+      observeUrlChanges();
+
+      // 初次加载执行
+      await handleAuthLogic();
+
+      initGlobalData();
+    }
+
+    // 认证逻辑处理 (支持 Hash 路由)
+    const handleAuthLogic = async () => {
+      // 1. 解析 Hash 参数
+      const hash = window.location.hash.substring(1); // 去掉 #
+      const params = new URLSearchParams(hash);
+      const rawOpenId = params.get('openid');
+      const openid = rawOpenId && rawOpenId !== 'null' && rawOpenId !== 'undefined' ? rawOpenId : '';
+
+      log('登录日志', '检测到Hash变化/初始化', { hash, openid });
+
+      if (openid) {
+        log('登录日志', '获取OpenID成功 (Hash模式)', openid);
+
+        // 如果当前状态已经是登录且openid一致，跳过处理
+        if (state.isLoggedIn && state.openid === openid) {
+          log('登录日志', '状态一致，跳过重复处理');
+          return;
+        }
+
+        // 调用新的登录函数
+        await window.loginWithOpenid(openid);
+      } else {
+        // 4. 状态同步：如果Hash中没有openid
+        const isMiniprogram = window.__wxjs_environment === 'miniprogram' || window.navigator.userAgent.includes('miniProgram');
+
+        if (isMiniprogram) {
+          // 小程序环境下，如果Hash没带openid，说明未登录或已退出
+          // 但为了防止刷新丢失状态（如果小程序没重置URL），这里需要谨慎
+          // 约定：小程序每次进入都会带上 Hash (如果已登录)。
+          // 如果 Hash 为空，且是小程序环境，应该视为未登录。
+
+          // 检查本地是否有缓存 (防止Hash丢失但本地有的情况，但按新逻辑应以Hash为准)
+          // 用户要求 "当接收到openid时...传递登录状态"，暗示Hash是主要来源
+
+          if (state.isLoggedIn) {
+            log('登录日志', 'Hash无OpenID，执行登出清理');
+            localStorage.removeItem('openid');
+            state.isLoggedIn = false;
+            state.userInfo = null;
+            updateAuthUI();
+          }
+        } else {
+          // 本地调试/浏览器环境保留读取逻辑
+          const stored = localStorage.getItem('openid');
+          if (stored && !state.isLoggedIn) {
+            log('登录日志', '使用本地存储OpenID', stored);
+            // 调用新的登录函数
+            await window.loginWithOpenid(stored);
+          } else {
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- 患者详情弹窗 -->
+  <div id="patient-detail-modal" class="modal" onclick="closePatientDetailModal(event);">
+    <div class="modal-content" onclick="event.stopPropagation();">
+      <!-- 弹窗头部 -->
+      <div class="modal-header">
+        <h3>患者详情</h3>
+        <button class="btn-close" onclick="closePatientDetailModal()">&times;</button>
+      </div>
+      <!-- 弹窗内容 -->
+      <div class="modal-body">
+        <!-- 患者基本信息 -->
+        <div class="name-row">
+          <div class="patient-name-large">
+            <span id="modal-patient-name">未知姓名</span>
+            <span id="modal-patient-gender-age" class="patient-meta">未知 · </span>
+          </div>
+          <button class="btn-edit" onclick="onEditPatient()">
+            <img src="./assets/bianji.png" alt="编辑" class="edit-icon">
+          </button>
+        </div>
+        <div class="phone-row">
+          <img src="./assets/phone.png" alt="电话" class="phone-icon">
+          <span id="modal-patient-phone">暂无电话</span>
+        </div>
+        <div class="history-row">
+          <div class="history-label">既往病史</div>
+          <div class="history-content" id="modal-patient-history">暂无病史记录</div>
+        </div>
+        <!-- 陪诊服务记录 -->
+        <div class="visit-records-section">
+          <div class="section-header">
+            <div class="section-title">
+              <span>陪诊服务记录</span>
+            </div>
+            <button class="btn-add-record" onclick="onAddVisitRecord()">新增</button>
+          </div>
+          <div id="modal-visit-records-list" class="visit-records-list">
+            <!-- 陪诊记录将动态生成 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 编辑患者弹窗 – 放到 body 最末尾 -->
+  <div id="edit-patient-modal" class="modal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999999; transform: translateZ(0);"
+    onclick="closeEditModal(event);">
+    <div class="modal-content" onclick="event.stopPropagation();">
+      <div class="modal-header">
+        <h3>
+          <img src="./assets/bianji.png" alt="编辑" class="edit-icon"
+            style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;">
+          编辑患者信息
+        </h3>
+        <button class="btn-close" onclick="closeEditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="patient-form-group">
+          <label class="patient-form-label">患者姓名</label>
+          <input type="text" id="edit-patient-name" class="patient-form-input" placeholder="请输入患者姓名">
+        </div>
+        <div class="patient-form-group">
+          <label class="patient-form-label">联系电话</label>
+          <input type="tel" id="edit-patient-phone" class="patient-form-input" placeholder="请输入联系电话">
+        </div>
+        <div class="patient-form-group">
+          <label class="patient-form-label">症状备注</label>
+          <textarea id="edit-symptom-note" class="patient-form-textarea" placeholder="请输入症状备注"></textarea>
+        </div>
+        <div class="patient-form-group">
+          <label class="patient-form-label">过敏源</label>
+          <input type="text" id="edit-allergies" class="patient-form-input" placeholder="请输入过敏源">
+        </div>
+        <div class="patient-form-group">
+          <label class="patient-form-label">病情备注</label>
+          <textarea id="edit-condition-note" class="patient-form-textarea" placeholder="请输入病情备注"></textarea>
+        </div>
+        <div class="patient-form-group">
+          <label class="patient-form-label">注意事项</label>
+          <textarea id="edit-precautions" class="patient-form-textarea" placeholder="请输入注意事项"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-cancel" onclick="deletePatientRecord()"
+          style="background-color: #ff4d4f; color: white; padding: 10px 24px; min-width: 100px;">删除记录</button>
+        <button class="btn-save" onclick="savePatientChanges()"
+          style="padding: 10px 24px; min-width: 100px;">保存修改</button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
