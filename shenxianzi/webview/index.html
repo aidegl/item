@@ -35,31 +35,81 @@
       </header>
 
       <!-- 智能体对话区域 -->
-      <div class="agent-container" role="region" aria-label="对话区域">
+      <div class="chat-container" role="region" aria-label="对话区域">
         <!-- 消息列表 -->
-        <ul id="agent-history" class="agent-history" role="list" aria-label="对话历史记录">
+        <div id="chat-messages" class="chat-messages" aria-label="对话历史记录">
           <!-- 欢迎消息 -->
-          <li class="message-item" role="listitem">
-            <article class="message-wrapper" aria-labelledby="message-1-author">
-              <header class="message-header">
-                <figure class="message-avatar bot-avatar">
-                  <img src="./assets/agent1.png" alt="智能体助手头像">
-                  <figcaption class="visually-hidden">智能体助手</figcaption>
-                </figure>
-              </header>
-
-              <div class="message-content">
-                <div class="message-bubble bot-bubble" role="article" aria-label="智能体消息">
-                  <p>你好！我是Coze智能体助手，很高兴为你服务。</p>
-                  <p>有什么我可以帮助你的吗？</p>
-                </div>
-                <footer class="message-footer">
-                  <time class="message-time" datetime="" aria-label="消息时间">现在</time>
-                </footer>
+          <div class="message message-bot" role="article" aria-labelledby="message-1-author">
+            <figure class="message-avatar bot-avatar">
+              <img src="./assets/agent1.png" alt="智能体助手头像">
+            </figure>
+            <div class="message-content-wrapper">
+              <div class="message-bubble bot-bubble" aria-label="智能体消息">
+                <p>你好！我是Coze智能体助手，很高兴为你服务。</p>
+                <p>有什么我可以帮助你的吗？</p>
               </div>
-            </article>
-          </li>
-        </ul>
+              <time class="message-time" datetime="" aria-label="消息时间">现在</time>
+            </div>
+          </div>
+
+          <!-- 消息模板（用于JavaScript动态插入） -->
+          <template id="message-template-user">
+            <div class="message message-user" role="article">
+              <div class="message-content-wrapper">
+                <div class="message-bubble user-bubble"></div>
+                <time class="message-time"></time>
+              </div>
+              <figure class="message-avatar user-avatar">
+                <img src="./assets/morentouxiang.webp" alt="用户头像">
+              </figure>
+            </div>
+          </template>
+
+          <template id="message-template-bot">
+            <div class="message message-bot" role="article">
+              <figure class="message-avatar bot-avatar">
+                <img src="./assets/agent1.png" alt="智能体">
+              </figure>
+              <div class="message-content-wrapper">
+                <div class="message-bubble bot-bubble">
+                  <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+                <time class="message-time"></time>
+              </div>
+            </div>
+          </template>
+
+          <template id="message-template-bot-streaming">
+            <div class="message message-bot" role="article">
+              <figure class="message-avatar bot-avatar">
+                <img src="./assets/agent1.png" alt="智能体">
+              </figure>
+              <div class="message-content-wrapper">
+                <div class="message-bubble bot-bubble streaming">
+                  <span class="stream-content"></span>
+                  <span class="cursor">|</span>
+                </div>
+                <time class="message-time"></time>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="chat-input-area">
+          <div class="input-wrapper">
+            <textarea id="chat-input" class="chat-input" placeholder="输入消息..." rows="1"></textarea>
+            <button class="send-btn" id="send-btn" aria-label="发送消息">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   </main>
