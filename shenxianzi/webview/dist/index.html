@@ -3,17 +3,12 @@
 
 <head>
   <meta charset="utf-8">
-  <!-- 5. 移动端视口配置：适配小程序eWebView等移动端界面，保证页面布局一致性
-       width=device-width：视口宽度等于设备屏幕宽度
-       initial-scale=1：页面初始缩放比例为1:1
-       maximum-scale=1：页面最大缩放比例为1，禁止用户放大页面
-       user-scalable=0：完全禁止用户手动缩放页面（移动端常用配置）-->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <!-- 防缓存 Meta -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <!-- 6. 引入微信JS-SDK 1.6.0版本（微信官方CDN）：用于在小程序eWebView/微信内置浏览器中调用微信原生功能（分享、拍照等） -->
+
   <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
   <!-- 引入 vConsole 方便调试 -->
   <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
@@ -21,841 +16,15 @@
   <!-- 引入 Markdown 渲染库 -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <!-- 复用组件：用户数据获取 -->
-  <script src="./components/MingdaoQuery.js"></script>
-  <script src="./components/MingdaoAdd.js"></script>
-  <script src="./components/MingdaoUpdate.js"></script>
-  <script src="./components/MingdaoArray.js"></script>
+  <script src="/components/MingdaoQuery.js"></script>
+  <script src="/components/MingdaoAdd.js"></script>
+  <script src="/components/MingdaoUpdate.js"></script>
+  <script src="/components/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
+    onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/index.css">
   <title>神仙子</title>
-  <link rel="stylesheet" href="./css/base.css">
-  <link rel="stylesheet" href="./css/index.css">
-  <style>
-    html {
-      height: 100%;
-      overflow: hidden;
-      overscroll-behavior: none
-    }
 
-    .page {
-      display: none;
-      height: 100%;
-      background: var(--bg-color);
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 83px;
-      box-sizing: border-box
-    }
-
-    .page.active {
-      display: block
-    }
-
-    #page-agent {
-      overflow: hidden;
-      padding-bottom: 0
-    }
-
-    /* 底部导航 */
-    .bottom-menu {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 83px;
-      background: var(--white);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      align-items: center;
-      border-top: 1px solid #eee;
-      z-index: 999;
-      padding-bottom: env(safe-area-inset-bottom);
-      box-shadow: none
-    }
-
-    .bottom-menu.with-shadow {
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .menu-item {
-      text-align: center;
-      font-size: 10px;
-      color: var(--muted);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center
-    }
-
-    .menu-item.active {
-      color: var(--primary-color)
-    }
-
-    .menu-icon {
-      width: 24px;
-      height: 24px;
-      margin-bottom: 2px
-    }
-
-    /* 个人中心 */
-    .profile-header {
-      background: var(--white);
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      margin-bottom: 12px
-    }
-
-    .profile-header .user-info {
-      padding: 0
-    }
-
-    .profile-avatar {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      overflow: hidden;
-      margin-right: 16px;
-      flex-shrink: 0
-    }
-
-    .profile-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover
-    }
-
-    .user-info .name {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 4px
-    }
-
-    .user-info .desc {
-      font-size: 12px;
-      color: var(--muted)
-    }
-
-    .section {
-      background: var(--white);
-      margin-bottom: 12px;
-      border-radius: 12px;
-      overflow: hidden
-    }
-
-    .cell {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      border-bottom: 1px solid #f9f9f9;
-      font-size: 15px
-    }
-
-    .cell:last-child {
-      border-bottom: none
-    }
-
-    .cell:active {
-      background: #f9f9f9
-    }
-
-    .btn-group {
-      padding: 20px
-    }
-
-    .btn-block {
-      display: block;
-      width: 100%;
-      padding: 14px 0;
-      border-radius: 25px;
-      border: none;
-      font-size: 16px;
-      margin-bottom: 16px;
-      background: var(--white);
-      color: var(--text-color);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04)
-    }
-
-    .btn-primary {
-      background: var(--primary-color);
-      color: var(--white)
-    }
-
-    /* 通用 */
-    .loading-mask {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      display: none
-    }
-
-    /* 患者库页面 */
-    .patient-header {
-      height: 64px;
-      padding: 0 16px;
-      background: var(--white);
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-sizing: border-box;
-      position: sticky;
-      top: 0;
-      z-index: 10
-    }
-
-    .patient-search {
-      flex: 1;
-      position: relative;
-      margin-right: 12px
-    }
-
-    .patient-search input {
-      width: 100%;
-      padding: 10px 36px 10px 16px;
-      border-radius: 20px;
-      border: 1px solid #ddd;
-      background: #f5f5f5;
-      font-size: 14px;
-      box-sizing: border-box
-    }
-
-    .patient-search input:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      background: #fff
-    }
-
-    .patient-search .search-icon {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #999;
-      font-size: 14px
-    }
-
-    .patient-actions {}
-
-    .btn-create-patient {
-      padding: 8px 16px;
-      background: var(--primary-color);
-      color: var(--white);
-      border: none;
-      border-radius: 20px;
-      font-size: 14px
-    }
-
-    .btn-create-patient:active {
-      opacity: 0.8
-    }
-
-    .patient-list {
-      padding: 12px
-    }
-
-    .patient-item {
-      background: var(--white);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06)
-    }
-
-    .patient-item-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 12px
-    }
-
-    .patient-info {
-      flex: 1
-    }
-
-    .patient-name-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap
-    }
-
-    .patient-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-color)
-    }
-
-    .patient-meta {
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 13px
-    }
-
-    .patient-meta.male {
-      background: #e3f2fd;
-      color: #1976d2
-    }
-
-    .patient-meta.female {
-      background: #fce4ec;
-      color: #c2185b
-    }
-
-    .patient-meta.none {
-      background: #f5f5f5;
-      color: #999
-    }
-
-    .patient-detail {
-      font-size: 13px;
-      color: #666;
-      line-height: 1.6;
-      padding: 12px;
-      background: #f8fafc;
-      border: 1px solid #0DA2E7;
-      border-radius: 8px;
-      position: relative;
-      padding-left: 36px
-    }
-
-    .patient-detail::before {
-      content: '';
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      background: url('./assets/pulse-fill.png') no-repeat center;
-      background-size: contain
-    }
-
-    .patient-empty {
-      text-align: center;
-      padding: 60px 20px;
-      color: #999
-    }
-
-    /* 创建患者模态框 */
-    .patient-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000
-    }
-
-    .patient-modal.active {
-      display: flex
-    }
-
-    .patient-modal-content {
-      background: var(--white);
-      border-radius: 16px;
-      width: 90%;
-      max-width: 400px;
-      max-height: 90vh;
-      overflow-y: auto
-    }
-
-    .patient-modal-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: center;
-      justify-content: space-between
-    }
-
-    .patient-modal-title {
-      font-size: 17px;
-      font-weight: 600
-    }
-
-    .patient-modal-close {
-      font-size: 24px;
-      color: #999;
-      cursor: pointer;
-      line-height: 1
-    }
-
-    .patient-modal-body {
-      padding: 20px
-    }
-
-    .patient-form-group {
-      margin-bottom: 16px
-    }
-
-    .patient-form-label {
-      display: block;
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 8px
-    }
-
-    .patient-form-input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 15px;
-      box-sizing: border-box
-    }
-
-    .patient-form-input:focus {
-      outline: none;
-      border-color: #0DA2E7
-    }
-
-    .patient-form-textarea:focus {
-      outline: none;
-      border-color: #0DA2E7
-    }
-
-    .patient-form-row {
-      display: flex;
-      gap: 12px
-    }
-
-    .patient-form-row .patient-form-group {
-      flex: 1
-    }
-
-    .patient-gender-options {
-      display: flex;
-      gap: 12px
-    }
-
-    .patient-gender-option {
-      flex: 1;
-      padding: 12px;
-      text-align: center;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.2s
-    }
-
-    .patient-gender-option[data-gender="男"].active {
-      border-color: #1976d2;
-      background: #e3f2fd;
-      color: #1976d2
-    }
-
-    .patient-gender-option[data-gender="女"].active {
-      border-color: #c2185b;
-      background: #fce4ec;
-      color: #c2185b
-    }
-
-    .patient-modal-footer {
-      padding: 16px 20px;
-      border-top: 1px solid #eee;
-      display: flex;
-      gap: 12px
-    }
-
-    .patient-modal-btn {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      cursor: pointer
-    }
-
-    .patient-modal-btn-cancel {
-      background: #f5f5f5;
-      color: #666
-    }
-
-    .patient-modal-btn-submit {
-      background: var(--primary-color);
-      color: var(--white)
-    }
-
-    .patient-modal-btn:active {
-      opacity: 0.8
-    }
-
-    .patient-form-textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 15px;
-      min-height: 80px;
-      resize: vertical;
-      box-sizing: border-box
-    }
-
-    .patient-toast {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: #fff;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 14px;
-      z-index: 2000;
-      display: none
-    }
-
-    .patient-toast.show {
-      display: block
-    }
-
-    /* 备忘录页面 */
-    .memo-header {
-      height: 64px;
-      padding: 0 16px;
-      background: var(--white);
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-sizing: border-box;
-      position: sticky;
-      top: 0;
-      z-index: 10
-    }
-
-    .memo-title {
-      font-size: 17px;
-      font-weight: 600
-    }
-
-    .memo-btn-add {
-      padding: 8px 16px;
-      background: var(--primary-color);
-      color: var(--white);
-      border: none;
-      border-radius: 20px;
-      font-size: 14px
-    }
-
-    .memo-btn-add:active {
-      opacity: 0.8
-    }
-
-    .memo-list {
-      padding: 12px;
-      padding-bottom: 20px
-    }
-
-    .memo-item {
-      background: var(--white);
-      border-radius: 12px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
-      transition: all 0.3s ease;
-      position: relative
-    }
-
-    .memo-item.completed {
-      filter: grayscale(1);
-      opacity: 0.8
-    }
-
-    .memo-item-header-date {
-      padding: 8px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 500
-    }
-
-    /* 鲜明度色系 */
-    .memo-item-header-date.red {
-      background: #ffebee;
-      color: #d32f2f
-    }
-
-    .memo-item-header-date.yellow {
-      background: #fff9c4;
-      color: #f57f17
-    }
-
-    .memo-item-header-date.green {
-      background: #e8f5e9;
-      color: #2e7d32
-    }
-
-    .memo-item-content {
-      padding: 16px
-    }
-
-    .memo-item-main-info {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 12px
-    }
-
-    .memo-patient-name {
-      font-size: 18px;
-      font-weight: 700;
-      color: #333
-    }
-
-    .memo-item-status-tag {
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600
-    }
-
-    .memo-item-status-tag.completed {
-      background: #e0e0e0;
-      color: #757575
-    }
-
-    .memo-item-status-tag.pending {
-      background: var(--primary-light);
-      color: var(--primary-color)
-    }
-
-    .memo-item-details {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-      margin-bottom: 12px
-    }
-
-    .memo-detail-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      font-size: 14px;
-      color: #666
-    }
-
-    .memo-detail-row .label {
-      color: #999;
-      min-width: 56px;
-      flex-shrink: 0
-    }
-
-    .memo-item-remark {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px dashed #eee;
-      font-size: 14px;
-      color: #888;
-      line-height: 1.5
-    }
-
-    .memo-empty {
-      text-align: center;
-      padding: 60px 20px;
-      color: #999
-    }
-
-    .memo-loading {
-      text-align: center;
-      padding: 40px 20px;
-      color: #999
-    }
-
-    /* 备忘录详情模态框 */
-    .memo-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000
-    }
-
-    .memo-modal.active {
-      display: flex
-    }
-
-    .memo-modal-content {
-      background: var(--white);
-      border-radius: 20px;
-      width: 92%;
-      max-width: 400px;
-      max-height: 85vh;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      display: flex;
-      flex-direction: column
-    }
-
-    .memo-modal-header {
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative
-    }
-
-    .memo-modal-header.red {
-      background: #ffebee;
-      color: #d32f2f
-    }
-
-    .memo-modal-header.yellow {
-      background: #fff9c4;
-      color: #f57f17
-    }
-
-    .memo-modal-header.green {
-      background: #e8f5e9;
-      color: #2e7d32
-    }
-
-    .memo-modal-header.completed {
-      background: #f5f5f5;
-      color: #757575
-    }
-
-    .memo-modal-title {
-      font-size: 15px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px
-    }
-
-    .memo-modal-close {
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      color: currentColor;
-      opacity: 0.6;
-      cursor: pointer;
-      border-radius: 50%;
-      transition: background 0.2s
-    }
-
-    .memo-modal-close:hover {
-      background: rgba(0, 0, 0, 0.05);
-      opacity: 1
-    }
-
-    .memo-modal-body {
-      padding: 24px;
-      overflow-y: auto;
-      background: white
-    }
-
-    .memo-detail-patient-section {
-      margin-bottom: 24px;
-      text-align: left;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #f0f0f0
-    }
-
-    .memo-detail-patient-name {
-      font-size: 19px;
-      font-weight: 700;
-      color: #333
-    }
-
-    .memo-detail-info-grid {
-      display: grid;
-      gap: 16px
-    }
-
-    .memo-detail-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px
-    }
-
-    .memo-detail-item .label {
-      font-size: 12px;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.5px
-    }
-
-    .memo-detail-item .value {
-      font-size: 16px;
-      color: #333;
-      font-weight: 500
-    }
-
-    .memo-detail-date-value {
-      font-size: 18px !important;
-      color: var(--primary-color) !important;
-      font-weight: 700 !important
-    }
-
-    .memo-todo-list {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid #eee
-    }
-
-    .memo-todo-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: var(--text-color)
-    }
-
-    .memo-todo-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid #f5f5f5
-    }
-
-    .memo-todo-item:last-child {
-      border-bottom: none
-    }
-
-    .memo-todo-checkbox {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #ddd;
-      border-radius: 4px;
-      flex-shrink: 0;
-      margin-top: 2px
-    }
-
-    .memo-todo-checkbox.checked {
-      background: var(--primary-color);
-      border-color: var(--primary-color)
-    }
-
-    .memo-todo-content {
-      flex: 1;
-      font-size: 14px
-    }
-
-    .memo-todo-content.checked {
-      text-decoration: line-through;
-      color: #999
-    }
-  </style>
   <script>
     window.__MDY_CONFIG__ = {
       appKey: '59c7bdc2cdf74e5e',
@@ -1502,7 +671,7 @@
       border-radius: 50%;
       overflow: hidden;
       flex-shrink: 0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
     }
 
     .message-avatar img {
@@ -1558,7 +727,7 @@
       border-top-right-radius: 10px;
       border-bottom-right-radius: 10px;
       border-bottom-left-radius: 10px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
     .bot-bubble p {
@@ -1717,7 +886,7 @@
 
     .input-wrapper:focus-within {
       border-color: #0DA2E7;
-      box-shadow: 0 0 0 3px rgba(13, 162, 231, 0.1);
+      box-shadow: 0 0 0 3px rgba(13, 162, 231, 0.2);
     }
 
     .chat-input {
@@ -1893,15 +1062,104 @@
     <div class="patient-header">
       <div class="patient-search">
         <input type="text" id="patient-search-input" placeholder="搜索患者姓名、疾病..." oninput="onPatientSearchInput()">
-        <span class="search-icon">🔍</span>
+        <img class="search-icon" src="./assets/search.png" alt="搜索">
       </div>
       <div class="patient-actions">
         <button class="btn-create-patient" onclick="onCreatePatient()">创建</button>
       </div>
     </div>
     <div id="patient-list" class="patient-list">
-      <div class="patient-loading">加载中...</div>
     </div>
+
+    <!-- 患者详情页面 -->
+    <div id="patient-detail-page" class="patient-detail-page" style="display: none;">
+      <!-- 页面头部 -->
+      <div class="patient-detail-header">
+        <button class="btn-back" onclick="onBackToPatientList()">返回</button>
+        <h1 class="page-title">患者详情</h1>
+        <div class="header-actions"></div>
+      </div>
+
+      <!-- 基本信息部分 -->
+      <div class="patient-info-section">
+        <div class="patient-basic-info">
+          <div class="name-row">
+            <div class="patient-name-large">
+              <span id="patient-detail-name">患者姓名</span>
+              <div id="patient-detail-gender-age" class="patient-meta">性别 · 年龄</div>
+            </div>
+            <button class="btn-edit" onclick="onEditPatient()">
+              <img src="./assets/bianji.png" alt="编辑" class="edit-icon">
+            </button>
+          </div>
+          <div class="phone-row">
+            <img src="./assets/phone.png" alt="电话" class="phone-icon">
+            <span id="patient-detail-phone">联系电话</span>
+          </div>
+          <div class="history-row">
+            <div class="history-label">既往病史</div>
+            <div class="history-content">
+              <span id="patient-detail-history">暂无病史记录</span>
+              <button class="btn-edit-history" onclick="onEditPatientHistory()">
+                <img src="./assets/edit.png" alt="编辑" class="edit-icon-small">
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 就诊记录部分 -->
+      <div class="visit-records-section">
+        <div class="section-header">
+          <div class="section-title">
+            <img src="./assets/record-icon.png" alt="记录" class="record-icon"
+              style="width: 18px; height: 18px; margin-right: 8px;">
+            就诊记录
+          </div>
+          <button class="btn-add-record" onclick="onAddVisitRecord()">新增</button>
+        </div>
+        <div id="visit-records-list" class="visit-records-list">
+          <!-- 就诊记录列表将动态生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 编辑姓名弹窗 -->
+    <div id="edit-name-modal" class="modal" style="display: none;" onclick="closeEditNameModal(event);">
+      <div class="modal-content" onclick="event.stopPropagation();">
+        <div class="modal-header">
+          <h3>编辑姓名</h3>
+          <button class="btn-close" onclick="closeEditNameModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="edit-name-input" class="edit-input" placeholder="请输入新姓名">
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeEditNameModal()">取消</button>
+          <button class="btn-save" onclick="savePatientName()">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 编辑既往病史弹窗 -->
+    <div id="edit-history-modal" class="modal" style="display: none;" onclick="closeEditHistoryModal(event);">
+      <div class="modal-content" onclick="event.stopPropagation();">
+        <div class="modal-header">
+          <h3>编辑既往病史</h3>
+          <button class="btn-close" onclick="closeEditHistoryModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <textarea id="edit-history-input" class="edit-textarea" placeholder="请输入既往病史"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeEditHistoryModal()">取消</button>
+          <button class="btn-save" onclick="savePatientHistory()">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 综合编辑患者信息弹窗 -->
+
 
     <!-- 创建患者模态框 -->
     <div id="patient-modal" class="patient-modal" onclick="closePatientModal(event)">
@@ -2039,6 +1297,17 @@
   <div id="loading" class="loading-mask">加载中...</div>
 
   <script>
+    // 弹窗使用规范
+    /* 
+       所有弹窗关闭函数必须遵循以下规范：
+       1. 函数名：以 close 开头，如 closePatientDetailModal
+       2. 参数：支持 event 参数，用于判断点击目标
+       3. 逻辑：添加点击目标判断，仅点击蒙版时关闭弹窗
+       4. 实现：if (event && event.target !== event.currentTarget) return;
+       5. 调用：在弹窗根元素的 onclick 事件中调用，如 onclick="closeModal(event);"
+       6. 内容区域：在 .modal-content 上添加 onclick="event.stopPropagation();"
+    */
+
     // 日志辅助函数：同时输出到控制台和屏幕
     const log = (t, m, d) => {
       const time = new Date().toLocaleTimeString();
@@ -2183,55 +1452,72 @@
       }
     }
 
-    window.testFetchData = async () => {
-      const ua = navigator.userAgent;
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-      const isWeChat = /MicroMessenger/i.test(ua);
+    // 接受openid参数的登录函数
+    window.loginWithOpenid = async (openid) => {
+      console.log('[登录] 开始执行登录流程，openid:', openid);
 
-      console.log('----------------------------------------');
-      console.log('[环境检测] UserAgent:', ua);
-      console.log('[环境检测] 是否移动设备:', isMobile);
-      console.log('[环境检测] 是否微信环境:', isWeChat);
-      console.log('----------------------------------------');
+      if (!openid) {
+        console.error('[登录] 错误: openid不能为空');
+        return false;
+      }
 
-      log('调试', '开始获取用户数据(MingdaoArray)...');
-
+      // 构造包含openid的filters参数
       const filters = [
-        { "controlId": "openId", "dataType": "2", "spliceType": "1", "filterType": "2", "value": "oJZJz1xpX5ftzwXZhP31nKYIGeYM" },
+        { "controlId": "openId", "dataType": "2", "spliceType": "1", "filterType": "2", "value": openid },
         { "controlId": "del", "dataType": "2", "spliceType": "1", "filterType": "2", "value": 0 }
       ];
 
       try {
         if (!window.MingDaoYunArrayAPI) {
-          err('错误', 'MingDaoYunArrayAPI 组件未加载');
-          return;
+          console.error('[登录] 错误: MingDaoYunArrayAPI 组件未加载');
+          return false;
         }
 
         const api = new window.MingDaoYunArrayAPI();
         const res = await api.getData({
           worksheetId: 'yonghu',
-          filters: filters,
+          filters: JSON.stringify(filters),
           pageSize: 1
         });
 
         if (res && res.success && res.data && res.data.rows && res.data.rows.length > 0) {
           const userData = res.data.rows[0];
-          console.log('[模拟登录] 用户数据:', userData);
-          console.log('[模拟登录] 用户rowid:', userData.rowid);
+          console.log('[登录] 登录成功，用户数据获取完成');
 
           const processed = processUserData(userData);
           state.userInfo = processed;
           state.isLoggedIn = true;
+          state.openid = openid;
           updateAuthUI();
 
-          log('调试', '已模拟用户登录: ' + processed.name);
-          alert('模拟登录成功：' + processed.name);
+          // 存储到localStorage
+          localStorage.setItem('openid', openid);
+          console.log('[登录] 登录状态已保存到本地存储');
+
+          return true;
         } else {
-          err('错误', '获取数据失败或无数据', res);
+          console.error('[登录] 错误: 获取数据失败或无数据');
+          return false;
         }
 
       } catch (e) {
-        err('错误', '调用过程异常', e);
+        console.error('[登录] 错误: 调用过程异常', e.message);
+        return false;
+      }
+    }
+
+    window.testFetchData = async () => {
+      console.log('[模拟登录] 开始执行模拟登录流程');
+
+      // 使用测试openid调用登录函数
+      const testOpenid = "oJZJz1xpX5ftzwXZhP31nKYIGeYM";
+      console.log('[模拟登录] 传参openid:', testOpenid);
+
+      const success = await window.loginWithOpenid(testOpenid);
+      if (success) {
+        alert('模拟登录成功：' + state.userInfo.name);
+      } else {
+        alert('模拟登录失败');
       }
     }
 
@@ -2250,10 +1536,10 @@
       const api = new window.MingDaoYunArrayAPI();
       const params = {
         worksheetId: "bwlgl",
-        filters: [
+        filters: JSON.stringify([
           { "controlId": "yonghu", "dataType": "2", "spliceType": "1", "filterType": "24", "value": userRowid },
           { "controlId": "del", "dataType": "2", "spliceType": "1", "filterType": "2", "value": 0 }
-        ],
+        ]),
         pageSize: 10
       };
 
@@ -2298,10 +1584,10 @@
         const api = new window.MingDaoYunArrayAPI();
         const params = {
           worksheetId: "hzxxgl",
-          filters: [
+          filters: JSON.stringify([
             { "controlId": "yonghu", "dataType": "2", "spliceType": "1", "filterType": "24", "value": userRowid },
             { "controlId": "del", "dataType": "2", "spliceType": "1", "filterType": "2", "value": 0 }
-          ],
+          ]),
           pageSize: 100
         };
 
@@ -2327,12 +1613,12 @@
         return;
       }
 
-      listEl.innerHTML = patients.map(patient => {
+      listEl.innerHTML = patients.map((patient, index) => {
         const genderClass = patient.gender === '男' ? 'male' : (patient.gender === '女' ? 'female' : 'none');
         const history = patient.pastMedicalHistory || '暂无病史记录';
 
         return `
-          <div class="patient-item">
+          <div class="patient-item" onclick="openPatientDetail(${index})">
             <div class="patient-item-header">
               <div class="patient-info">
                 <div class="patient-name-row">
@@ -2347,6 +1633,467 @@
           </div>
         `;
       }).join('');
+    };
+
+    window.currentPatientId = null;
+
+    // 打开患者详情弹窗
+    window.openPatientDetail = async (patientIndex) => {
+      console.log('openPatientDetail 调用，参数 patientIndex:', patientIndex);
+      // 从全局患者数据中获取当前患者
+      const patient = window.allPatientData[patientIndex];
+      if (!patient) {
+        console.error('未找到患者数据，索引:', patientIndex);
+        showToast('未找到患者数据');
+        return;
+      }
+
+      window.currentPatientId = patient.rowid;
+      window.currentPatient = patient;
+      // 显示患者详情弹窗
+      document.getElementById('patient-detail-modal').style.display = 'flex';
+      // 更新患者详情弹窗
+      updatePatientDetailModal(patient);
+      // 获取并显示陪诊服务记录
+      await getVisitRecordsForModal(patient.rowid);
+    };
+
+    // 返回患者列表页面
+    window.onBackToPatientList = () => {
+      document.getElementById('patient-detail-page').style.display = 'none';
+      document.getElementById('page-patient').style.display = 'block';
+      window.currentPatientId = null;
+    };
+
+    // 关闭患者详情弹窗
+    window.closePatientDetailModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('patient-detail-modal').style.display = 'none';
+      window.currentPatientId = null;
+    };
+
+    // 从明道云API获取患者基本信息
+    // 更新患者详情页面
+    window.updatePatientDetailPage = (patient) => {
+      console.log('updatePatientDetailPage 调用，患者数据:', patient);
+      // 更新患者详情页面
+      document.getElementById('patient-detail-name').textContent = patient.name || '未知姓名';
+      const genderClass = patient.gender === '男' ? 'male' : (patient.gender === '女' ? 'female' : 'none');
+      document.getElementById('patient-detail-gender-age').className = `patient-meta ${genderClass}`;
+      document.getElementById('patient-detail-gender-age').textContent = `${patient.gender || '未知'} · ${patient.age ? patient.age + '岁' : ''}`;
+      document.getElementById('patient-detail-phone').textContent = patient.phone || '暂无电话';
+      document.getElementById('patient-detail-history').textContent = patient.pastMedicalHistory || '暂无病史记录';
+    };
+
+    // 更新患者详情弹窗
+    window.updatePatientDetailModal = (patient) => {
+      console.log('updatePatientDetailModal 调用，患者数据:', patient);
+      // 更新患者详情弹窗
+      document.getElementById('modal-patient-name').textContent = patient.name || '未知姓名';
+      const genderClass = patient.gender === '男' ? 'male' : (patient.gender === '女' ? 'female' : 'none');
+      document.getElementById('modal-patient-gender-age').className = `patient-meta ${genderClass}`;
+      document.getElementById('modal-patient-gender-age').textContent = `${patient.gender || '未知'} · ${patient.age ? patient.age + '岁' : ''}`;
+      document.getElementById('modal-patient-phone').textContent = patient.phone || '暂无电话';
+      document.getElementById('modal-patient-history').textContent = patient.pastMedicalHistory || '暂无病史记录';
+    };
+
+    // 从明道云API获取患者就诊记录（用于页面）
+    window.getVisitRecords = async (patientRowid) => {
+      console.log('getVisitRecords 调用，参数 patientRowid:', patientRowid);
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        // 陪诊服务记录表表别名: pzfwjl
+        const params = {
+          worksheetId: 'pzfwjl',
+          filters: [
+            {
+              "controlId": "patientId",
+              "dataType": 2,
+              "spliceType": 1,
+              "filterType": 24,
+              "value": patientRowid
+            }
+          ]
+        };
+
+        console.log('getVisitRecords 请求参数:', JSON.stringify(params, null, 2));
+        const response = await api.getData(params);
+
+        const visitRecordsList = document.getElementById('visit-records-list');
+
+        if (response && response.data && response.data.rows && response.data.rows.length > 0) {
+          const visitRecords = response.data.rows;
+          // 打印陪诊服务记录表数据
+          console.log('陪诊服务记录表数据（共', visitRecords.length, '条）:', JSON.stringify(visitRecords, null, 2));
+          // 时间格式化函数：将2024-06-06 08:00:00格式转换为2024-06-06 上午8点00分
+          function formatVisitTime(timeStr) {
+            if (!timeStr) return '';
+            const date = new Date(timeStr);
+            // 提取年月日
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            // 提取时分
+            const hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const period = hours >= 12 ? '下午' : '上午';
+            const formattedHours = hours % 12 || 12;
+            return `${year}-${month}-${day} ${period} ${formattedHours}点${minutes}分`;
+          }
+
+          // 渲染就诊记录列表
+          visitRecordsList.innerHTML = visitRecords.map((record, index) => {
+            // 根据实际的字段名映射调整
+            const appointmentTime = record.appointmentTime || record['预约时间'] || '';
+            const serviceTitle = record.serviceTitle || record['求诊诉求'] || '';
+            const nextAction = record.nextAction || record['下一步陪诊说明'] || '';
+
+            // 格式化时间
+            const formattedTime = formatVisitTime(appointmentTime);
+
+            // 只在最新记录（索引为0）且下一步建议不为空时显示
+            const nextActionHtml = index === 0 && nextAction ? `<div class="visit-record-next-action">下一步建议：${nextAction}</div>` : '';
+
+            return `
+              <div class="visit-record-item">
+                <div class="visit-record-date">${formattedTime}</div>
+                <div class="visit-record-content">${serviceTitle}</div>
+                ${nextActionHtml}
+              </div>
+            `;
+          }).join('');
+        } else {
+          visitRecordsList.innerHTML = '<div class="visit-records-empty">暂无就诊记录</div>';
+        }
+      } catch (error) {
+        console.error('获取就诊记录失败:', error);
+        showToast('获取就诊记录失败');
+      }
+    };
+
+    // 从明道云API获取患者就诊记录（用于弹窗）
+    window.getVisitRecordsForModal = async (patientRowid) => {
+      console.log('getVisitRecordsForModal 调用，参数 patientRowid:', patientRowid);
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        // 陪诊服务记录表表别名: pzfwjl
+        const params = {
+          worksheetId: 'pzfwjl',
+          filters: [
+            {
+              "controlId": "patientId",
+              "dataType": 2,
+              "spliceType": 1,
+              "filterType": 24,
+              "value": patientRowid
+            }
+          ]
+        };
+
+        console.log('getVisitRecordsForModal 请求参数:', JSON.stringify(params, null, 2));
+        const response = await api.getData(params);
+
+        const visitRecordsList = document.getElementById('modal-visit-records-list');
+
+        if (response && response.data && response.data.rows && response.data.rows.length > 0) {
+          const visitRecords = response.data.rows;
+          // 打印陪诊服务记录表数据
+          console.log('陪诊服务记录表数据（共', visitRecords.length, '条）:', JSON.stringify(visitRecords, null, 2));
+          // 时间格式化函数：将2024-06-06 08:00:00格式转换为2024-06-06 上午8点00分
+          function formatVisitTime(timeStr) {
+            if (!timeStr) return '';
+            const date = new Date(timeStr);
+            // 提取年月日
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            // 提取时分
+            const hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const period = hours >= 12 ? '下午' : '上午';
+            const formattedHours = hours % 12 || 12;
+            return `${year}-${month}-${day} ${period} ${formattedHours}点${minutes}分`;
+          }
+          // 渲染就诊记录列表
+          visitRecordsList.innerHTML = visitRecords.map((record, index) => {
+            // 根据实际的字段名映射调整
+            const appointmentTime = record.appointmentTime || record['预约时间'] || '';
+            const serviceTitle = record.serviceTitle || record['求诊诉求'] || '';
+            const nextAction = record.nextAction || record['下一步陪诊说明'] || '';
+
+            // 格式化时间
+            const formattedTime = formatVisitTime(appointmentTime);
+
+            // 只在最新记录（索引为0）且下一步建议不为空时显示
+            const nextActionHtml = index === 0 && nextAction ? `<div class="visit-record-next-action">下一步建议：${nextAction}</div>` : '';
+
+            return `
+              <div class="visit-record-item">
+                <div class="visit-record-date">${formattedTime}</div>
+                <div class="visit-record-content">${serviceTitle}</div>
+                ${nextActionHtml}
+              </div>
+            `;
+          }).join('');
+        } else {
+          visitRecordsList.innerHTML = '<div class="visit-records-empty">暂无就诊记录</div>';
+        }
+      } catch (error) {
+        console.error('获取就诊记录失败:', error);
+        showToast('获取就诊记录失败');
+      }
+    };
+
+    // 打开编辑姓名弹窗
+    window.onEditPatientName = () => {
+      const currentName = document.getElementById('patient-detail-name').textContent;
+      document.getElementById('edit-name-input').value = currentName;
+      document.getElementById('edit-name-modal').style.display = 'block';
+    };
+
+    // 关闭编辑姓名弹窗
+    window.closeEditNameModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('edit-name-modal').style.display = 'none';
+    };
+
+    // 保存患者姓名
+    window.savePatientName = async () => {
+      const newName = document.getElementById('edit-name-input').value.trim();
+      if (!newName) {
+        showToast('姓名不能为空');
+        return;
+      }
+
+      if (!window.currentPatientId) {
+        showToast('未找到患者信息');
+        return;
+      }
+
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        const response = await api.updateData({
+          rowId: window.currentPatientId,
+          data: {
+            name: newName
+          }
+        });
+
+        if (response && response.success) {
+          // 更新页面显示
+          document.getElementById('patient-detail-name').textContent = newName;
+          // 关闭弹窗
+          closeEditNameModal();
+          showToast('姓名修改成功');
+          // 刷新患者列表
+          renderPatientList(window.allPatientData);
+        } else {
+          showToast('姓名修改失败');
+        }
+      } catch (error) {
+        console.error('修改姓名失败:', error);
+        showToast('修改姓名失败');
+      }
+    };
+
+    // 打开编辑既往病史弹窗
+    window.onEditPatientHistory = () => {
+      const currentHistory = document.getElementById('patient-detail-history').textContent;
+      document.getElementById('edit-history-input').value = currentHistory === '暂无病史记录' ? '' : currentHistory;
+      document.getElementById('edit-history-modal').style.display = 'block';
+    };
+
+    // 关闭编辑既往病史弹窗
+    window.closeEditHistoryModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('edit-history-modal').style.display = 'none';
+    };
+
+    // 保存患者既往病史
+    window.savePatientHistory = async () => {
+      const newHistory = document.getElementById('edit-history-input').value.trim();
+
+      if (!window.currentPatientId) {
+        showToast('未找到患者信息');
+        return;
+      }
+
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        const response = await api.updateData({
+          rowId: window.currentPatientId,
+          data: {
+            pastMedicalHistory: newHistory
+          }
+        });
+
+        if (response && response.success) {
+          // 更新页面显示
+          document.getElementById('patient-detail-history').textContent = newHistory || '暂无病史记录';
+          // 关闭弹窗
+          closeEditHistoryModal();
+          showToast('既往病史修改成功');
+          // 刷新患者列表
+          renderPatientList(window.allPatientData);
+        } else {
+          showToast('既往病史修改失败');
+        }
+      } catch (error) {
+        console.error('修改既往病史失败:', error);
+        showToast('修改既往病史失败');
+      }
+    };
+
+    // 打开综合编辑患者信息弹窗
+    window.onEditPatient = async () => {
+      console.log('onEditPatient 调用');
+      if (!window.currentPatientId) {
+        showToast('未找到患者信息');
+        return;
+      }
+
+      try {
+        // 获取患者基本信息
+        const currentName = document.getElementById('patient-detail-name').textContent;
+        const currentPhone = document.getElementById('patient-detail-phone').textContent;
+
+        // 获取最新的就诊记录 (暂保留逻辑，用于获取可能的关联信息)
+        const api = new window.MingDaoYunArrayAPI();
+        const params = {
+          worksheetId: 'pzfwjl',
+          filters: [
+            {
+              "controlId": "patientId",
+              "dataType": 2,
+              "spliceType": 1,
+              "filterType": 24,
+              "value": window.currentPatientId
+            }
+          ],
+          sort: [
+            {
+              "controlId": "actualStartDate",
+              "sortType": 2 // 降序排列，获取最新记录
+            }
+          ],
+          limit: 1
+        };
+
+        const response = await api.getData(params);
+        const latestRecord = response.data && response.data.rows && response.data.rows.length > 0 ? response.data.rows[0] : {};
+
+        // 填充表单数据
+        document.getElementById('edit-patient-name').value = currentName;
+        document.getElementById('edit-patient-phone').value = currentPhone;
+        // 映射已有字段 (根据之前的逻辑映射)
+        // 注意事项 <- zhjy (注意事项)
+        document.getElementById('edit-precautions').value = latestRecord.zhjy || latestRecord['注意事项'] || '';
+        // 症状备注 <- serviceTitle (求诊诉求 - 暂定)
+        document.getElementById('edit-symptom-note').value = latestRecord.serviceTitle || latestRecord['求诊诉求'] || '';
+        // 病情备注 <- zjbz (总结备注 - 暂定)
+        document.getElementById('edit-condition-note').value = latestRecord.zjbz || latestRecord['总结备注'] || '';
+        // 过敏源 (无对应字段，留空)
+        document.getElementById('edit-allergies').value = '';
+
+        // 显示模态框
+        document.getElementById('edit-patient-modal').style.display = 'flex';
+      } catch (error) {
+        console.error('获取患者信息失败:', error);
+        showToast('获取患者信息失败');
+      }
+    };
+
+    // 关闭综合编辑患者信息弹窗
+    window.closeEditModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('edit-patient-modal').style.display = 'none';
+    };
+
+    // 保存患者信息修改
+    window.savePatientChanges = async () => {
+      // 获取表单数据
+      const name = document.getElementById('edit-patient-name').value.trim();
+      const phone = document.getElementById('edit-patient-phone').value.trim();
+      const symptom = document.getElementById('edit-symptom-note').value.trim();
+      const allergies = document.getElementById('edit-allergies').value.trim();
+      const condition = document.getElementById('edit-condition-note').value.trim();
+      const precautions = document.getElementById('edit-precautions').value.trim();
+
+      if (!name || !phone) {
+        showToast('姓名和电话不能为空');
+        return;
+      }
+
+      // 构造请求体（用于调试）
+      const requestBody = {
+        rowId: window.currentPatientId,
+        worksheetId: "675bc860897b774c76743940",
+        controls: [
+          { controlId: "name", value: name }, // 姓名
+          { controlId: "phone", value: phone }, // 电话
+          { controlId: "symptom_note", value: symptom }, // 症状备注
+          { controlId: "allergies", value: allergies }, // 过敏源
+          { controlId: "condition_note", value: condition }, // 病情备注
+          { controlId: "precautions", value: precautions } // 注意事项
+        ]
+      };
+
+      console.log('【调试】保存修改 - 请求体:', JSON.stringify(requestBody, null, 2));
+      showToast('调试模式：请求体已打印到控制台');
+
+      // 暂时注释掉实际调用
+      /*
+      try {
+        // showLoading(true);
+        // 原有保存逻辑已暂停，等待接口对接
+      } catch (error) {
+        console.error("保存失败:", error);
+        showToast("保存失败，请重试");
+      } finally {
+        // showLoading(false);
+      }
+      */
+    };
+
+    // 删除患者记录
+    window.deletePatientRecord = async () => {
+      if (!window.currentPatientId) {
+        showToast('未找到患者信息');
+        return;
+      }
+
+      if (!confirm('确定要删除这条患者记录吗？此操作不可恢复。')) {
+        return;
+      }
+
+      try {
+        const api = new window.MingDaoYunArrayAPI();
+        const response = await api.deleteData({
+          worksheetId: 'hzxxgl',
+          rowId: window.currentPatientId
+        });
+
+        if (response && response.success) {
+          showToast('患者记录删除成功');
+          // 返回患者列表页面
+          document.getElementById('edit-patient-modal').style.display = 'none';
+          document.getElementById('patient-detail-page').style.display = 'none';
+          document.getElementById('page-patients').style.display = 'block';
+          // 刷新患者列表
+          loadPatients();
+        } else {
+          showToast('患者记录删除失败');
+        }
+      } catch (error) {
+        console.error('删除患者记录失败:', error);
+        showToast('删除患者记录失败');
+      }
+    };
+
+    // 新增就诊记录
+    window.onAddVisitRecord = () => {
+      showToast('新增就诊记录功能开发中');
+      // 这里可以实现打开新增就诊记录的弹窗或页面
     };
 
     window.onPatientSearchInput = () => {
@@ -2382,7 +2129,8 @@
       document.querySelectorAll('.patient-gender-option').forEach(el => el.classList.remove('active'));
     };
 
-    window.closePatientModal = () => {
+    window.closePatientModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
       document.getElementById('patient-modal').classList.remove('active');
     };
 
@@ -2489,10 +2237,10 @@
         const api = new window.MingDaoYunArrayAPI();
         const params = {
           worksheetId: "bwlgl",
-          filters: [
+          filters: JSON.stringify([
             { "controlId": "yonghu", "dataType": "2", "spliceType": "1", "filterType": "24", "value": userRowid },
             { "controlId": "del", "dataType": "2", "spliceType": "1", "filterType": "2", "value": 0 }
-          ],
+          ]),
           pageSize: 50,
           orderBy: [{ "field": "createdTime", "order": "desc" }]
         };
@@ -2861,37 +2609,8 @@
           return;
         }
 
-        state.openid = openid;
-        state.isLoggedIn = true;
-
-        // 2. 调用组件获取详细信息
-        log('登录日志', '开始获取用户详细信息', { openid });
-        try {
-          if (!window.MingDaoYunUserAPI) {
-            throw new Error('UserFetcher组件未加载');
-          }
-          const api = new window.MingDaoYunUserAPI();
-          const result = await api.getData(openid);
-          let userData = null;
-          if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
-            userData = processUserData(result.data.rows[0]);
-            log('登录日志', '用户详细信息获取成功', userData);
-            state.userInfo = userData;
-            // 存储完整用户数据到localStorage
-            localStorage.setItem('userData', JSON.stringify(userData));
-          } else {
-            log('登录日志', '用户详细信息获取失败');
-          }
-        } catch (error) {
-          log('登录日志', '获取用户信息时发生错误', error);
-        }
-
-        // 3. 存储本地
-        localStorage.setItem('openid', openid);
-        log('登录日志', '认证状态已更新到localStorage', { openid: !!openid, userData: !!state.userInfo });
-
-        // 更新UI
-        updateAuthUI();
+        // 调用新的登录函数
+        await window.loginWithOpenid(openid);
       } else {
         // 4. 状态同步：如果Hash中没有openid
         const isMiniprogram = window.__wxjs_environment === 'miniprogram' || window.navigator.userAgent.includes('miniProgram');
@@ -2917,26 +2636,105 @@
           const stored = localStorage.getItem('openid');
           if (stored && !state.isLoggedIn) {
             log('登录日志', '使用本地存储OpenID', stored);
-            state.openid = stored;
-            state.isLoggedIn = true;
-            try {
-              if (window.MingDaoYunUserAPI) {
-                const api = new window.MingDaoYunUserAPI();
-                const result = await api.getData(stored);
-                if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
-                  state.userInfo = processUserData(result.data.rows[0]);
-                }
-              }
-              updateAuthUI();
-            } catch (error) {
-              log('登录日志', '从本地存储获取用户信息时发生错误', error);
-            }
+            // 调用新的登录函数
+            await window.loginWithOpenid(stored);
           } else {
           }
         }
       }
     }
   </script>
+
+  <!-- 患者详情弹窗 -->
+  <div id="patient-detail-modal" class="modal" onclick="closePatientDetailModal(event);">
+    <div class="modal-content" onclick="event.stopPropagation();">
+      <!-- 弹窗头部 -->
+      <div class="modal-header">
+        <h3>患者详情</h3>
+        <button class="btn-close" onclick="closePatientDetailModal()">&times;</button>
+      </div>
+      <!-- 弹窗内容 -->
+      <div class="modal-body">
+        <!-- 患者基本信息 -->
+        <div class="name-row">
+          <div class="patient-name-large">
+            <span id="modal-patient-name">未知姓名</span>
+            <span id="modal-patient-gender-age" class="patient-meta">未知 · </span>
+          </div>
+          <button class="btn-edit" onclick="onEditPatient()">
+            <img src="./assets/bianji.png" alt="编辑" class="edit-icon">
+          </button>
+        </div>
+        <div class="phone-row">
+          <img src="./assets/phone.png" alt="电话" class="phone-icon">
+          <span id="modal-patient-phone">暂无电话</span>
+        </div>
+        <div class="history-row">
+          <div class="history-label">既往病史</div>
+          <div class="history-content" id="modal-patient-history">暂无病史记录</div>
+        </div>
+        <!-- 陪诊服务记录 -->
+        <div class="visit-records-section">
+          <div class="section-header">
+            <div class="section-title">
+              <span>陪诊服务记录</span>
+            </div>
+            <button class="btn-add-record" onclick="onAddVisitRecord()">新增</button>
+          </div>
+          <div id="modal-visit-records-list" class="visit-records-list">
+            <!-- 陪诊记录将动态生成 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 编辑患者弹窗 – 放到 body 最末尾 -->
+  <div id="edit-patient-modal" class="modal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999999; transform: translateZ(0);"
+    onclick="closeEditModal(event);">
+    <div class="modal-content" onclick="event.stopPropagation();">
+      <div class="modal-header">
+        <h3>
+          <img src="./assets/bianji.png" alt="编辑" class="edit-icon"
+            style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;">
+          编辑患者信息
+        </h3>
+        <button class="btn-close" onclick="closeEditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="patient-form-group">
+          <label class="patient-form-label">患者姓名</label>
+          <input type="text" id="edit-patient-name" class="patient-form-input" placeholder="请输入患者姓名">
+        </div>
+        <div class="patient-form-group">
+          <label class="patient-form-label">联系电话</label>
+          <input type="tel" id="edit-patient-phone" class="patient-form-input" placeholder="请输入联系电话">
+        </div>
+        <div class="patient-form-group">
+          <label class="patient-form-label">症状备注</label>
+          <textarea id="edit-symptom-note" class="patient-form-textarea" placeholder="请输入症状备注"></textarea>
+        </div>
+        <div class="patient-form-group">
+          <label class="patient-form-label">过敏源</label>
+          <input type="text" id="edit-allergies" class="patient-form-input" placeholder="请输入过敏源">
+        </div>
+        <div class="patient-form-group">
+          <label class="patient-form-label">病情备注</label>
+          <textarea id="edit-condition-note" class="patient-form-textarea" placeholder="请输入病情备注"></textarea>
+        </div>
+        <div class="patient-form-group">
+          <label class="patient-form-label">注意事项</label>
+          <textarea id="edit-precautions" class="patient-form-textarea" placeholder="请输入注意事项"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-cancel" onclick="deletePatientRecord()"
+          style="background-color: #ff4d4f; color: white; padding: 10px 24px; min-width: 100px;">删除记录</button>
+        <button class="btn-save" onclick="savePatientChanges()"
+          style="padding: 10px 24px; min-width: 100px;">保存修改</button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>
