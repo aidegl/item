@@ -1,1158 +1,388 @@
-:root {
-  --primary-color: #0DA2E7;
-  --text-color: #1f2328;
-  --muted: #99A1AF;
-  --bg-color: #ECF5FB;
-  --white: #fff;
-  --female-color: #f06292;
-  --font-title: 18px;
-  --font-detail: 15px;
-  --font-small: 12px;
+/* input, button, textarea reset */
+input,
+button,
+textarea {
+  color: inherit;
+  font: inherit;
+  border: none;
 }
 
-html {
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
+/* 允许输入框可输入可选择 */
+input,
+textarea {
+  user-select: auto;
+  -webkit-user-select: auto;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: PingFang SC, Microsoft YaHei, system-ui, Arial;
-  color: var(--text-color);
-  background: var(--bg-color);
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
-  -webkit-tap-highlight-color: transparent;
-  /* 禁用点击高亮 */
-  -webkit-touch-callout: none;
-  /* 禁用长按菜单 */
-  user-select: none;
-  /* 禁止选中文本 */
-  -webkit-user-select: none;
-}
-
-/* 页面基础样式 */
-.page {
-  display: none;
-  height: 100%;
-  background: var(--bg-color);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 83px;
-  box-sizing: border-box;
-}
-
-.page.active {
-  display: block;
-}
-
-#page-agent {
-  overflow: hidden;
-  padding-bottom: 0;
-}
-
-.loading-mask {
+/* 底部导航 */
+.bottom-menu {
   position: fixed;
-  top: 0;
+  bottom: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  display: none
-}
-
-/* 患者库页面 */
-.patient-header {
-  height: 64px;
-  padding: 0 16px;
+  height: 83px;
   background: var(--white);
-  border-bottom: 1px solid #eee;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-  position: sticky;
-  top: 0;
-  z-index: 10
-}
-
-.patient-search {
-  flex: 1;
-  position: relative;
-  margin-right: 12px
-}
-
-.patient-search input {
-  width: 100%;
-  padding: 10px 16px 10px 36px;
-  border-radius: 20px;
-  border: 1px solid #ddd;
-  background: #f5f5f5;
-  font-size: 14px;
-  box-sizing: border-box
-}
-
-.patient-search input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  background: #fff
-}
-
-.patient-search .search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  opacity: 0.6;
-}
-
-.patient-actions {}
-
-.btn-create-patient {
-  padding: 8px 16px;
-  background: var(--primary-color);
-  color: var(--white);
-  border: none;
-  border-radius: 20px;
-  font-size: 14px
-}
-
-.btn-create-patient:active {
-  opacity: 0.8
-}
-
-.patient-list {
-  padding: 12px
-}
-
-.patient-item {
-  background: var(--white);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2)
-}
-
-.patient-item-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px
-}
-
-.patient-info {
-  flex: 1
-}
-
-.patient-name-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap
-}
-
-.patient-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-color)
-}
-
-.patient-meta {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px
-}
-
-.patient-meta.male {
-  background: var(--primary-color);
-  color: #ffffff
-}
-
-.patient-meta.female {
-  background: var(--female-color);
-  color: #ffffff
-}
-
-.patient-meta.none {
-  background: #f5f5f5;
-  color: #999
-}
-
-/* 患者详情页面样式 */
-.patient-detail-page {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #f5f5f5;
-  z-index: 1000;
-  overflow-y: auto;
-  padding-bottom: 83px;
-}
-
-.patient-detail-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  background: #fff;
-  border-bottom: 1px solid #eee;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.btn-back {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  color: var(--text-color);
-  padding: 8px;
-}
-
-.page-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-  color: var(--text-color);
-}
-
-.patient-info-section {
-  padding: 20px;
-}
-
-.patient-basic-info {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-}
-
-.name-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.patient-name-large {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.patient-name-large span {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-/* 确保性别年龄使用正确的字体大小 */
-.patient-name-large .patient-meta {
-  font-size: 11px;
-}
-
-.btn-edit {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-}
-
-.edit-icon {
-  width: 20px;
-  height: 20px;
-  opacity: 0.6;
-}
-
-.phone-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #eee;
-}
-
-.phone-icon {
-  width: 18px;
-  height: 18px;
-  opacity: 0.6;
-  align-self: center;
-}
-
-.phone-row span {
-  font-size: 14px;
-  color: var(--text-color);
-}
-
-.history-row {
-  display: flex;
-  flex-direction: column;
-}
-
-.history-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 8px;
-}
-
-.history-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 14px;
-  color: var(--text-color);
-  background: #e9ecef;
-  padding: 12px;
-  border-radius: 8px;
-  min-height: 40px;
-}
-
-.btn-edit-history {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-}
-
-.edit-icon-small {
-  width: 16px;
-  height: 16px;
-  opacity: 0.6;
-}
-
-.visit-records-section {
-  padding: 0;
-}
-
-/* 确保弹窗内所有区域宽度一致 */
-.modal-body {
-  padding: 0 20px;
-  background: #f8f9fa;
-  border-radius: 0 0 12px 12px;
-}
-
-.modal .name-row,
-.modal .phone-row,
-.modal .history-row,
-.modal .visit-records-section {
-  margin: 10px 0 0 0;
-  padding-top: 0;
-}
-
-.modal .name-row {
-  margin-top: 20px;
-}
-
-.modal .history-row {
-  margin-bottom: 20px;
-}
-
-.modal .visit-records-section .section-header {
-  padding: 16px 20px;
-  background: white;
-  border-radius: 0;
-  margin-bottom: 0;
-  margin-left: -20px;
-  margin-right: -20px;
-  border-top: 1px solid #e9ecef;
-}
-
-.modal .visit-records-section .visit-records-list {
-  padding: 15px 0 0 0;
-  background: transparent;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.visit-records-list {
-  margin-top: 0;
-  padding: 0 16px 16px;
-  background: white;
-  border-radius: 0 0 12px 12px;
-}
-
-.visit-record-item {
-  background: var(--white);
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 0;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.visit-record-date {
-  font-size: 14px;
-  color: var(--primary-color);
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.visit-record-content {
-  font-size: 14px;
-  color: var(--text-color);
-  margin-bottom: 8px;
-  line-height: 1.5;
-}
-
-.visit-record-next-action {
-  font-size: 14px;
-  color: #9F2D00;
-  background-color: #FFF7ED;
-  border-radius: 10px;
-  padding: 10px;
-  line-height: 1.5;
-}
-
-.visit-records-empty {
-  text-align: center;
-  padding: 24px 0;
-  color: #999;
-  font-size: 14px;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0;
-  padding: 16px;
-  background: white;
-  border-radius: 12px 12px 0 0;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.btn-add-record {
-  background: var(--primary-color);
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.visit-records-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.visit-record-item {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-}
-
-.record-date {
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-
-.record-content {
-  font-size: 14px;
-  color: var(--text-color);
-  line-height: 1.5;
-  margin-bottom: 8px;
-}
-
-.record-next-step {
-  font-size: 14px;
-  color: var(--primary-color);
-  margin-top: 8px;
-}
-
-/* 弹窗样式规范 */
-/* 所有弹窗必须遵循以下规范：
-       1. 蒙版颜色：统一使用 rgba(0, 0, 0, 0.5)
-       2. 层级：统一使用 z-index: 2000
-       3. 布局：使用 flex 布局居中显示
-       4. 初始状态：默认隐藏 (display: none)
-       5. 交互：点击蒙版可关闭弹窗
-       6. 内容区域：点击内容区域不关闭弹窗 (需添加 event.stopPropagation())
-    */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  /* 统一蒙版颜色 */
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 999999;
-  /* 极高的层级，确保绝对高于其他所有元素 */
-}
-
-.modal-content {
-  background: #fff;
-  border-radius: 12px;
-  position: relative;
-  z-index: 999999;
-  width: 90%;
-  max-width: 400px;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  z-index: 99999;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  border-bottom: 1px solid #eee;
-  background: white;
-  border-radius: 12px 12px 0 0;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--muted);
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-body {
-  padding: 20px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.edit-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.edit-textarea {
-  width: 100%;
-  height: 150px;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  resize: vertical;
-  box-sizing: border-box;
-}
-
-.modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 20px;
-  border-top: 1px solid #eee;
-}
-
-.btn-cancel {
-  background: #f5f5f5;
-  color: var(--text-color);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.btn-save {
-  background: var(--primary-color);
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.patient-detail {
-  font-size: 13px;
-  color: #666;
-  line-height: 1.6;
-  padding: 12px;
-  background: #f8fafc;
-  border: 1px solid #0DA2E7;
-  border-radius: 8px;
-  position: relative;
-  padding-left: 36px
-}
-
-.patient-detail::before {
-  content: '';
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  background: url('./assets/pulse-fill.png') no-repeat center;
-  background-size: contain
-}
-
-.patient-empty {
-  text-align: center;
-  padding: 60px 20px;
-  color: #999
-}
-
-/* 创建患者模态框 */
-.patient-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  /* 统一蒙版颜色 */
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 999999;
-  /* 统一层级 */
-}
-
-.patient-modal.active {
-  display: flex
-}
-
-.patient-modal-content {
-  background: var(--white);
-  border-radius: 16px;
-  width: 90%;
-  max-width: 400px;
-  max-height: 90vh;
-  overflow-y: auto
-}
-
-.patient-modal-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  align-items: center;
-  justify-content: space-between
-}
-
-.patient-modal-title {
-  font-size: 17px;
-  font-weight: 600
-}
-
-.patient-modal-close {
-  font-size: 24px;
-  color: #999;
-  cursor: pointer;
-  line-height: 1
-}
-
-.patient-modal-body {
-  padding: 20px
-}
-
-.patient-form-group {
-  margin-bottom: 16px
-}
-
-.patient-form-label {
-  display: block;
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 8px
-}
-
-.patient-form-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 15px;
-  box-sizing: border-box
-}
-
-.patient-form-input:focus {
-  outline: none;
-  border-color: #0DA2E7
-}
-
-.patient-form-textarea:focus {
-  outline: none;
-  border-color: #0DA2E7
-}
-
-.patient-form-row {
-  display: flex;
-  gap: 12px
-}
-
-.patient-form-row .patient-form-group {
-  flex: 1
-}
-
-.patient-gender-options {
-  display: flex;
-  gap: 12px
-}
-
-.patient-gender-option {
-  flex: 1;
-  padding: 12px;
-  text-align: center;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s
-}
-
-.patient-gender-option[data-gender="男"].active {
-  border-color: #1976d2;
-  background: #e3f2fd;
-  color: #1976d2
-}
-
-.patient-gender-option[data-gender="女"].active {
-  border-color: var(--female-color);
-  background: #fce4ec;
-  color: var(--female-color)
-}
-
-.patient-modal-footer {
-  padding: 16px 20px;
-  border-top: 1px solid #eee;
-  display: flex;
-  gap: 12px
-}
-
-.patient-modal-btn {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  cursor: pointer
-}
-
-.patient-modal-btn-cancel {
-  background: #f5f5f5;
-  color: #666
-}
-
-.patient-modal-btn-submit {
-  background: var(--primary-color);
-  color: var(--white)
-}
-
-.patient-modal-btn:active {
-  opacity: 0.8
-}
-
-.patient-form-textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 15px;
-  min-height: 80px;
-  resize: vertical;
-  box-sizing: border-box
-}
-
-.patient-toast {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  z-index: 2000;
-  display: none
-}
-
-.patient-toast.show {
-  display: block
-}
-
-/* 备忘录页面 */
-.memo-header {
-  height: 64px;
-  padding: 0 16px;
-  background: var(--white);
-  border-bottom: 1px solid #eee;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-  position: sticky;
-  top: 0;
-  z-index: 10
-}
-
-.memo-title {
-  font-size: 17px;
-  font-weight: 600
-}
-
-.memo-btn-add {
-  padding: 8px 16px;
-  background: var(--primary-color);
-  color: var(--white);
-  border: none;
-  border-radius: 20px;
-  font-size: 14px
-}
-
-.memo-btn-add:active {
-  opacity: 0.8
-}
-
-.memo-list {
-  padding: 12px;
-  padding-bottom: 20px
-}
-
-.memo-item {
-  background: var(--white);
-  border-radius: 12px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  position: relative
-}
-
-.memo-item.completed {
-  filter: grayscale(1);
-  opacity: 0.8
-}
-
-.memo-item-header-date {
-  padding: 8px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  font-weight: 500
-}
-
-/* 鲜明度色系 */
-.memo-item-header-date.red {
-  background: #ffebee;
-  color: #d32f2f
-}
-
-.memo-item-header-date.yellow {
-  background: #fff9c4;
-  color: #f57f17
-}
-
-.memo-item-header-date.green {
-  background: #e8f5e9;
-  color: #2e7d32
-}
-
-.memo-item-content {
-  padding: 16px
-}
-
-.memo-item-main-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px
-}
-
-.memo-patient-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: #333
-}
-
-.memo-item-status-tag {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600
-}
-
-.memo-item-status-tag.completed {
-  background: #e0e0e0;
-  color: #757575
-}
-
-.memo-item-status-tag.pending {
-  background: var(--primary-light);
-  color: var(--primary-color)
-}
-
-.memo-item-details {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  margin-bottom: 12px
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+  border-top: 1px solid #eee;
+  z-index: 999;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: none;
 }
 
-.memo-detail-row {
+.bottom-menu.with-shadow {
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.menu-item {
+  text-align: center;
+  font-size: 10px;
+  color: var(--muted);
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 14px;
-  color: #666
-}
-
-.memo-detail-row .label {
-  color: #999;
-  min-width: 56px;
-  flex-shrink: 0
-}
-
-.memo-item-remark {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed #eee;
-  font-size: 14px;
-  color: #888;
-  line-height: 1.5
-}
-
-.memo-empty {
-  text-align: center;
-  padding: 60px 20px;
-  color: #999
-}
-
-.memo-loading {
-  text-align: center;
-  padding: 40px 20px;
-  color: #999
-}
-
-/* 备忘录详情模态框 */
-.memo-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  /* 统一蒙版颜色 */
-  display: none;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
-  /* 统一层级 */
 }
 
-.memo-modal.active {
-  display: flex
+.menu-item.active {
+  color: var(--primary-color);
 }
 
-.memo-modal-content {
+.menu-icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 2px;
+}
+
+/* 个人中心 */
+.profile-header {
   background: var(--white);
-  border-radius: 20px;
-  width: 92%;
-  max-width: 400px;
-  max-height: 85vh;
-  overflow: hidden;
-  box-shadow: 0 10px 3px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column
-}
-
-.memo-modal-header {
-  padding: 16px 20px;
+  padding: 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  position: relative
+  margin-bottom: 12px;
 }
 
-.memo-modal-header.red {
-  background: #ffebee;
-  color: #d32f2f
+.profile-header .user-info {
+  padding: 0;
 }
 
-.memo-modal-header.yellow {
-  background: #fff9c4;
-  color: #f57f17
-}
-
-.memo-modal-header.green {
-  background: #e8f5e9;
-  color: #2e7d32
-}
-
-.memo-modal-header.completed {
-  background: #f5f5f5;
-  color: #757575
-}
-
-.memo-modal-title {
-  font-size: 15px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px
-}
-
-.memo-modal-close {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: currentColor;
-  opacity: 0.6;
-  cursor: pointer;
+.profile-avatar {
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  transition: background 0.2s
+  overflow: hidden;
+  margin-right: 16px;
+  flex-shrink: 0;
 }
 
-.memo-modal-close:hover {
-  background: rgba(0, 0, 0, 0.05);
-  opacity: 1
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.memo-modal-body {
-  padding: 24px;
-  overflow-y: auto;
-  background: white
+.user-info .name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
-.memo-detail-patient-section {
-  margin-bottom: 24px;
-  text-align: left;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0
+.user-info .desc {
+  font-size: 12px;
+  color: var(--muted);
 }
 
-.memo-detail-patient-name {
-  font-size: 19px;
-  font-weight: 700;
-  color: #333
+/* 通用组件 */
+.section {
+  background: var(--white);
+  margin-bottom: 12px;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.memo-detail-info-grid {
-  display: grid;
-  gap: 16px
+.cell {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f9f9f9;
+  font-size: 15px;
 }
 
-.memo-detail-item {
+.cell:last-child {
+  border-bottom: none;
+}
+
+.cell:active {
+  background: #f9f9f9;
+}
+
+.btn-group {
+  padding: 20px;
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+  padding: 14px 0;
+  border-radius: 25px;
+  border: none;
+  font-size: 16px;
+  margin-bottom: 16px;
+  background: var(--white);
+  color: var(--text-color);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: var(--white);
+}
+
+/* 聊天界面样式 */
+.chat-container {
   display: flex;
   flex-direction: column;
-  gap: 4px
+  height: calc(100% - 83px - env(safe-area-inset-bottom));
+  background: var(--bg-color);
 }
 
-.memo-detail-item .label {
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-behavior: smooth;
+}
+
+.message {
+  display: flex;
+  gap: 12px;
+  max-width: 85%;
+  animation: messageIn 0.3s ease-out;
+  transform: translateY(10px);
+  margin-top: 15px;
+}
+
+.message-user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message-bot {
+  align-self: flex-start;
+}
+
+.message-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.user-avatar {
+  margin-left: 12px;
+  margin-right: 0;
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.message-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+}
+
+.message-bubble {
+  padding: 10px 14px;
+  border-radius: 10px;
+  word-wrap: break-word;
+  position: relative;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.user-bubble {
+  background: linear-gradient(135deg, #0DA2E7 0%, #0a8fd4 100%);
+  color: white;
+  border-radius: 10px 10px 0 10px;
+}
+
+.bot-bubble {
+  background: white;
+  color: #1f2328;
+  border-radius: 0 10px 10px 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.message-time {
+  margin-top: 4px;
   font-size: 12px;
   color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.5px
+  align-self: flex-end;
 }
 
-.memo-detail-item .value {
-  font-size: 16px;
-  color: #333;
-  font-weight: 500
+.message-user .message-time {
+  align-self: flex-start;
 }
 
-.memo-detail-date-value {
-  font-size: 18px !important;
-  color: var(--primary-color) !important;
-  font-weight: 700 !important
-}
-
-.memo-todo-list {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #eee
-}
-
-.memo-todo-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: var(--text-color)
-}
-
-.memo-todo-item {
+.chat-input-area {
+  position: relative;
+  padding: 10px 15px;
+  background: var(--white);
+  border-top: 1px solid #eee;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid #f5f5f5
 }
 
-.memo-todo-item:last-child {
-  border-bottom: none
+.input-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
 }
 
-.memo-todo-checkbox {
+.chat-input {
+  width: 100%;
+  padding: 10px 40px 10px 15px;
+  border-radius: 20px;
+  background: #f5f5f5;
+  font-size: 15px;
+  line-height: 1.5;
+  max-height: 120px;
+  resize: none;
+  overflow-y: hidden;
+  transition: height 0.2s ease;
+}
+
+.chat-input:focus {
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(13, 162, 231, 0.2);
+}
+
+.send-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.send-btn:hover {
+  background: #0a8fd4;
+  transform: scale(1.05);
+}
+
+.send-btn:active {
+  transform: scale(0.95);
+}
+
+.send-btn svg {
   width: 18px;
   height: 18px;
-  border: 2px solid #ddd;
-  border-radius: 4px;
-  flex-shrink: 0;
-  margin-top: 2px
 }
 
-.memo-todo-checkbox.checked {
-  background: var(--primary-color);
-  border-color: var(--primary-color)
+/* 动画效果 */
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.memo-todo-content {
-  flex: 1;
-  font-size: 14px
+/* 隐藏类 */
+.visually-hidden {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+  margin: -1px;
 }
 
-.memo-todo-content.checked {
-  text-decoration: line-through;
-  color: #999
+/* 发送中动画 */
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  background: white;
+  color: #1f2328;
+  border-radius: 0 10px 10px 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  animation: messageIn 0.3s ease-out;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #999;
+  animation: typingDot 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typingDot {
+
+  0%,
+  80%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .message {
+    max-width: 90%;
+  }
+
+  .chat-messages {
+    padding: 10px 10px;
+  }
+
+  .chat-input-area {
+    padding: 8px 10px;
+  }
 }
