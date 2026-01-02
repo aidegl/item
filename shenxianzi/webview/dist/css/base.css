@@ -62,17 +62,19 @@ body {
   border: 0;
 }
 
-/* 消息列表样式 - 移除默认列表样式 */
-.message-list {
-  list-style: none;
+/* 消息列表样式 - 使用div结构，无列表标记 */
+#chat-messages .message-list {
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.message-item {
-  list-style: none;
+#chat-messages .message-item {
   margin: 0;
   padding: 0;
+  display: block;
 }
 
 #page-agent {
