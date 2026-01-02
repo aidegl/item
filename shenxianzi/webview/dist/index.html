@@ -21,8 +21,8 @@
   <script src="../../components/MingdaoUpdate.js"></script>
   <script src="../../components/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
     onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
-  <link rel="stylesheet" href="../css/base.css">
-  <link rel="stylesheet" href="../css/index.css">
+  <link rel="stylesheet" href="./css/base.css">
+  <link rel="stylesheet" href="./css/index.css">
   <title>神仙子</title>
 
   <script>
@@ -900,6 +900,19 @@
       max-height: 120px;
       min-height: 24px;
       padding: 4px 0;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border: none;
+      box-shadow: none;
+    }
+
+    /* 确保textarea没有默认的聚焦样式 */
+    #chat-input:focus {
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
     }
 
     .chat-input::placeholder {
