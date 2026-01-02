@@ -62,6 +62,19 @@ body {
   border: 0;
 }
 
+/* 消息列表样式 - 移除默认列表样式 */
+.message-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.message-item {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 #page-agent {
   overflow: hidden;
   padding-bottom: 0;
