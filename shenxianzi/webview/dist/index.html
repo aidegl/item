@@ -21,8 +21,8 @@
   <script src="../../components/MingdaoUpdate.js"></script>
   <script src="../../components/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
     onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
-  <link rel="stylesheet" href="./css/base.css">
-  <link rel="stylesheet" href="./css/index.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/index.css">
   <title>神仙子</title>
 
   <script>
@@ -40,108 +40,86 @@
 
   <!-- 页面容器 -->
   <!-- 智能体对话页面 -->
-  <main id="page-agent" class="page active" role="main" aria-labelledby="agent-title">
-    <header class="page-header" role="banner">
-      <h1 id="agent-title" class="visually-hidden">沈仙子智能体助手</h1>
-    </header>
+  <div id="page-agent" class="page active">
     <div class="chat-container">
 
 
       <!-- 消息区域 -->
-      <section class="chat-messages" id="chat-messages" role="region" aria-labelledby="chat-messages-title">
-        <h2 id="chat-messages-title" class="visually-hidden">对话历史记录</h2>
+      <div class="chat-messages" id="chat-messages">
         <!-- 欢迎消息 -->
-        <div class="message-list" role="list" aria-label="对话消息">
-          <div class="message-item" role="listitem">
-            <article class="message message-bot" aria-labelledby="msg-welcome-author">
-              <div class="message-content-wrapper">
-                <figure class="message-avatar bot-avatar">
-                  <img src="./assets/agent1.png" alt="智能体助手头像">
-                  <figcaption id="msg-welcome-author" class="visually-hidden">智能体助手</figcaption>
-                </figure>
-                <div class="message-bubble bot-bubble">
-                  <p>你好！我是Coze智能体助手，很高兴为你服务。</p>
-                  <p>有什么我可以帮助你的吗？</p>
-                </div>
-                <time class="message-time" datetime="" aria-label="消息时间">现在</time>
-              </div>
-            </article>
+        <div class="message message-bot">
+          <div class="message-avatar bot-avatar">
+            <img src="./assets/agent1.png" alt="智能体">
+          </div>
+          <div class="message-content-wrapper">
+            <div class="message-bubble bot-bubble">
+              <p>你好！我是Coze智能体助手，很高兴为你服务。</p>
+              <p>有什么我可以帮助你的吗？</p>
+            </div>
+            <div class="message-time">现在</div>
           </div>
         </div>
 
         <!-- 消息模板（用于JavaScript动态插入） -->
         <template id="message-template-user">
-          <div class="message-item" role="listitem">
-            <article class="message message-user" aria-labelledby="msg-user-{timestamp}">
-              <div class="message-content-wrapper">
-                <div class="message-bubble user-bubble"></div>
-                <time class="message-time" datetime="" aria-label="消息时间"></time>
-                <figure class="message-avatar user-avatar">
-                  <img src="./assets/avatar_placeholder.png" alt="用户头像">
-                  <figcaption id="msg-user-{timestamp}" class="visually-hidden">用户</figcaption>
-                </figure>
-              </div>
-            </article>
+          <div class="message message-user">
+            <div class="message-content-wrapper">
+              <div class="message-bubble user-bubble"></div>
+              <div class="message-time"></div>
+            </div>
+            <div class="message-avatar user-avatar">
+              <img src="./assets/avatar_placeholder.png" alt="用户">
+            </div>
           </div>
         </template>
 
         <template id="message-template-bot">
-          <div class="message-item" role="listitem">
-            <article class="message message-bot" aria-labelledby="msg-bot-{timestamp}">
-              <div class="message-content-wrapper">
-                <figure class="message-avatar bot-avatar">
-                  <img src="./assets/agent1.png" alt="智能体助手头像">
-                  <figcaption id="msg-bot-{timestamp}" class="visually-hidden">智能体助手</figcaption>
-                </figure>
-                <div class="message-bubble bot-bubble">
-                  <div class="typing-indicator" aria-hidden="true">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
+          <div class="message message-bot">
+            <div class="message-avatar bot-avatar">
+              <img src="./assets/agent1.png" alt="智能体">
+            </div>
+            <div class="message-content-wrapper">
+              <div class="message-bubble bot-bubble">
+                <div class="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
                 </div>
-                <time class="message-time" datetime="" aria-label="消息时间"></time>
               </div>
-            </article>
+              <div class="message-time"></div>
+            </div>
           </div>
         </template>
 
         <template id="message-template-bot-streaming">
-          <div class="message-item" role="listitem">
-            <article class="message message-bot streaming" aria-labelledby="msg-bot-streaming-{timestamp}">
-              <div class="message-content-wrapper">
-                <figure class="message-avatar bot-avatar">
-                  <img src="./assets/agent1.png" alt="智能体助手头像">
-                  <figcaption id="msg-bot-streaming-{timestamp}" class="visually-hidden">智能体助手</figcaption>
-                </figure>
-                <div class="message-bubble bot-bubble streaming">
-                  <span class="stream-content"></span>
-                  <span class="cursor" aria-hidden="true">|</span>
-                </div>
-                <time class="message-time" datetime="" aria-label="消息时间"></time>
+          <div class="message message-bot">
+            <div class="message-avatar bot-avatar">
+              <img src="./assets/agent1.png" alt="智能体">
+            </div>
+            <div class="message-content-wrapper">
+              <div class="message-bubble bot-bubble streaming">
+                <span class="stream-content"></span>
+                <span class="cursor">|</span>
               </div>
-            </article>
+              <div class="message-time"></div>
+            </div>
           </div>
         </template>
-    </div>
-    </section>
+      </div>
 
-    <!-- 输入区域 -->
-    <section class="chat-input-area" role="region" aria-label="消息输入区域">
-      <div class="input-wrapper">
-        <label for="chat-input" class="visually-hidden">输入消息</label>
-        <textarea id="chat-input" class="chat-input" placeholder="输入消息..." rows="1" onkeydown="handleKeyDown(event)"
-          oninput="autoResize(this)" aria-label="消息输入框" aria-describedby="input-help"></textarea>
-        <button class="send-btn" id="send-btn" onclick="sendMessage()" aria-label="发送消息" disabled>
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-          </svg>
-        </button>
+      <!-- 输入区域 -->
+      <div class="chat-input-area">
+        <div class="input-wrapper">
+          <textarea id="chat-input" class="chat-input" placeholder="输入消息..." rows="1" onkeydown="handleKeyDown(event)"
+            oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+            </svg>
+          </button>
+        </div>
+
       </div>
-      <div id="input-help" class="visually-hidden">
-        按Enter键发送消息，Shift+Enter换行
-      </div>
-    </section>
     </div>
 
     <!-- 调试日志 -->
@@ -151,8 +129,7 @@
         onclick="toggleAgentDebug()">-- 智能体调试日志 (点击隐藏) --</div>
       <div id="agent-logs"></div>
     </div>
-    </header>
-  </main>
+  </div>
 
   <script>
     // 智能体对话状态管理
@@ -274,16 +251,7 @@
       const bubble = clone.querySelector('.message-bubble');
       bubble.innerHTML = formatMessageContent(content);
 
-      const timeElement = clone.querySelector('.message-time');
-      const currentTime = getCurrentTime();
-      timeElement.textContent = currentTime;
-      timeElement.setAttribute('datetime', new Date().toISOString());
-
-      // 设置唯一的消息ID用于aria-labelledby
-      const article = clone.querySelector('article');
-      const timestamp = Date.now();
-      article.setAttribute('aria-labelledby', `msg-user-${timestamp}`);
-      clone.querySelector('figcaption').id = `msg-user-${timestamp}`;
+      clone.querySelector('.message-time').textContent = getCurrentTime();
 
       messagesContainer.appendChild(clone);
       scrollToBottom();
@@ -319,12 +287,6 @@
       }
 
       clone.querySelector('.message-time').textContent = getCurrentTime();
-
-      // 设置唯一的消息ID用于aria-labelledby
-      const article = clone.querySelector('article');
-      const timestamp = Date.now();
-      article.setAttribute('aria-labelledby', `msg-bot-${timestamp}`);
-      clone.querySelector('figcaption').id = `msg-bot-${timestamp}`;
 
       messagesContainer.appendChild(clone);
       scrollToBottom();
@@ -417,27 +379,7 @@
             // 机器人消息使用Markdown渲染，用户消息使用普通文本
             bubble.innerHTML = msg.role === 'bot' ? formatMarkdownContent(msg.content) : formatMessageContent(msg.content);
 
-            const timeElement = clone.querySelector('.message-time');
-            timeElement.textContent = msg.time;
-
-            // 如果msg.time是标准时间格式，转换为ISO格式设置datetime
-            if (msg.time) {
-              try {
-                const date = new Date(msg.time);
-                if (!isNaN(date.getTime())) {
-                  timeElement.setAttribute('datetime', date.toISOString());
-                }
-              } catch (e) {
-                // 如果时间解析失败，跳过datetime设置
-              }
-            }
-
-            // 设置唯一的消息ID用于aria-labelledby
-            const article = clone.querySelector('article');
-            const timestamp = Date.now() + Math.random();
-            const msgType = msg.role === 'user' ? 'user' : 'bot';
-            article.setAttribute('aria-labelledby', `msg-${msgType}-${timestamp}`);
-            clone.querySelector('figcaption').id = `msg-${msgType}-${timestamp}`;
+            clone.querySelector('.message-time').textContent = msg.time;
 
             messagesContainer.appendChild(clone);
           });

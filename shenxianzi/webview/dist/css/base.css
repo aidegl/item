@@ -49,34 +49,6 @@ body {
   display: block;
 }
 
-/* 屏幕阅读器可见，视觉隐藏 */
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* 消息列表样式 - 使用div结构，无列表标记 */
-#chat-messages .message-list {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-#chat-messages .message-item {
-  margin: 0;
-  padding: 0;
-  display: block;
-}
-
 #page-agent {
   overflow: hidden;
   padding-bottom: 0;
