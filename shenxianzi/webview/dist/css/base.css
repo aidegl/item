@@ -866,6 +866,14 @@ body {
   position: relative
 }
 
+:root {
+  --primary-color: #0DA2E7;
+  --text-color: #1f2328;
+  --muted: #667085;
+  --bg-color: #ECF5FB;
+  --white: #fff
+}
+
 .memo-item.completed {
   filter: grayscale(1);
   opacity: 0.8
