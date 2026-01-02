@@ -9,7 +9,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- 6. 引入微信JS-SDK 1.6.0版本（微信官方CDN）：用于在小程序WebView/微信内置浏览器中调用微信原生功能（分享、拍照等） -->
+  <!-- 引入微信JS-SDK 1.6.0版本（微信官方CDN）：用于在小程序WebView/微信内置浏览器中调用微信原生功能（分享、拍照等） -->
   <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
   <!-- 引入 vConsole 方便调试 -->
   <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
@@ -27,28 +27,42 @@
 </head>
 
 <body>
-  <!-- 页面容器 -->
-  <!-- 智能体对话页面 -->
-  <div id="page-agent" class="page active">
-    <!-- 智能体对话区域 -->
-    <div class="agent-container">
-      <!-- 消息区域 -->
-      <div id="agent-history" class="agent-history">
-        <!-- 欢迎消息 -->
-        <div class="message-avatar bot-avatar">
-          <img src="./assets/agent1.png" alt="智能体">
-        </div>
-        <div class="message-content-wrapper">
-          <div class="message-bubble bot-bubble">
-            <p>你好！我是Coze智能体助手，很高兴为你服务。</p>
-            <p>有什么我可以帮助你的吗？</p>
-          </div>
-          <div class="message-time">现在</div>
-        </div>
-      </div>
+  <main id="main-content" role="main">
+    <!-- 智能体对话页面 -->
+    <section id="page-agent" class="page active" aria-labelledby="agent-title">
+      <header class="page-header">
+        <h1 id="agent-title" class="visually-hidden">沈仙子智能体助手</h1>
+      </header>
 
-    </div>
-  </div>
+      <!-- 智能体对话区域 -->
+      <div class="agent-container" role="region" aria-label="对话区域">
+        <!-- 消息列表 -->
+        <ul id="agent-history" class="agent-history" role="list" aria-label="对话历史记录">
+          <!-- 欢迎消息 -->
+          <li class="message-item" role="listitem">
+            <article class="message-wrapper" aria-labelledby="message-1-author">
+              <header class="message-header">
+                <figure class="message-avatar bot-avatar">
+                  <img src="./assets/agent1.png" alt="智能体助手头像">
+                  <figcaption class="visually-hidden">智能体助手</figcaption>
+                </figure>
+              </header>
+
+              <div class="message-content">
+                <div class="message-bubble bot-bubble" role="article" aria-label="智能体消息">
+                  <p>你好！我是Coze智能体助手，很高兴为你服务。</p>
+                  <p>有什么我可以帮助你的吗？</p>
+                </div>
+                <footer class="message-footer">
+                  <time class="message-time" datetime="" aria-label="消息时间">现在</time>
+                </footer>
+              </div>
+            </article>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
 
 </body>
 
