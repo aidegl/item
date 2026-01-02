@@ -906,6 +906,7 @@
       outline: none;
       border: none;
       box-shadow: none;
+      background: transparent;
     }
 
     /* 确保textarea没有默认的聚焦样式 */
@@ -913,6 +914,12 @@
       outline: none !important;
       border: none !important;
       box-shadow: none !important;
+      background: transparent !important;
+    }
+
+    /* 确保输入框背景与父级一致 */
+    #chat-input {
+      background: transparent !important;
     }
 
     .chat-input::placeholder {
