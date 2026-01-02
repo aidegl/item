@@ -51,8 +51,8 @@
       <section class="chat-messages" id="chat-messages" role="region" aria-labelledby="chat-messages-title">
         <h2 id="chat-messages-title" class="visually-hidden">对话历史记录</h2>
         <!-- 欢迎消息 -->
-        <ul class="message-list" role="list" aria-label="对话消息">
-          <li class="message-item" role="listitem">
+        <div class="message-list" role="list" aria-label="对话消息">
+          <div class="message-item" role="listitem">
             <article class="message message-bot" aria-labelledby="msg-welcome-author">
               <div class="message-content-wrapper">
                 <figure class="message-avatar bot-avatar">
@@ -66,12 +66,12 @@
                 <time class="message-time" datetime="" aria-label="消息时间">现在</time>
               </div>
             </article>
-          </li>
-        </ul>
+          </div>
+        </div>
 
         <!-- 消息模板（用于JavaScript动态插入） -->
         <template id="message-template-user">
-          <li class="message-item" role="listitem">
+          <div class="message-item" role="listitem">
             <article class="message message-user" aria-labelledby="msg-user-{timestamp}">
               <div class="message-content-wrapper">
                 <div class="message-bubble user-bubble"></div>
@@ -82,11 +82,11 @@
                 </figure>
               </div>
             </article>
-          </li>
+          </div>
         </template>
 
         <template id="message-template-bot">
-          <li class="message-item" role="listitem">
+          <div class="message-item" role="listitem">
             <article class="message message-bot" aria-labelledby="msg-bot-{timestamp}">
               <div class="message-content-wrapper">
                 <figure class="message-avatar bot-avatar">
@@ -103,11 +103,11 @@
                 <time class="message-time" datetime="" aria-label="消息时间"></time>
               </div>
             </article>
-          </li>
+          </div>
         </template>
 
         <template id="message-template-bot-streaming">
-          <li class="message-item" role="listitem">
+          <div class="message-item" role="listitem">
             <article class="message message-bot streaming" aria-labelledby="msg-bot-streaming-{timestamp}">
               <div class="message-content-wrapper">
                 <figure class="message-avatar bot-avatar">
@@ -121,27 +121,27 @@
                 <time class="message-time" datetime="" aria-label="消息时间"></time>
               </div>
             </article>
-          </li>
+          </div>
         </template>
-        </ul>
-      </section>
+    </div>
+    </section>
 
-      <!-- 输入区域 -->
-      <section class="chat-input-area" role="region" aria-label="消息输入区域">
-        <div class="input-wrapper">
-          <label for="chat-input" class="visually-hidden">输入消息</label>
-          <textarea id="chat-input" class="chat-input" placeholder="输入消息..." rows="1" onkeydown="handleKeyDown(event)"
-            oninput="autoResize(this)" aria-label="消息输入框" aria-describedby="input-help"></textarea>
-          <button class="send-btn" id="send-btn" onclick="sendMessage()" aria-label="发送消息" disabled>
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
-              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-            </svg>
-          </button>
-        </div>
-        <div id="input-help" class="visually-hidden">
-          按Enter键发送消息，Shift+Enter换行
-        </div>
-      </section>
+    <!-- 输入区域 -->
+    <section class="chat-input-area" role="region" aria-label="消息输入区域">
+      <div class="input-wrapper">
+        <label for="chat-input" class="visually-hidden">输入消息</label>
+        <textarea id="chat-input" class="chat-input" placeholder="输入消息..." rows="1" onkeydown="handleKeyDown(event)"
+          oninput="autoResize(this)" aria-label="消息输入框" aria-describedby="input-help"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()" aria-label="发送消息" disabled>
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+          </svg>
+        </button>
+      </div>
+      <div id="input-help" class="visually-hidden">
+        按Enter键发送消息，Shift+Enter换行
+      </div>
+    </section>
     </div>
 
     <!-- 调试日志 -->
