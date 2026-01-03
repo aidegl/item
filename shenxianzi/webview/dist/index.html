@@ -23,8 +23,8 @@
   <script src="../../components/MingdaoUpdate.js"></script>
   <script src="../../components/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
     onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
-  <link rel="stylesheet" href="./css/base.css?v=20250107">
-  <link rel="stylesheet" href="./css/index.css?v=20250107">
+  <link rel="stylesheet" href="./css/base.css?v=20250109">
+  <link rel="stylesheet" href="./css/index.css?v=20250109">
   <title>神仙子</title>
 
   <script>
@@ -35,6 +35,28 @@
       rowId: '9e5a5ed8-258b-4f20-a5c0-a1d9b9a97c2f',
       apiUrl: 'https://api.mingdao.com/v2/open/worksheet/getRowByIdPost'
     }
+
+    // 添加全局JavaScript错误捕获
+    window.addEventListener('error', function (event) {
+      console.error('全局JavaScript错误:', event.error);
+      console.error('错误文件:', event.filename);
+      console.error('错误行号:', event.lineno);
+      console.error('错误列号:', event.colno);
+    });
+
+    // 添加一个简单的测试函数来验证点击事件
+    window.testClick = () => {
+      console.log('测试点击函数被调用了！');
+      alert('测试点击函数工作正常！');
+    };
+
+    // 验证openVisitRecordDetail函数是否正确定义
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM加载完成，检查函数定义...');
+      console.log('openVisitRecordDetail函数:', typeof window.openVisitRecordDetail);
+      console.log('showToast函数:', typeof window.showToast);
+      console.log('MingDaoYunArrayAPI类:', typeof window.MingDaoYunArrayAPI);
+    });
   </script>
 </head>
 
@@ -1837,7 +1859,7 @@
             const nextActionHtml = index === 0 && nextAction ? `<div class="visit-record-next-action">下一步建议：${nextAction}</div>` : '';
 
             return `
-              <div class="visit-record-item" onclick="openVisitRecordDetail(${index}, ${JSON.stringify(record).replace(/"/g, '&quot;')})">
+              <div class="visit-record-item" onclick="console.log('点击陪诊记录，索引:', ${index}, '数据:', ${JSON.stringify(record)}); console.log('准备调用openVisitRecordDetail函数...'); openVisitRecordDetail(${index}, ${JSON.stringify(record)});">
                 <div class="visit-record-date">${formattedTime}</div>
                 <div class="visit-record-content">${serviceTitle}</div>
                 ${nextActionHtml}
@@ -1910,7 +1932,7 @@
             const nextActionHtml = index === 0 && nextAction ? `<div class="visit-record-next-action">下一步建议：${nextAction}</div>` : '';
 
             return `
-              <div class="visit-record-item">
+              <div class="visit-record-item" onclick="console.log('点击陪诊记录（模态框），索引:', ${index}, '数据:', ${JSON.stringify(record)}); console.log('准备调用openVisitRecordDetail函数...'); openVisitRecordDetail(${index}, ${JSON.stringify(record)});">
                 <div class="visit-record-date">${formattedTime}</div>
                 <div class="visit-record-content">${serviceTitle}</div>
                 ${nextActionHtml}
@@ -1941,27 +1963,40 @@
 
     // 打开陪诊记录详情弹窗
     window.openVisitRecordDetail = (index, recordData) => {
-      console.log('openVisitRecordDetail 调用，索引:', index, '记录数据:', recordData);
+      console.log('=== openVisitRecordDetail 调试信息 ===');
+      console.log('函数被调用了！');
+      console.log('索引:', index);
+      console.log('原始记录数据:', recordData);
+      console.log('数据类型:', typeof recordData);
 
-      // 解析recordData（JSON字符串）
-      const record = typeof recordData === 'string' ? JSON.parse(recordData) : recordData;
+      // 添加全局错误捕获
+      try {
+        // 解析recordData（JSON字符串）
+        const record = typeof recordData === 'string' ? JSON.parse(recordData) : recordData;
+        console.log('解析后的记录:', record);
 
-      // 格式化时间函数
-      function formatVisitTime(timeStr) {
-        if (!timeStr) return '';
-        const date = new Date(timeStr);
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        const hours = date.getHours();
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const period = hours >= 12 ? '下午' : '上午';
-        const formattedHours = hours % 12 || 12;
-        return `${year}-${month}-${day} ${period} ${formattedHours}点${minutes}分`;
-      }
+        if (!record) {
+          console.error('记录数据为空');
+          showToast('记录数据为空');
+          return;
+        }
 
-      // 构建详情内容
-      const content = `
+        // 格式化时间函数
+        function formatVisitTime(timeStr) {
+          if (!timeStr) return '';
+          const date = new Date(timeStr);
+          const year = date.getFullYear();
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const day = date.getDate().toString().padStart(2, '0');
+          const hours = date.getHours();
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          const period = hours >= 12 ? '下午' : '上午';
+          const formattedHours = hours % 12 || 12;
+          return `${year}-${month}-${day} ${period} ${formattedHours}点${minutes}分`;
+        }
+
+        // 构建详情内容
+        const content = `
         <div class="visit-detail-item">
           <div class="detail-row">
             <span class="detail-label">预约时间：</span>
@@ -1998,9 +2033,31 @@
         </div>
       `;
 
-      // 填充内容并显示弹窗
-      document.getElementById('visit-record-detail-content').innerHTML = content;
-      document.getElementById('visit-record-detail-modal').style.display = 'block';
+        // 填充内容并显示弹窗
+        console.log('填充内容到弹窗');
+        const contentElement = document.getElementById('visit-record-detail-content');
+        const modalElement = document.getElementById('visit-record-detail-modal');
+
+        if (!contentElement) {
+          console.error('未找到详情内容元素');
+          showToast('详情内容元素未找到');
+          return;
+        }
+
+        if (!modalElement) {
+          console.error('未找到详情弹窗元素');
+          showToast('详情弹窗元素未找到');
+          return;
+        }
+
+        contentElement.innerHTML = content;
+        modalElement.style.display = 'block';
+        console.log('弹窗显示成功');
+
+      } catch (error) {
+        console.error('打开详情弹窗失败:', error);
+        showToast('打开详情失败: ' + error.message);
+      }
     };
 
     // 关闭陪诊记录详情弹窗
