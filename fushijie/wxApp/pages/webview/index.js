@@ -73,6 +73,11 @@ Page({
     } else if (action === 'logout') {
       wx.removeStorageSync('openid');
       this.updateWebviewUrl();
+    } else if (action === 'log') {
+      const scope = lastMsg.scope || 'H5';
+      const event = lastMsg.event || '-';
+      const info = lastMsg.data || lastMsg.payload || lastMsg.message || {};
+      console.log(`[Webview] 来自H5日志 [${scope}] ${event}:`, info);
     }
   }
 }) 
