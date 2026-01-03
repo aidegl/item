@@ -1858,8 +1858,11 @@
             // 只在最新记录（索引为0）且下一步建议不为空时显示
             const nextActionHtml = index === 0 && nextAction ? `<div class="visit-record-next-action">下一步建议：${nextAction}</div>` : '';
 
+            // 转义JSON字符串中的双引号，防止破坏HTML属性
+            const recordJson = JSON.stringify(record).replace(/"/g, '&quot;');
+
             return `
-              <div class="visit-record-item" onclick="console.log('点击陪诊记录，索引:', ${index}, '数据:', ${JSON.stringify(record)}); console.log('准备调用openVisitRecordDetail函数...'); openVisitRecordDetail(${index}, ${JSON.stringify(record)});">
+              <div class="visit-record-item" onclick="console.log('点击陪诊记录，索引:', ${index}, '数据:', ${recordJson}); console.log('准备调用openVisitRecordDetail函数...'); openVisitRecordDetail(${index}, ${recordJson});">
                 <div class="visit-record-date">${formattedTime}</div>
                 <div class="visit-record-content">${serviceTitle}</div>
                 ${nextActionHtml}
@@ -1931,8 +1934,9 @@
             // 只在最新记录（索引为0）且下一步建议不为空时显示
             const nextActionHtml = index === 0 && nextAction ? `<div class="visit-record-next-action">下一步建议：${nextAction}</div>` : '';
 
+            const recordJson = JSON.stringify(record).replace(/"/g, '&quot;');
             return `
-              <div class="visit-record-item" onclick="console.log('点击陪诊记录（模态框），索引:', ${index}, '数据:', ${JSON.stringify(record)}); console.log('准备调用openVisitRecordDetail函数...'); openVisitRecordDetail(${index}, ${JSON.stringify(record)});">
+              <div class="visit-record-item" onclick="console.log('点击陪诊记录（模态框），索引:', ${index}); console.log('准备调用openVisitRecordDetail函数...'); openVisitRecordDetail(${index}, ${recordJson});">
                 <div class="visit-record-date">${formattedTime}</div>
                 <div class="visit-record-content">${serviceTitle}</div>
                 ${nextActionHtml}
@@ -2899,9 +2903,10 @@
   </div>
   <!-- 陪诊记录详情弹窗 -->
   <div id="visit-record-detail-modal" class="modal"
-    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999999; transform: translateZ(0);"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999999; transform: translateZ(0); display: flex; align-items: center; justify-content: center;"
     onclick="closeVisitRecordDetailModal(event);">
-    <div class="modal-content" onclick="event.stopPropagation();">
+    <div class="modal-content" onclick="event.stopPropagation();"
+      style="max-width: 640px; width: 90%; border-radius: 12px; overflow: hidden;">
       <div class="modal-header">
         <h3>
           <img src="./assets/huanzheku0.png" alt="陪诊记录" class="edit-icon"
@@ -2972,11 +2977,11 @@
   <script>
     // 版本管理配置
     const VERSION_CONFIG = {
-      currentVersion: 'v0.0.2',
+      currentVersion: 'v0.0.3',
       releaseInfo: {
-        date: '2025-01-03',
+        date: '2026-01-03',
         author: '开发团队',
-        description: '修复浏览器缓存导致的样式不一致问题，强化防缓存机制'
+        description: '修复点击陪诊记录时的SyntaxError报错问题'
       }
     };
 
