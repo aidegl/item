@@ -42,7 +42,11 @@
   <!-- 智能体对话页面 -->
   <div id="page-agent" class="page active">
     <div class="chat-container">
-
+      <!-- 聊天头部 -->
+      <div class="chat-header">
+        <div class="chat-title">智能体助手</div>
+        <div class="version-badge" id="version-badge">v0.0.1</div>
+      </div>
 
       <!-- 消息区域 -->
       <div class="chat-messages" id="chat-messages">
@@ -1032,6 +1036,30 @@
       }
     }
 
+    /* 聊天头部样式 */
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .chat-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    .version-badge {
+      font-size: 12px;
+      padding: 4px 8px;
+      background: var(--primary-color);
+      color: white;
+      border-radius: 12px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
     /* 响应式设计 */
     @media (max-width: 480px) {
       .message {
@@ -1041,11 +1069,17 @@
       }
 
       .chat-header {
-        padding: 12px 16px;
+        padding: 10px 14px;
       }
 
       .chat-title {
-        font-size: 16px;
+        font-size: 15px;
+      }
+
+      .version-badge {
+        font-size: 11px;
+        padding: 3px 6px;
+        border-radius: 10px;
       }
 
       .chat-messages {
@@ -2769,6 +2803,47 @@
       </div>
     </div>
   </div>
+
+  <!-- 版本管理脚本 -->
+  <script>
+    // 版本管理配置
+    const VERSION_CONFIG = {
+      currentVersion: 'v0.0.1',
+      releaseInfo: {
+        date: '2025-01-03',
+        author: '开发团队',
+        description: '初始版本发布，修复用户头像位置问题'
+      }
+    };
+
+    // 版本显示组件
+    const VersionDisplay = {
+      init() {
+        this.displayInChatHeader();
+        this.logVersionInfo();
+      },
+
+      displayInChatHeader() {
+        const versionBadge = document.getElementById('version-badge');
+        if (versionBadge) {
+          versionBadge.textContent = VERSION_CONFIG.currentVersion;
+          versionBadge.title = `发布时间：${VERSION_CONFIG.releaseInfo.date}`;
+        }
+      },
+
+      logVersionInfo() {
+        console.log(`🚀 版本信息：${VERSION_CONFIG.currentVersion}`);
+        console.log(`📅 发布时间：${VERSION_CONFIG.releaseInfo.date}`);
+        console.log(`👥 发布者：${VERSION_CONFIG.releaseInfo.author}`);
+        console.log(`📝 描述：${VERSION_CONFIG.releaseInfo.description}`);
+      }
+    };
+
+    // 页面加载时初始化版本显示
+    document.addEventListener('DOMContentLoaded', () => {
+      VersionDisplay.init();
+    });
+  </script>
 </body>
 
 </html>
