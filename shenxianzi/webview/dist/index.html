@@ -2055,7 +2055,7 @@
         }
 
         contentElement.innerHTML = content;
-        modalElement.style.display = 'block';
+        modalElement.style.display = 'flex';
         console.log('弹窗显示成功');
 
       } catch (error) {
@@ -2977,11 +2977,11 @@
   <script>
     // 版本管理配置
     const VERSION_CONFIG = {
-      currentVersion: 'v0.0.3',
+      currentVersion: 'v0.0.4',
       releaseInfo: {
         date: '2026-01-03',
         author: '开发团队',
-        description: '修复点击陪诊记录时的SyntaxError报错问题'
+        description: '陪诊服务记录详情弹窗居中显示，修正显示逻辑'
       }
     };
 
