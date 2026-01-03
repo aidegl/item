@@ -609,6 +609,49 @@ body {
   cursor: pointer;
 }
 
+/* 陪诊记录详情弹窗样式 */
+.visit-detail-item {
+  padding: 0;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: var(--text-color);
+  min-width: 80px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  color: var(--muted);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.visit-record-item {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.visit-record-item:hover {
+  background-color: #f8f9fa;
+}
+
+.visit-record-item:active {
+  background-color: #e9ecef;
+}
+
 .patient-detail {
   font-size: 13px;
   color: #666;

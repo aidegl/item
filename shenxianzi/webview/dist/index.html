@@ -23,8 +23,8 @@
   <script src="../../components/MingdaoUpdate.js"></script>
   <script src="../../components/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
     onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
-  <link rel="stylesheet" href="./css/base.css?v=20250106">
-  <link rel="stylesheet" href="./css/index.css?v=20250106">
+  <link rel="stylesheet" href="./css/base.css?v=20250107">
+  <link rel="stylesheet" href="./css/index.css?v=20250107">
   <title>神仙子</title>
 
   <script>
@@ -1837,7 +1837,7 @@
             const nextActionHtml = index === 0 && nextAction ? `<div class="visit-record-next-action">下一步建议：${nextAction}</div>` : '';
 
             return `
-              <div class="visit-record-item">
+              <div class="visit-record-item" onclick="openVisitRecordDetail(${index}, ${JSON.stringify(record).replace(/"/g, '&quot;')})">
                 <div class="visit-record-date">${formattedTime}</div>
                 <div class="visit-record-content">${serviceTitle}</div>
                 ${nextActionHtml}
@@ -1937,6 +1937,76 @@
     window.closeEditNameModal = (event) => {
       if (event && event.target !== event.currentTarget) return;
       document.getElementById('edit-name-modal').style.display = 'none';
+    };
+
+    // 打开陪诊记录详情弹窗
+    window.openVisitRecordDetail = (index, recordData) => {
+      console.log('openVisitRecordDetail 调用，索引:', index, '记录数据:', recordData);
+
+      // 解析recordData（JSON字符串）
+      const record = typeof recordData === 'string' ? JSON.parse(recordData) : recordData;
+
+      // 格式化时间函数
+      function formatVisitTime(timeStr) {
+        if (!timeStr) return '';
+        const date = new Date(timeStr);
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const period = hours >= 12 ? '下午' : '上午';
+        const formattedHours = hours % 12 || 12;
+        return `${year}-${month}-${day} ${period} ${formattedHours}点${minutes}分`;
+      }
+
+      // 构建详情内容
+      const content = `
+        <div class="visit-detail-item">
+          <div class="detail-row">
+            <span class="detail-label">预约时间：</span>
+            <span class="detail-value">${formatVisitTime(record.appointmentTime || record['预约时间'] || '')}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">求诊诉求：</span>
+            <span class="detail-value">${record.serviceTitle || record['求诊诉求'] || '无'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">下一步建议：</span>
+            <span class="detail-value">${record.nextAction || record['下一步陪诊说明'] || '无'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">陪诊人员：</span>
+            <span class="detail-value">${record.accompanyingPerson || record['陪诊人员'] || '无'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">服务状态：</span>
+            <span class="detail-value">${record.serviceStatus || record['服务状态'] || '无'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">费用信息：</span>
+            <span class="detail-value">${record.costInfo || record['费用信息'] || '无'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">满意度：</span>
+            <span class="detail-value">${record.satisfaction || record['满意度'] || '无'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">备注说明：</span>
+            <span class="detail-value">${record.remarks || record['备注说明'] || '无'}</span>
+          </div>
+        </div>
+      `;
+
+      // 填充内容并显示弹窗
+      document.getElementById('visit-record-detail-content').innerHTML = content;
+      document.getElementById('visit-record-detail-modal').style.display = 'block';
+    };
+
+    // 关闭陪诊记录详情弹窗
+    window.closeVisitRecordDetailModal = (event) => {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('visit-record-detail-modal').style.display = 'none';
     };
 
     // 保存患者姓名
@@ -2767,6 +2837,29 @@
             <!-- 陪诊记录将动态生成 -->
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+  <!-- 陪诊记录详情弹窗 -->
+  <div id="visit-record-detail-modal" class="modal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999999; transform: translateZ(0);"
+    onclick="closeVisitRecordDetailModal(event);">
+    <div class="modal-content" onclick="event.stopPropagation();">
+      <div class="modal-header">
+        <h3>
+          <img src="./assets/huanzheku0.png" alt="陪诊记录" class="edit-icon"
+            style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;">
+          陪诊服务记录详情
+        </h3>
+        <button class="btn-close" onclick="closeVisitRecordDetailModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="visit-record-detail-content">
+          <!-- 详情内容将动态填充 -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeVisitRecordDetailModal()">关闭</button>
       </div>
     </div>
   </div>
