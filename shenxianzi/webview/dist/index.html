@@ -8,6 +8,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
+  <meta http-equiv="Cache-Control" content="max-age=0" />
+  <meta http-equiv="cache-control" content="no-cache" />
 
   <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
   <!-- 引入 vConsole 方便调试 -->
@@ -21,8 +23,8 @@
   <script src="../../components/MingdaoUpdate.js"></script>
   <script src="../../components/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
     onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
-  <link rel="stylesheet" href="./css/base.css">
-  <link rel="stylesheet" href="./css/index.css">
+  <link rel="stylesheet" href="./css/base.css?v=20250103">
+  <link rel="stylesheet" href="./css/index.css?v=20250103">
   <title>神仙子</title>
 
   <script>
@@ -45,7 +47,7 @@
       <!-- 聊天头部 -->
       <div class="chat-header">
         <div class="chat-title">智能体助手</div>
-        <div class="version-badge" id="version-badge">v0.0.1</div>
+        <div class="version-badge" id="version-badge">v0.0.2</div>
       </div>
 
       <!-- 消息区域 -->
@@ -2820,11 +2822,11 @@
   <script>
     // 版本管理配置
     const VERSION_CONFIG = {
-      currentVersion: 'v0.0.1',
+      currentVersion: 'v0.0.2',
       releaseInfo: {
         date: '2025-01-03',
         author: '开发团队',
-        description: '初始版本发布，修复用户头像位置问题'
+        description: '修复浏览器缓存导致的样式不一致问题，强化防缓存机制'
       }
     };
 
@@ -2833,6 +2835,20 @@
       init() {
         this.displayInChatHeader();
         this.logVersionInfo();
+        this.forceRefreshCSS();
+      },
+      
+      forceRefreshCSS() {
+        // 强制刷新CSS样式表，解决浏览器缓存问题
+        const links = document.querySelectorAll('link[rel="stylesheet"]');
+        links.forEach(link => {
+          const href = link.href;
+          if (href.includes('css/')) {
+            // 添加时间戳强制刷新
+            link.href = href + '?t=' + Date.now();
+            console.log('🔄 刷新CSS样式:', link.href);
+          }
+        });
       },
 
       displayInChatHeader() {
