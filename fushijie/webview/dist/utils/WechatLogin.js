@@ -58,13 +58,29 @@ class WechatLogin {
     this.log('交互日志', '点击立即登录，跳转小程序');
 
     if (this.isInMiniProgram()) {
-      if (window.wx && window.wx.miniProgram) {
-        wx.miniProgram.navigateTo({ url: this.config.miniProgramLoginUrl });
-      } else {
-        this.error('微信JSSDK未加载');
-        // 如果JSSDK未加载，尝试直接跳转
-        this.navigateToMiniProgram(this.config.miniProgramLoginUrl);
-      }
+      this.ensureMiniProgramReady().then(() => {
+        if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+          this.log('调用 wx.miniProgram.navigateTo', this.config.miniProgramLoginUrl);
+          wx.miniProgram.navigateTo({
+            url: this.config.miniProgramLoginUrl,
+            success: (res) => {
+              this.log('跳转成功', res);
+            },
+            fail: (err) => {
+              this.error('跳转失败', err);
+              alert('跳转失败: ' + JSON.stringify(err));
+              if (typeof wx.miniProgram.postMessage === 'function') {
+                this.postToMiniProgram({ action: 'navigate', url: this.config.miniProgramLoginUrl });
+              }
+            }
+          });
+        } else if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
+          this.postToMiniProgram({ action: 'navigate', url: this.config.miniProgramLoginUrl });
+        } else {
+          this.error('微信JSSDK未加载');
+          this.navigateToMiniProgram(this.config.miniProgramLoginUrl);
+        }
+      });
     } else {
       this.error('非小程序环境，无法跳转');
       alert('请在微信小程序中打开');
@@ -78,13 +94,16 @@ class WechatLogin {
     this.log('交互日志', '点击退出登录，跳转小程序');
 
     if (this.isInMiniProgram()) {
-      if (window.wx && window.wx.miniProgram) {
-        wx.miniProgram.navigateTo({ url: this.config.miniProgramLogoutUrl });
-      } else {
-        this.error('微信JSSDK未加载');
-        // 如果JSSDK未加载，尝试直接跳转
-        this.navigateToMiniProgram(this.config.miniProgramLogoutUrl);
-      }
+      this.ensureMiniProgramReady().then(() => {
+        if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+          wx.miniProgram.navigateTo({ url: this.config.miniProgramLogoutUrl });
+        } else if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
+          this.postToMiniProgram({ action: 'navigate', url: this.config.miniProgramLogoutUrl });
+        } else {
+          this.error('微信JSSDK未加载');
+          this.navigateToMiniProgram(this.config.miniProgramLogoutUrl);
+        }
+      });
     } else {
       this.error('非小程序环境，无法跳转');
       alert('请在微信小程序中打开');
@@ -104,6 +123,39 @@ class WechatLogin {
     if (window.wx && typeof wx.miniProgram === 'undefined') {
       // 尝试重新初始化微信JSSDK
       this.initWxJSSDK();
+    }
+  }
+
+  ensureMiniProgramReady(timeout = 2000) {
+    return new Promise((resolve) => {
+      if (this.isInMiniProgram() && window.wx && window.wx.miniProgram) {
+        resolve(true);
+        return;
+      }
+      let done = false;
+      const finish = () => {
+        if (!done) {
+          done = true;
+          resolve(true);
+        }
+      };
+      if (typeof window !== 'undefined') {
+        window.addEventListener('WeixinJSBridgeReady', finish, { once: true });
+        setTimeout(() => {
+          finish();
+        }, timeout);
+      } else {
+        resolve(false);
+      }
+    });
+  }
+
+  postToMiniProgram(message) {
+    if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
+      wx.miniProgram.postMessage({ data: message });
+      this.log('发送消息到小程序', message);
+    } else {
+      this.error('postMessage不可用');
     }
   }
 
@@ -135,6 +187,7 @@ class WechatLogin {
     }
 
     try {
+      this.mdLog('开始调用明道云查询', { worksheetId: this.config.mingdaoWorksheetId });
       // 构造查询用户数据的参数
       const filters = [
         {
@@ -152,23 +205,28 @@ class WechatLogin {
           "value": 0
         }
       ];
+      this.mdLog('构造过滤条件完成', { filters_count: filters.length });
 
       // 检查明道云API是否可用
       if (!window.MingDaoYunArrayAPI) {
         this.error('错误: MingDaoYunArrayAPI 组件未加载');
+        this.mdLog('组件未加载', { component: 'MingDaoYunArrayAPI' });
         return false;
       }
 
       // 创建API实例并查询用户数据
       const api = new window.MingDaoYunArrayAPI();
+      this.mdLog('创建API实例完成', { api_ready: !!api });
       const res = await api.getData({
         worksheetId: this.config.mingdaoWorksheetId,
         filters: JSON.stringify(filters),
         pageSize: 1
       });
+      this.mdLog('发起查询', { worksheetId: this.config.mingdaoWorksheetId, pageSize: 1 });
 
       if (res && res.success && res.data && res.data.rows && res.data.rows.length > 0) {
         const userData = res.data.rows[0];
+        this.mdLog('查询成功', { rows: res.data.rows.length });
         this.log('登录', '登录成功，用户数据获取完成');
 
         // 处理用户数据（可根据实际需求扩展）
@@ -184,13 +242,16 @@ class WechatLogin {
         localStorage.setItem('userInfo', JSON.stringify(processedUserData));
 
         this.log('登录', '登录状态已保存到本地存储');
+        this.mdLog('登录完成，已写入本地存储', { openid_stored: !!openid });
         return true;
       } else {
         this.error('错误: 获取数据失败或无数据');
+        this.mdLog('查询失败或无数据', { success: res && res.success, rows: res && res.data && res.data.rows ? res.data.rows.length : 0 });
         return false;
       }
     } catch (e) {
       this.error('错误: 调用过程异常', e.message);
+      this.mdLog('调用异常', { message: e && e.message });
       return false;
     }
   }
@@ -310,6 +371,22 @@ class WechatLogin {
    */
   log(...args) {
     console.log('[WechatLogin]', ...args);
+  }
+
+  mdLog(event, data) {
+    try {
+      console.log('[WechatLogin][MingdaoYun]', event, data || {});
+      if (this.isInMiniProgram() && window.wx && window.wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
+        wx.miniProgram.postMessage({
+          data: {
+            action: 'log',
+            scope: 'mdy',
+            event,
+            data: data || {}
+          }
+        });
+      }
+    } catch (e) {}
   }
 
   /**
