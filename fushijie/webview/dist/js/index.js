@@ -1,31 +1,54 @@
-(function() {
-  var version = "v1.0.0"; // 第一期，版本0，修改0
-  console.log("App Version: " + version);
-  var versionEl = document.getElementById('app-version');
-  if (versionEl) {
-    versionEl.innerText = version;
-  }
+document.addEventListener('DOMContentLoaded', function() {
+    // 版本号逻辑
+    var version = "v1.0.0";
+    console.log("App Version: " + version);
+    var versionEl = document.getElementById('app-version');
+    if (versionEl) {
+        versionEl.innerText = version;
+    }
 
-  // 测试按钮点击事件
-  var btn = document.getElementById('test-btn');
-  var result = document.getElementById('test-result');
-  if (btn) {
-    btn.addEventListener('click', function() {
-      result.innerText = '正在请求...';
-      result.style.color = '#333';
-      
-      // 假设这里调用 MingdaoArray.js 中的某个方法进行测试
-      // 由于不知道具体 API，先尝试调用一个通用的获取信息方法，或者只是模拟
-      // 这里我们先检查 MingdaoArray 是否存在
-      if (typeof window.MingdaoArray !== 'undefined') {
-         // 尝试调用一个可能存在的方法，或者打印对象查看
-         console.log('MingdaoArray 对象:', window.MingdaoArray);
-         result.innerText = 'MingdaoArray 对象已加载，请查看控制台详情。\n' + JSON.stringify(window.MingdaoArray, null, 2);
-         result.style.color = 'green';
-      } else {
-         result.innerText = '错误: MingdaoArray 未定义';
-         result.style.color = 'red';
-      }
+    // 底部导航栏切换逻辑
+    const tabItems = document.querySelectorAll('.tab-item');
+    
+    // 图标资源映射 (未选中状态 -> 选中状态)
+    // 注意：task (中间按钮) 只有一张图，不需要切换
+    const iconMap = {
+        'home': { normal: './assets/img/home0.png', active: './assets/img/home1.png' },
+        'agent': { normal: './assets/img/agent0.png', active: './assets/img/agent1.png' },
+        'chat': { normal: './assets/img/chat0.png', active: './assets/img/chat1.png' },
+        'me': { normal: './assets/img/me0.png', active: './assets/img/me1.png' }
+    };
+
+    tabItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            
+            // 中间按钮(task)特殊处理，可能不需要切换选中状态，或者有单独逻辑
+            if (tabName === 'task') {
+                console.log('点击了发布/任务按钮');
+                return;
+            }
+
+            // 移除所有激活状态
+            tabItems.forEach(tab => {
+                tab.classList.remove('active');
+                const tName = tab.getAttribute('data-tab');
+                const iconImg = tab.querySelector('.tab-icon');
+                
+                // 恢复普通图标
+                if (iconMap[tName] && iconImg) {
+                    iconImg.src = iconMap[tName].normal;
+                }
+            });
+
+            // 激活当前点击项
+            this.classList.add('active');
+            const iconImg = this.querySelector('.tab-icon');
+            if (iconMap[tabName] && iconImg) {
+                iconImg.src = iconMap[tabName].active;
+            }
+            
+            console.log('切换到标签:', tabName);
+        });
     });
-  }
-})();
+});

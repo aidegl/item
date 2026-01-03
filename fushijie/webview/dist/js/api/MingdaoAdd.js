@@ -2,8 +2,8 @@
 class MingDaoYunAddAPI {
   constructor() {
     // 固定配置（已写死）
-    this.appKey = "59c7bdc2cdf74e5e";
-    this.sign = "YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==";
+    this.appKey = "b37a969f03b3cf0b";
+    this.sign = "MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==";
     this.baseUrl = "https://api.mingdao.com/v2/open/worksheet/addRow";
   }
 
