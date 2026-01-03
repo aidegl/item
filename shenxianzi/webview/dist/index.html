@@ -637,13 +637,25 @@
     /* 消息样式 */
     .message {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       max-width: 85%;
       animation: messageIn 0.3s ease-out;
       transform: translateY(10px);
       margin-top: 15px;
       margin-left: 0;
       margin-right: 0;
+    }
+
+    /* 微信小程序环境特定样式调整 */
+    .message[miniprogram] {
+      gap: 6px;
+    }
+
+    /* Web浏览器环境样式 */
+    @media screen and (min-width: 768px) {
+      .message {
+        gap: 12px;
+      }
     }
 
     /* 用户消息布局：头像在前，内容在后 */
