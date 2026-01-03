@@ -654,14 +654,14 @@
 
     .message-user {
       align-self: flex-end;
+      flex-direction: row-reverse;
     }
 
     .message-user .message-avatar {
-      order: 2;
+      /* 使用 flex-direction: row-reverse 后，avatar 会自动在右侧 */
     }
 
     .message-user .message-content-wrapper {
-      order: 1;
       align-items: flex-end;
     }
 
@@ -696,6 +696,11 @@
 
     .message-user .message-content-wrapper {
       align-items: flex-end;
+    }
+
+    .message-bot {
+      align-self: flex-start;
+      flex-direction: row;
     }
 
     .message-bot .message-content-wrapper {
