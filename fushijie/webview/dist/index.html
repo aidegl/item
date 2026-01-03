@@ -24,6 +24,17 @@
 
 <body>
   <div class="header"></div>
+  <div id="app-version" class="app-version"></div>
+  <script>
+    (function() {
+      var version = "v1.0.0"; // 第一期，版本0，修改0
+      console.log("App Version: " + version);
+      var versionEl = document.getElementById('app-version');
+      if (versionEl) {
+        versionEl.innerText = version;
+      }
+    })();
+  </script>
 </body>
 
 </html>
