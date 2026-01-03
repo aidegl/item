@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>微信登录模块测试</title>
+  <!-- 微信JSSDK -->
+  <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+  <!-- 明道云API组件 -->
+  <script src="../../components/MingdaoQuery.js"></script>
+  <script src="../../components/MingdaoAdd.js"></script>
+  <script src="../../components/MingdaoUpdate.js"></script>
+  <script src="../../components/MingdaoArray.js"></script>
+  <!-- 登录模块 -->
+  <script src="./utils/WechatLogin.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>微信小程序Webview登录测试</h1>
+    
+    <div id="user-info">
+      <p>用户状态：<span id="login-status">未登录</span></p>
+      <p>用户姓名：<span id="user-name">-</span></p>
+      <p>用户头像：<img id="user-avatar" src="" alt="头像" style="width: 50px; height: 50px; display: none;"></p>
+    </div>
+    
+    <div id="login-buttons">
+      <button id="btn-login" onclick="login.toWxLogin()">登录</button>
+      <button id="btn-logout" onclick="login.toWxLogout()" style="display: none;">退出登录</button>
+      <button onclick="login.debug()">调试信息</button>
+      <button onclick="testLogin()">测试登录</button>
+    </div>
+  </div>
+
+  <script>
+    // 初始化登录模块
+    const login = new WechatLogin({
+      miniProgramLoginUrl: '/pages/login/index',
+      miniProgramLogoutUrl: '/pages/logout/index',
+      mingdaoAppKey: '59c7bdc2cdf74e5e',
+      mingdaoSign: 'YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==',
+      mingdaoWorksheetId: 'yonghu',
+      defaultAvatar: './assets/morentouxiang.webp'
+    });
+
+    // 更新UI显示
+    function updateUI() {
+      const statusEl = document.getElementById('login-status');
+      const nameEl = document.getElementById('user-name');
+      const avatarEl = document.getElementById('user-avatar');
+      const loginBtn = document.getElementById('btn-login');
+      const logoutBtn = document.getElementById('btn-logout');
+      
+      if (login.isLoggedIn()) {
+        const userInfo = login.getUserInfo();
+        statusEl.textContent = '已登录';
+        nameEl.textContent = userInfo ? userInfo.name : '未知用户';
+        if (userInfo && userInfo.avatar) {
+          avatarEl.src = userInfo.avatar;
+          avatarEl.style.display = 'inline-block';
+        } else {
+          avatarEl.style.display = 'none';
+        }
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+      } else {
+        statusEl.textContent = '未登录';
+        nameEl.textContent = '-';
+        avatarEl.style.display = 'none';
+        loginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+      }
+    }
+
+    // 监听登录状态变化
+    setInterval(() => {
+      updateUI();
+    }, 1000);
+
+    // 测试登录函数（用于开发测试）
+    async function testLogin() {
+      // 使用测试openid
+      const testOpenid = "oJZJz1xpX5ftzwXZhP31nKYIGeYM";
+      const success = await login.loginWithOpenid(testOpenid);
+      if (success) {
+        alert('测试登录成功');
+      } else {
+        alert('测试登录失败');
+      }
+      updateUI();
+    }
+  </script>
+</body>
+</html>
