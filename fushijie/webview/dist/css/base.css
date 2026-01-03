@@ -1,0 +1,9 @@
+:root {
+  --color-primary: #00FFE5;
+  --color-secondary: #ECECEC;
+  --color-header: linear-gradient(180deg,#121212 0%,rgba(18,18,18,0.9) 100%);
+  /* 用于衬托白色字体，避免由于主色primary过亮，看不清字体，常用于标签、按钮、提示警告等场景 */
+  --color-info: #00C9B4;
+  --color-light: #f8f9fa;
+  --color-dark: #343a40;
+}
