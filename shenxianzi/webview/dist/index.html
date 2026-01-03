@@ -68,7 +68,7 @@
               <div class="message-time"></div>
             </div>
             <div class="message-avatar user-avatar">
-              <img src="./assets/avatar_placeholder.png" alt="用户">
+              <img src="./assets/morentouxiang.webp" alt="用户">
             </div>
           </div>
         </template>
@@ -1121,7 +1121,7 @@
             <div class="history-content">
               <span id="patient-detail-history">暂无病史记录</span>
               <button class="btn-edit-history" onclick="onEditPatientHistory()">
-                <img src="./assets/edit.png" alt="编辑" class="edit-icon-small">
+                <img src="./assets/bianji.png" alt="编辑" class="edit-icon-small">
               </button>
             </div>
           </div>
@@ -1132,7 +1132,7 @@
       <div class="visit-records-section">
         <div class="section-header">
           <div class="section-title">
-            <img src="./assets/record-icon.png" alt="记录" class="record-icon"
+            <img src="./assets/bianji.png" alt="记录" class="record-icon"
               style="width: 18px; height: 18px; margin-right: 8px;">
             就诊记录
           </div>
@@ -1258,7 +1258,7 @@
   <div id="page-settings" class="page">
     <div class="profile-header">
       <div class="profile-avatar" id="profile-avatar">
-        <img src="./assets/avatar_placeholder.png" alt="头像">
+        <img src="./assets/morentouxiang.webp" alt="头像">
       </div>
       <div class="user-info">
         <div class="name" id="user-name">未登录</div>
@@ -1377,7 +1377,7 @@
     // 处理用户数据的独立函数
     function processUserData(row) {
       const name = row && row.mingcheng ? row.mingcheng : '未命名用户';
-      let avatarUrl = './assets/avatar_placeholder.png';
+      let avatarUrl = './assets/morentouxiang.webp';
       try {
         if (row && row.touxiang) {
           let avatarData = row.touxiang;
@@ -2481,7 +2481,7 @@
             if (avatar) {
               img.src = avatar
             } else {
-              img.src = './assets/avatar_placeholder.png'
+              img.src = './assets/morentouxiang.webp'
             }
           }
         }
@@ -2495,7 +2495,7 @@
         if (avatarEl) {
           const img = avatarEl.querySelector('img')
           if (img) {
-            img.src = './assets/avatar_placeholder.png'
+            img.src = './assets/morentouxiang.webp'
           }
         }
       }
