@@ -147,3 +147,110 @@ body {
 .page-header-160 {
   height: 160px;
 }
+.page-header-home {
+  height: 52px;
+  background: var(--color-header);
+}
+.page-header-chat {
+  height: 52px;
+  background: var(--color-header);
+}
+.user-info {
+  width: 100%;
+  height: 160px;
+  background: var(--color-header);
+}
+.user-info-inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+}
+.user-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #fff;
+}
+.user-name {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+}
+.me-container {
+  position: relative;
+  z-index: 2;
+  margin-top: -15px;
+  background: #fff;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  padding: 12px;
+  min-height: calc(100vh - 160px - 70px + 15px);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+.metrics {
+  display: flex;
+  gap: 8px;
+}
+.metric-cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0;
+}
+.metric-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+.metric-key {
+  color: var(--color-gray);
+  font-size: 12px;
+}
+.metric-icon {
+  width: 20px;
+  height: 20px;
+}
+.metric-value {
+  color: var(--color-dark);
+  font-size: 16px;
+  font-weight: 600;
+}
+.me-menu {
+  margin-top: 12px;
+  list-style: none;
+  padding: 0;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 12px;
+  border-bottom: 1px solid #ececec;
+}
+.menu-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.menu-icon {
+  width: 30px;
+  height: 30px;
+}
+.menu-text {
+  color: var(--color-dark);
+}
+.menu-arrow {
+  width: 18px;
+  height: 18px;
+}
+.menu-item:active {
+  background: #f0f0f0;
+}
