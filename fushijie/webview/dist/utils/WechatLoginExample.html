@@ -4,15 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>微信登录模块测试</title>
+  <script src="../js/vconsole-loader.js"></script>
   <!-- 微信JSSDK -->
   <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
   <!-- 明道云API组件 -->
-  <script src="../../components/MingdaoQuery.js"></script>
-  <script src="../../components/MingdaoAdd.js"></script>
-  <script src="../../components/MingdaoUpdate.js"></script>
-  <script src="../../components/MingdaoArray.js"></script>
+  <script src="../js/api/MingdaoQuery.js"></script>
+  <script src="../js/api/MingdaoAdd.js"></script>
+  <script src="../js/api/MingdaoUpdate.js"></script>
+  <script src="../js/api/MingdaoArray.js"></script>
   <!-- 登录模块 -->
-  <script src="./utils/WechatLogin.js"></script>
+  <script src="./WechatLogin.js"></script>
 </head>
 <body>
   <div class="container">
@@ -37,14 +38,12 @@
     const login = new WechatLogin({
       miniProgramLoginUrl: '/pages/login/index',
       miniProgramLogoutUrl: '/pages/logout/index',
-      mingdaoAppKey: '59c7bdc2cdf74e5e',
-      mingdaoSign: 'YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==',
-      mingdaoWorksheetId: 'yonghu',
-      defaultAvatar: './assets/morentouxiang.webp'
+      defaultAvatar: '../assets/img/me0.png'
     });
 
     // 更新UI显示
     function updateUI() {
+      // DOM选择器，通过元素ID获取对应的DOM对象，获取后可操作元素的属性（如textContent、src、style）。
       const statusEl = document.getElementById('login-status');
       const nameEl = document.getElementById('user-name');
       const avatarEl = document.getElementById('user-avatar');

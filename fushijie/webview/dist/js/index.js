@@ -19,6 +19,22 @@ document.addEventListener('DOMContentLoaded', function() {
         'me': { normal: './assets/img/me0.png', active: './assets/img/me1.png' }
     };
 
+    const pages = {
+        home: document.getElementById('page-home'),
+        agent: document.getElementById('page-agent'),
+        chat: document.getElementById('page-chat'),
+        me: document.getElementById('page-me')
+    };
+
+    function showPage(name) {
+        Object.keys(pages).forEach(function(key) {
+            var el = pages[key];
+            if (el) el.classList.remove('active');
+        });
+        var target = pages[name];
+        if (target) target.classList.add('active');
+    }
+
     tabItems.forEach(item => {
         item.addEventListener('click', function() {
             const tabName = this.getAttribute('data-tab');
@@ -49,6 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             console.log('切换到标签:', tabName);
+            showPage(tabName);
         });
     });
+
+    showPage('home');
 });
