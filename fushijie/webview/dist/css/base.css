@@ -3,7 +3,14 @@
   --color-secondary: #ECECEC;
   --color-header: linear-gradient(180deg,#121212 0%,rgba(18,18,18,0.9) 100%);
   /* 用于衬托白色字体，避免由于主色primary过亮，看不清字体，常用于标签、按钮、提示警告等场景 */
-  --color-info: #00C9B4;
-  --color-light: #f8f9fa;
-  --color-dark: #343a40;
+  --color-info1: #00C9B4;
+  --color-info2: linear-gradient(0deg,#00FFE5 0%,#AAFFF6 100%);
+  /* 淡灰色，常用语页面背景、输入框*/
+  --color-page: #ececec;
+  /* 深灰色，常用语文字、边框等 */
+  --color-gray: #666;
+  /* 黑色图标黑色字体 */
+  --color-dark: #181818;
+  /* 淡黑色 */
+  --color-dark2: #242424;
 }

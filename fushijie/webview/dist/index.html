@@ -14,21 +14,60 @@
   <script>var vConsole = new VConsole();
   </script>
   <script src="./js/api/MingdaoUpdate.js"></script>
+  <script src="./js/api/MingdaoQuery.js"></script>
   <script src="./js/api/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
     onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
-  <link rel="stylesheet" href="./css/base.css?v=1.0.0">
-  <link rel="stylesheet" href="./css/index.css?v=1.0.0">
+  <link rel="stylesheet" href="./css/base.css?v=1.0.5">
+  <link rel="stylesheet" href="./css/index.css?v=1.0.5">
 
   <title>Document</title>
 </head>
 
 <body>
-  <div class="header"></div>
-  <div class="content-center">
-    <button id="test-btn" class="test-btn">测试明道云 API</button>
-    <div id="test-result" class="test-result">等待测试...</div>
-  </div>
-  <div id="app-version" class="app-version"></div>
+  <header class="header"></header>
+
+  <main id="main-content">
+    <!-- 页面主要内容 -->
+  </main>
+
+  <!-- 底部导航栏 -->
+  <nav class="tab-bar" aria-label="底部菜单">
+    <ul class="tab-list">
+      <li class="tab-item active" data-tab="home">
+        <div class="icon-wrapper">
+          <img src="./assets/img/home1.png" alt="首页" class="tab-icon">
+        </div>
+        <span class="tab-text">首页</span>
+      </li>
+      <li class="tab-item" data-tab="agent">
+        <div class="icon-wrapper">
+          <img src="./assets/img/agent0.png" alt="AI助理" class="tab-icon">
+        </div>
+        <span class="tab-text">AI助理</span>
+      </li>
+      <li class="tab-item center-item" data-tab="task">
+        <div class="center-icon-wrapper">
+          <div class="center-icon-inner">
+            <img src="./assets/img/jia.png" alt="发布" class="center-icon">
+          </div>
+        </div>
+      </li>
+      <li class="tab-item" data-tab="chat">
+        <div class="icon-wrapper">
+          <img src="./assets/img/chat0.png" alt="对话" class="tab-icon">
+        </div>
+        <span class="tab-text">对话</span>
+      </li>
+      <li class="tab-item" data-tab="me">
+        <div class="icon-wrapper">
+          <img src="./assets/img/me0.png" alt="我的" class="tab-icon">
+        </div>
+        <span class="tab-text">我的</span>
+      </li>
+    </ul>
+  </nav>
+
+  <footer id="app-version" class="app-version"></footer>
   <script src="./js/index.js"></script>
 </body>
 
