@@ -29,6 +29,7 @@ Page({
 
   updateWebviewUrl() {
     const openid = wx.getStorageSync('openid');
+    console.log('[Webview] 当前 openid:', openid);
     // 使用 onLoad 中生成的固定基础 URL
     const baseUrl = this.data.baseUrl;
 

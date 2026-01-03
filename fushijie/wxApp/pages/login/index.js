@@ -1,4 +1,12 @@
 Page({
+  onLoad() {
+    const openid = wx.getStorageSync('openid');
+    console.log('[Login] 页面加载，当前 openid:', openid);
+  },
+  onShow() {
+    const openid = wx.getStorageSync('openid');
+    console.log('[Login] 页面显示，当前 openid:', openid);
+  },
   doLogin() {
     wx.showLoading({ title: '登录中...' });
     
@@ -11,6 +19,7 @@ Page({
           setTimeout(() => {
             const mockOpenid = 'o6_bmjrPTlm6_2sgVt7hMZOPfL2M'; // 示例OpenID
             wx.setStorageSync('openid', mockOpenid);
+            console.log('[Login] 设置 openid:', mockOpenid);
             
             wx.hideLoading();
             wx.showToast({ title: '登录成功', icon: 'success' });
