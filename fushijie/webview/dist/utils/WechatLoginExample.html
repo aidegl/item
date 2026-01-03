@@ -4,15 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>微信登录模块测试</title>
+  <script src="https://lib.baomitu.com/vConsole/3.15.1/vconsole.min.js"></script>
+  <script>var vConsole = new VConsole();
+  </script>
   <!-- 微信JSSDK -->
   <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
   <!-- 明道云API组件 -->
-  <script src="../../components/MingdaoQuery.js"></script>
-  <script src="../../components/MingdaoAdd.js"></script>
-  <script src="../../components/MingdaoUpdate.js"></script>
-  <script src="../../components/MingdaoArray.js"></script>
+  <script src="../js/api/MingdaoQuery.js"></script>
+  <script src="../js/api/MingdaoAdd.js"></script>
+  <script src="../js/api/MingdaoUpdate.js"></script>
+  <script src="../js/api/MingdaoArray.js"></script>
   <!-- 登录模块 -->
-  <script src="./utils/WechatLogin.js"></script>
+  <script src="./WechatLogin.js"></script>
 </head>
 <body>
   <div class="container">
@@ -40,7 +43,8 @@
       mingdaoAppKey: '59c7bdc2cdf74e5e',
       mingdaoSign: 'YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==',
       mingdaoWorksheetId: 'yonghu',
-      defaultAvatar: './assets/morentouxiang.webp'
+      // defaultAvatar: '../assets/morentouxiang.webp', // 文件不存在，暂时使用 me0.png
+      defaultAvatar: '../assets/img/me0.png'
     });
 
     // 更新UI显示

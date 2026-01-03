@@ -58,13 +58,29 @@ class WechatLogin {
     this.log('交互日志', '点击立即登录，跳转小程序');
 
     if (this.isInMiniProgram()) {
-      if (window.wx && window.wx.miniProgram) {
-        wx.miniProgram.navigateTo({ url: this.config.miniProgramLoginUrl });
-      } else {
-        this.error('微信JSSDK未加载');
-        // 如果JSSDK未加载，尝试直接跳转
-        this.navigateToMiniProgram(this.config.miniProgramLoginUrl);
-      }
+      this.ensureMiniProgramReady().then(() => {
+        if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+          this.log('调用 wx.miniProgram.navigateTo', this.config.miniProgramLoginUrl);
+          wx.miniProgram.navigateTo({
+            url: this.config.miniProgramLoginUrl,
+            success: (res) => {
+              this.log('跳转成功', res);
+            },
+            fail: (err) => {
+              this.error('跳转失败', err);
+              alert('跳转失败: ' + JSON.stringify(err));
+              if (typeof wx.miniProgram.postMessage === 'function') {
+                this.postToMiniProgram({ action: 'navigate', url: this.config.miniProgramLoginUrl });
+              }
+            }
+          });
+        } else if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
+          this.postToMiniProgram({ action: 'navigate', url: this.config.miniProgramLoginUrl });
+        } else {
+          this.error('微信JSSDK未加载');
+          this.navigateToMiniProgram(this.config.miniProgramLoginUrl);
+        }
+      });
     } else {
       this.error('非小程序环境，无法跳转');
       alert('请在微信小程序中打开');
@@ -78,13 +94,16 @@ class WechatLogin {
     this.log('交互日志', '点击退出登录，跳转小程序');
 
     if (this.isInMiniProgram()) {
-      if (window.wx && window.wx.miniProgram) {
-        wx.miniProgram.navigateTo({ url: this.config.miniProgramLogoutUrl });
-      } else {
-        this.error('微信JSSDK未加载');
-        // 如果JSSDK未加载，尝试直接跳转
-        this.navigateToMiniProgram(this.config.miniProgramLogoutUrl);
-      }
+      this.ensureMiniProgramReady().then(() => {
+        if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+          wx.miniProgram.navigateTo({ url: this.config.miniProgramLogoutUrl });
+        } else if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
+          this.postToMiniProgram({ action: 'navigate', url: this.config.miniProgramLogoutUrl });
+        } else {
+          this.error('微信JSSDK未加载');
+          this.navigateToMiniProgram(this.config.miniProgramLogoutUrl);
+        }
+      });
     } else {
       this.error('非小程序环境，无法跳转');
       alert('请在微信小程序中打开');
@@ -104,6 +123,39 @@ class WechatLogin {
     if (window.wx && typeof wx.miniProgram === 'undefined') {
       // 尝试重新初始化微信JSSDK
       this.initWxJSSDK();
+    }
+  }
+
+  ensureMiniProgramReady(timeout = 2000) {
+    return new Promise((resolve) => {
+      if (this.isInMiniProgram() && window.wx && window.wx.miniProgram) {
+        resolve(true);
+        return;
+      }
+      let done = false;
+      const finish = () => {
+        if (!done) {
+          done = true;
+          resolve(true);
+        }
+      };
+      if (typeof window !== 'undefined') {
+        window.addEventListener('WeixinJSBridgeReady', finish, { once: true });
+        setTimeout(() => {
+          finish();
+        }, timeout);
+      } else {
+        resolve(false);
+      }
+    });
+  }
+
+  postToMiniProgram(message) {
+    if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
+      wx.miniProgram.postMessage({ data: message });
+      this.log('发送消息到小程序', message);
+    } else {
+      this.error('postMessage不可用');
     }
   }
 
