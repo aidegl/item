@@ -629,7 +629,7 @@ body {
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  background: url('./assets/pulse-line-copy.png') no-repeat center;
+  background: url('../assets/pulse-line-copy.png') no-repeat center;
   background-size: contain
 }
 
