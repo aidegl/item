@@ -8,6 +8,44 @@ body {
   background: var(--color-header);
 }
 
+.content-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 52px); /* 减去头部高度 */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.test-btn {
+  padding: 10px 20px;
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.test-btn:active {
+  opacity: 0.8;
+}
+
+.test-result {
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 4px;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 12px;
+  color: #666;
+}
+
 .app-version {
   position: fixed;
   bottom: 10px;
