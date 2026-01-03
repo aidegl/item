@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "pages/webview/index",
+    "pages/login/index",
+    "pages/logout/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "神仙子",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
