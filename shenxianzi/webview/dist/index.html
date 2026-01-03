@@ -63,12 +63,12 @@
         <!-- 消息模板（用于JavaScript动态插入） -->
         <template id="message-template-user">
           <div class="message message-user">
-            <div class="message-avatar user-avatar">
-              <img src="./assets/morentouxiang.webp" alt="用户">
-            </div>
             <div class="message-content-wrapper">
               <div class="message-bubble user-bubble"></div>
               <div class="message-time"></div>
+            </div>
+            <div class="message-avatar user-avatar">
+              <img src="./assets/morentouxiang.webp" alt="用户">
             </div>
           </div>
         </template>
@@ -640,6 +640,11 @@
       margin-top: 15px;
     }
 
+    /* 用户消息布局：头像在前，内容在后 */
+    .message-user {
+      flex-direction: row;
+    }
+
     @keyframes messageIn {
       from {
         opacity: 0;
@@ -658,18 +663,12 @@
     }
 
     .message-user .message-avatar {
-      /* 用户消息：头像在右侧 */
-      order: 1;
+      order: 2;
     }
 
     .message-user .message-content-wrapper {
-      order: 2;
+      order: 1;
       align-items: flex-end;
-    }
-
-    /* 确保消息内元素间距正确 */
-    .message {
-      gap: 12px;
     }
 
     .message-avatar {
@@ -705,18 +704,7 @@
       align-items: flex-end;
     }
 
-    .message-bot {
-      align-self: flex-start;
-      flex-direction: row;
-    }
-
-    .message-bot .message-avatar {
-      /* 机器人消息：头像在左侧 */
-      order: 1;
-    }
-
     .message-bot .message-content-wrapper {
-      order: 2;
       align-items: flex-start;
     }
 
