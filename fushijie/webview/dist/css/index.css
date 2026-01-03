@@ -133,3 +133,17 @@ body {
 }
 
 /* 修正中间占位，如果center-item不需要文字，可以适当留白 */
+ .page {
+  display: none;
+  min-height: calc(100vh - 52px - 70px);
+}
+.page.active {
+  display: block;
+}
+.page-header {
+  width: 100%;
+  background: var(--color-header);
+}
+.page-header-160 {
+  height: 160px;
+}
