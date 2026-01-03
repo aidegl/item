@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MingdaoQuery.js 交互式代码学习页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .tree-panel {
+            width: 300px;
+            background-color: #f5f5f5;
+            border-right: 1px solid #e8e8e8;
+            overflow-y: auto;
+        }
+        
+        .content-panel {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .tree-node {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #e8e8e8;
+            transition: background-color 0.3s;
+        }
+        
+        .tree-node:hover {
+            background-color: #e6f7ff;
+        }
+        
+        .tree-node.active {
+            background-color: #1890ff;
+            color: white;
+        }
+        
+        .level-0 { padding-left: 20px; }
+        .level-1 { padding-left: 40px; }
+        .level-2 { padding-left: 60px; }
+        .level-3 { padding-left: 80px; }
+        .level-4 { padding-left: 100px; }
+        .level-5 { padding-left: 120px; }
+        
+        .content-item {
+            display: none;
+        }
+        
+        .content-item.active {
+            display: block;
+        }
+        
+        .code-block {
+            background-color: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 14px;
+        }
+        
+        .explanation {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 10px 0;
+        }
+        
+        h2 {
+            color: #262626;
+            margin-bottom: 10px;
+        }
+        
+        h3 {
+            color: #595959;
+            margin: 10px 0;
+        }
+        
+        p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧层级树面板 -->
+        <div class="tree-panel">
+            <div class="tree-node level-0 active" data-node="1">MingDaoYunAPI 类定义</div>
+            <div class="tree-node level-1" data-node="2">构造函数</div>
+            <div class="tree-node level-1" data-node="3">getData 核心方法</div>
+            <div class="tree-node level-2" data-node="4">参数接收与日志记录</div>
+            <div class="tree-node level-2" data-node="5">请求体构造</div>
+            <div class="tree-node level-2" data-node="6">postOnce 子函数</div>
+            <div class="tree-node level-3" data-node="7">超时控制实现</div>
+            <div class="tree-node level-2" data-node="8">错误重试机制</div>
+            <div class="tree-node level-2" data-node="9">响应结果处理</div>
+            <div class="tree-node level-2" data-node="10">异常捕获与处理</div>
+        </div>
+        
+        <!-- 右侧代码/解释展示面板 -->
+        <div class="content-panel">
+            <!-- 节点1：类定义 -->
+            <div id="content-1" class="content-item active">
+                <h2>MingDaoYunAPI 类定义</h2>
+                <div class="code-block">
+<pre>// 明道云API调用组件（修正filters为数组+全量打印日志）
+class MingDaoYunAPI {
+  constructor() {
+    // 固定配置（已写死）
+    this.appKey = "59c7bdc2cdf74e5e";
+    this.sign = "YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==";
+    this.baseUrl = "https://api.mingdao.com/v2/open/worksheet/getRowByIdPost";
+  }
+  
+  // 核心方法和其他逻辑...
+}</pre>
+                </div>
+                <div class="explanation">
+                    <h3>知识点解释</h3>
+                    <p>这是整个明道云API调用组件的类定义，包含了组件的核心功能和配置。</p>
+                    <p>主要特点：</p>
+                    <ul>
+                        <li>包含固定的API配置参数（appKey、sign、baseUrl）</li>
+                        <li>提供getData核心方法用于调用明道云接口</li>
+                        <li>实现了完整的错误处理和日志记录机制</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 节点2：构造函数 -->
+            <div id="content-2" class="content-item">
+                <h2>构造函数</h2>
+                <div class="code-block">
+<pre>constructor() {
+  // 固定配置（已写死）
+  this.appKey = "59c7bdc2cdf74e5e";
+  this.sign = "YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==";
+  this.baseUrl = "https://api.mingdao.com/v2/open/worksheet/getRowByIdPost";
+}</pre>
+                </div>
+                <div class="explanation">
+                    <h3>知识点解释</h3>
+                    <p>构造函数用于初始化组件的基本配置参数：</p>
+                    <ul>
+                        <li><strong>appKey</strong>：明道云应用的唯一标识</li>
+                        <li><strong>sign</strong>：API调用的签名，用于身份验证</li>
+                        <li><strong>baseUrl</strong>：明道云API的基础地址</li>
+                    </ul>
+                    <p>这些参数被硬编码在组件中，确保每次实例化组件时都使用相同的配置。</p>
+                </div>
+            </div>
+            
+            <!-- 节点3：getData 核心方法 -->
+            <div id="content-3" class="content-item">
+                <h2>getData 核心方法</h2>
+                <div class="code-block">
+<pre>/**
+ * 核心方法：仅传rowid，filters为数组格式
+ * @param {String} rowid - 唯一入参
+ * @param {String} worksheetId - 工作表ID
+ * @returns {Object} 组件出参 {success: Boolean, data: Object, error_msg: String, error_code: Number}
+ */
+async getData(rowid, worksheetId) {
+  // 方法实现...
+}</pre>
+                </div>
+                <div class="explanation">
+                    <h3>知识点解释</h3>
+                    <p>getData是组件的核心方法，用于调用明道云的getRowByIdPost接口：</p>
+                    <ul>
+                        <li><strong>异步方法</strong>：使用async/await实现异步操作</li>
+                        <li><strong>参数</strong>：接收rowid和worksheetId两个参数</li>
+                        <li><strong>返回值</strong>：标准化的响应格式，包含success、data、error_msg和error_code</li>
+                        <li><strong>功能</strong>：处理请求构造、接口调用、错误重试和结果格式化</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 节点4：参数接收与日志记录 -->
+            <div id="content-4" class="content-item">
+                <h2>参数接收与日志记录</h2>
+                <div class="code-block">
+<pre>// 打印1：组件接收rowid + 动作名称
+console.log("[组件日志] 动作名称：调用明道云getRowByIdPost接口，接收的rowid值：", rowid);
+console.log("[组件日志] 接收的worksheetId值：", worksheetId);
+console.log(`[执行日志] ${new Date().toLocaleString()} - 执行了getData函数，入参：`, { rowid, worksheetId });</pre>
+                </div>
+                <div class="explanation">
+                    <h3>知识点解释</h3>
+                    <p>方法开始部分记录组件接收的参数和执行时间：</p>
+                    <ul>
+                        <li>使用console.log记录详细的操作日志</li>
+                        <li>包含动作名称、接收的参数值</li>
+                        <li>记录执行时间，便于问题追踪和性能分析</li>
+                        <li>日志格式统一，便于后期日志分析工具处理</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 节点5：请求体构造 -->
+            <div id="content-5" class="content-item">
+                <h2>请求体构造</h2>
+                <div class="code-block">
+<pre>// 构造请求体（getRowByIdPost接口专用格式）
+const requestBody = {
+  "appKey": this.appKey,
+  "sign": this.sign,
+  "worksheetId": worksheetId,
+  "rowId": rowid,
+  "getSystemControl": "false"
+};
+
+// 打印2：准备调用明道云接口，展示请求体（getRowByIdPost专用格式）
+console.log("[组件日志] 准备调用明道云接口，请求体：", requestBody);</pre>
+                </div>
+                <div class="explanation">
+                    <h3>知识点解释</h3>
+                    <p>根据明道云API要求构造请求体：</p>
+                    <ul>
+                        <li>包含必要的认证信息（appKey、sign）</li>
+                        <li>包含业务参数（worksheetId、rowId）</li>
+                        <li>固定参数getSystemControl设为"false"</li>
+                        <li>构造完成后打印请求体，便于调试</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 节点6：postOnce 子函数 -->
+            <div id="content-6" class="content-item">
+                <h2>postOnce 子函数</h2>
+                <div class="code-block">
+<pre>const postOnce = async () => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
+    });
+    return await response.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};</pre>
+                </div>
+                <div class="explanation">
+                    <h3>知识点解释</h3>
+                    <p>postOnce是getData方法内部的子函数，负责单次API调用：</p>
+                    <ul>
+                        <li>使用AbortController实现请求超时控制</li>
+                        <li>通过fetch API发送POST请求</li>
+                        <li>设置Content-Type为application/json</li>
+                        <li>使用finally块确保超时定时器被清除</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 节点7：超时控制实现 -->
+            <div id="content-7" class="content-item">
+                <h2>超时控制实现</h2>
+                <div class="code-block">
+<pre>const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 5000);
+try {
+  const response = await fetch(this.baseUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestBody),
+    signal: controller.signal
+  });
+  return await response.json();
+} finally {
+  clearTimeout(timeoutId);
+}</pre>
+                </div>
+                <div class="explanation">
+                    <h3>知识点解释</h3>
+                    <p>使用AbortController实现请求超时控制：</p>
+                    <ul>
+                        <li>创建AbortController实例用于控制请求</li>
+                        <li>设置5秒超时，超时后调用controller.abort()中断请求</li>
+                        <li>将controller.signal传递给fetch的signal参数</li>
+                        <li>无论请求成功还是失败，都在finally中清除超时定时器</li>
+                        <li>这种方式可以有效防止请求长时间挂起</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 节点8：错误重试机制 -->
+            <div id="content-8" class="content-item">
+                <h2>错误重试机制</h2>
+                <div class="code-block">
+<pre>// 调用明道云接口（网络错误时重试1次）
+let mdResult;
+try {
+  mdResult = await postOnce();
+} catch (e) {
+  console.error(`[明道云日志] ${new Date().toLocaleString()} - 调用${this.baseUrl}接口失败，错误信息：`, e);
+  mdResult = await postOnce();
+}</pre>
+                </div>
+                <div class="explanation">
+                    <h3>知识点解释</h3>
+                    <p>实现了简单但有效的错误重试机制：</p>
+                    <ul>
+                        <li>第一次调用失败时捕获异常</li>
+                        <li>打印详细的错误日志</li>
+                        <li>自动进行一次重试</li>
+                        <li>适用于临时网络波动等情况</li>
+                        <li>平衡了用户体验和系统资源消耗</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 节点9：响应结果处理 -->
+            <div id="content-9" class="content-item">
+                <h2>响应结果处理</h2>
+                <div class="code-block">
+<pre>// 打印3：明道云接口原始返回结果
+console.log("[组件日志] 明道云接口原始返回结果：", mdResult);
+
+// 构造组件出参data
+let outputData = null;
+let success = false;
+let error_msg = "";
+let error_code = 0;
+
+if (mdResult.success) {
+  outputData = mdResult.data; // 组件出参data = 明道云返回的data
+  success = true;
+  error_code = mdResult.error_code || 1;
+} else {
+  error_msg = mdResult.error_msg || "明道云接口调用失败";
+  error_code = mdResult.error_code || 10101;
+}
+
+// 打印4：组件出参data
+console.log("[组件日志] 组件出参data：", outputData);
+console.log(`[执行日志] ${new Date().toLocaleString()} - 执行了getData函数，返回数据：`, { success, error_code, error_msg });</pre>
+                </div>
+                <div class="explanation">
+                    <h3>知识点解释</h3>
+                    <p>对明道云API返回的结果进行标准化处理：</p>
+                    <ul>
+                        <li>记录原始返回结果，便于调试</li>
+                        <li>根据mdResult.success判断请求是否成功</li>
+                        <li>构造统一格式的输出数据</li>
+                        <li>处理各种边界情况（如缺失字段）</li>
+                        <li>记录最终输出结果</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 节点10：异常捕获与处理 -->
+            <div id="content-10" class="content-item">
+                <h2>异常捕获与处理</h2>
+                <div class="code-block">
+<pre>} catch (error) {
+  // 打印5：异常日志
+  console.error("[组件日志] 调用异常：", error.message);
+  // 异常时的出参
+  return {
+    success: false,
+    data: null,
+    error_msg: `网络/解析错误：${error.message}`,
+    error_code: 99999
+  };
+}</pre>
+                </div>
+                <div class="explanation">
+                    <h3>知识点解释</h3>
+                    <p>捕获并处理所有可能的异常：</p>
+                    <ul>
+                        <li>使用try/catch捕获整个getData方法中的异常</li>
+                        <li>记录异常信息，便于问题追踪</li>
+                        <li>返回标准化的错误响应</li>
+                        <li>设置特定的错误代码（99999）表示网络或解析错误</li>
+                        <li>确保调用方始终能获得预期格式的响应</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 核心交互JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const treeNodes = document.querySelectorAll('.tree-node');
+            const contentItems = document.querySelectorAll('.content-item');
+            
+            // 为每个树节点添加点击事件
+            treeNodes.forEach(node => {
+                node.addEventListener('click', function() {
+                    // 移除所有节点的active类
+                    treeNodes.forEach(n => n.classList.remove('active'));
+                    // 为当前点击的节点添加active类
+                    this.classList.add('active');
+                    
+                    // 隐藏所有内容项
+                    contentItems.forEach(item => item.style.display = 'none');
+                    
+                    // 获取当前节点的data-node属性
+                    const nodeId = this.getAttribute('data-node');
+                    // 显示对应的内容项
+                    const contentElement = document.getElementById(`content-${nodeId}`);
+                    if (contentElement) {
+                        contentElement.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
