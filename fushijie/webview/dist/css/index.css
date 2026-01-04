@@ -157,11 +157,11 @@ body {
 }
 .user-info {
   width: 100%;
-  height: 160px;
+  height: 220px;
   background: var(--color-header);
 }
 .user-info-inner {
-  height: 100%;
+  height: 120px;
   display: flex;
   align-items: center;
   padding: 16px;

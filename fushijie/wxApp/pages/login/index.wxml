@@ -1,5 +1,10 @@
-<view style="padding: 50px; text-align: center;">
+<view wx:if="{{!hasOpenid}}" style="padding: 50px; text-align: center;">
   <view style="margin-bottom: 20px; font-size: 18px;">请确认登录</view>
   <button type="primary" bindtap="doLogin">确认登录</button>
+  <button style="margin-top: 20px;" bindtap="goBack">取消</button>
+</view>
+<view wx:else style="padding: 50px; text-align: center;">
+  <view style="margin-bottom: 20px; font-size: 18px;">确定要退出吗？</view>
+  <button type="warn" bindtap="doLogout">确认退出</button>
   <button style="margin-top: 20px;" bindtap="goBack">取消</button>
 </view>
