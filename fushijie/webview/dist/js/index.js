@@ -70,36 +70,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     showPage('home');
-
-    var login = new WechatLogin({
-        miniProgramLoginUrl: '/pages/login/index',
-        miniProgramLogoutUrl: '/pages/login/index',
-        defaultAvatar: './assets/img/me0.png'
-    });
-    function syncUserUI() {
-        var nameEl = document.querySelector('#page-me .user-name');
-        var avatarEl = document.querySelector('#page-me .user-avatar');
-        if (!nameEl || !avatarEl) return;
-        if (login.isLoggedIn()) {
-            var info = login.getUserInfo();
-            nameEl.innerText = info && info.name ? info.name : '已登录';
-            if (info && info.avatar) {
-                avatarEl.src = info.avatar;
-            }
-        } else {
-            nameEl.innerText = '未登录';
-            avatarEl.src = './assets/img/me0.png';
-        }
-    }
-    var settingsItem = Array.from(document.querySelectorAll('#page-me .me-menu .menu-item')).find(function(item) {
-        var t = item.querySelector('.menu-text');
-        return t && t.textContent.trim() === '设置';
-    });
-    if (settingsItem) {
-        settingsItem.addEventListener('click', function() {
-            login.toWxLogin();
-        });
-    }
-    window.addEventListener('hashchange', syncUserUI);
-    syncUserUI();
 });
