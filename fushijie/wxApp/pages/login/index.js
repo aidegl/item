@@ -1,9 +1,17 @@
 Page({
+  data: {
+    hasOpenid: false
+  },
+  onShow() {
+    const openid = wx.getStorageSync('openid');
+    this.setData({ hasOpenid: !!openid });
+    console.log('[Login] 页面显示，当前 openid:', openid);
+  },
   onLoad() {
     const openid = wx.getStorageSync('openid');
     console.log('[Login] 页面加载，当前 openid:', openid);
   },
-  onShow() {
+  doLogin() {
     const openid = wx.getStorageSync('openid');
     console.log('[Login] 页面显示，当前 openid:', openid);
   },
@@ -38,6 +46,14 @@ Page({
         wx.showToast({ title: '调用失败', icon: 'none' });
       }
     });
+  },
+  doLogout() {
+    wx.removeStorageSync('openid');
+    this.setData({ hasOpenid: false });
+    wx.showToast({ title: '已退出', icon: 'none' });
+    setTimeout(() => {
+      wx.navigateBack();
+    }, 1500);
   },
   goBack() {
     wx.navigateBack();

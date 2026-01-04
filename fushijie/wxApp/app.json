@@ -1,8 +1,7 @@
 {
   "pages": [
     "pages/webview/index",
-    "pages/login/index",
-    "pages/logout/index"
+    "pages/login/index"
   ],
   "window": {
     "navigationBarTitleText": "神仙子",
