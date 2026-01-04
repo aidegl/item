@@ -2903,10 +2903,9 @@
   </div>
   <!-- 陪诊记录详情弹窗 -->
   <div id="visit-record-detail-modal" class="modal"
-    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999999; transform: translateZ(0); display: flex; align-items: center; justify-content: center;"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999999; transform: translateZ(0);"
     onclick="closeVisitRecordDetailModal(event);">
-    <div class="modal-content" onclick="event.stopPropagation();"
-      style="max-width: 640px; width: 90%; border-radius: 12px; overflow: hidden;">
+    <div class="modal-content" onclick="event.stopPropagation();">
       <div class="modal-header">
         <h3>
           <img src="./assets/huanzheku0.png" alt="陪诊记录" class="edit-icon"
@@ -2977,11 +2976,11 @@
   <script>
     // 版本管理配置
     const VERSION_CONFIG = {
-      currentVersion: 'v0.0.4',
+      currentVersion: 'v0.0.6',
       releaseInfo: {
         date: '2026-01-03',
         author: '开发团队',
-        description: '陪诊服务记录详情弹窗居中显示，修正显示逻辑'
+        description: '修复陪诊详情弹窗初始显示问题，默认隐藏仅点击后出现'
       }
     };
 
