@@ -8,7 +8,7 @@ class WechatLogin {
     // 配置参数
     this.config = {
       miniProgramLoginUrl: options.miniProgramLoginUrl || '/pages/login/index',
-      miniProgramLogoutUrl: options.miniProgramLogoutUrl || '/pages/login/index',
+      miniProgramLogoutUrl: options.miniProgramLogoutUrl || '/pages//index',
       mingdaoAppKey: options.mingdaoAppKey,
       mingdaoSign: options.mingdaoSign,
       mingdaoWorksheetId: options.mingdaoWorksheetId || 'yonghu', // 默认用户表
