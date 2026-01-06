@@ -262,9 +262,29 @@ class WechatLogin {
    * @returns {Object} 处理后的用户数据
    */
   processUserData(userData) {
+    const name = userData.nicheng || userData.name || userData['姓名'] || '用户';
+
+    let avatarFromTouxiang = null;
+    const touxiang = userData.touxiang;
+    if (touxiang) {
+      if (Array.isArray(touxiang)) {
+        avatarFromTouxiang = touxiang[0] && touxiang[0].large_thumbnail_full_path;
+      } else if (typeof touxiang === 'string') {
+        const trimmed = touxiang.trim();
+        if (trimmed) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+              avatarFromTouxiang = parsed[0] && parsed[0].large_thumbnail_full_path;
+            }
+          } catch (e) { }
+        }
+      }
+    }
+
     return {
-      name: userData.name || userData['姓名'] || '用户',
-      avatar: userData.avatar || userData['头像'] || userData['头像1'] || this.config.defaultAvatar,
+      name,
+      avatar: avatarFromTouxiang || userData.avatar || userData['头像'] || userData['头像1'] || this.config.defaultAvatar,
       raw: userData
     };
   }
@@ -386,7 +406,7 @@ class WechatLogin {
           }
         });
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   /**
