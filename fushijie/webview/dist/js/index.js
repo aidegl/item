@@ -11,54 +11,6 @@ document.addEventListener('DOMContentLoaded', function () {
         window.vConsole = new window.VConsole();
     }
 
-    var wechatLogin = window.WechatLogin ? new window.WechatLogin({
-        miniProgramLoginUrl: '/pages/login/index',
-        miniProgramLogoutUrl: '/pages/login/index',
-        defaultAvatar: './assets/img/me0.png'
-    }) : null;
-
-    function updateMeUserUI() {
-        var avatarEl = document.querySelector('#page-me .user-avatar');
-        var nameEl = document.querySelector('#page-me .user-name');
-        if (!avatarEl || !nameEl) return;
-
-        if (!wechatLogin || !wechatLogin.isLoggedIn()) {
-            nameEl.textContent = '未登录';
-            avatarEl.src = './assets/img/me0.png';
-            return;
-        }
-
-        var userInfo = wechatLogin.getUserInfo();
-        nameEl.textContent = (userInfo && userInfo.name) ? userInfo.name : '用户';
-        avatarEl.src = (userInfo && userInfo.avatar) ? userInfo.avatar : './assets/img/me0.png';
-    }
-
-    if (wechatLogin) {
-        var originalLoginWithOpenid = wechatLogin.loginWithOpenid.bind(wechatLogin);
-        wechatLogin.loginWithOpenid = async function (openid) {
-            var ok = await originalLoginWithOpenid(openid);
-            updateMeUserUI();
-            return ok;
-        };
-
-        var originalLogout = wechatLogin.logout.bind(wechatLogin);
-        wechatLogin.logout = function () {
-            originalLogout();
-            updateMeUserUI();
-        };
-    }
-
-    var menuSettings = document.getElementById('menu-settings');
-    if (menuSettings && wechatLogin) {
-        menuSettings.addEventListener('click', function () {
-            wechatLogin.toWxLogin();
-        });
-    }
-
-    updateMeUserUI();
-    window.addEventListener('hashchange', updateMeUserUI);
-    setInterval(updateMeUserUI, 800);
-
     // 底部导航栏切换逻辑
     const tabItems = document.querySelectorAll('.tab-item');
 
