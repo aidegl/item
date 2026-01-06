@@ -96,6 +96,18 @@ function init() {
   login.loginWithOpenid = async function (openid) {
     const ok = await originalLoginWithOpenid(openid);
     updateUI();
+
+    if (ok) {
+      const userInfo = login.getUserInfo();
+      console.log('[Login] getUserInfo()', {
+        openid: login.getOpenid(),
+        name: userInfo && userInfo.name,
+        avatar: userInfo && userInfo.avatar
+      });
+    } else {
+      console.warn('[Login] loginWithOpenid failed', { openid });
+    }
+
     return ok;
   };
 
@@ -103,6 +115,7 @@ function init() {
   login.logout = function () {
     originalLogout();
     updateUI();
+    console.log('[Login] logout');
   };
 
   updateUI();
