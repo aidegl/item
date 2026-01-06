@@ -6,7 +6,7 @@ Page({
 
   onLoad() {
     // 1. 在页面加载时初始化基础URL（只生成一次版本号，防止onShow时刷新）
-    const BASE_URL = 'https://100000whys.cn/project/fushijie/webview/dist/utils/login-test.html';
+    const BASE_URL = 'https://100000whys.cn/project/fushijie/webview/dist/index.html';
 
     let rawBaseUrl = BASE_URL;
 
