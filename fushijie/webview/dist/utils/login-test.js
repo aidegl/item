@@ -13,6 +13,8 @@ const login = new WechatLogin({
   defaultAvatar
 });
 
+let lastLoggedOpenid = null;
+
 function updateLoginTestUI() {
   const statusEl = document.getElementById('login-status');
   const nameEl = document.getElementById('user-name');
@@ -61,6 +63,22 @@ function updateMainIndexMeUI() {
 function updateUI() {
   if (isLoginTestPage) updateLoginTestUI();
   if (isMainIndexPage) updateMainIndexMeUI();
+
+  if (login.isLoggedIn()) {
+    const openid = login.getOpenid();
+    if (openid && openid !== lastLoggedOpenid) {
+      lastLoggedOpenid = openid;
+      const userInfo = login.getUserInfo();
+      console.log('[Login] getUserInfo()', {
+        openid,
+        name: userInfo && userInfo.name,
+        avatar: userInfo && userInfo.avatar
+      });
+      console.log('[Mingdao] row', userInfo && userInfo.raw);
+    }
+  } else if (lastLoggedOpenid) {
+    lastLoggedOpenid = null;
+  }
 }
 
 async function testLogin() {
