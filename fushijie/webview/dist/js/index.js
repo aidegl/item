@@ -70,4 +70,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     showPage('home');
+
+    const settingsItem = document.getElementById('menu-settings');
+    if (settingsItem) {
+        settingsItem.addEventListener('click', () => {
+            if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+                wx.miniProgram.navigateTo({ url: '/pages/login/index' });
+                return;
+            }
+            if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
+                wx.miniProgram.postMessage({ data: { action: 'navigate', url: '/pages/login/index' } });
+                return;
+            }
+            console.log('非小程序环境或 wx.miniProgram 不可用，无法跳转登录页');
+        });
+    }
 });
