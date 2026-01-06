@@ -104,6 +104,7 @@ function init() {
         name: userInfo && userInfo.name,
         avatar: userInfo && userInfo.avatar
       });
+      console.log('[Mingdao] row', userInfo && userInfo.raw);
     } else {
       console.warn('[Login] loginWithOpenid failed', { openid });
     }
