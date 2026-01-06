@@ -75,11 +75,6 @@ async function testLogin() {
 }
 
 function init() {
-  const versionEl = document.getElementById('app-version');
-  if (versionEl) {
-    versionEl.innerText = "v1.0.0";
-  }
-
   const btnLogin = document.getElementById('btn-login');
   if (btnLogin) btnLogin.addEventListener('click', () => login.toWxLogin());
 
@@ -113,60 +108,6 @@ function init() {
   updateUI();
   window.addEventListener('hashchange', updateUI);
   setInterval(updateUI, 800);
-
-  const tabItems = document.querySelectorAll('.tab-item');
-  if (tabItems && tabItems.length > 0) {
-    const iconMap = {
-      home: { normal: './assets/img/home0.png', active: './assets/img/home1.png' },
-      agent: { normal: './assets/img/agent0.png', active: './assets/img/agent1.png' },
-      chat: { normal: './assets/img/chat0.png', active: './assets/img/chat1.png' },
-      me: { normal: './assets/img/me0.png', active: './assets/img/me1.png' }
-    };
-
-    const pages = {
-      home: document.getElementById('page-home'),
-      agent: document.getElementById('page-agent'),
-      chat: document.getElementById('page-chat'),
-      me: document.getElementById('page-me')
-    };
-
-    function showPage(name) {
-      Object.keys(pages).forEach(function (key) {
-        const el = pages[key];
-        if (el) el.classList.remove('active');
-      });
-      const target = pages[name];
-      if (target) target.classList.add('active');
-    }
-
-    tabItems.forEach(item => {
-      item.addEventListener('click', function () {
-        const tabName = this.getAttribute('data-tab');
-        if (tabName === 'task') {
-          return;
-        }
-
-        tabItems.forEach(tab => {
-          tab.classList.remove('active');
-          const tName = tab.getAttribute('data-tab');
-          const iconImg = tab.querySelector('.tab-icon');
-          if (iconMap[tName] && iconImg) {
-            iconImg.src = iconMap[tName].normal;
-          }
-        });
-
-        this.classList.add('active');
-        const iconImg = this.querySelector('.tab-icon');
-        if (iconMap[tabName] && iconImg) {
-          iconImg.src = iconMap[tabName].active;
-        }
-
-        showPage(tabName);
-      });
-    });
-
-    showPage('home');
-  }
 }
 
 if (document.readyState === 'loading') {
