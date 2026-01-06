@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // 版本号逻辑
     var version = "v1.0.0";
     console.log("App Version: " + version);
@@ -7,9 +7,61 @@ document.addEventListener('DOMContentLoaded', function() {
         versionEl.innerText = version;
     }
 
+    if (window.VConsole && !window.vConsole) {
+        window.vConsole = new window.VConsole();
+    }
+
+    var wechatLogin = window.WechatLogin ? new window.WechatLogin({
+        miniProgramLoginUrl: '/pages/login/index',
+        miniProgramLogoutUrl: '/pages/login/index',
+        defaultAvatar: './assets/img/me0.png'
+    }) : null;
+
+    function updateMeUserUI() {
+        var avatarEl = document.querySelector('#page-me .user-avatar');
+        var nameEl = document.querySelector('#page-me .user-name');
+        if (!avatarEl || !nameEl) return;
+
+        if (!wechatLogin || !wechatLogin.isLoggedIn()) {
+            nameEl.textContent = '未登录';
+            avatarEl.src = './assets/img/me0.png';
+            return;
+        }
+
+        var userInfo = wechatLogin.getUserInfo();
+        nameEl.textContent = (userInfo && userInfo.name) ? userInfo.name : '用户';
+        avatarEl.src = (userInfo && userInfo.avatar) ? userInfo.avatar : './assets/img/me0.png';
+    }
+
+    if (wechatLogin) {
+        var originalLoginWithOpenid = wechatLogin.loginWithOpenid.bind(wechatLogin);
+        wechatLogin.loginWithOpenid = async function (openid) {
+            var ok = await originalLoginWithOpenid(openid);
+            updateMeUserUI();
+            return ok;
+        };
+
+        var originalLogout = wechatLogin.logout.bind(wechatLogin);
+        wechatLogin.logout = function () {
+            originalLogout();
+            updateMeUserUI();
+        };
+    }
+
+    var menuSettings = document.getElementById('menu-settings');
+    if (menuSettings && wechatLogin) {
+        menuSettings.addEventListener('click', function () {
+            wechatLogin.toWxLogin();
+        });
+    }
+
+    updateMeUserUI();
+    window.addEventListener('hashchange', updateMeUserUI);
+    setInterval(updateMeUserUI, 800);
+
     // 底部导航栏切换逻辑
     const tabItems = document.querySelectorAll('.tab-item');
-    
+
     // 图标资源映射 (未选中状态 -> 选中状态)
     // 注意：task (中间按钮) 只有一张图，不需要切换
     const iconMap = {
@@ -27,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function showPage(name) {
-        Object.keys(pages).forEach(function(key) {
+        Object.keys(pages).forEach(function (key) {
             var el = pages[key];
             if (el) el.classList.remove('active');
         });
@@ -36,9 +88,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     tabItems.forEach(item => {
-        item.addEventListener('click', function() {
+        item.addEventListener('click', function () {
             const tabName = this.getAttribute('data-tab');
-            
+
             // 中间按钮(task)特殊处理，可能不需要切换选中状态，或者有单独逻辑
             if (tabName === 'task') {
                 console.log('点击了发布/任务按钮');
@@ -50,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tab.classList.remove('active');
                 const tName = tab.getAttribute('data-tab');
                 const iconImg = tab.querySelector('.tab-icon');
-                
+
                 // 恢复普通图标
                 if (iconMap[tName] && iconImg) {
                     iconImg.src = iconMap[tName].normal;
@@ -63,26 +115,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (iconMap[tabName] && iconImg) {
                 iconImg.src = iconMap[tabName].active;
             }
-            
+
             console.log('切换到标签:', tabName);
             showPage(tabName);
         });
     });
 
     showPage('home');
-
-    const settingsItem = document.getElementById('menu-settings');
-    if (settingsItem) {
-        settingsItem.addEventListener('click', () => {
-            if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
-                wx.miniProgram.navigateTo({ url: '/pages/login/index' });
-                return;
-            }
-            if (window.wx && window.wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
-                wx.miniProgram.postMessage({ data: { action: 'navigate', url: '/pages/login/index' } });
-                return;
-            }
-            console.log('非小程序环境或 wx.miniProgram 不可用，无法跳转登录页');
-        });
-    }
 });
