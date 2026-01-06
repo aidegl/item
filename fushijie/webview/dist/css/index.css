@@ -254,3 +254,19 @@ body {
 .menu-item:active {
   background: #f0f0f0;
 }
+
+.mingdao-result {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #ececec;
+  border-radius: 8px;
+  background: #fafafa;
+  color: var(--color-dark);
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-all;
+  min-height: 48px;
+  max-height: 260px;
+  overflow: auto;
+}
