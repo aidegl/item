@@ -14,6 +14,15 @@ const login = new WechatLogin({
 });
 
 let lastLoggedOpenid = null;
+let lastRenderedMingdaoText = null;
+
+function setMingdaoResultText(text) {
+  const el = document.getElementById('mingdao-result');
+  if (!el) return;
+  if (text === lastRenderedMingdaoText) return;
+  lastRenderedMingdaoText = text;
+  el.textContent = text || '';
+}
 
 function updateLoginTestUI() {
   const statusEl = document.getElementById('login-status');
@@ -75,9 +84,15 @@ function updateUI() {
         avatar: userInfo && userInfo.avatar
       });
       console.log('[Mingdao] row', userInfo && userInfo.raw);
+      try {
+        setMingdaoResultText(userInfo && userInfo.raw ? JSON.stringify(userInfo.raw, null, 2) : '');
+      } catch (e) {
+        setMingdaoResultText(String(userInfo && userInfo.raw));
+      }
     }
   } else if (lastLoggedOpenid) {
     lastLoggedOpenid = null;
+    setMingdaoResultText('');
   }
 }
 
