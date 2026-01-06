@@ -1,18 +1,25 @@
-// 初始化登录模块
+const isLoginTestPage = !!document.getElementById('login-status');
+const isMainIndexPage = !!document.querySelector('#page-me .user-name');
+
+function resolveUrl(relativePath) {
+  return new URL(relativePath, document.baseURI).toString();
+}
+
+const defaultAvatar = isLoginTestPage ? resolveUrl('../assets/img/me0.png') : resolveUrl('./assets/img/me0.png');
+
 const login = new WechatLogin({
   miniProgramLoginUrl: '/pages/login/index',
   miniProgramLogoutUrl: '/pages/login/index',
-  defaultAvatar: '../assets/img/me0.png'
+  defaultAvatar
 });
 
-// 更新UI显示
-function updateUI() {
-  // DOM选择器，通过元素ID获取对应的DOM对象，获取后可操作元素的属性（如textContent、src、style）。
+function updateLoginTestUI() {
   const statusEl = document.getElementById('login-status');
   const nameEl = document.getElementById('user-name');
   const avatarEl = document.getElementById('user-avatar');
   const loginBtn = document.getElementById('btn-login');
   const logoutBtn = document.getElementById('btn-logout');
+  if (!statusEl || !nameEl || !avatarEl) return;
 
   if (login.isLoggedIn()) {
     const userInfo = login.getUserInfo();
@@ -35,9 +42,28 @@ function updateUI() {
   }
 }
 
-// 测试登录函数（用于开发测试）
+function updateMainIndexMeUI() {
+  const avatarEl = document.querySelector('#page-me .user-avatar');
+  const nameEl = document.querySelector('#page-me .user-name');
+  if (!avatarEl || !nameEl) return;
+
+  if (!login.isLoggedIn()) {
+    nameEl.textContent = '未登录';
+    avatarEl.src = resolveUrl('./assets/img/me0.png');
+    return;
+  }
+
+  const userInfo = login.getUserInfo();
+  nameEl.textContent = (userInfo && userInfo.name) ? userInfo.name : '用户';
+  avatarEl.src = (userInfo && userInfo.avatar) ? userInfo.avatar : resolveUrl('./assets/img/me0.png');
+}
+
+function updateUI() {
+  if (isLoginTestPage) updateLoginTestUI();
+  if (isMainIndexPage) updateMainIndexMeUI();
+}
+
 async function testLogin() {
-  // 使用测试openid
   const testOpenid = "oJZJz1xpX5ftzwXZhP31nKYIGeYM";
   const success = await login.loginWithOpenid(testOpenid);
   if (success) {
@@ -48,30 +74,44 @@ async function testLogin() {
   updateUI();
 }
 
-// 绑定事件监听器
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
   const btnLogin = document.getElementById('btn-login');
-  if (btnLogin) {
-    btnLogin.addEventListener('click', () => login.toWxLogin());
-  }
+  if (btnLogin) btnLogin.addEventListener('click', () => login.toWxLogin());
 
   const btnLogout = document.getElementById('btn-logout');
-  if (btnLogout) {
-    btnLogout.addEventListener('click', () => login.toWxLogout());
-  }
+  if (btnLogout) btnLogout.addEventListener('click', () => login.toWxLogout());
 
   const btnDebug = document.getElementById('btn-debug');
-  if (btnDebug) {
-    btnDebug.addEventListener('click', () => login.debug());
-  }
+  if (btnDebug) btnDebug.addEventListener('click', () => login.debug());
 
   const btnTestLogin = document.getElementById('btn-test-login');
-  if (btnTestLogin) {
-    btnTestLogin.addEventListener('click', () => testLogin());
+  if (btnTestLogin) btnTestLogin.addEventListener('click', () => testLogin());
+
+  const menuSettings = document.getElementById('menu-settings');
+  if (menuSettings) {
+    menuSettings.addEventListener('click', () => login.toWxLogin());
   }
 
-  // 监听登录状态变化
-  setInterval(() => {
+  const originalLoginWithOpenid = login.loginWithOpenid.bind(login);
+  login.loginWithOpenid = async function (openid) {
+    const ok = await originalLoginWithOpenid(openid);
     updateUI();
-  }, 1000);
-});
+    return ok;
+  };
+
+  const originalLogout = login.logout.bind(login);
+  login.logout = function () {
+    originalLogout();
+    updateUI();
+  };
+
+  updateUI();
+  window.addEventListener('hashchange', updateUI);
+  setInterval(updateUI, 800);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
