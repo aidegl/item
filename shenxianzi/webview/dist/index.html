@@ -1365,8 +1365,6 @@
       <button id="btnLogout" class="btn-block" style="display:none" onclick="toWxLogout()">退出登录</button>
       <button id="btnTestFetch" class="btn-block" onclick="testFetchData()">模拟登录测试</button>
       <button id="btnTestPatient" class="btn-block" onclick="testPatientData()">测试获取备忘录数据</button>
-      <button id="btnTempLink" class="btn-block" onclick="onTestTempLink()">生成临时链接测试</button>
-      <input type="file" id="tempLinkFile" accept="image/*,.pdf" style="display:none" />
     </div>
 
     <!-- 版本信息 -->
@@ -1673,39 +1671,6 @@
         console.error('[测试] 请求过程发生错误:', error);
       }
     }
-
-    window.onTestTempLink = function () {
-      var input = document.getElementById('tempLinkFile');
-      if (input) input.click();
-    };
-    window.uploadAndGetTempUrl = async function (file) {
-      var fd = new FormData();
-      fd.append('file', file);
-      var resp = await fetch('/shenxianzi/api/upload.php', { method: 'POST', body: fd });
-      if (!resp.ok) {
-        var text = await resp.text();
-        throw new Error(text || ('HTTP ' + resp.status));
-      }
-      var data = await resp.json();
-      return data && data.url;
-    };
-    document.addEventListener('DOMContentLoaded', function () {
-      var input = document.getElementById('tempLinkFile');
-      if (!input) return;
-      input.addEventListener('change', async function (e) {
-        var file = e.target.files && e.target.files[0];
-        if (!file) return;
-        try {
-          var url = await window.uploadAndGetTempUrl(file);
-          log('临时链接', '生成成功', { name: file.name, size: file.size, type: file.type, url: url });
-          console.log('[临时链接] URL:', url);
-        } catch (error) {
-          err('临时链接', '生成失败', error);
-        } finally {
-          e.target.value = '';
-        }
-      });
-    });
 
     window.allPatientData = [];
 
