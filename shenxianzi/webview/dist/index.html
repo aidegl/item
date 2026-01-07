@@ -23,7 +23,6 @@
   <script src="../../components/MingdaoUpdate.js"></script>
   <script src="../../components/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
     onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
-  <script src="./js/temp-link.js"></script>
   <link rel="stylesheet" href="./css/base.css?v=20250109">
   <link rel="stylesheet" href="./css/index.css?v=20250109">
   <title>神仙子</title>
@@ -1679,6 +1678,17 @@
       var input = document.getElementById('tempLinkFile');
       if (input) input.click();
     };
+    window.uploadAndGetTempUrl = async function (file) {
+      var fd = new FormData();
+      fd.append('file', file);
+      var resp = await fetch('/shenxianzi/api/upload.php', { method: 'POST', body: fd });
+      if (!resp.ok) {
+        var text = await resp.text();
+        throw new Error(text || ('HTTP ' + resp.status));
+      }
+      var data = await resp.json();
+      return data && data.url;
+    };
     document.addEventListener('DOMContentLoaded', function () {
       var input = document.getElementById('tempLinkFile');
       if (!input) return;
@@ -1686,7 +1696,7 @@
         var file = e.target.files && e.target.files[0];
         if (!file) return;
         try {
-          var url = await window.TempLink.generateFromFile(file);
+          var url = await window.uploadAndGetTempUrl(file);
           log('临时链接', '生成成功', { name: file.name, size: file.size, type: file.type, url: url });
           console.log('[临时链接] URL:', url);
         } catch (error) {
