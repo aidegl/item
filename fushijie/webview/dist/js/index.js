@@ -1,12 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // 版本号逻辑
-    var version = "v1.0.0";
-    console.log("App Version: " + version);
-    var versionEl = document.getElementById('app-version');
-    if (versionEl) {
-        versionEl.innerText = version;
-    }
-
     if (window.VConsole && !window.vConsole) {
         window.vConsole = new window.VConsole();
     }
@@ -30,6 +22,10 @@ document.addEventListener('DOMContentLoaded', function () {
         me: document.getElementById('page-me')
     };
 
+    function setPageTheme(name) {
+        document.body.classList.toggle('is-page-agent', name === 'agent');
+    }
+
     function showPage(name) {
         Object.keys(pages).forEach(function (key) {
             var el = pages[key];
@@ -37,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         var target = pages[name];
         if (target) target.classList.add('active');
+        setPageTheme(name);
     }
 
     tabItems.forEach(item => {
