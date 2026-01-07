@@ -14,51 +14,6 @@ const login = new WechatLogin({
 });
 
 let lastLoggedOpenid = null;
-let globalCssText = '';
-
-function ensureGlobalStyle(cssText) {
-  const id = 'global-style';
-  const head = document.head || document.getElementsByTagName('head')[0];
-  if (!head) return;
-  let el = document.getElementById(id);
-  if (!el) {
-    el = document.createElement('style');
-    el.id = id;
-    head.appendChild(el);
-  }
-  if (el.textContent !== cssText) el.textContent = cssText;
-}
-
-function pickCssText(row) {
-  if (!row || typeof row !== 'object') return '';
-  const keys = ['css', 'style', 'globalCss', 'globalStyle', 'yangshi', '样式', '主题', 'theme', 'cssText'];
-  for (const k of keys) {
-    const v = row[k];
-    if (typeof v === 'string' && v.trim()) return v.trim();
-  }
-  for (const k of Object.keys(row)) {
-    const v = row[k];
-    if (typeof v === 'string') {
-      const s = v.trim();
-      if (!s) continue;
-      if (s.includes('{') && s.includes('}') && (s.includes('.') || s.includes('#') || s.includes(':root'))) return s;
-    }
-  }
-  return '';
-}
-
-function handleMiniProgramMessage(data) {
-  const action = data && data.action;
-  if (action !== 'globalConfig') return;
-  const payload = data && data.payload;
-  const row = payload && payload.row;
-  console.log('[GlobalConfig] received:', payload);
-  const cssText = pickCssText(row);
-  if (cssText && cssText !== globalCssText) {
-    globalCssText = cssText;
-    ensureGlobalStyle(cssText);
-  }
-}
 
 function updateLoginTestUI() {
   const statusEl = document.getElementById('login-status');
@@ -140,54 +95,6 @@ async function testLogin() {
 function init() {
   console.log('[H5] init location.href:', location.href);
 
-  try {
-    const params = (function () {
-      const out = {};
-      const qs = (location.search || '').replace(/^\?/, '');
-      if (!qs) return out;
-      qs.split('&').forEach(function (kv) {
-        if (!kv) return;
-        const idx = kv.indexOf('=');
-        const k = idx >= 0 ? kv.slice(0, idx) : kv;
-        const v = idx >= 0 ? kv.slice(idx + 1) : '';
-        const key = decodeURIComponent(k || '');
-        if (!key) return;
-        out[key] = decodeURIComponent(v || '');
-      });
-      return out;
-    })();
-    const rowId = params.item;
-    const worksheetId = params.worksheetId || params.sheet || 'qjsz';
-    if (rowId && window.MingDaoYunAPI) {
-      console.log('[H5] url config fetch:', { rowId, worksheetId });
-      const api = new window.MingDaoYunAPI();
-      api.getData(rowId, worksheetId).then(function (res) {
-        console.log('[H5] url config response:', res);
-        if (res && res.success) {
-          handleMiniProgramMessage({
-            action: 'globalConfig',
-            payload: { rowId: rowId, worksheetId: worksheetId, row: res.data }
-          });
-        } else {
-          handleMiniProgramMessage({
-            action: 'globalConfig',
-            payload: { rowId: rowId, worksheetId: worksheetId, error: 'mingdao_failed', response: res || null }
-          });
-        }
-      }).catch(function (err) {
-        console.error('[H5] url config exception:', err);
-        handleMiniProgramMessage({
-          action: 'globalConfig',
-          payload: { rowId: rowId, worksheetId: worksheetId, error: 'request_exception', message: String(err && (err.message || err.errMsg) || err) }
-        });
-      });
-    } else {
-      console.log('[H5] url config skipped:', { hasRowId: !!rowId, hasMingDaoYunAPI: !!window.MingDaoYunAPI });
-    }
-  } catch (e) {
-    console.error('[H5] url config init exception:', e);
-  }
-
   const btnLogin = document.getElementById('btn-login');
   if (btnLogin) btnLogin.addEventListener('click', () => login.toWxLogin());
 
@@ -235,24 +142,6 @@ function init() {
   updateUI();
   window.addEventListener('hashchange', updateUI);
   setInterval(updateUI, 800);
-
-  window.addEventListener('message', (e) => {
-    const payload = e && e.data;
-    console.log('[H5] message event:', payload);
-    if (!payload) return;
-    if (payload && payload.action) {
-      handleMiniProgramMessage(payload);
-      return;
-    }
-    if (payload && payload.data && payload.data.action) {
-      handleMiniProgramMessage(payload.data);
-      return;
-    }
-    if (Array.isArray(payload) && payload.length > 0) {
-      const last = payload[payload.length - 1];
-      if (last && last.action) handleMiniProgramMessage(last);
-    }
-  });
 }
 
 if (document.readyState === 'loading') {
