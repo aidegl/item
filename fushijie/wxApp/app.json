@@ -5,8 +5,8 @@
   ],
   "window": {
     "navigationBarTitleText": "神仙子",
-    "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTextStyle": "black"
+    "navigationBarBackgroundColor": "#121212",
+    "navigationBarTextStyle": "white"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json"

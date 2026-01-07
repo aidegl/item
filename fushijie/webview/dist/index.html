@@ -10,12 +10,11 @@
   <meta http-equiv="Expires" content="0">
   <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
   <!-- 引入vConsole -->
-  <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
-  <script>var vConsole = new VConsole();</script>
+  <script src="./js/vconsole-loader.js"></script>
   <script src="./js/api/MingdaoUpdate.js"></script>
   <script src="./js/api/MingdaoQuery.js"></script>
-  <script src="./js/api/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
-    onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
+  <script src="./js/api/MingdaoArray.js"></script>
+  <script src="./utils/WechatLogin.js"></script>
   <link rel="stylesheet" href="./css/base.css?v=1.0.5">
   <link rel="stylesheet" href="./css/index.css?v=1.0.5">
 
@@ -23,15 +22,29 @@
 </head>
 
 <body>
-  
+
 
   <main id="main-content">
     <section id="page-home" class="page">
-      <div class="page-header page-header-home"></div>
+      <div class="page-header page-header-home">
+        <div class="search-bar" role="search">
+          <img class="search-bar__icon" src="./assets/img/搜索.png" alt="搜索">
+          <input class="search-bar__input" type="search" placeholder="请输入想要搜索的内容">
+          <button class="search-bar__button" type="button">搜索</button>
+        </div>
+      </div>
     </section>
-    <section id="page-agent" class="page"></section>
+    <section id="page-agent" class="page">
+      <img class="agent-deco" src="./assets/img/agent.png" alt="">
+    </section>
     <section id="page-chat" class="page">
-      <div class="page-header page-header-chat"></div>
+      <div class="page-header page-header-chat">
+        <div class="search-bar" role="search">
+          <img class="search-bar__icon" src="./assets/img/搜索.png" alt="搜索">
+          <input class="search-bar__input" type="search" placeholder="请输入想要搜索的内容">
+          <button class="search-bar__button" type="button">搜索</button>
+        </div>
+      </div>
     </section>
     <section id="page-me" class="page">
       <div class="user-info">
@@ -98,7 +111,7 @@
             </div>
             <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
           </li>
-          <li class="menu-item">
+          <li class="menu-item" id="menu-settings">
             <div class="menu-left">
               <img class="menu-icon" src="./assets/img/set.png" alt="">
               <span class="menu-text">设置</span>
@@ -106,6 +119,7 @@
             <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
           </li>
         </ul>
+        <pre id="mingdao-result" class="mingdao-result" aria-label="明道云返回数据"></pre>
       </div>
     </section>
   </main>
@@ -147,7 +161,7 @@
     </ul>
   </nav>
 
-  <footer id="app-version" class="app-version"></footer>
+  <script src="./utils/login-test.js"></script>
   <script src="./js/index.js"></script>
 </body>
 
