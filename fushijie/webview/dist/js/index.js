@@ -1,3 +1,113 @@
+let globalCssText = '';
+
+function ensureGlobalStyle(cssText) {
+    const id = 'global-style';
+    const head = document.head || document.getElementsByTagName('head')[0];
+    if (!head) return;
+    let el = document.getElementById(id);
+    if (!el) {
+        el = document.createElement('style');
+        el.id = id;
+        head.appendChild(el);
+    }
+    if (el.textContent !== cssText) el.textContent = cssText;
+}
+
+function pickCssText(row) {
+    if (!row || typeof row !== 'object') return '';
+    const keys = ['css', 'style', 'globalCss', 'globalStyle', 'yangshi', '样式', '主题', 'theme', 'cssText'];
+    for (const k of keys) {
+        const v = row[k];
+        if (typeof v === 'string' && v.trim()) return v.trim();
+    }
+    for (const k of Object.keys(row)) {
+        const v = row[k];
+        if (typeof v === 'string') {
+            const s = v.trim();
+            if (!s) continue;
+            if (s.includes('{') && s.includes('}') && (s.includes('.') || s.includes('#') || s.includes(':root'))) return s;
+        }
+    }
+    return '';
+}
+
+function handleGlobalConfig(data) {
+    const action = data && data.action;
+    if (action !== 'globalConfig') return;
+    const payload = data && data.payload;
+    const row = payload && payload.row;
+    console.log('[GlobalConfig] received:', payload);
+    const cssText = pickCssText(row);
+    if (cssText && cssText !== globalCssText) {
+        globalCssText = cssText;
+        ensureGlobalStyle(cssText);
+    }
+}
+
+function parseQueryParams() {
+    const out = {};
+    const qs = (location.search || '').replace(/^\?/, '');
+    if (!qs) return out;
+    qs.split('&').forEach(function (kv) {
+        if (!kv) return;
+        const idx = kv.indexOf('=');
+        const k = idx >= 0 ? kv.slice(0, idx) : kv;
+        const v = idx >= 0 ? kv.slice(idx + 1) : '';
+        const key = decodeURIComponent(k || '');
+        if (!key) return;
+        out[key] = decodeURIComponent(v || '');
+    });
+    return out;
+}
+
+function initGlobalConfig() {
+    try {
+        const params = parseQueryParams();
+        const rowId = params.item;
+        const worksheetId = params.worksheetId || params.sheet || 'qjsz';
+        if (rowId && window.MingDaoYunAPI) {
+            const api = new window.MingDaoYunAPI();
+            api.getData(rowId, worksheetId).then(function (res) {
+                if (res && res.success) {
+                    handleGlobalConfig({
+                        action: 'globalConfig',
+                        payload: { rowId: rowId, worksheetId: worksheetId, row: res.data }
+                    });
+                } else {
+                    handleGlobalConfig({
+                        action: 'globalConfig',
+                        payload: { rowId: rowId, worksheetId: worksheetId, error: 'mingdao_failed', response: res || null }
+                    });
+                }
+            }).catch(function (err) {
+                handleGlobalConfig({
+                    action: 'globalConfig',
+                    payload: { rowId: rowId, worksheetId: worksheetId, error: 'request_exception', message: String(err && (err.message || err.errMsg) || err) }
+                });
+            });
+        }
+    } catch (e) {
+        console.error('[GlobalConfig] init exception:', e);
+    }
+
+    window.addEventListener('message', (e) => {
+        const payload = e && e.data;
+        if (!payload) return;
+        if (payload && payload.action) {
+            handleGlobalConfig(payload);
+            return;
+        }
+        if (payload && payload.data && payload.data.action) {
+            handleGlobalConfig(payload.data);
+            return;
+        }
+        if (Array.isArray(payload) && payload.length > 0) {
+            const last = payload[payload.length - 1];
+            if (last && last.action) handleGlobalConfig(last);
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     if (window.VConsole && !window.vConsole) {
         window.vConsole = new window.VConsole();
@@ -70,5 +180,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    initGlobalConfig();
     showPage('home');
 });

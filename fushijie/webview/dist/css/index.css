@@ -182,10 +182,9 @@ body.is-page-agent #main-content {
   position: fixed;
   left: 50%;
   bottom: 0;
-  transform: translateX(-50%) translateY(-100px) scale(1.5);
-  width: 280px;
-  max-width: 76vw;
-  height: auto;
+  transform: translateX(-50%) translateY(-100px);
+  width: auto;
+  height: 70vh;
   pointer-events: none;
   z-index: 0;
 }
