@@ -1,4 +1,15 @@
 ;(function() {
+  function shouldEnableVConsole() {
+    try {
+      var host = (location && location.hostname) ? location.hostname : '';
+      var qs = (location && location.search) ? location.search : '';
+      var isLocal = host === '127.0.0.1' || host === 'localhost';
+      var debugOn = /(?:\?|&)debug=1(?:&|$)/.test(qs);
+      return debugOn || !isLocal;
+    } catch (e) {
+      return true;
+    }
+  }
   function load(src, onload, onerror) {
     var s = document.createElement('script');
     s.src = src;
@@ -47,6 +58,7 @@
     });
   }
   function start() {
+    if (!shouldEnableVConsole()) return;
     if (initV()) return;
     load('https://lib.baomitu.com/vConsole/3.15.1/vconsole.min.js', function() {
       if (!initV()) fallbackOverlay();

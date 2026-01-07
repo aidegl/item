@@ -11,6 +11,7 @@
 - 本地存储登录状态
 - 小程序与Webview通信机制
 - 错误处理和兼容性处理
+- 统一输出昵称与头像字段（从明道云返回值解析）
 
 ## 使用方法
 
@@ -35,7 +36,7 @@
 ```javascript
 const login = new WechatLogin({
   miniProgramLoginUrl: '/pages/login/index',           // 小程序登录页面路径
-  miniProgramLogoutUrl: '/pages/logout/index',         // 小程序退出登录页面路径
+  miniProgramLogoutUrl: '/pages/login/index',          // 小程序退出/登录页路径（你的项目中同一页面处理登录与退出）
   mingdaoAppKey: 'your-app-key',                      // 明道云AppKey
   mingdaoSign: 'your-sign',                           // 明道云签名
   mingdaoWorksheetId: 'yonghu',                       // 明道云用户表ID
@@ -62,6 +63,8 @@ if (login.isLoggedIn()) {
   console.log('已登录');
   const userInfo = login.getUserInfo();
   console.log('用户信息:', userInfo);
+  console.log('昵称:', userInfo.name);
+  console.log('头像:', userInfo.avatar);
   const openid = login.getOpenid();
   console.log('OpenID:', openid);
 }
@@ -75,7 +78,7 @@ login.debug();
 ### 构造函数选项
 
 - `miniProgramLoginUrl`: 小程序登录页面路径，默认为 `/pages/login/index`
-- `miniProgramLogoutUrl`: 小程序退出登录页面路径，默认为 `/pages/logout/index`
+- `miniProgramLogoutUrl`: 小程序退出登录页面路径
 - `mingdaoAppKey`: 明道云AppKey
 - `mingdaoSign`: 明道云签名
 - `mingdaoWorksheetId`: 明道云用户表ID，默认为 `yonghu`
@@ -95,6 +98,26 @@ login.debug();
 - `logout()`: 退出登录
 - `debug()`: 输出调试信息
 
+### 用户信息结构（getUserInfo）
+
+`getUserInfo()` 返回的数据结构（核心字段）：
+
+```js
+{
+  name: string,   // 昵称
+  avatar: string, // 头像URL
+  raw: object     // 明道云返回的原始行数据（用于调试）
+}
+```
+
+昵称与头像的解析规则（基于明道云返回行数据）：
+
+- 昵称：取 `nicheng`
+- 头像：取 `touxiang`
+  - `touxiang` 为字符串时，会先 `JSON.parse(touxiang)` 转成数组
+  - 取数组第一个元素的 `large_thumbnail_full_path` 作为头像 URL
+  - 若解析失败或为空，则回退到 `defaultAvatar`
+
 ### 状态检查
 
 - `isInMiniProgram()`: 检查是否在微信小程序环境中
@@ -107,7 +130,8 @@ login.debug();
 4. 提供跳转到小程序登录页面的方法
 5. 小程序登录成功后，通过URL Hash参数传递openid
 6. 使用openid查询明道云中的用户数据
-7. 更新登录状态和UI
+7. 解析明道云返回值并统一输出昵称/头像（`getUserInfo().name` / `getUserInfo().avatar`）
+8. 更新登录状态和UI
 
 ## 注意事项
 
@@ -115,3 +139,4 @@ login.debug();
 - 需要正确配置微信JSSDK
 - 需要正确配置明道云API组件
 - 小程序需要正确传递openid参数到Webview页面
+- 明道云用户表需要包含 `nicheng`（昵称）与 `touxiang`（头像）字段，且 `touxiang` 为可解析的JSON字符串数组
