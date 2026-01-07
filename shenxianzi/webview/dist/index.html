@@ -1365,6 +1365,7 @@
       <button id="btnLogout" class="btn-block" style="display:none" onclick="toWxLogout()">退出登录</button>
       <button id="btnTestFetch" class="btn-block" onclick="testFetchData()">模拟登录测试</button>
       <button id="btnTestPatient" class="btn-block" onclick="testPatientData()">测试获取备忘录数据</button>
+      <button id="btnSaveTmp" class="btn-block" onclick="saveToLocalTmp()">保存文件到tmp2.0</button>
     </div>
 
     <!-- 版本信息 -->
@@ -1672,6 +1673,38 @@
       }
     }
 
+    window.saveToLocalTmp = async () => {
+      try {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '*/*';
+        input.onchange = async () => {
+          const file = input.files && input.files[0];
+          if (!file) return;
+          if (!window.showDirectoryPicker) {
+            alert('当前环境不支持目录访问，请使用支持的浏览器或改用后端上传');
+            return;
+          }
+          const dirHandle = await window.showDirectoryPicker();
+          if (dirHandle && dirHandle.name && String(dirHandle.name).toLowerCase() !== 'tmp') {
+            const confirmSave = confirm('当前选择的不是 tmp 目录，是否仍然保存到所选目录？');
+            if (!confirmSave) return;
+          }
+          try {
+            const fileHandle = await dirHandle.getFileHandle(file.name, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(file);
+            await writable.close();
+            log('交互日志', '文件已保存到所选目录', { name: file.name, size: file.size });
+          } catch (e) {
+            err('保存文件', '写入失败', e);
+          }
+        };
+        input.click();
+      } catch (e) {
+        err('保存文件', '操作失败', e);
+      }
+    }
     window.allPatientData = [];
 
     window.loadPatientData = async () => {
