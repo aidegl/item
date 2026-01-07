@@ -8,11 +8,7 @@ Page({
 
   onLoad() {
     // 1. 在页面加载时初始化基础URL（只生成一次版本号，防止onShow时刷新）
-<<<<<<< HEAD
-    const BASE_URL = 'https://100000whys.cn/project/fushijie/webview/dist/utils/WechatLoginExample.html';
-=======
     const BASE_URL = 'https://100000whys.cn/project/fushijie/webview/dist/index.html?item=c10c60ae-78e5-48da-9401-aa8d3e3908f4';
->>>>>>> 490ca4211b26e5a9aab532011c3116356353c41f
 
     let rawBaseUrl = BASE_URL;
     console.log('[Webview] onLoad rawBaseUrl:', rawBaseUrl);
