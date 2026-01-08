@@ -48,6 +48,8 @@ class CozeWorkflow {
             const result = isJson ? await response.json() : await response.text();
 
             if (response.ok) {
+                this.log('API响应结果', result);
+
                 // 提取需要的数据
                 const { usage, data: outerData } = result;
                 const tokenCount = usage?.token_count;
@@ -55,12 +57,26 @@ class CozeWorkflow {
                 // 提取内部data字段并解析为JSON
                 let parsedData = null;
                 try {
-                    const innerDataString = outerData?.data;
-                    if (innerDataString) {
-                        parsedData = JSON.parse(innerDataString);
+                    if (!outerData) {
+                        this.error('外部data字段不存在', { outerData });
+                    } else if (typeof outerData === 'string') {
+                        // 如果outerData是字符串，直接解析
+                        this.log('外部data字段是字符串，直接解析', { outerData });
+                        parsedData = JSON.parse(outerData);
+                    } else if (outerData.data) {
+                        // 如果outerData是对象，提取内部data字段
+                        const innerDataString = outerData.data;
+                        if (innerDataString) {
+                            this.log('解析内部data字段', { innerDataString });
+                            parsedData = JSON.parse(innerDataString);
+                        }
+                    } else {
+                        // 如果outerData是对象但没有data字段，直接使用
+                        this.log('外部data字段是对象且没有内部data字段，直接使用', { outerData });
+                        parsedData = outerData;
                     }
                 } catch (e) {
-                    this.error('内部数据解析失败', e);
+                    this.error('数据解析失败', e, { result });
                 }
 
                 // 只打印需要的字段
@@ -92,12 +108,12 @@ class CozeWorkflow {
     }
 
     // 日志记录（简化版本，确保能显示）
-    log(message, data = {}) {
+    log(message, ...dataArgs) {
         const time = new Date().toLocaleTimeString();
         const logMsg = `[Coze工作流] ${time} - ${message}`;
 
         // 控制台打印
-        console.log(logMsg, data);
+        console.log(logMsg, ...dataArgs);
 
         // 页面日志显示 - 简化版本
         const logEl = document.getElementById('app-logs');
@@ -109,10 +125,12 @@ class CozeWorkflow {
 
             let dataStr = '';
             try {
-                if (data) {
-                    dataStr = typeof data === 'object' ?
-                        JSON.stringify(data, null, 2) :
-                        String(data);
+                if (dataArgs.length > 0) {
+                    // 合并所有数据参数
+                    const combinedData = dataArgs.length === 1 ? dataArgs[0] : dataArgs;
+                    dataStr = typeof combinedData === 'object' ?
+                        JSON.stringify(combinedData, null, 2) :
+                        String(combinedData);
                 }
             } catch (e) {
                 dataStr = '[数据解析错误]';
@@ -130,12 +148,12 @@ class CozeWorkflow {
     }
 
     // 错误记录（简化版本，确保能显示）
-    error(message, data = {}) {
+    error(message, ...dataArgs) {
         const time = new Date().toLocaleTimeString();
         const logMsg = `[Coze工作流] ${time} - ${message}`;
 
         // 控制台打印错误
-        console.error(logMsg, data);
+        console.error(logMsg, ...dataArgs);
 
         // 页面日志显示 - 简化版本
         const logEl = document.getElementById('app-logs');
@@ -147,10 +165,12 @@ class CozeWorkflow {
 
             let dataStr = '';
             try {
-                if (data) {
-                    dataStr = typeof data === 'object' ?
-                        JSON.stringify(data, null, 2) :
-                        String(data);
+                if (dataArgs.length > 0) {
+                    // 合并所有数据参数
+                    const combinedData = dataArgs.length === 1 ? dataArgs[0] : dataArgs;
+                    dataStr = typeof combinedData === 'object' ?
+                        JSON.stringify(combinedData, null, 2) :
+                        String(combinedData);
                 }
             } catch (e) {
                 dataStr = '[数据解析错误]';
