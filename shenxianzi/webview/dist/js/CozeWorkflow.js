@@ -69,48 +69,79 @@ class CozeWorkflow {
         }
     }
 
-    // 日志记录（与主页面保持一致的格式）
+    // 日志记录（简化版本，确保能显示）
     log(message, data = {}) {
         const time = new Date().toLocaleTimeString();
-        console.log(`[Coze工作流] ${time} - ${message}`, data);
+        const logMsg = `[Coze工作流] ${time} - ${message}`;
 
+        // 控制台打印
+        console.log(logMsg, data);
+
+        // 页面日志显示 - 简化版本
         const logEl = document.getElementById('app-logs');
         if (logEl) {
             const line = document.createElement('div');
             line.style.marginBottom = '4px';
             line.style.borderBottom = '1px dashed #333';
+            line.style.color = '#4facfe';
 
-            let detailStr = '';
+            let dataStr = '';
             try {
-                if (data) detailStr = typeof data === 'object' ? JSON.stringify(data) : String(data);
-            } catch (e) { detailStr = '[对象循环引用]'; }
+                if (data) {
+                    dataStr = typeof data === 'object' ?
+                        JSON.stringify(data, null, 2) :
+                        String(data);
+                }
+            } catch (e) {
+                dataStr = '[数据解析错误]';
+            }
 
-            line.innerHTML = `<span style="color:#888">[${time}]</span> <span style="color:#4facfe">[Coze工作流]</span> ${message} <span style="color:#aaa">${detailStr}</span>`;
-            const anchor = logEl.children.length > 1 ? logEl.children[1] : null;
-            logEl.insertBefore(line, anchor);
+            // 创建文本节点，避免XSS问题
+            line.textContent = `${logMsg} ${dataStr}`;
+
+            // 添加到日志容器的末尾
+            logEl.appendChild(line);
+
+            // 自动滚动到底部
+            logEl.scrollTop = logEl.scrollHeight;
         }
     }
 
-    // 错误记录（与主页面保持一致的格式）
+    // 错误记录（简化版本，确保能显示）
     error(message, data = {}) {
         const time = new Date().toLocaleTimeString();
-        console.error(`[Coze工作流] ${time} - ${message}`, data);
+        const logMsg = `[Coze工作流] ${time} - ${message}`;
 
+        // 控制台打印错误
+        console.error(logMsg, data);
+
+        // 页面日志显示 - 简化版本
         const logEl = document.getElementById('app-logs');
         if (logEl) {
             const line = document.createElement('div');
             line.style.marginBottom = '4px';
-            line.style.color = '#ff6b6b';
             line.style.borderBottom = '1px dashed #333';
+            line.style.color = '#ff6b6b'; // 红色错误提示
 
-            let detailStr = '';
+            let dataStr = '';
             try {
-                if (data) detailStr = typeof data === 'object' ? JSON.stringify(data) : String(data);
-            } catch (e) { detailStr = '[Error Object]'; }
+                if (data) {
+                    dataStr = typeof data === 'object' ?
+                        JSON.stringify(data, null, 2) :
+                        String(data);
+                }
+            } catch (e) {
+                dataStr = '[数据解析错误]';
+            }
 
-            line.innerHTML = `<span style="color:#888">[${time}]</span> <span style="color:#ff6b6b">[Coze工作流]</span> ${message} <span>${detailStr}</span>`;
-            const anchor = logEl.children.length > 1 ? logEl.children[1] : null;
-            logEl.insertBefore(line, anchor);
+            // 创建文本节点，避免XSS问题
+            line.textContent = `${logMsg} ${dataStr}`;
+
+            // 添加到日志容器的末尾
+            logEl.appendChild(line);
+
+            // 自动滚动到底部
+            logEl.scrollTop = logEl.scrollHeight;
         }
     }
 }
