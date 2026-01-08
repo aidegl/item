@@ -20,10 +20,18 @@ class CozeWorkflow {
     async runWorkflow(imageUrl) {
         try {
             this.log('开始调用API', { imageUrl });
-            
+
             if (!this.bearerToken) {
                 throw new Error('Coze API密钥未设置');
             }
+
+            const requestBody = {
+                workflow_id: this.workflowId,
+                parameters: {
+                    input: imageUrl
+                }
+            };
+            this.log('API请求体', requestBody);
 
             const response = await fetch(this.apiUrl, {
                 method: 'POST',
@@ -31,18 +39,13 @@ class CozeWorkflow {
                     'Authorization': `Bearer ${this.bearerToken}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    workflow_id: this.workflowId,
-                    parameters: {
-                        input: imageUrl
-                    }
-                })
+                body: JSON.stringify(requestBody)
             });
-            
+
             const ct = response.headers.get('content-type') || '';
             const isJson = ct.includes('application/json');
             const result = isJson ? await response.json() : await response.text();
-            
+
             if (response.ok) {
                 this.log('调用成功', result);
                 return {
