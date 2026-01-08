@@ -1365,7 +1365,7 @@
       <button id="btnLogout" class="btn-block" style="display:none" onclick="toWxLogout()">退出登录</button>
       <button id="btnTestFetch" class="btn-block" onclick="testFetchData()">模拟登录测试</button>
       <button id="btnTestPatient" class="btn-block" onclick="testPatientData()">测试获取备忘录数据</button>
-      <button id="btnOcrTest" class="btn-block" onclick="ocrTestGenerateTempLink()">ocr测试</button>
+      <button id="btnOcrTest" class="btn-block" onclick="ocrUploadAndGetLink()">ocr测试</button>
     </div>
 
     <!-- 版本信息 -->
@@ -1437,6 +1437,52 @@
       }
     }
 
+    window.ocrUploadAndGetLink = async () => {
+      try {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*,application/pdf';
+        input.onchange = async () => {
+          const file = input.files && input.files[0];
+          if (!file) return;
+          const fd = new FormData();
+          fd.append('file', file);
+          const resp = await fetch('https://100000whys.cn/api/upload', { method: 'POST', body: fd });
+          const ct = resp.headers.get('content-type') || '';
+          const isJson = ct.includes('application/json');
+          const data = isJson ? await resp.json() : await resp.text();
+          let url = '';
+          if (isJson && data && (data.url || data.link)) {
+            url = data.url || data.link;
+          } else if (typeof data === 'string') {
+            try { const j = JSON.parse(data); url = j.url || j.link || ''; } catch (_) {}
+          }
+          if (!url) {
+            err('OCR链接', '上传失败或未返回链接', data);
+            return;
+          }
+          log('OCR链接', '生成外部可访问临时链接', { url });
+          const logEl = document.getElementById('app-logs');
+          if (logEl) {
+            const line = document.createElement('div');
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.textContent = url;
+            line.style.margin = '6px 0';
+            line.appendChild(document.createTextNode('外部链接：'));
+            line.appendChild(a);
+            logEl.appendChild(line);
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).catch(() => {});
+          }
+        };
+        input.click();
+      } catch (e) {
+        err('OCR链接', '生成失败', e);
+      }
+    }
     const err = (t, m, d) => {
       const time = new Date().toLocaleTimeString();
       console.error(`[${t}] ${time} - ${m}`, d || '');
