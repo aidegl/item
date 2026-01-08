@@ -65,10 +65,15 @@ class CozeWorkflow {
                         parsedData = JSON.parse(outerData);
                     } else if (outerData.data) {
                         // 如果outerData是对象，提取内部data字段
-                        const innerDataString = outerData.data;
-                        if (innerDataString) {
-                            this.log('解析内部data字段', { innerDataString });
-                            parsedData = JSON.parse(innerDataString);
+                        const innerData = outerData.data;
+                        if (innerData) {
+                            if (typeof innerData === 'string') {
+                                this.log('解析内部data字符串', { innerData });
+                                parsedData = JSON.parse(innerData);
+                            } else {
+                                this.log('内部data是对象，直接使用', { innerData });
+                                parsedData = innerData;
+                            }
                         }
                     } else {
                         // 如果outerData是对象但没有data字段，直接使用
@@ -79,9 +84,9 @@ class CozeWorkflow {
                     this.error('数据解析失败', e, { result });
                 }
 
-                // 只打印需要的字段
+                // 只打印需要的字段（使用用户要求的格式）
                 const outputData = {
-                    token_count: tokenCount,
+                    token: tokenCount,
                     data: parsedData
                 };
 
