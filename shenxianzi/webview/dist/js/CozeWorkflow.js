@@ -48,45 +48,21 @@ class CozeWorkflow {
             const result = isJson ? await response.json() : await response.text();
 
             if (response.ok) {
-                this.log('API响应结果', result);
-
                 // 提取需要的数据
-                const { usage, data: outerData } = result;
+                const { usage, data: dataString } = result;
                 const tokenCount = usage?.token_count;
 
-                // 提取内部data字段并解析为JSON
+                // 解析data字符串为JSON
                 let parsedData = null;
                 try {
-                    if (!outerData) {
-                        this.error('外部data字段不存在', { outerData });
-                    } else if (typeof outerData === 'string') {
-                        // 如果outerData是字符串，直接解析
-                        this.log('外部data字段是字符串，直接解析', { outerData });
-                        parsedData = JSON.parse(outerData);
-                    } else if (outerData.data) {
-                        // 如果outerData是对象，提取内部data字段
-                        const innerData = outerData.data;
-                        if (innerData) {
-                            if (typeof innerData === 'string') {
-                                this.log('解析内部data字符串', { innerData });
-                                parsedData = JSON.parse(innerData);
-                            } else {
-                                this.log('内部data是对象，直接使用', { innerData });
-                                parsedData = innerData;
-                            }
-                        }
-                    } else {
-                        // 如果outerData是对象但没有data字段，直接使用
-                        this.log('外部data字段是对象且没有内部data字段，直接使用', { outerData });
-                        parsedData = outerData;
-                    }
+                    parsedData = JSON.parse(dataString);
                 } catch (e) {
-                    this.error('数据解析失败', e, { result });
+                    this.error('数据解析失败', e);
                 }
 
-                // 只打印需要的字段（使用用户要求的格式）
+                // 只打印需要的字段
                 const outputData = {
-                    token: tokenCount,
+                    token_count: tokenCount,
                     data: parsedData
                 };
 
@@ -113,12 +89,12 @@ class CozeWorkflow {
     }
 
     // 日志记录（简化版本，确保能显示）
-    log(message, ...dataArgs) {
+    log(message, data = {}) {
         const time = new Date().toLocaleTimeString();
         const logMsg = `[Coze工作流] ${time} - ${message}`;
 
         // 控制台打印
-        console.log(logMsg, ...dataArgs);
+        console.log(logMsg, data);
 
         // 页面日志显示 - 简化版本
         const logEl = document.getElementById('app-logs');
@@ -130,12 +106,10 @@ class CozeWorkflow {
 
             let dataStr = '';
             try {
-                if (dataArgs.length > 0) {
-                    // 合并所有数据参数
-                    const combinedData = dataArgs.length === 1 ? dataArgs[0] : dataArgs;
-                    dataStr = typeof combinedData === 'object' ?
-                        JSON.stringify(combinedData, null, 2) :
-                        String(combinedData);
+                if (data) {
+                    dataStr = typeof data === 'object' ?
+                        JSON.stringify(data, null, 2) :
+                        String(data);
                 }
             } catch (e) {
                 dataStr = '[数据解析错误]';
@@ -153,12 +127,12 @@ class CozeWorkflow {
     }
 
     // 错误记录（简化版本，确保能显示）
-    error(message, ...dataArgs) {
+    error(message, data = {}) {
         const time = new Date().toLocaleTimeString();
         const logMsg = `[Coze工作流] ${time} - ${message}`;
 
         // 控制台打印错误
-        console.error(logMsg, ...dataArgs);
+        console.error(logMsg, data);
 
         // 页面日志显示 - 简化版本
         const logEl = document.getElementById('app-logs');
@@ -170,12 +144,10 @@ class CozeWorkflow {
 
             let dataStr = '';
             try {
-                if (dataArgs.length > 0) {
-                    // 合并所有数据参数
-                    const combinedData = dataArgs.length === 1 ? dataArgs[0] : dataArgs;
-                    dataStr = typeof combinedData === 'object' ?
-                        JSON.stringify(combinedData, null, 2) :
-                        String(combinedData);
+                if (data) {
+                    dataStr = typeof data === 'object' ?
+                        JSON.stringify(data, null, 2) :
+                        String(data);
                 }
             } catch (e) {
                 dataStr = '[数据解析错误]';
