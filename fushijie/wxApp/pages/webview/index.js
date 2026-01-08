@@ -1,7 +1,4 @@
-const PAGE = typeof Page !== "undefined" ? Page : function() {};
-const WX = typeof wx !== "undefined" ? wx : null;
-
-PAGE({
+Page({
   data: {
     baseUrl: '', // 存储带版本号的基础URL
     url: '',
@@ -75,7 +72,7 @@ PAGE({
 
     try {
       const res = await new Promise((resolve, reject) => {
-        WX.request({
+        wx.request({
           url: apiUrl,
           method: 'POST',
           data: {
@@ -135,7 +132,7 @@ PAGE({
       console.log('[Webview] postGlobalConfigToWebview skipped: globalConfig=null');
       return;
     }
-    const ctx = WX.createWebViewContext('app-webview');
+    const ctx = wx.createWebViewContext('app-webview', this);
     console.log('[Webview] postGlobalConfigToWebview sending:', this.data.globalConfig);
     ctx.postMessage({
       data: {
@@ -146,7 +143,7 @@ PAGE({
   },
 
   updateWebviewUrl() {
-    const openid = WX.getStorageSync('openid');
+    const openid = wx.getStorageSync('openid');
     console.log('[Webview] 当前 openid:', openid);
     // 使用 onLoad 中生成的固定基础 URL
     const baseUrl = this.data.baseUrl;
@@ -184,12 +181,12 @@ PAGE({
     if (action === 'navigate' && lastMsg.url) {
       const url = lastMsg.url;
       if (lastMsg.method === 'switchTab') {
-        WX.switchTab({ url });
+        wx.switchTab({ url });
       } else {
-        WX.navigateTo({ url });
+        wx.navigateTo({ url });
       }
     } else if (action === 'logout') {
-      WX.removeStorageSync('openid');
+      wx.removeStorageSync('openid');
       this.updateWebviewUrl();
     } else if (action === 'log') {
       const scope = lastMsg.scope || 'H5';
@@ -198,4 +195,4 @@ PAGE({
       console.log(`[Webview] 来自H5日志 [${scope}] ${event}:`, info);
     }
   }
-})
+}) 
