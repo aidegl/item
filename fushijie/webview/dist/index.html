@@ -26,68 +26,101 @@
 
   <main id="main-content">
     <section id="page-home" class="page">
-      <div class="page-header page-header-home">eer">
-        <img class="user-avatar" src="./assets/img/me0.png" alt="头像">
-        <div class="user-basic">
-          <div class="user-name">未登录</d i yical </div>
-            <div class="metric-cell">
-              <div class="metric-text">
-                <div class="metric-key">关注</div>
-                <div class="metric-value">123</div>
-              </div>
-            </div>
-            <div class="metric-cell">
-              <div class="metric-text">
-                <div class="metric-key">粉丝</div>
-                <div class="metric-value">123</div>
-              </div>
-            </div>
-            <div class="metric-cell">
-              <div class="metric-text">
-                <div class="metric-key">声望</div>
-                <div class="metric-value">123</div>
-              </div>
+      <div class="page-header page-header-home">
+        <div class="search-bar" role="search">
+          <img class="search-bar__icon" src="./assets/img/搜索.png" alt="搜索">
+          <input class="search-bar__input" type="search" placeholder="请输入想要搜索的内容">
+          <button class="search-bar__button" type="button">搜索</button>
+        </div>
+      </div>
+    </section>
+    <section id="page-agent" class="page">
+      <img class="agent-deco" src="./assets/img/agent.png" alt="">
+    </section>
+    <section id="page-chat" class="page">
+      <div class="page-header page-header-chat">
+        <div class="search-bar" role="search">
+          <img class="search-bar__icon" src="./assets/img/搜索.png" alt="搜索">
+          <input class="search-bar__input" type="search" placeholder="请输入想要搜索的内容">
+          <button class="search-bar__button" type="button">搜索</button>
+        </div>
+      </div>
+    </section>
+    <section id="page-me" class="page">
+      <div class="user-info">
+        <div class="user-info-inner">
+          <img class="user-avatar" src="./assets/img/me0.png" alt="头像">
+          <div class="user-basic">
+            <div class="user-name">未登录</div>
+          </div>
+        </div>
+      </div>
+      <div class="me-container">
+        <div class="metrics">
+          <div class="metric-cell">
+            <div class="metric-text">
+              <div class="metric-key">获赞</div>
+              <div class="metric-value">123</div>
             </div>
           </div>
-          <ul class="me-menu">
-            <li class="menu-item">
-              <div class="menu-left">
-                <img class="menu-icon" src="./assets/img/quanzi.png" alt="">
-                <span class="menu-text">我的圈子</span>
-              </div>
-              <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
-            </li>
-            <li class="menu-item">
-              <div class="menu-left">
-                <img class="menu-icon" src="./assets/img/tag.png" alt="">
-                <span class="menu-text">我的标签</span>
-              </div>
-              <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
-            </li>
-            <li class="menu-item">
-              <div class="menu-left">
-                <img class="menu-icon" src="./assets/img/aboutwe.png" alt="">
-                <span class="menu-text">关于我们</span>
-              </div>
-              <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
-            </li>
-            <li class="menu-item">
-              <div class="menu-left">
-                <img class="menu-icon" src="./assets/img/edit.png" alt="">
-                <span class="menu-text">意见反馈</span>
-              </div>
-              <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
-            </li>
-            <li class="menu-item" id="menu-settings">
-              <div class="menu-left">
-                <img class="menu-icon" src="./assets/img/set.png" alt="">
-                <span class="menu-text">设置</span>
-              </div>
-              <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
-            </li>
-          </ul>
-          <pre id="mingdao-result" class="mingdao-result" aria-label="明道云返回数据"></pre>
+          <div class="metric-cell">
+            <div class="metric-text">
+              <div class="metric-key">关注</div>
+              <div class="metric-value">123</div>
+            </div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-text">
+              <div class="metric-key">粉丝</div>
+              <div class="metric-value">123</div>
+            </div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-text">
+              <div class="metric-key">声望</div>
+              <div class="metric-value">123</div>
+            </div>
+          </div>
         </div>
+        <ul class="me-menu">
+          <li class="menu-item">
+            <div class="menu-left">
+              <img class="menu-icon" src="./assets/img/quanzi.png" alt="">
+              <span class="menu-text">我的圈子</span>
+            </div>
+            <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
+          </li>
+          <li class="menu-item">
+            <div class="menu-left">
+              <img class="menu-icon" src="./assets/img/tag.png" alt="">
+              <span class="menu-text">我的标签</span>
+            </div>
+            <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
+          </li>
+          <li class="menu-item">
+            <div class="menu-left">
+              <img class="menu-icon" src="./assets/img/aboutwe.png" alt="">
+              <span class="menu-text">关于我们</span>
+            </div>
+            <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
+          </li>
+          <li class="menu-item">
+            <div class="menu-left">
+              <img class="menu-icon" src="./assets/img/edit.png" alt="">
+              <span class="menu-text">意见反馈</span>
+            </div>
+            <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
+          </li>
+          <li class="menu-item" id="menu-settings">
+            <div class="menu-left">
+              <img class="menu-icon" src="./assets/img/set.png" alt="">
+              <span class="menu-text">设置</span>
+            </div>
+            <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
+          </li>
+        </ul>
+        <pre id="mingdao-result" class="mingdao-result" aria-label="明道云返回数据"></pre>
+      </div>
     </section>
   </main>
 
@@ -128,7 +161,6 @@
     </ul>
   </nav>
 
-  <footer id="app-version" class="app-version"></footer>
   <script src="./utils/login-test.js"></script>
   <script src="./js/index.js"></script>
 </body>
