@@ -21,10 +21,7 @@ class CozeWorkflow {
         try {
             this.log('开始调用API', { imageUrl });
 
-            if (!this.bearerToken) {
-                throw new Error('Coze API密钥未设置');
-            }
-
+            // 先打印请求体，即使API密钥未设置
             const requestBody = {
                 workflow_id: this.workflowId,
                 parameters: {
@@ -32,6 +29,10 @@ class CozeWorkflow {
                 }
             };
             this.log('API请求体', requestBody);
+
+            if (!this.bearerToken) {
+                throw new Error('Coze API密钥未设置');
+            }
 
             const response = await fetch(this.apiUrl, {
                 method: 'POST',
