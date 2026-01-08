@@ -1365,6 +1365,7 @@
       <button id="btnLogout" class="btn-block" style="display:none" onclick="toWxLogout()">退出登录</button>
       <button id="btnTestFetch" class="btn-block" onclick="testFetchData()">模拟登录测试</button>
       <button id="btnTestPatient" class="btn-block" onclick="testPatientData()">测试获取备忘录数据</button>
+      <button id="btnOcrTest" class="btn-block" onclick="ocrTestGenerateTempLink()">ocr测试</button>
     </div>
 
     <!-- 版本信息 -->
@@ -1672,6 +1673,38 @@
       }
     }
 
+    window.ocrTestGenerateTempLink = async () => {
+      try {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*,application/pdf';
+        input.onchange = () => {
+          const file = input.files && input.files[0];
+          if (!file) return;
+          const url = URL.createObjectURL(file);
+          log('OCR测试', '生成临时链接', { name: file.name, size: file.size, url });
+          const logEl = document.getElementById('app-logs');
+          if (logEl) {
+            const line = document.createElement('div');
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.textContent = url;
+            line.style.margin = '6px 0';
+            line.appendChild(document.createTextNode('临时链接：'));
+            line.appendChild(a);
+            logEl.appendChild(line);
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).catch(() => {});
+          }
+          setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 300000);
+        };
+        input.click();
+      } catch (e) {
+        err('OCR测试', '生成临时链接失败', e);
+      }
+    }
     window.allPatientData = [];
 
     window.loadPatientData = async () => {
