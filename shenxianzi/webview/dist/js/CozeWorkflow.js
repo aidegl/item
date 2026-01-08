@@ -48,10 +48,29 @@ class CozeWorkflow {
             const result = isJson ? await response.json() : await response.text();
 
             if (response.ok) {
-                this.log('调用成功', result);
+                // 提取需要的数据
+                const { usage, data: dataString } = result;
+                const tokenCount = usage?.token_count;
+
+                // 解析data字符串为JSON
+                let parsedData = null;
+                try {
+                    parsedData = JSON.parse(dataString);
+                } catch (e) {
+                    this.error('数据解析失败', e);
+                }
+
+                // 只打印需要的字段
+                const outputData = {
+                    token_count: tokenCount,
+                    data: parsedData
+                };
+
+                this.log('调用成功 - 输出数据', outputData);
+
                 return {
                     success: true,
-                    data: result
+                    data: outputData
                 };
             } else {
                 this.error('调用失败', result);
