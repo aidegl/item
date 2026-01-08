@@ -49,15 +49,18 @@ class CozeWorkflow {
 
             if (response.ok) {
                 // 提取需要的数据
-                const { usage, data: dataString } = result;
+                const { usage, data: outerData } = result;
                 const tokenCount = usage?.token_count;
 
-                // 解析data字符串为JSON
+                // 提取内部data字段并解析为JSON
                 let parsedData = null;
                 try {
-                    parsedData = JSON.parse(dataString);
+                    const innerDataString = outerData?.data;
+                    if (innerDataString) {
+                        parsedData = JSON.parse(innerDataString);
+                    }
                 } catch (e) {
-                    this.error('数据解析失败', e);
+                    this.error('内部数据解析失败', e);
                 }
 
                 // 只打印需要的字段
