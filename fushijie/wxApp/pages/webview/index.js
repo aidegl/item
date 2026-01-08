@@ -1,4 +1,7 @@
-Page({
+const PAGE = typeof Page !== "undefined" ? Page : function() {};
+const WX = typeof wx !== "undefined" ? wx : null;
+
+PAGE({
   data: {
     baseUrl: '', // 存储带版本号的基础URL
     url: '',
@@ -9,13 +12,6 @@ Page({
   onLoad() {
     // 1. 在页面加载时初始化基础URL（只生成一次版本号，防止onShow时刷新）
     const BASE_URL = 'https://100000whys.cn/project/fushijie/webview/dist/index.html?item=c10c60ae-78e5-48da-9401-aa8d3e3908f4';
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-
-=======
->>>>>>> parent of 6aa0550 (Merge branch 'main' of https://github.com/aidegl/item)
-=======
->>>>>>> Stashed changes
 
     let rawBaseUrl = BASE_URL;
     console.log('[Webview] onLoad rawBaseUrl:', rawBaseUrl);
@@ -79,7 +75,7 @@ Page({
 
     try {
       const res = await new Promise((resolve, reject) => {
-        wx.request({
+        WX.request({
           url: apiUrl,
           method: 'POST',
           data: {
@@ -139,7 +135,7 @@ Page({
       console.log('[Webview] postGlobalConfigToWebview skipped: globalConfig=null');
       return;
     }
-    const ctx = wx.createWebViewContext('app-webview', this);
+    const ctx = WX.createWebViewContext('app-webview');
     console.log('[Webview] postGlobalConfigToWebview sending:', this.data.globalConfig);
     ctx.postMessage({
       data: {
@@ -150,7 +146,7 @@ Page({
   },
 
   updateWebviewUrl() {
-    const openid = wx.getStorageSync('openid');
+    const openid = WX.getStorageSync('openid');
     console.log('[Webview] 当前 openid:', openid);
     // 使用 onLoad 中生成的固定基础 URL
     const baseUrl = this.data.baseUrl;
@@ -188,12 +184,12 @@ Page({
     if (action === 'navigate' && lastMsg.url) {
       const url = lastMsg.url;
       if (lastMsg.method === 'switchTab') {
-        wx.switchTab({ url });
+        WX.switchTab({ url });
       } else {
-        wx.navigateTo({ url });
+        WX.navigateTo({ url });
       }
     } else if (action === 'logout') {
-      wx.removeStorageSync('openid');
+      WX.removeStorageSync('openid');
       this.updateWebviewUrl();
     } else if (action === 'log') {
       const scope = lastMsg.scope || 'H5';
@@ -202,4 +198,4 @@ Page({
       console.log(`[Webview] 来自H5日志 [${scope}] ${event}:`, info);
     }
   }
-}) 
+})
