@@ -38,6 +38,14 @@
       apiUrl: 'https://api.mingdao.com/v2/open/worksheet/getRowByIdPost'
     }
 
+    // 设置Coze工作流API密钥
+    window.addEventListener('load', function () {
+      if (window.cozeWorkflow) {
+        // 请在此处填写您的Coze API密钥
+        window.cozeWorkflow.setApiKey('');
+      }
+    });
+
     // 添加全局JavaScript错误捕获
     window.addEventListener('error', function (event) {
       console.error('全局JavaScript错误:', event.error);
