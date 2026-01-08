@@ -17,6 +17,8 @@
   <script>var vConsole = new VConsole();</script>
   <!-- 引入 Markdown 渲染库 -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- 引入 Coze 工作流 API 模块 -->
+  <script src="./js/CozeWorkflow.js"></script>
   <!-- 复用组件：用户数据获取 -->
   <script src="../../components/MingdaoQuery.js"></script>
   <script src="../../components/MingdaoAdd.js"></script>
@@ -1455,7 +1457,7 @@
           if (isJson && data && (data.url || data.link)) {
             url = data.url || data.link;
           } else if (typeof data === 'string') {
-            try { const j = JSON.parse(data); url = j.url || j.link || ''; } catch (_) {}
+            try { const j = JSON.parse(data); url = j.url || j.link || ''; } catch (_) { }
           }
           if (!url) {
             err('OCR链接', '上传失败或未返回链接', data);
@@ -1475,8 +1477,10 @@
             logEl.appendChild(line);
           }
           if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(url).catch(() => {});
+            navigator.clipboard.writeText(url).catch(() => { });
           }
+          // 调用Coze工作流API
+          window.cozeWorkflow.runWorkflow(url);
         };
         input.click();
       } catch (e) {
@@ -1742,9 +1746,9 @@
             logEl.appendChild(line);
           }
           if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(url).catch(() => {});
+            navigator.clipboard.writeText(url).catch(() => { });
           }
-          setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 300000);
+          setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) { } }, 300000);
         };
         input.click();
       } catch (e) {
