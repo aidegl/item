@@ -878,7 +878,7 @@ function renderSettings(container) {
             <!-- 用户信息板块 -->
             <div class="card mb-2 user-info-card">
                 <div class="user-avatar-wrapper">
-                    <img src="./assets/morentouxiang.webp" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
+                    <img src="dist/assets/img/morentouxiang.webp" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
                 </div>
                 <div class="user-details">
                     <div class="user-nickname">郭立</div>
