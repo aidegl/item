@@ -1,30 +1,8 @@
 // AI页面交互逻辑
 document.addEventListener('DOMContentLoaded', () => {
-  initVersion();
   // 初始化页面
   initAIPage();
 });
-
-const VERSION_CONFIG = {
-  currentVersion: 'v0.0.13',
-  releaseInfo: {
-    date: '2026-01-09',
-    author: '开发团队',
-    description: 'WebView 入口切换为 ai.html'
-  }
-};
-
-function initVersion() {
-  const versionBadge = document.getElementById('version-badge');
-  if (versionBadge) {
-    versionBadge.textContent = VERSION_CONFIG.currentVersion;
-    versionBadge.title = `发布时间：${VERSION_CONFIG.releaseInfo.date}`;
-  }
-  console.log(`🚀 版本信息：${VERSION_CONFIG.currentVersion}`);
-  console.log(`📅 发布时间：${VERSION_CONFIG.releaseInfo.date}`);
-  console.log(`👥 发布者：${VERSION_CONFIG.releaseInfo.author}`);
-  console.log(`📝 描述：${VERSION_CONFIG.releaseInfo.description}`);
-}
 
 function initAIPage() {
   // 添加功能项点击事件

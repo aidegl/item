@@ -55,8 +55,7 @@ class BottomNav {
       navItem.id = `nav-${item.id}`;
       navItem.href = item.href;
       navItem.innerHTML = `
-        <span class="bottom-nav-item-icon bottom-nav-item-icon-mask" style="--nav-icon-url: url('${item.icon}')"></span>
-        <img src="${item.icon}" class="bottom-nav-item-icon bottom-nav-item-icon-img" alt="">
+        <img src="${item.icon}" class="bottom-nav-item-icon">
         <span class="bottom-nav-item-text">${item.label}</span>
       `;
       nav.appendChild(navItem);

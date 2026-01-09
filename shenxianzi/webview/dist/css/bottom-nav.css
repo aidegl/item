@@ -24,47 +24,23 @@
   flex: 1;
   height: 100%;
   text-decoration: none;
-  color: var(--text-gray-400);
+  color: #9ca3af;
   transition: all 0.2s ease;
 }
 
 .bottom-nav-item.active {
-  color: var(--text-blue-500);
+  color: #3b82f6;
 }
 
 .bottom-nav-item-icon {
-  display: block;
   width: 1.5rem;
   height: 1.5rem;
   margin-bottom: 0.25rem;
   transition: all 0.2s ease;
 }
 
-.bottom-nav-item-icon-mask {
-  display: none;
-  background-color: currentColor;
-  -webkit-mask-image: var(--nav-icon-url);
-  mask-image: var(--nav-icon-url);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-}
-
-.bottom-nav-item-icon-img {
-  object-fit: contain;
-}
-
-@supports ((-webkit-mask-image: url("")) or (mask-image: url(""))) {
-  .bottom-nav-item-icon-mask {
-    display: block;
-  }
-
-  .bottom-nav-item-icon-img {
-    display: none;
-  }
+.bottom-nav-item.active .bottom-nav-item-icon {
+  filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(180deg) brightness(100%) contrast(97%);
 }
 
 .bottom-nav-item-text {
