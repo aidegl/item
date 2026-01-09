@@ -214,6 +214,22 @@ class WechatLogin {
       return;
     }
 
+    // 检查是否有openid参数但值为空（表示退出登录）
+    if (params.has("openid")) {
+      // 清除本地存储
+      localStorage.removeItem("openid");
+      localStorage.removeItem("userInfo");
+      
+      // 重置登录状态
+      if (this.state.isLoggedIn) {
+        this.state.isLoggedIn = false;
+        this.state.userInfo = null;
+        this.state.openid = null;
+        this.emitChange("logout");
+      }
+      return;
+    }
+
     const stored = localStorage.getItem("openid");
     const storedUserInfo = localStorage.getItem("userInfo");
 
