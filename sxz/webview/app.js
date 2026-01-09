@@ -9,9 +9,12 @@ const AppState = {
     consultations: [],
     reminders: [],
     chatMessages: [],
+    aiQuickQuestionsHidden: false,
     
     init() {
         this.loadFromStorage();
+        this.chatMessages = [];
+        this.saveToStorage();
         this.checkOnboarding();
     },
     
@@ -22,7 +25,7 @@ const AppState = {
             this.patients = data.patients || [];
             this.consultations = data.consultations || [];
             this.reminders = data.reminders || [];
-            this.chatMessages = data.chatMessages || [];
+            this.chatMessages = [];
         } else {
             this.initMockData();
         }
@@ -32,8 +35,7 @@ const AppState = {
         const data = {
             patients: this.patients,
             consultations: this.consultations,
-            reminders: this.reminders,
-            chatMessages: this.chatMessages
+            reminders: this.reminders
         };
         localStorage.setItem('appData', JSON.stringify(data));
     },
@@ -149,6 +151,9 @@ function updateOnboardingStep() {
 function switchTab(tab) {
     AppState.currentTab = tab;
     AppState.currentView = 'main';
+    if (tab === 'ai') {
+        AppState.aiQuickQuestionsHidden = false;
+    }
     
     // 更新导航按钮状态
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -192,14 +197,9 @@ function renderCurrentPage() {
 
 // ==================== AI助手页面 ====================
 function renderAIAssistant(container) {
-    container.innerHTML = `
-        <div class="page-header">
-            <h1 class="page-title">AI 陪诊助手</h1>
-            <p class="page-subtitle">随时为您解答陪诊相关问题</p>
-        </div>
-        
-        <div class="p-2">
-            <!-- 快捷问题 -->
+    const quickQuestions = AppState.aiQuickQuestionsHidden
+        ? ''
+        : `
             <div class="card mb-2">
                 <div class="card-header">
                     <h3 class="card-title">常见问题</h3>
@@ -219,11 +219,18 @@ function renderAIAssistant(container) {
                     </button>
                 </div>
             </div>
+        `;
+
+    container.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title">AI 陪诊助手</h1>
+            <p class="page-subtitle">随时为您解答陪诊相关问题</p>
+        </div>
+        
+        <div class="p-2 ai-chat-content">
+            ${quickQuestions}
             
-            <!-- 聊天记录 -->
-            <div class="chat-container" id="chatContainer">
-                ${renderChatMessages()}
-            </div>
+            ${renderChatMessages()}
         </div>
         
         <!-- 输入框 -->
@@ -238,12 +245,8 @@ function renderAIAssistant(container) {
         </div>
     `;
     
-    // 滚动到底部
     setTimeout(() => {
-        const chatContainer = document.getElementById('chatContainer');
-        if (chatContainer) {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+        window.scrollTo(0, document.body.scrollHeight);
     }, 100);
 }
 
@@ -287,6 +290,8 @@ function sendMessage() {
     
     if (!message) return;
     
+    AppState.aiQuickQuestionsHidden = true;
+
     // 添加用户消息
     AppState.chatMessages.push({
         role: 'user',
