@@ -399,6 +399,10 @@ body {
     padding: 16px;
 }
 
+.ai-chat-content {
+    padding-bottom: 180px;
+}
+
 .p-3 {
     padding: 24px;
 }
@@ -538,19 +542,14 @@ body {
     border-color: var(--primary-color);
 }
 
-.chat-container {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px;
-    max-height: calc(100vh - 400px);
-    overflow-y: auto;
-}
-
 .chat-message {
     display: flex;
     gap: 12px;
     animation: fadeIn 0.3s;
+}
+
+.chat-message + .chat-message {
+    margin-top: 16px;
 }
 
 @keyframes fadeIn {
