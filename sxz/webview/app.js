@@ -875,6 +875,20 @@ function renderSettings(container) {
         </div>
         
         <div class="p-2">
+            <!-- 用户信息板块 -->
+            <div class="card mb-2 user-info-card">
+                <div class="user-avatar-wrapper">
+                    <img src="./assets/morentouxiang.webp" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
+                </div>
+                <div class="user-details">
+                    <div class="user-nickname">郭立</div>
+                    <div class="user-info-bottom">
+                        <span class="user-welcome">欢迎回来</span>
+                        <span class="user-id">ID: 88888888</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="card mb-2">
                 <h3 class="card-title mb-2">常规设置</h3>
                 
@@ -927,6 +941,11 @@ function renderSettings(container) {
                     </div>
                 </div>
             </div>
+
+            <div class="settings-auth-actions">
+                <button class="btn btn-primary btn-lg w-full" onclick="goToLogin()">立即登录</button>
+                <button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>
+            </div>
             
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
@@ -938,6 +957,24 @@ function renderSettings(container) {
             </div>
         </div>
     `;
+}
+
+function goToLogin() {
+    const wx = window.wx;
+    if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+        wx.miniProgram.navigateTo({ url: '/pages/login/index' });
+        return;
+    }
+    showToast('请在小程序内打开以登录');
+}
+
+function logout() {
+    const wx = window.wx;
+    if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+        wx.miniProgram.navigateTo({ url: '/pages/logout/index' });
+        return;
+    }
+    showToast('请在小程序内打开以退出登录');
 }
 
 function exportData() {
