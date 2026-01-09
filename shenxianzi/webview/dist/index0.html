@@ -25,8 +25,8 @@
   <script src="../../components/MingdaoUpdate.js"></script>
   <script src="../../components/MingdaoArray.js" onload="console.log('[调试] MingdaoArray.js 加载成功');"
     onerror="console.error('[调试] MingdaoArray.js 加载失败');"></script>
-  <link rel="stylesheet" href="./css/base0.css?v=20260109">
-  <link rel="stylesheet" href="./css/index0.css?v=20260109">
+  <link rel="stylesheet" href="./css/base0.css?v=20250109">
+  <link rel="stylesheet" href="./css/index0.css?v=20250109">
   <title>神仙子</title>
 
   <script>
@@ -79,7 +79,7 @@
       <!-- 聊天头部 -->
       <div class="chat-header">
         <div class="chat-title">智能体助手</div>
-        <div class="version-badge" id="version-badge">v0.0.12</div>
+        <div class="version-badge" id="version-badge">v0.0.2</div>
       </div>
 
       <!-- 消息区域 -->
@@ -1392,23 +1392,19 @@
   <!-- 底部导航 -->
   <div class="bottom-menu">
     <div class="menu-item active" onclick="switchTab('agent')">
-      <span class="menu-icon menu-icon-mask" id="icon-agent-mask" style="--menu-icon-url: url('./assets/agent0.png')"></span>
-      <img src="./assets/agent1.png" class="menu-icon menu-icon-img" id="icon-agent" alt="">
+      <img src="./assets/agent1.png" class="menu-icon" id="icon-agent">
       <span>智能体</span>
     </div>
     <div class="menu-item" onclick="switchTab('patient')">
-      <span class="menu-icon menu-icon-mask" id="icon-patient-mask" style="--menu-icon-url: url('./assets/huanzheku0.png')"></span>
-      <img src="./assets/huanzheku0.png" class="menu-icon menu-icon-img" id="icon-patient" alt="">
+      <img src="./assets/huanzheku0.png" class="menu-icon" id="icon-patient">
       <span>患者库</span>
     </div>
     <div class="menu-item" onclick="switchTab('memo')">
-      <span class="menu-icon menu-icon-mask" id="icon-memo-mask" style="--menu-icon-url: url('./assets/beiwanglu0.png')"></span>
-      <img src="./assets/beiwanglu0.png" class="menu-icon menu-icon-img" id="icon-memo" alt="">
+      <img src="./assets/beiwanglu0.png" class="menu-icon" id="icon-memo">
       <span>备忘录</span>
     </div>
     <div class="menu-item" onclick="switchTab('settings')">
-      <span class="menu-icon menu-icon-mask" id="icon-settings-mask" style="--menu-icon-url: url('./assets/shezhi0.png')"></span>
-      <img src="./assets/shezhi0.png" class="menu-icon menu-icon-img" id="icon-settings" alt="">
+      <img src="./assets/shezhi0.png" class="menu-icon" id="icon-settings">
       <span>设置</span>
     </div>
   </div>
@@ -1592,15 +1588,10 @@
 
       Object.keys(icons).forEach(k => {
         const iconEl = document.getElementById(`icon-${k}`)
-        const iconMaskEl = document.getElementById(`icon-${k}-mask`)
         const baseName = icons[k]
         const isCurrent = k === key
-        if (iconMaskEl) {
-          iconMaskEl.style.setProperty('--menu-icon-url', `url('./assets/${baseName}0.png')`)
-        }
-        if (iconEl && iconEl.tagName && String(iconEl.tagName).toLowerCase() === 'img') {
-          iconEl.src = `./assets/${baseName}${isCurrent ? '1' : '0'}.png`
-        }
+        // 0为未选中，1为选中
+        iconEl.src = `./assets/${baseName}${isCurrent ? '1' : '0'}.png`
         iconEl.parentElement.classList.toggle('active', isCurrent)
       })
 
@@ -3076,11 +3067,11 @@
   <script>
     // 版本管理配置
     const VERSION_CONFIG = {
-      currentVersion: 'v0.0.12',
+      currentVersion: 'v0.0.6',
       releaseInfo: {
-        date: '2026-01-09',
+        date: '2026-01-03',
         author: '开发团队',
-        description: '底部导航使用蓝灰全局变量，并刷新CSS缓存'
+        description: '修复陪诊详情弹窗初始显示问题，默认隐藏仅点击后出现'
       }
     };
 

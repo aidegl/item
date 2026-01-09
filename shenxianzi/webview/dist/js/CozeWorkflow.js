@@ -29,15 +29,6 @@ class CozeWorkflow {
                 }
             };
             this.log('API请求体', requestBody);
-            this.log('API请求详情', {
-                url: this.apiUrl,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': this.bearerToken ? `Bearer ${String(this.bearerToken).slice(0, 8)}...` : ''
-                },
-                body: JSON.stringify(requestBody)
-            });
 
             if (!this.bearerToken) {
                 throw new Error('Coze API密钥未设置');
