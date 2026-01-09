@@ -147,6 +147,74 @@ body {
     justify-content: center;
 }
 
+.btn-lg {
+    padding: 14px 20px;
+    font-size: 15px;
+    border-radius: 12px;
+}
+
+.btn-danger-outline {
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+.btn-danger-outline:hover {
+    background-color: #fee2e2;
+}
+
+.settings-auth-actions {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+/* 用户信息样式 */
+.user-info-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+}
+
+.user-avatar-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: var(--bg-color);
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+}
+
+.user-avatar-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-nickname {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.user-info-bottom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.user-id {
+    opacity: 0.8;
+}
+
 /* 卡片样式 */
 .card {
     background-color: var(--card-bg);
