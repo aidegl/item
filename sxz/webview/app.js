@@ -226,6 +226,17 @@ function renderAIAssistant(container) {
     container.innerHTML = `
         
         <div class="p-2 ai-chat-content">
+            <!-- 图片上传按钮 -->
+            <input type="file" id="imageUploadInput" accept="image/*" class="hidden" onchange="handleImageUpload(this)">
+            <button class="upload-btn mb-2" onclick="document.getElementById('imageUploadInput').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>上传图片进行分析</span>
+            </button>
+
             ${quickQuestions}
             
             ${renderChatMessages()}
@@ -275,17 +286,83 @@ function renderChatMessages() {
         `;
     }
 
-    return AppState.chatMessages.map(msg => `
+    return AppState.chatMessages.map(msg => {
+        let contentHtml = msg.content;
+        
+        // 处理图片消息
+        if (msg.type === 'image') {
+            contentHtml = `<img src="${msg.content}" style="max-width: 100%; border-radius: 8px; display: block;">`;
+        }
+        // 如果是机器人/助手消息，尝试使用 Marked 渲染 Markdown
+        else if ((msg.role === 'assistant' || msg.role === 'bot') && typeof marked !== 'undefined') {
+            try {
+                contentHtml = marked.parse(msg.content);
+            } catch (e) {
+                console.error('Markdown 渲染失败:', e);
+                // 降级处理：简单的换行转换
+                contentHtml = msg.content.replace(/\n/g, '<br>');
+            }
+        } else {
+            // 用户消息，进行 HTML 转义防止 XSS，并处理换行
+            contentHtml = escapeHtml(msg.content).replace(/\n/g, '<br>');
+        }
+
+        return `
         <div class="chat-message ${msg.role}">
             <div class="message-avatar">
                 ${msg.role === 'user' ? '👤' : '🤖'}
             </div>
             <div class="message-content">
-                <div class="message-text">${msg.content}</div>
+                <div class="message-text">${contentHtml}</div>
                 <div class="message-time">${formatTime(msg.timestamp)}</div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
+}
+
+function handleImageUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const imageUrl = e.target.result;
+        
+        // 添加用户图片消息
+        AppState.chatMessages.push({
+            role: 'user',
+            type: 'image',
+            content: imageUrl,
+            timestamp: new Date().toISOString()
+        });
+        
+        // 隐藏快捷问题
+        AppState.aiQuickQuestionsHidden = true;
+        
+        renderCurrentPage();
+        
+        // 模拟 AI 分析回复
+        setTimeout(() => {
+            if (cozeAPI) {
+                // 如果集成了支持图片分析的 API，可以在这里调用
+                // 目前先发送一条文本提示，让 AI 知道用户上传了图片（如果 API 支持多模态，需修改 send 方法）
+                // 暂时模拟回复
+                cozeAPI.sendMessage("我上传了一张图片，请帮我分析一下（注：当前仅为前端模拟图片展示，实际图片未发送给 AI）");
+            } else {
+                AppState.chatMessages.push({
+                    role: 'assistant',
+                    content: '已收到您的图片。目前我仅支持文本交互，后续将升级图片分析功能。',
+                    timestamp: new Date().toISOString()
+                });
+                renderCurrentPage();
+                AppState.saveToStorage();
+            }
+        }, 500);
+    };
+    reader.readAsDataURL(file);
+    
+    // 重置 input 以便下次可以上传同一张图片
+    input.value = '';
 }
 
 function askQuestion(question) {
@@ -299,11 +376,88 @@ function handleChatKeyPress(event) {
     }
 }
 
+let cozeAPI = null;
+
+function initCozeAPI() {
+    if (typeof CozeChatAPI === 'undefined') {
+        console.error('CozeChatAPI not found');
+        return;
+    }
+
+    cozeAPI = new CozeChatAPI({
+        botId: '7584776894743085106',
+        userId: 'user_' + Date.now(),
+        // 禁用默认的 UI 绑定
+        messagesContainer: null,
+        inputElement: null,
+        sendButton: null,
+        
+        onStreamingStart: () => {
+            // 添加空的 AI 消息占位
+            AppState.chatMessages.push({
+                role: 'assistant',
+                content: '',
+                timestamp: new Date().toISOString()
+            });
+            // 渲染页面，显示空气泡
+            renderCurrentPage();
+        },
+        
+        onStreamingUpdate: (content) => {
+            // 更新最后一条消息的内容
+            const msgs = AppState.chatMessages;
+            if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
+                msgs[msgs.length - 1].content = content;
+                
+                // 直接更新 DOM 以获得更好的流式体验
+                // 查找最后一个助手消息的气泡
+                const assistantMessages = document.querySelectorAll('.chat-message.assistant .message-text');
+                const lastBubble = assistantMessages[assistantMessages.length - 1];
+                
+                if (lastBubble) {
+                    if (typeof marked !== 'undefined') {
+                        try {
+                            lastBubble.innerHTML = marked.parse(content);
+                        } catch (e) {
+                            lastBubble.innerText = content;
+                        }
+                    } else {
+                        lastBubble.innerText = content;
+                    }
+                }
+            }
+        },
+        
+        onMessageReceived: (message) => {
+            AppState.saveToStorage();
+            // 可以在这里做一些收尾工作，比如移除光标效果等
+            // 由于 renderChatMessages 会重新渲染整个列表，如果这里调用 renderCurrentPage() 会导致重绘
+            // 我们已经通过 direct DOM update 更新了内容，所以这里可以选择不重绘，或者为了数据一致性重绘一次
+            // renderCurrentPage();
+        },
+        
+        onError: (error) => {
+            console.error('Coze API Error:', error);
+            const msgs = AppState.chatMessages;
+            if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
+                msgs[msgs.length - 1].content += `\n\n[出错了: ${error.message}]`;
+                renderCurrentPage();
+            }
+            AppState.saveToStorage();
+        }
+    });
+}
+
 function sendMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
 
     if (!message) return;
+    
+    // 如果 API 未初始化，尝试初始化
+    if (!cozeAPI) {
+        initCozeAPI();
+    }
 
     AppState.aiQuickQuestionsHidden = true;
 
@@ -316,18 +470,23 @@ function sendMessage() {
 
     input.value = '';
     renderCurrentPage();
-
-    // 模拟AI回复
-    setTimeout(() => {
-        const aiResponse = getAIResponse(message);
-        AppState.chatMessages.push({
-            role: 'assistant',
-            content: aiResponse,
-            timestamp: new Date().toISOString()
-        });
-        AppState.saveToStorage();
-        renderCurrentPage();
-    }, 1000);
+    
+    // 调用 Coze API
+    if (cozeAPI) {
+        cozeAPI.sendMessage(message);
+    } else {
+        // 降级处理
+        setTimeout(() => {
+            const aiResponse = "抱歉，智能体服务暂时无法连接。";
+            AppState.chatMessages.push({
+                role: 'assistant',
+                content: aiResponse,
+                timestamp: new Date().toISOString()
+            });
+            AppState.saveToStorage();
+            renderCurrentPage();
+        }, 1000);
+    }
 }
 
 function getAIResponse(question) {
@@ -873,8 +1032,8 @@ function renderSettings(container) {
         ? (rawUser && rawUser.mingcheng ? rawUser.mingcheng : (userInfo.name || '用户'))
         : '未登录';
     const userAvatar = userInfo
-        ? (getTouxiangUrl(rawUser && rawUser.touxiang) || userInfo.avatar || 'dist/assets/img/morentouxiang.webp')
-        : 'dist/assets/img/morentouxiang.webp';
+                ? (getTouxiangUrl(rawUser && rawUser.touxiang) || userInfo.avatar || DEFAULT_AVATAR)
+                : DEFAULT_AVATAR;
     const userId = userInfo
         ? (rawUser && rawUser.escortCode ? rawUser.escortCode : '-')
         : '-';
@@ -958,13 +1117,25 @@ function renderSettings(container) {
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
                     <p>版本：1.0.0</p>
-                    <p style="white-space: pre-wrap; word-break: break-all; font-size: 12px;">${getMingdaoDebugText()}</p>
+                    <p id="coze-test-output" style="white-space: pre-wrap; word-break: break-all; font-size: 12px;">正在等待 Coze 智能体响应...</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
             </div>
         </div>
     `;
+
+    // 如果这是第一次渲染，且不在登录流程中，则尝试测试 Coze API
+    if (AppState.currentTab === 'settings') {
+        setTimeout(testCozeApi, 500);
+    }
 }
+
+// 全局变量保存测试实例
+// let testCozeInstance = null;
+
+// function testCozeApi() {
+//    // 已移除
+// }
 
 function goToLogin() {
     if (window.wechatLogin && typeof window.wechatLogin.toWxLogin === 'function') {
@@ -1052,13 +1223,14 @@ function escapeHtml(text) {
         .replace(/'/g, '&#39;');
 }
 
+// 默认头像 (SVG Base64 fallback)
+const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0Ii8+PHBhdGggZD0iTTIwIDIxdi0yYTQgNCAwIDAgMC00LTRoLThhNCA0IDAgMCAwLTQgNHYyIi8+PC9zdmc+";
+
 function getTouxiangUrl(touxiang) {
     if (!touxiang) return '';
-
     if (Array.isArray(touxiang)) {
         return touxiang[0] && touxiang[0].large_thumbnail_full_path ? String(touxiang[0].large_thumbnail_full_path) : '';
     }
-
     if (typeof touxiang === 'string') {
         const trimmed = touxiang.trim();
         if (!trimmed) return '';
@@ -1069,7 +1241,6 @@ function getTouxiangUrl(touxiang) {
             }
         } catch (e) { }
     }
-
     return '';
 }
 

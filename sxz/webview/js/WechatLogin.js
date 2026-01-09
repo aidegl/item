@@ -5,7 +5,8 @@ class WechatLogin {
       miniProgramLogoutUrl: options.miniProgramLogoutUrl || "/pages/logout/index",
       mingdaoWorksheetId: options.mingdaoWorksheetId || "yonghu",
       openidField: options.openidField || "openId",
-      defaultAvatar: options.defaultAvatar || "dist/assets/img/morentouxiang.webp",
+      // defaultAvatar: options.defaultAvatar || "dist/assets/img/morentouxiang.webp",
+      defaultAvatar: options.defaultAvatar || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0Ii8+PHBhdGggZD0iTTIwIDIxdi0yYTQgNCAwIDAgMC00LTRoLThhNCA0IDAgMCAwLTQgNHYyIi8+PC9zdmc+",
       ...options,
     };
 
