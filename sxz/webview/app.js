@@ -10,14 +10,14 @@ const AppState = {
     reminders: [],
     chatMessages: [],
     aiQuickQuestionsHidden: false,
-    
+
     init() {
         this.loadFromStorage();
         this.chatMessages = [];
         this.saveToStorage();
         this.checkOnboarding();
     },
-    
+
     loadFromStorage() {
         const stored = localStorage.getItem('appData');
         if (stored) {
@@ -30,7 +30,7 @@ const AppState = {
             this.initMockData();
         }
     },
-    
+
     saveToStorage() {
         const data = {
             patients: this.patients,
@@ -39,7 +39,7 @@ const AppState = {
         };
         localStorage.setItem('appData', JSON.stringify(data));
     },
-    
+
     initMockData() {
         // 初始化一些示例数据
         this.patients = [
@@ -64,7 +64,7 @@ const AppState = {
                 createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
             }
         ];
-        
+
         this.reminders = [
             {
                 id: '1',
@@ -84,10 +84,10 @@ const AppState = {
                 completed: false
             }
         ];
-        
+
         this.saveToStorage();
     },
-    
+
     checkOnboarding() {
         const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
         if (!hasSeenOnboarding) {
@@ -123,7 +123,7 @@ function updateOnboardingStep() {
     const steps = document.querySelectorAll('.onboarding-step');
     const indicators = document.querySelectorAll('.indicator');
     const button = document.querySelector('.onboarding-footer .btn-primary');
-    
+
     steps.forEach((step, index) => {
         if (index + 1 === AppState.onboardingStep) {
             step.classList.remove('hidden');
@@ -131,7 +131,7 @@ function updateOnboardingStep() {
             step.classList.add('hidden');
         }
     });
-    
+
     indicators.forEach((indicator, index) => {
         if (index + 1 <= AppState.onboardingStep) {
             indicator.classList.add('active');
@@ -139,7 +139,7 @@ function updateOnboardingStep() {
             indicator.classList.remove('active');
         }
     });
-    
+
     if (AppState.onboardingStep === 4) {
         button.textContent = '开始使用';
     } else {
@@ -154,7 +154,7 @@ function switchTab(tab) {
     if (tab === 'ai') {
         AppState.aiQuickQuestionsHidden = false;
     }
-    
+
     // 更新导航按钮状态
     document.querySelectorAll('.nav-item').forEach(item => {
         if (item.dataset.tab === tab) {
@@ -163,7 +163,7 @@ function switchTab(tab) {
             item.classList.remove('active');
         }
     });
-    
+
     // 渲染对应页面
     renderCurrentPage();
 }
@@ -172,7 +172,7 @@ function renderCurrentPage() {
     const content = document.getElementById('main-content');
 
     document.body.classList.toggle('ai-tab', AppState.currentTab === 'ai');
-    
+
     switch (AppState.currentTab) {
         case 'ai':
             renderAIAssistant(content);
@@ -224,10 +224,6 @@ function renderAIAssistant(container) {
         `;
 
     container.innerHTML = `
-        <div class="page-header">
-            <h1 class="page-title">AI 陪诊助手</h1>
-            <p class="page-subtitle">随时为您解答陪诊相关问题</p>
-        </div>
         
         <div class="p-2 ai-chat-content">
             ${quickQuestions}
@@ -246,7 +242,7 @@ function renderAIAssistant(container) {
             </button>
         </div>
     `;
-    
+
     setTimeout(() => {
         const inputContainer = document.querySelector('.chat-input-container');
         const bottomNav = document.querySelector('.bottom-nav');
@@ -278,7 +274,7 @@ function renderChatMessages() {
             </div>
         `;
     }
-    
+
     return AppState.chatMessages.map(msg => `
         <div class="chat-message ${msg.role}">
             <div class="message-avatar">
@@ -306,9 +302,9 @@ function handleChatKeyPress(event) {
 function sendMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
-    
+
     if (!message) return;
-    
+
     AppState.aiQuickQuestionsHidden = true;
 
     // 添加用户消息
@@ -317,10 +313,10 @@ function sendMessage() {
         content: message,
         timestamp: new Date().toISOString()
     });
-    
+
     input.value = '';
     renderCurrentPage();
-    
+
     // 模拟AI回复
     setTimeout(() => {
         const aiResponse = getAIResponse(message);
@@ -337,21 +333,21 @@ function sendMessage() {
 function getAIResponse(question) {
     const responses = {
         '如何准备就诊材料？': '准备就诊材料的建议：\n\n1. 身份证件：患者本人身份证或医保卡\n2. 既往病历：之前的诊断报告、检查结果\n3. 用药记录：正在服用的药物清单\n4. 检查报告：近期的体检报告、影像资料\n5. 费用准备：现金或银行卡\n\n建议提前整理成文件夹，方便查阅。',
-        
+
         '陪诊时需要注意什么？': '陪诊注意事项：\n\n1. 准时到达：提前15-30分钟到达医院\n2. 记录要点：准备笔记本记录医生诊断和建议\n3. 主动沟通：帮助患者清楚描述症状\n4. 保持冷静：遇到突发情况保持镇定\n5. 关注细节：注意医嘱和用药说明\n6. 尊重隐私：保护患者隐私信息',
-        
+
         '如何与医生沟通？': '与医生沟通技巧：\n\n1. 提前准备：列出要问的问题清单\n2. 清晰描述：准确描述症状、持续时间、严重程度\n3. 主动提问：不明白的地方及时询问\n4. 记录信息：记下医生的诊断和建议\n5. 确认理解：复述医嘱确保理解正确\n6. 礼貌尊重：保持礼貌，尊重医生的专业意见',
-        
+
         '如何记录医嘱？': '医嘱记录要点：\n\n1. 用药信息：药名、剂量、频次、时间\n2. 注意事项：用药禁忌、副作用\n3. 复诊安排：复诊时间、需要携带的资料\n4. 生活建议：饮食、运动、休息等建议\n5. 检查项目：需要做的检查及注意事项\n\n建议使用本应用的记录功能，自动整理医嘱信息。'
     };
-    
+
     // 检查是否有匹配的预设回复
     for (const [key, value] of Object.entries(responses)) {
         if (question.includes(key) || key.includes(question)) {
             return value;
         }
     }
-    
+
     // 通用回复
     return `我理解您的问题。作为陪诊助手，我建议：\n\n1. 保持专业和耐心\n2. 详细记录就诊信息\n3. 及时与患者和家属沟通\n4. 注意患者的情绪和需求\n\n如果您有更具体的问题，欢迎继续询问。您也可以在患者库中记录详细信息，我会根据患者情况提供更个性化的建议。`;
 }
@@ -495,10 +491,10 @@ function renderAddPatient(container) {
 
 function handleAddPatient(event) {
     event.preventDefault();
-    
+
     const form = event.target;
     const formData = new FormData(form);
-    
+
     const newPatient = {
         id: Date.now().toString(),
         name: formData.get('name'),
@@ -509,10 +505,10 @@ function handleAddPatient(event) {
         allergies: formData.get('allergies') || '无',
         createdAt: new Date().toISOString()
     };
-    
+
     AppState.patients.unshift(newPatient);
     AppState.saveToStorage();
-    
+
     showToast('患者添加成功');
     backToPatientList();
 }
@@ -526,14 +522,14 @@ function backToPatientList() {
 // ==================== 患者详情页面 ====================
 function renderPatientDetail(container) {
     const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
-    
+
     if (!patient) {
         backToPatientList();
         return;
     }
-    
+
     const patientConsultations = AppState.consultations.filter(c => c.patientId === patient.id);
-    
+
     container.innerHTML = `
         <div class="page-header">
             <div class="flex items-center gap-2">
@@ -637,12 +633,12 @@ function viewConsultation(consultationId) {
 // ==================== 陪诊流程页面 ====================
 function renderConsultationFlow(container) {
     const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
-    
+
     if (!patient) {
         backToPatientList();
         return;
     }
-    
+
     container.innerHTML = `
         <div class="page-header">
             <div class="flex items-center gap-2">
@@ -716,17 +712,17 @@ function renderConsultationFlow(container) {
             </form>
         </div>
     `;
-    
+
     // 设置默认日期为今天
     document.querySelector('input[name="date"]').value = new Date().toISOString().split('T')[0];
 }
 
 function handleConsultationSubmit(event) {
     event.preventDefault();
-    
+
     const form = event.target;
     const formData = new FormData(form);
-    
+
     const consultation = {
         id: Date.now().toString(),
         patientId: AppState.currentPatientId,
@@ -741,12 +737,12 @@ function handleConsultationSubmit(event) {
         status: 'completed',
         createdAt: new Date().toISOString()
     };
-    
+
     AppState.consultations.unshift(consultation);
     AppState.saveToStorage();
-    
+
     showToast('陪诊记录已保存');
-    
+
     setTimeout(() => {
         goToPatientDetail(AppState.currentPatientId);
     }, 1000);
@@ -758,7 +754,7 @@ function renderRecordsList(container) {
     const upcomingReminders = AppState.reminders
         .filter(r => !r.completed && new Date(r.date) >= today)
         .sort((a, b) => new Date(a.date) - new Date(b.date));
-    
+
     container.innerHTML = `
         <div class="page-header">
             <div class="flex items-center justify-between">
@@ -810,9 +806,9 @@ function renderRecordsList(container) {
 
 function renderCompletedReminders() {
     const completed = AppState.reminders.filter(r => r.completed);
-    
+
     if (completed.length === 0) return '';
-    
+
     return `
         <div class="card">
             <h3 class="card-title mb-2">已完成 (${completed.length})</h3>
@@ -836,13 +832,13 @@ function renderCompletedReminders() {
 function addReminder() {
     const title = prompt('请输入提醒标题：');
     if (!title) return;
-    
+
     const date = prompt('请输入日期（格式：YYYY-MM-DD）：', new Date().toISOString().split('T')[0]);
     if (!date) return;
-    
+
     const time = prompt('请输入时间（格式：HH:MM）：', '09:00');
     if (!time) return;
-    
+
     const newReminder = {
         id: Date.now().toString(),
         title,
@@ -851,7 +847,7 @@ function addReminder() {
         type: 'task',
         completed: false
     };
-    
+
     AppState.reminders.push(newReminder);
     AppState.saveToStorage();
     renderCurrentPage();
@@ -884,10 +880,6 @@ function renderSettings(container) {
         : '-';
 
     container.innerHTML = `
-        <div class="page-header">
-            <h1 class="page-title">设置</h1>
-        </div>
-        
         <div class="p-2">
             <div class="card mb-2 user-info-card">
                 <div class="user-avatar-wrapper">
@@ -1008,7 +1000,7 @@ function exportData() {
         chatMessages: AppState.chatMessages,
         exportDate: new Date().toISOString()
     };
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1016,7 +1008,7 @@ function exportData() {
     a.download = `陪诊助手数据_${formatDate(new Date())}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    
+
     showToast('数据导出成功');
 }
 
@@ -1108,11 +1100,11 @@ function showToast(message) {
     toast.className = 'toast';
     toast.textContent = message;
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.classList.add('show');
     }, 10);
-    
+
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => {
