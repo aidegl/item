@@ -226,14 +226,14 @@ function renderAIAssistant(container) {
     container.innerHTML = `
         <!-- 固定顶部上传按钮 -->
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px;">
-            <input type="file" id="imageUploadInput" accept="image/*" class="hidden" onchange="handleImageUpload(this)">
+            <input type="file" id="imageUploadInput" accept="image/*,.pdf" class="hidden" onchange="handleImageUpload(this)">
             <button class="upload-btn" onclick="document.getElementById('imageUploadInput').click()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
                     <polyline points="21 15 16 10 5 21"></polyline>
                 </svg>
-                <span>上传图片进行分析</span>
+                <span>上传文件进行分析</span>
             </button>
         </div>
 
@@ -305,6 +305,9 @@ function renderChatMessages() {
         if (msg.type === 'image') {
             contentHtml = `<img src="${msg.content}" style="max-width: 100%; border-radius: 8px; display: block;">`;
         }
+        else if (msg.role === 'system') {
+            contentHtml = `<div style="font-size: 12px; color: var(--text-secondary); text-align: center; white-space: pre-wrap;">${escapeHtml(msg.content)}</div>`;
+        }
         // 如果是机器人/助手消息，尝试使用 Marked 渲染 Markdown
         else if ((msg.role === 'assistant' || msg.role === 'bot') && typeof marked !== 'undefined') {
             try {
@@ -320,13 +323,15 @@ function renderChatMessages() {
         }
 
         return `
-        <div class="chat-message ${msg.role}">
+        <div class="chat-message ${msg.role}" ${msg.role === 'system' ? 'style="background: transparent; box-shadow: none; padding: 0;"' : ''}>
+            ${msg.role !== 'system' ? `
             <div class="message-avatar">
                 ${msg.role === 'user' ? '👤' : '🤖'}
             </div>
-            <div class="message-content">
+            ` : ''}
+            <div class="message-content" ${msg.role === 'system' ? 'style="background: transparent; padding: 4px;"' : ''}>
                 <div class="message-text">${contentHtml}</div>
-                <div class="message-time">${formatTime(msg.timestamp)}</div>
+                ${msg.role !== 'system' ? `<div class="message-time">${formatTime(msg.timestamp)}</div>` : ''}
             </div>
         </div>
     `}).join('');
@@ -336,44 +341,120 @@ function handleImageUpload(input) {
     const file = input.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const imageUrl = e.target.result;
+    // 显示上传中状态
+    const loadingId = 'loading-' + Date.now();
+    AppState.chatMessages.push({
+        role: 'user',
+        type: 'text', // 暂时用 text，等上传成功后如果是图片则更新为 image
+        content: `📤 正在上传文件: ${file.name}...`,
+        id: loadingId,
+        timestamp: new Date().toISOString()
+    });
+    AppState.aiQuickQuestionsHidden = true;
+    renderCurrentPage();
+
+    // 构造 FormData
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // 发送请求
+    fetch('https://100000whys.cn/api/tmp.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        // 检查是否为 JSON 响应
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            return response.json();
+        } else {
+            // 如果不是 JSON，尝试读取文本并抛出错误或尝试解析
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Server response not valid JSON: ' + text.substring(0, 50));
+                }
+            });
+        }
+    })
+    .then(data => {
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        const fileUrl = data.url || data.link;
+        if (!fileUrl) {
+            throw new Error('No URL returned from server');
+        }
+
+        console.log('Upload success, temporary link:', fileUrl);
         
-        // 添加用户图片消息
-        AppState.chatMessages.push({
-            role: 'user',
-            type: 'image',
-            content: imageUrl,
-            timestamp: new Date().toISOString()
-        });
-        
-        // 隐藏快捷问题
-        AppState.aiQuickQuestionsHidden = true;
+        // 自动复制到剪贴板
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(fileUrl).catch(err => {
+                console.error('Failed to copy URL:', err);
+            });
+        }
+
+        // 更新消息列表中的 loading 消息
+        const loadingMsgIndex = AppState.chatMessages.findIndex(msg => msg.id === loadingId);
+        if (loadingMsgIndex !== -1) {
+            // 移除 loading 消息
+            AppState.chatMessages.splice(loadingMsgIndex, 1);
+            
+            // 根据文件类型添加展示消息
+            const isImage = file.type.startsWith('image/');
+            AppState.chatMessages.push({
+                role: 'user',
+                type: isImage ? 'image' : 'text',
+                content: isImage ? fileUrl : `📄 已上传文件: [${file.name}](${fileUrl})`,
+                timestamp: new Date().toISOString()
+            });
+            
+            // 添加系统提示消息（包含链接和复制提示）
+            AppState.chatMessages.push({
+                role: 'system', // 需要在 renderChatMessages 中处理 system 角色
+                content: `文件上传成功！\n临时链接: ${fileUrl}\n(链接已尝试复制到剪贴板)`,
+                timestamp: new Date().toISOString()
+            });
+        }
         
         renderCurrentPage();
-        
-        // 模拟 AI 分析回复
+
+        // 模拟 AI 回复（或者实际调用 Coze）
         setTimeout(() => {
             if (cozeAPI) {
-                // 如果集成了支持图片分析的 API，可以在这里调用
-                // 目前先发送一条文本提示，让 AI 知道用户上传了图片（如果 API 支持多模态，需修改 send 方法）
-                // 暂时模拟回复
-                cozeAPI.sendMessage("我上传了一张图片，请帮我分析一下（注：当前仅为前端模拟图片展示，实际图片未发送给 AI）");
+                // 将链接发送给 AI
+                // 如果是图片，很多 AI 模型可以直接识别 URL
+                const prompt = `我上传了一个文件，链接是：${fileUrl}。请帮我分析这个文件的内容。`;
+                cozeAPI.sendMessage(prompt);
             } else {
                 AppState.chatMessages.push({
                     role: 'assistant',
-                    content: '已收到您的图片。目前我仅支持文本交互，后续将升级图片分析功能。',
+                    content: '已收到您的文件链接。目前仅支持链接接收，后续将升级深度分析功能。',
                     timestamp: new Date().toISOString()
                 });
                 renderCurrentPage();
                 AppState.saveToStorage();
             }
         }, 500);
-    };
-    reader.readAsDataURL(file);
+
+    })
+    .catch(error => {
+        console.error('Upload failed:', error);
+        
+        // 更新 loading 消息为错误消息
+        const loadingMsgIndex = AppState.chatMessages.findIndex(msg => msg.id === loadingId);
+        if (loadingMsgIndex !== -1) {
+             AppState.chatMessages[loadingMsgIndex].content = `❌ 上传失败: ${error.message}`;
+        } else {
+            showToast('上传失败: ' + error.message);
+        }
+        renderCurrentPage();
+    });
     
-    // 重置 input 以便下次可以上传同一张图片
+    // 重置 input
     input.value = '';
 }
 
