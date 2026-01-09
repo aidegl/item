@@ -1,7 +1,9 @@
 :root {
-  --primary-color: #0DA2E7;
+  --text-blue-500: #3b82f6;
+  --text-gray-400: #9ca3af;
+  --primary-color: var(--text-blue-500);
   --text-color: #1f2328;
-  --muted: #99A1AF;
+  --muted: var(--text-gray-400);
   --bg-color: #ECF5FB;
   --white: #fff;
   --female-color: #f06292;
