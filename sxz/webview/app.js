@@ -879,8 +879,8 @@ function renderSettings(container) {
     const userAvatar = userInfo
         ? (getTouxiangUrl(rawUser && rawUser.touxiang) || userInfo.avatar || 'dist/assets/img/morentouxiang.webp')
         : 'dist/assets/img/morentouxiang.webp';
-    const userId = userInfo && window.wechatLogin && typeof window.wechatLogin.getOpenid === 'function'
-        ? (window.wechatLogin.getOpenid() || '-')
+    const userId = userInfo
+        ? (rawUser && rawUser.escortCode ? rawUser.escortCode : '-')
         : '-';
 
     container.innerHTML = `
