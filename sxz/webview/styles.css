@@ -59,6 +59,11 @@ body {
     z-index: 100;
 }
 
+.ai-tab .bottom-nav {
+    box-shadow: none;
+    border-top: none;
+}
+
 .nav-item {
     display: flex;
     flex-direction: column;

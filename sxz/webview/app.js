@@ -170,6 +170,8 @@ function switchTab(tab) {
 
 function renderCurrentPage() {
     const content = document.getElementById('main-content');
+
+    document.body.classList.toggle('ai-tab', AppState.currentTab === 'ai');
     
     switch (AppState.currentTab) {
         case 'ai':
@@ -246,6 +248,23 @@ function renderAIAssistant(container) {
     `;
     
     setTimeout(() => {
+        const inputContainer = document.querySelector('.chat-input-container');
+        const bottomNav = document.querySelector('.bottom-nav');
+        const content = document.querySelector('.ai-chat-content');
+
+        const bottomNavHeight = bottomNav
+            ? bottomNav.getBoundingClientRect().height
+            : 0;
+
+        if (inputContainer) {
+            inputContainer.style.bottom = `${bottomNavHeight}px`;
+        }
+
+        if (content && inputContainer) {
+            const inputHeight = inputContainer.getBoundingClientRect().height;
+            content.style.paddingBottom = `${bottomNavHeight + inputHeight + 24}px`;
+        }
+
         window.scrollTo(0, document.body.scrollHeight);
     }, 100);
 }
