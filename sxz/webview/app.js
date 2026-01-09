@@ -948,8 +948,10 @@ function renderSettings(container) {
             </div>
 
             <div class="settings-auth-actions">
-                <button class="btn btn-primary btn-lg w-full" onclick="goToLogin()">立即登录</button>
-                <button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>
+                ${userInfo ? 
+                    `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>` : 
+                    `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()">立即登录</button>`
+                }
             </div>
             
             <div class="card">
