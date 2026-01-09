@@ -869,6 +869,21 @@ function toggleReminder(id) {
 
 // ==================== 设置页面 ====================
 function renderSettings(container) {
+    const isLoggedIn = window.wechatLogin && typeof window.wechatLogin.isLoggedIn === 'function'
+        ? window.wechatLogin.isLoggedIn()
+        : false;
+    const userInfo = isLoggedIn && window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function'
+        ? window.wechatLogin.getUserInfo()
+        : null;
+    const openid = isLoggedIn && window.wechatLogin && typeof window.wechatLogin.getOpenid === 'function'
+        ? window.wechatLogin.getOpenid()
+        : null;
+
+    const nickname = escapeHtml((userInfo && userInfo.name) ? userInfo.name : (isLoggedIn ? '用户' : '未登录'));
+    const welcomeText = isLoggedIn ? '欢迎回来' : '点击下方立即登录';
+    const idText = escapeHtml(openid ? `ID: ${openid}` : 'ID: -');
+    const avatarSrc = (userInfo && userInfo.avatar) ? userInfo.avatar : 'dist/assets/img/morentouxiang.webp';
+
     container.innerHTML = `
         <div class="page-header">
             <h1 class="page-title">设置</h1>
@@ -878,13 +893,13 @@ function renderSettings(container) {
             <!-- 用户信息板块 -->
             <div class="card mb-2 user-info-card">
                 <div class="user-avatar-wrapper">
-                    <img src="dist/assets/img/morentouxiang.webp" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
+                    <img src="${avatarSrc}" onerror="this.src='dist/assets/img/morentouxiang.webp'" alt="头像">
                 </div>
                 <div class="user-details">
-                    <div class="user-nickname">郭立</div>
+                    <div class="user-nickname">${nickname}</div>
                     <div class="user-info-bottom">
-                        <span class="user-welcome">欢迎回来</span>
-                        <span class="user-id">ID: 88888888</span>
+                        <span class="user-welcome">${welcomeText}</span>
+                        <span class="user-id">${idText}</span>
                     </div>
                 </div>
             </div>
@@ -1036,6 +1051,16 @@ function formatTime(dateString) {
     return `${hours}:${minutes}`;
 }
 
+function escapeHtml(input) {
+    const str = String(input ?? '');
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function showToast(message) {
     const toast = document.createElement('div');
     toast.className = 'toast';
@@ -1063,5 +1088,10 @@ document.addEventListener('DOMContentLoaded', () => {
             miniProgramLogoutUrl: '/pages/logout/index'
         });
     }
+    window.addEventListener('wechatLogin:changed', () => {
+        if (AppState.currentTab === 'settings') {
+            renderCurrentPage();
+        }
+    });
     renderCurrentPage();
 });

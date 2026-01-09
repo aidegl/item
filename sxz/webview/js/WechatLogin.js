@@ -243,6 +243,9 @@ class WechatLogin {
 
         this.log('登录', '登录状态已保存到本地存储');
         this.mdLog('登录完成，已写入本地存储', { openid_stored: !!openid });
+        try {
+          window.dispatchEvent(new CustomEvent('wechatLogin:changed', { detail: { userInfo: processedUserData, openid } }));
+        } catch (e) { }
         return true;
       } else {
         this.error('错误: 获取数据失败或无数据');
@@ -262,7 +265,7 @@ class WechatLogin {
    * @returns {Object} 处理后的用户数据
    */
   processUserData(userData) {
-    const name = userData.nicheng || userData.name || userData['姓名'] || '用户';
+    const name = userData.mingcheng || userData.nicheng || userData.name || userData['姓名'] || '用户';
 
     let avatarFromTouxiang = null;
     const touxiang = userData.touxiang;
@@ -350,6 +353,9 @@ class WechatLogin {
     this.state.isLoggedIn = false;
     this.state.userInfo = null;
     this.state.openid = null;
+    try {
+      window.dispatchEvent(new CustomEvent('wechatLogin:changed', { detail: { userInfo: null, openid: null } }));
+    } catch (e) { }
   }
 
   /**
