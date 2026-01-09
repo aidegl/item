@@ -42,6 +42,10 @@ body {
     min-height: 100vh;
 }
 
+.ai-tab .main-content {
+    padding-bottom: 0;
+}
+
 /* 底部导航 */
 .bottom-nav {
     position: fixed;

@@ -272,7 +272,16 @@ function renderAIAssistant(container) {
             content.style.paddingBottom = `${bottomNavHeight + inputHeight + 24}px`;
         }
 
-        window.scrollTo(0, document.body.scrollHeight);
+        // 智能滚动：只有当内容高度超过可视区域时才滚动到底部
+        // 否则滚动到顶部，确保能看到顶部的上传按钮
+        const availableHeight = window.innerHeight - bottomNavHeight - (inputContainer ? inputContainer.getBoundingClientRect().height : 0);
+        const actualContentHeight = content.scrollHeight - parseFloat(content.style.paddingBottom || '0');
+        
+        if (actualContentHeight > availableHeight) {
+            window.scrollTo(0, document.body.scrollHeight);
+        } else {
+            window.scrollTo(0, 0);
+        }
     }, 100);
 }
 
