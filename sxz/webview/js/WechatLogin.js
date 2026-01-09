@@ -14,7 +14,7 @@ class WechatLogin {
       mingdaoWorksheetId: options.mingdaoWorksheetId || 'yonghu', // 默认用户表
       mingdaoApiUrl: options.mingdaoApiUrl || 'https://api.mingdao.com/v2/open/worksheet/getRowByIdPost',
       openidField: options.openidField || 'openId', // 明道云中存储openid的字段名
-      defaultAvatar: options.defaultAvatar || './assets/morentouxiang.webp',
+      defaultAvatar: options.defaultAvatar || 'dist/assets/img/morentouxiang.webp',
       ...options
     };
 
