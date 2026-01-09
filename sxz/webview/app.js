@@ -224,11 +224,10 @@ function renderAIAssistant(container) {
         `;
 
     container.innerHTML = `
-        
-        <div class="p-2 ai-chat-content">
-            <!-- 图片上传按钮 -->
+        <!-- 固定顶部上传按钮 -->
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px;">
             <input type="file" id="imageUploadInput" accept="image/*" class="hidden" onchange="handleImageUpload(this)">
-            <button class="upload-btn mb-2" onclick="document.getElementById('imageUploadInput').click()">
+            <button class="upload-btn" onclick="document.getElementById('imageUploadInput').click()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -236,7 +235,9 @@ function renderAIAssistant(container) {
                 </svg>
                 <span>上传图片进行分析</span>
             </button>
+        </div>
 
+        <div class="ai-chat-content" style="padding: 0 16px;">
             ${quickQuestions}
             
             ${renderChatMessages()}
@@ -275,7 +276,9 @@ function renderAIAssistant(container) {
         // 智能滚动：只有当内容高度超过可视区域时才滚动到底部
         // 否则滚动到顶部，确保能看到顶部的上传按钮
         const availableHeight = window.innerHeight - bottomNavHeight - (inputContainer ? inputContainer.getBoundingClientRect().height : 0);
-        const actualContentHeight = content.scrollHeight - parseFloat(content.style.paddingBottom || '0');
+        const mainContent = document.getElementById('main-content');
+        // 使用 main-content 的高度来计算，因为它包含了 header 和 content
+        const actualContentHeight = (mainContent ? mainContent.scrollHeight : content.scrollHeight) - parseFloat(content.style.paddingBottom || '0');
         
         if (actualContentHeight > availableHeight) {
             window.scrollTo(0, document.body.scrollHeight);
