@@ -869,21 +869,6 @@ function toggleReminder(id) {
 
 // ==================== 设置页面 ====================
 function renderSettings(container) {
-    const isLoggedIn = window.wechatLogin && typeof window.wechatLogin.isLoggedIn === 'function'
-        ? window.wechatLogin.isLoggedIn()
-        : false;
-    const userInfo = isLoggedIn && window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function'
-        ? window.wechatLogin.getUserInfo()
-        : null;
-    const openid = isLoggedIn && window.wechatLogin && typeof window.wechatLogin.getOpenid === 'function'
-        ? window.wechatLogin.getOpenid()
-        : null;
-
-    const nickname = escapeHtml((userInfo && userInfo.name) ? userInfo.name : (isLoggedIn ? '用户' : '未登录'));
-    const welcomeText = isLoggedIn ? '欢迎回来' : '点击下方立即登录';
-    const idText = escapeHtml(openid ? `ID: ${openid}` : 'ID: -');
-    const avatarSrc = (userInfo && userInfo.avatar) ? userInfo.avatar : 'dist/assets/img/morentouxiang.webp';
-
     container.innerHTML = `
         <div class="page-header">
             <h1 class="page-title">设置</h1>
@@ -893,13 +878,13 @@ function renderSettings(container) {
             <!-- 用户信息板块 -->
             <div class="card mb-2 user-info-card">
                 <div class="user-avatar-wrapper">
-                    <img src="${avatarSrc}" onerror="this.src='dist/assets/img/morentouxiang.webp'" alt="头像">
+                    <img src="dist/assets/img/morentouxiang.webp" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
                 </div>
                 <div class="user-details">
-                    <div class="user-nickname">${nickname}</div>
+                    <div class="user-nickname">郭立</div>
                     <div class="user-info-bottom">
-                        <span class="user-welcome">${welcomeText}</span>
-                        <span class="user-id">${idText}</span>
+                        <span class="user-welcome">欢迎回来</span>
+                        <span class="user-id">ID: 88888888</span>
                     </div>
                 </div>
             </div>
@@ -966,7 +951,7 @@ function renderSettings(container) {
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
                     <p>版本：1.0.0</p>
-                    <p>陪诊助手 - 专业的陪诊服务工具</p>
+                    <p style="white-space: pre-wrap; word-break: break-all; font-size: 12px;">${getMingdaoDebugText()}</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
             </div>
@@ -1051,14 +1036,37 @@ function formatTime(dateString) {
     return `${hours}:${minutes}`;
 }
 
-function escapeHtml(input) {
-    const str = String(input ?? '');
-    return str
+function escapeHtml(text) {
+    return String(text)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function getMingdaoDebugText() {
+    let userInfo = null;
+
+    if (window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function') {
+        userInfo = window.wechatLogin.getUserInfo();
+    }
+
+    if (!userInfo) {
+        try {
+            const stored = localStorage.getItem('userInfo');
+            if (stored) userInfo = JSON.parse(stored);
+        } catch (e) { }
+    }
+
+    const raw = userInfo && userInfo.raw ? userInfo.raw : userInfo;
+    if (!raw) return '明道云返回数据：暂无（请先登录）';
+
+    try {
+        return escapeHtml(`明道云返回数据：\n${JSON.stringify(raw, null, 2)}`);
+    } catch (e) {
+        return escapeHtml(`明道云返回数据：\n${String(raw)}`);
+    }
 }
 
 function showToast(message) {
@@ -1088,10 +1096,8 @@ document.addEventListener('DOMContentLoaded', () => {
             miniProgramLogoutUrl: '/pages/logout/index'
         });
     }
-    window.addEventListener('wechatLogin:changed', () => {
-        if (AppState.currentTab === 'settings') {
-            renderCurrentPage();
-        }
+    window.addEventListener('wechatlogin:change', () => {
+        if (AppState.currentTab === 'settings') renderCurrentPage();
     });
     renderCurrentPage();
 });
