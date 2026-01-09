@@ -328,6 +328,14 @@ body {
     padding: 20px;
 }
 
+.onboarding-modal.hidden {
+    display: none !important;
+    pointer-events: none;
+    z-index: -1;
+    visibility: hidden;
+    opacity: 0;
+}
+
 .onboarding-content {
     background-color: var(--card-bg);
     border-radius: 16px;
