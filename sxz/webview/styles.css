@@ -516,7 +516,7 @@ body {
     .app-container {
         max-width: 100%;
     }
-    
+
     .bottom-nav {
         max-width: 100%;
     }
@@ -553,7 +553,7 @@ body {
     animation: fadeIn 0.3s;
 }
 
-.chat-message + .chat-message {
+.chat-message+.chat-message {
     margin-top: 16px;
 }
 
@@ -562,6 +562,7 @@ body {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -612,7 +613,7 @@ body {
     transform: translateX(-50%);
     max-width: 448px;
     width: 100%;
-    padding: 16px 16px 0 16px;
+    padding: 16px 16px 6px 16px;
     background-color: var(--card-bg);
     border-top: 1px solid var(--border-color);
     display: flex;
@@ -712,7 +713,7 @@ input[type="checkbox"] {
         left: 0;
         transform: none;
     }
-    
+
     .quick-questions {
         grid-template-columns: 1fr;
     }
