@@ -169,7 +169,7 @@ class WechatLogin {
   }
 
   processUserData(userData) {
-    const name = userData.nicheng || userData.name || userData["姓名"] || "用户";
+    const name = userData.mingcheng || userData.nicheng || userData.name || userData["姓名"] || "用户";
 
     let avatarFromTouxiang = null;
     const touxiang = userData.touxiang;

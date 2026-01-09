@@ -869,22 +869,35 @@ function toggleReminder(id) {
 
 // ==================== 设置页面 ====================
 function renderSettings(container) {
+    const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function'
+        ? window.wechatLogin.getUserInfo()
+        : null;
+    const rawUser = userInfo && userInfo.raw ? userInfo.raw : null;
+    const userNickname = userInfo
+        ? (rawUser && rawUser.mingcheng ? rawUser.mingcheng : (userInfo.name || '用户'))
+        : '未登录';
+    const userAvatar = userInfo
+        ? (getTouxiangUrl(rawUser && rawUser.touxiang) || userInfo.avatar || 'dist/assets/img/morentouxiang.webp')
+        : 'dist/assets/img/morentouxiang.webp';
+    const userId = userInfo && window.wechatLogin && typeof window.wechatLogin.getOpenid === 'function'
+        ? (window.wechatLogin.getOpenid() || '-')
+        : '-';
+
     container.innerHTML = `
         <div class="page-header">
             <h1 class="page-title">设置</h1>
         </div>
         
         <div class="p-2">
-            <!-- 用户信息板块 -->
             <div class="card mb-2 user-info-card">
                 <div class="user-avatar-wrapper">
-                    <img src="dist/assets/img/morentouxiang.webp" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
+                    <img src="${escapeHtml(userAvatar)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
                 </div>
                 <div class="user-details">
-                    <div class="user-nickname">郭立</div>
+                    <div class="user-nickname">${escapeHtml(userNickname)}</div>
                     <div class="user-info-bottom">
                         <span class="user-welcome">欢迎回来</span>
-                        <span class="user-id">ID: 88888888</span>
+                        <span class="user-id">ID: ${escapeHtml(userId)}</span>
                     </div>
                 </div>
             </div>
@@ -1043,6 +1056,27 @@ function escapeHtml(text) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function getTouxiangUrl(touxiang) {
+    if (!touxiang) return '';
+
+    if (Array.isArray(touxiang)) {
+        return touxiang[0] && touxiang[0].large_thumbnail_full_path ? String(touxiang[0].large_thumbnail_full_path) : '';
+    }
+
+    if (typeof touxiang === 'string') {
+        const trimmed = touxiang.trim();
+        if (!trimmed) return '';
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+                return parsed[0] && parsed[0].large_thumbnail_full_path ? String(parsed[0].large_thumbnail_full_path) : '';
+            }
+        } catch (e) { }
+    }
+
+    return '';
 }
 
 function getMingdaoDebugText() {
