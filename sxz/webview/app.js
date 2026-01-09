@@ -1,4 +1,5 @@
 // ==================== 应用状态管理 ====================
+const DEFAULT_AVATAR_DATA_URI = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27%23ccc%27%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%278%27%20r%3D%274%27/%3E%3Cpath%20d%3D%27M12%2014c-4.4%200-8%202-8%205v1h16v-1c0-3-3.6-5-8-5z%27/%3E%3C/svg%3E";
 const AppState = {
     currentTab: 'ai',
     currentView: 'main',
@@ -877,8 +878,8 @@ function renderSettings(container) {
         ? (rawUser && rawUser.mingcheng ? rawUser.mingcheng : (userInfo.name || '用户'))
         : '未登录';
     const userAvatar = userInfo
-        ? (getTouxiangUrl(rawUser && rawUser.touxiang) || userInfo.avatar || 'dist/assets/img/morentouxiang.webp')
-        : 'dist/assets/img/morentouxiang.webp';
+        ? (getTouxiangUrl(rawUser && rawUser.touxiang) || userInfo.avatar || DEFAULT_AVATAR_DATA_URI)
+        : DEFAULT_AVATAR_DATA_URI;
     const userId = userInfo
         ? (rawUser && rawUser.escortCode ? rawUser.escortCode : '-')
         : '-';
@@ -987,6 +988,9 @@ function goToLogin() {
 }
 
 function logout() {
+    if (window.wechatLogin && typeof window.wechatLogin.logout === 'function') {
+        window.wechatLogin.logout();
+    }
     if (window.wechatLogin && typeof window.wechatLogin.toWxLogout === 'function') {
         window.wechatLogin.toWxLogout();
         return;

@@ -1,3 +1,5 @@
+const DEFAULT_AVATAR_DATA_URI = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27%23ccc%27%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%278%27%20r%3D%274%27/%3E%3Cpath%20d%3D%27M12%2014c-4.4%200-8%202-8%205v1h16v-1c0-3-3.6-5-8-5z%27/%3E%3C/svg%3E";
+
 class WechatLogin {
   constructor(options = {}) {
     this.config = {
@@ -5,7 +7,7 @@ class WechatLogin {
       miniProgramLogoutUrl: options.miniProgramLogoutUrl || "/pages/logout/index",
       mingdaoWorksheetId: options.mingdaoWorksheetId || "yonghu",
       openidField: options.openidField || "openId",
-      defaultAvatar: options.defaultAvatar || "dist/assets/img/morentouxiang.webp",
+      defaultAvatar: options.defaultAvatar || DEFAULT_AVATAR_DATA_URI,
       ...options,
     };
 
@@ -206,6 +208,13 @@ class WechatLogin {
     const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
     const params = new URLSearchParams(hash);
     const openid = params.get("openid");
+
+    if (params.has("openid") && !openid) {
+      if (this.state.isLoggedIn || localStorage.getItem("openid") || localStorage.getItem("userInfo")) {
+        this.logout();
+      }
+      return;
+    }
 
     if (openid) {
       if (!this.state.isLoggedIn || this.state.openid !== openid) {
