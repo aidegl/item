@@ -1125,7 +1125,7 @@ function renderSettings(container) {
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
-                    <p>版本：1.0.3</p>
+                    <p>版本：1.0.4</p>
                     <p id="coze-test-output" style="white-space: pre-wrap; word-break: break-all; font-size: 12px;">正在等待 Coze 智能体响应...</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
