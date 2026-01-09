@@ -960,6 +960,11 @@ function renderSettings(container) {
 }
 
 function goToLogin() {
+    if (window.wechatLogin && typeof window.wechatLogin.toWxLogin === 'function') {
+        window.wechatLogin.toWxLogin();
+        return;
+    }
+
     const wx = window.wx;
     if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
         wx.miniProgram.navigateTo({ url: '/pages/login/index' });
@@ -969,6 +974,11 @@ function goToLogin() {
 }
 
 function logout() {
+    if (window.wechatLogin && typeof window.wechatLogin.toWxLogout === 'function') {
+        window.wechatLogin.toWxLogout();
+        return;
+    }
+
     const wx = window.wx;
     if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
         wx.miniProgram.navigateTo({ url: '/pages/logout/index' });
@@ -1047,5 +1057,11 @@ function showToast(message) {
 // ==================== 应用初始化 ====================
 document.addEventListener('DOMContentLoaded', () => {
     AppState.init();
+    if (!window.wechatLogin && typeof WechatLogin === 'function') {
+        window.wechatLogin = new WechatLogin({
+            miniProgramLoginUrl: '/pages/login/index',
+            miniProgramLogoutUrl: '/pages/logout/index'
+        });
+    }
     renderCurrentPage();
 });
