@@ -224,6 +224,14 @@ function renderAIAssistant(container) {
         `;
 
     container.innerHTML = `
+<<<<<<< HEAD
+        <div class="page-header">
+            <h1 class="page-title">AI 陪诊助手</h1>
+            <p class="page-subtitle">随时为您解答陪诊相关问题</p>
+        </div>
+        
+        <div class="p-2 ai-chat-content">
+=======
         <!-- 固定顶部上传按钮 -->
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px;">
             <input type="file" id="imageUploadInput" accept="image/*,.pdf" class="hidden" onchange="handleImageUpload(this)">
@@ -238,6 +246,7 @@ function renderAIAssistant(container) {
         </div>
 
         <div class="ai-chat-content" style="padding: 0 16px;">
+>>>>>>> 175fabd20bf9729a73f7d3f9cb5b982d9ccebb72
             ${quickQuestions}
             
             ${renderChatMessages()}
@@ -1427,6 +1436,10 @@ function renderSettings(container) {
         : '-';
 
     container.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title">设置</h1>
+        </div>
+        
         <div class="p-2">
             <div class="card mb-2 user-info-card">
                 <div class="user-avatar-wrapper">
