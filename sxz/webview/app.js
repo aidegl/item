@@ -422,13 +422,12 @@ function handleImageUpload(input) {
         
         renderCurrentPage();
 
-        // 模拟 AI 回复（或者实际调用 Coze）
-        setTimeout(() => {
-            if (cozeAPI) {
-                // 将链接发送给 AI
-                // 如果是图片，很多 AI 模型可以直接识别 URL
-                const prompt = `我上传了一个文件，链接是：${fileUrl}。请帮我分析这个文件的内容。`;
-                cozeAPI.sendMessage(prompt);
+        // 调用 Coze 工作流 API
+        setTimeout(async () => {
+            if (window.cozeWorkflow) {
+                // 将图片链接发送给 Coze 工作流 API
+                const result = await window.cozeWorkflow.runWorkflow(fileUrl);
+                // API 会自动打印请求体和返回结果到控制台和页面日志
             } else {
                 AppState.chatMessages.push({
                     role: 'assistant',
