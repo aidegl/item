@@ -1443,6 +1443,11 @@ function renderSettings(container) {
                         <span class="user-id">ID: ${escapeHtml(userId)}</span>
                     </div>
                 </div>
+                ${userInfo ? `
+                <div class="user-membership">
+                    <span class="membership-badge">免费版</span>
+                </div>
+                ` : ''}
             </div>
 
             <div class="card mb-2">
