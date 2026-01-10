@@ -224,12 +224,29 @@ function renderAIAssistant(container) {
         `;
 
     container.innerHTML = `
+<<<<<<< HEAD
         <div class="page-header">
             <h1 class="page-title">AI 陪诊助手</h1>
             <p class="page-subtitle">随时为您解答陪诊相关问题</p>
         </div>
         
         <div class="p-2 ai-chat-content">
+=======
+        <!-- 固定顶部上传按钮 -->
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px;">
+            <input type="file" id="imageUploadInput" accept="image/*,.pdf" class="hidden" onchange="handleImageUpload(this)">
+            <button class="upload-btn" onclick="document.getElementById('imageUploadInput').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>上传文件进行分析</span>
+            </button>
+        </div>
+
+        <div class="ai-chat-content" style="padding: 0 16px;">
+>>>>>>> 175fabd20bf9729a73f7d3f9cb5b982d9ccebb72
             ${quickQuestions}
             
             ${renderChatMessages()}
@@ -265,7 +282,18 @@ function renderAIAssistant(container) {
             content.style.paddingBottom = `${bottomNavHeight + inputHeight + 24}px`;
         }
 
-        window.scrollTo(0, document.body.scrollHeight);
+        // 智能滚动：只有当内容高度超过可视区域时才滚动到底部
+        // 否则滚动到顶部，确保能看到顶部的上传按钮
+        const availableHeight = window.innerHeight - bottomNavHeight - (inputContainer ? inputContainer.getBoundingClientRect().height : 0);
+        const mainContent = document.getElementById('main-content');
+        // 使用 main-content 的高度来计算，因为它包含了 header 和 content
+        const actualContentHeight = (mainContent ? mainContent.scrollHeight : content.scrollHeight) - parseFloat(content.style.paddingBottom || '0');
+
+        if (actualContentHeight > availableHeight) {
+            window.scrollTo(0, document.body.scrollHeight);
+        } else {
+            window.scrollTo(0, 0);
+        }
     }, 100);
 }
 
@@ -279,17 +307,163 @@ function renderChatMessages() {
         `;
     }
 
-    return AppState.chatMessages.map(msg => `
-        <div class="chat-message ${msg.role}">
+    return AppState.chatMessages.map(msg => {
+        let contentHtml = msg.content;
+
+        // 处理图片消息
+        if (msg.type === 'image') {
+            contentHtml = `<img src="${msg.content}" style="max-width: 100%; border-radius: 8px; display: block;">`;
+        }
+        else if (msg.role === 'system') {
+            contentHtml = `<div style="font-size: 12px; color: var(--text-secondary); text-align: center; white-space: pre-wrap;">${escapeHtml(msg.content)}</div>`;
+        }
+        // 如果是机器人/助手消息，尝试使用 Marked 渲染 Markdown
+        else if ((msg.role === 'assistant' || msg.role === 'bot') && typeof marked !== 'undefined') {
+            try {
+                contentHtml = marked.parse(msg.content);
+            } catch (e) {
+                console.error('Markdown 渲染失败:', e);
+                // 降级处理：简单的换行转换
+                contentHtml = msg.content.replace(/\n/g, '<br>');
+            }
+        } else {
+            // 用户消息，进行 HTML 转义防止 XSS，并处理换行
+            contentHtml = escapeHtml(msg.content).replace(/\n/g, '<br>');
+        }
+
+        return `
+        <div class="chat-message ${msg.role}" ${msg.role === 'system' ? 'style="background: transparent; box-shadow: none; padding: 0;"' : ''}>
+            ${msg.role !== 'system' ? `
             <div class="message-avatar">
                 ${msg.role === 'user' ? '👤' : '🤖'}
             </div>
-            <div class="message-content">
-                <div class="message-text">${msg.content}</div>
-                <div class="message-time">${formatTime(msg.timestamp)}</div>
+            ` : ''}
+            <div class="message-content" ${msg.role === 'system' ? 'style="background: transparent; padding: 4px;"' : ''}>
+                <div class="message-text">${contentHtml}</div>
+                ${msg.role !== 'system' ? `<div class="message-time">${formatTime(msg.timestamp)}</div>` : ''}
             </div>
         </div>
-    `).join('');
+    `}).join('');
+}
+
+function handleImageUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    // 显示上传中状态
+    const loadingId = 'loading-' + Date.now();
+    AppState.chatMessages.push({
+        role: 'user',
+        type: 'text', // 暂时用 text，等上传成功后如果是图片则更新为 image
+        content: `📤 正在上传文件: ${file.name}...`,
+        id: loadingId,
+        timestamp: new Date().toISOString()
+    });
+    AppState.aiQuickQuestionsHidden = true;
+    renderCurrentPage();
+
+    // 构造 FormData
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // 发送请求
+    fetch('https://100000whys.cn/api/tmp.php', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => {
+            // 检查是否为 JSON 响应
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
+            } else {
+                // 如果不是 JSON，尝试读取文本并抛出错误或尝试解析
+                return response.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        throw new Error('Server response not valid JSON: ' + text.substring(0, 50));
+                    }
+                });
+            }
+        })
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            const fileUrl = data.url || data.link;
+            if (!fileUrl) {
+                throw new Error('No URL returned from server');
+            }
+
+            console.log('Upload success, temporary link:', fileUrl);
+
+            // 自动复制到剪贴板
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(fileUrl).catch(err => {
+                    console.error('Failed to copy URL:', err);
+                });
+            }
+
+            // 更新消息列表中的 loading 消息
+            const loadingMsgIndex = AppState.chatMessages.findIndex(msg => msg.id === loadingId);
+            if (loadingMsgIndex !== -1) {
+                // 移除 loading 消息
+                AppState.chatMessages.splice(loadingMsgIndex, 1);
+
+                // 根据文件类型添加展示消息
+                const isImage = file.type.startsWith('image/');
+                AppState.chatMessages.push({
+                    role: 'user',
+                    type: isImage ? 'image' : 'text',
+                    content: isImage ? fileUrl : `📄 已上传文件: [${file.name}](${fileUrl})`,
+                    timestamp: new Date().toISOString()
+                });
+
+                // 添加系统提示消息（包含链接和复制提示）
+                AppState.chatMessages.push({
+                    role: 'system', // 需要在 renderChatMessages 中处理 system 角色
+                    content: `文件上传成功！\n临时链接: ${fileUrl}\n(链接已尝试复制到剪贴板)`,
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            renderCurrentPage();
+
+            // 调用 Coze 工作流 API
+            setTimeout(async () => {
+                if (window.cozeWorkflow) {
+                    // 将图片链接发送给 Coze 工作流 API
+                    const result = await window.cozeWorkflow.runWorkflow(fileUrl);
+                    // API 会自动打印请求体和返回结果到控制台和页面日志
+                } else {
+                    AppState.chatMessages.push({
+                        role: 'assistant',
+                        content: '已收到您的文件链接。目前仅支持链接接收，后续将升级深度分析功能。',
+                        timestamp: new Date().toISOString()
+                    });
+                    renderCurrentPage();
+                    AppState.saveToStorage();
+                }
+            }, 500);
+
+        })
+        .catch(error => {
+            console.error('Upload failed:', error);
+
+            // 更新 loading 消息为错误消息
+            const loadingMsgIndex = AppState.chatMessages.findIndex(msg => msg.id === loadingId);
+            if (loadingMsgIndex !== -1) {
+                AppState.chatMessages[loadingMsgIndex].content = `❌ 上传失败: ${error.message}`;
+            } else {
+                showToast('上传失败: ' + error.message);
+            }
+            renderCurrentPage();
+        });
+
+    // 重置 input
+    input.value = '';
 }
 
 function askQuestion(question) {
@@ -303,11 +477,88 @@ function handleChatKeyPress(event) {
     }
 }
 
+let cozeAPI = null;
+
+function initCozeAPI() {
+    if (typeof CozeChatAPI === 'undefined') {
+        console.error('CozeChatAPI not found');
+        return;
+    }
+
+    cozeAPI = new CozeChatAPI({
+        botId: '7584776894743085106',
+        userId: 'user_' + Date.now(),
+        // 禁用默认的 UI 绑定
+        messagesContainer: null,
+        inputElement: null,
+        sendButton: null,
+
+        onStreamingStart: () => {
+            // 添加空的 AI 消息占位
+            AppState.chatMessages.push({
+                role: 'assistant',
+                content: '',
+                timestamp: new Date().toISOString()
+            });
+            // 渲染页面，显示空气泡
+            renderCurrentPage();
+        },
+
+        onStreamingUpdate: (content) => {
+            // 更新最后一条消息的内容
+            const msgs = AppState.chatMessages;
+            if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
+                msgs[msgs.length - 1].content = content;
+
+                // 直接更新 DOM 以获得更好的流式体验
+                // 查找最后一个助手消息的气泡
+                const assistantMessages = document.querySelectorAll('.chat-message.assistant .message-text');
+                const lastBubble = assistantMessages[assistantMessages.length - 1];
+
+                if (lastBubble) {
+                    if (typeof marked !== 'undefined') {
+                        try {
+                            lastBubble.innerHTML = marked.parse(content);
+                        } catch (e) {
+                            lastBubble.innerText = content;
+                        }
+                    } else {
+                        lastBubble.innerText = content;
+                    }
+                }
+            }
+        },
+
+        onMessageReceived: (message) => {
+            AppState.saveToStorage();
+            // 可以在这里做一些收尾工作，比如移除光标效果等
+            // 由于 renderChatMessages 会重新渲染整个列表，如果这里调用 renderCurrentPage() 会导致重绘
+            // 我们已经通过 direct DOM update 更新了内容，所以这里可以选择不重绘，或者为了数据一致性重绘一次
+            // renderCurrentPage();
+        },
+
+        onError: (error) => {
+            console.error('Coze API Error:', error);
+            const msgs = AppState.chatMessages;
+            if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
+                msgs[msgs.length - 1].content += `\n\n[出错了: ${error.message}]`;
+                renderCurrentPage();
+            }
+            AppState.saveToStorage();
+        }
+    });
+}
+
 function sendMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
 
     if (!message) return;
+
+    // 如果 API 未初始化，尝试初始化
+    if (!cozeAPI) {
+        initCozeAPI();
+    }
 
     AppState.aiQuickQuestionsHidden = true;
 
@@ -321,17 +572,22 @@ function sendMessage() {
     input.value = '';
     renderCurrentPage();
 
-    // 模拟AI回复
-    setTimeout(() => {
-        const aiResponse = getAIResponse(message);
-        AppState.chatMessages.push({
-            role: 'assistant',
-            content: aiResponse,
-            timestamp: new Date().toISOString()
-        });
-        AppState.saveToStorage();
-        renderCurrentPage();
-    }, 1000);
+    // 调用 Coze API
+    if (cozeAPI) {
+        cozeAPI.sendMessage(message);
+    } else {
+        // 降级处理
+        setTimeout(() => {
+            const aiResponse = "抱歉，智能体服务暂时无法连接。";
+            AppState.chatMessages.push({
+                role: 'assistant',
+                content: aiResponse,
+                timestamp: new Date().toISOString()
+            });
+            AppState.saveToStorage();
+            renderCurrentPage();
+        }, 1000);
+    }
 }
 
 function getAIResponse(question) {
@@ -585,7 +841,7 @@ function renderPatientDetail(container) {
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
-                    开始陪诊
+                    添加陪诊记录
                 </button>
                 <button class="btn btn-outline w-full" onclick="editPatient('${patient.id}')">
                     编辑信息
@@ -652,7 +908,7 @@ function renderConsultationFlow(container) {
                     </svg>
                 </button>
                 <div>
-                    <h1 class="page-title">陪诊流程</h1>
+                    <h1 class="page-title">添加陪诊记录</h1>
                     <p class="page-subtitle">${patient.name}</p>
                 </div>
             </div>
@@ -674,8 +930,8 @@ function renderConsultationFlow(container) {
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">科室 *</label>
-                        <input type="text" name="department" class="input" required placeholder="请输入就诊科室">
+                        <label class="form-label">科室</label>
+                        <input type="text" name="department" class="input" placeholder="请输入就诊科室">
                     </div>
                     
                     <div class="form-group">
@@ -688,8 +944,51 @@ function renderConsultationFlow(container) {
                     <h3 class="card-title mb-2">症状描述</h3>
                     
                     <div class="form-group">
-                        <label class="form-label">主要症状 *</label>
-                        <textarea name="symptoms" class="textarea" required placeholder="请描述患者的主要症状..."></textarea>
+                        <label class="form-label">就诊核心诉求 *</label>
+                        <textarea name="coreAppeal" class="textarea" required placeholder="示例：确诊反复头痛原因、复查甲状腺结节大小、咨询用药副作用缓解方案等"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">起病时间</label>
+                        <input type="date" name="onsetDate" class="input" placeholder="年/月/日">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">持续时间/发作频率</label>
+                        <textarea name="duration" class="textarea" placeholder="请描述症状的持续时间或发作频率"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">伴随症状</label>
+                        <textarea name="associatedSymptoms" class="textarea" placeholder="示例：头痛伴恶心呕吐、咳嗽伴咳痰发热、腹痛伴腹泻等，无则填'无'"></textarea>
+                    </div>
+                </div>
+                
+                <div class="card mb-2">
+                    <h3 class="card-title mb-2">患者核心疑问</h3>
+                    
+                    <div id="questions-container">
+                        <div class="form-group question-item" data-question-index="1">
+                            <div class="mb-2">
+                                <h4 class="question-title">问题1</h4>
+                            </div>
+                            <div class="mb-3">
+                                <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2"></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label text-sm mb-1">医生解答</label>
+                                <textarea name="doctorAnswers[]" class="textarea w-full" placeholder="请输入医生的解答..."></textarea>
+                            </div>
+                            <div class="flex justify-end mt-3">
+                                <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    添加问题
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -719,6 +1018,9 @@ function renderConsultationFlow(container) {
 
     // 设置默认日期为今天
     document.querySelector('input[name="date"]').value = new Date().toISOString().split('T')[0];
+    
+    // 检查问题输入框数量，确保按钮状态正确
+    checkQuestionCount();
 }
 
 function handleConsultationSubmit(event) {
@@ -727,14 +1029,35 @@ function handleConsultationSubmit(event) {
     const form = event.target;
     const formData = new FormData(form);
 
+    // 获取患者核心疑问和医生解答
+    const patientQuestions = [];
+    const doctorAnswers = [];
+    
+    const questionInputs = form.querySelectorAll('input[name="patientQuestions[]"]');
+    questionInputs.forEach(input => {
+        const value = input.value.trim();
+        patientQuestions.push(value || '');
+    });
+    
+    const answerTextareas = form.querySelectorAll('textarea[name="doctorAnswers[]"]');
+    answerTextareas.forEach(textarea => {
+        const value = textarea.value.trim();
+        doctorAnswers.push(value || '');
+    });
+    
     const consultation = {
         id: Date.now().toString(),
         patientId: AppState.currentPatientId,
         date: formData.get('date'),
         hospital: formData.get('hospital'),
-        department: formData.get('department'),
+        department: formData.get('department') || '未记录',
         doctor: formData.get('doctor') || '未记录',
-        symptoms: formData.get('symptoms'),
+        coreAppeal: formData.get('coreAppeal'),
+        onsetDate: formData.get('onsetDate'),
+        duration: formData.get('duration'),
+        associatedSymptoms: formData.get('associatedSymptoms') || '未记录',
+        patientQuestions: patientQuestions,
+        doctorAnswers: doctorAnswers,
         diagnosis: formData.get('diagnosis') || '未记录',
         medication: formData.get('medication') || '未记录',
         advice: formData.get('advice') || '未记录',
@@ -752,6 +1075,262 @@ function handleConsultationSubmit(event) {
     }, 1000);
 }
 
+// ==================== 确认对话框 ====================
+function showConfirmDialog(message, onConfirm, onCancel) {
+    // 创建对话框容器
+    const dialogContainer = document.createElement('div');
+    dialogContainer.style.position = 'fixed';
+    dialogContainer.style.top = '0';
+    dialogContainer.style.left = '0';
+    dialogContainer.style.right = '0';
+    dialogContainer.style.bottom = '0';
+    dialogContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    dialogContainer.style.display = 'flex';
+    dialogContainer.style.alignItems = 'center';
+    dialogContainer.style.justifyContent = 'center';
+    dialogContainer.style.zIndex = '1000';
+    dialogContainer.style.padding = '20px';
+    dialogContainer.id = 'confirm-dialog';
+    
+    // 创建对话框内容
+    const dialogContent = document.createElement('div');
+    dialogContent.style.backgroundColor = 'var(--card-bg)';
+    dialogContent.style.borderRadius = '12px';
+    dialogContent.style.maxWidth = '320px';
+    dialogContent.style.width = '100%';
+    dialogContent.style.boxShadow = 'var(--shadow-lg)';
+    dialogContent.style.padding = '16px';
+    
+    // 创建对话框头部
+    const dialogHeader = document.createElement('div');
+    dialogHeader.style.marginBottom = '16px';
+    
+    const dialogTitle = document.createElement('h3');
+    dialogTitle.style.fontSize = '16px';
+    dialogTitle.style.fontWeight = '600';
+    dialogTitle.style.color = 'var(--text-primary)';
+    dialogTitle.textContent = '确认操作';
+    
+    const dialogMessage = document.createElement('p');
+    dialogMessage.style.marginTop = '4px';
+    dialogMessage.style.fontSize = '14px';
+    dialogMessage.style.color = 'var(--text-secondary)';
+    dialogMessage.textContent = message;
+    
+    dialogHeader.appendChild(dialogTitle);
+    dialogHeader.appendChild(dialogMessage);
+    
+    // 创建对话框按钮区域
+    const dialogButtons = document.createElement('div');
+    dialogButtons.style.display = 'flex';
+    dialogButtons.style.gap = '8px';
+    dialogButtons.style.justifyContent = 'flex-end';
+    
+    const cancelButton = document.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.className = 'btn btn-outline';
+    cancelButton.onclick = hideConfirmDialog;
+    cancelButton.textContent = '取消';
+    
+    const confirmButton = document.createElement('button');
+    confirmButton.type = 'button';
+    confirmButton.className = 'btn btn-primary';
+    confirmButton.onclick = handleConfirm;
+    confirmButton.textContent = '确认';
+    
+    dialogButtons.appendChild(cancelButton);
+    dialogButtons.appendChild(confirmButton);
+    
+    // 组装对话框
+    dialogContent.appendChild(dialogHeader);
+    dialogContent.appendChild(dialogButtons);
+    dialogContainer.appendChild(dialogContent);
+    
+    // 添加到页面
+    document.body.appendChild(dialogContainer);
+    
+    // 保存回调函数
+    window.confirmCallbacks = {
+        onConfirm,
+        onCancel
+    };
+}
+
+function hideConfirmDialog() {
+    const dialog = document.getElementById('confirm-dialog');
+    if (dialog) {
+        dialog.remove();
+    }
+    
+    // 调用取消回调
+    if (window.confirmCallbacks?.onCancel) {
+        window.confirmCallbacks.onCancel();
+    }
+    
+    // 清理回调
+    window.confirmCallbacks = null;
+}
+
+function handleConfirm() {
+    // 调用确认回调
+    if (window.confirmCallbacks?.onConfirm) {
+        window.confirmCallbacks.onConfirm();
+    }
+    
+    hideConfirmDialog();
+}
+
+// ==================== 患者核心疑问动态添加 ====================
+function addQuestion() {
+    const container = document.getElementById('questions-container');
+    const questionItems = container.querySelectorAll('.question-item');
+    
+    // 最多允许3个问题输入框
+    if (questionItems.length >= 3) {
+        return;
+    }
+    
+    // 隐藏所有现有添加按钮
+    const addButtons = container.querySelectorAll('.add-question-btn');
+    addButtons.forEach(btn => {
+        btn.style.display = 'none';
+    });
+    
+    // 计算新问题的索引
+    const newIndex = questionItems.length + 1;
+    
+    // 创建新的问题输入框
+    const newQuestionItem = document.createElement('div');
+    newQuestionItem.className = 'form-group question-item';
+    newQuestionItem.setAttribute('data-question-index', newIndex);
+    newQuestionItem.innerHTML = `
+        <div class="flex justify-between items-center mb-2">
+            <h4 class="question-title">问题${newIndex}</h4>
+            <button type="button" class="btn btn-danger-outline btn-sm delete-question-btn" onclick="deleteQuestion(${newIndex})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+            </button>
+        </div>
+        <div class="mb-3">
+            <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2"></textarea>
+        </div>
+        <div>
+            <label class="form-label text-sm mb-1">医生解答</label>
+            <textarea name="doctorAnswers[]" class="textarea w-full" placeholder="请输入医生的解答..."></textarea>
+        </div>
+    `;
+    
+    // 如果还没达到最大数量，添加"添加问题"按钮
+    if (newIndex < 3) {
+        newQuestionItem.innerHTML += `
+            <div class="flex justify-end mt-3">
+                <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    添加问题
+                </button>
+            </div>
+        `;
+    }
+    
+    container.appendChild(newQuestionItem);
+}
+
+// ==================== 删除问题 ====================
+function deleteQuestion(index) {
+    // 问题1不能删除
+    if (index === 1) {
+        return;
+    }
+    
+    // 显示确认对话框
+    showConfirmDialog(
+        '确定要删除这个问题及其解答吗？此操作不可恢复。',
+        () => {
+            // 用户确认删除
+            const container = document.getElementById('questions-container');
+            const questionItem = container.querySelector(`[data-question-index="${index}"]`);
+            
+            if (questionItem) {
+                // 移除问题条目
+                questionItem.remove();
+                
+                // 重新编号剩余的问题条目
+                const remainingItems = container.querySelectorAll('.question-item');
+                remainingItems.forEach((item, idx) => {
+                    const newIndex = idx + 1;
+                    item.setAttribute('data-question-index', newIndex);
+                    
+                    // 更新标题
+                    const title = item.querySelector('.question-title');
+                    if (title) {
+                        title.textContent = `问题${newIndex}`;
+                    }
+                    
+                    // 更新删除按钮的onclick事件
+                    const deleteBtn = item.querySelector('.delete-question-btn');
+                    if (deleteBtn) {
+                        deleteBtn.onclick = () => deleteQuestion(newIndex);
+                    }
+                });
+                
+                // 如果删除后数量少于3，确保最后一个问题条目有添加按钮
+                if (remainingItems.length < 3) {
+                    const lastItem = remainingItems[remainingItems.length - 1];
+                    let addBtn = lastItem.querySelector('.add-question-btn');
+                    
+                    if (!addBtn) {
+                        // 创建添加按钮
+                        addBtn = document.createElement('button');
+                        addBtn.type = 'button';
+                        addBtn.className = 'btn btn-outline btn-sm add-question-btn';
+                        addBtn.onclick = addQuestion;
+                        addBtn.innerHTML = `
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            添加问题
+                        `;
+                        
+                        // 创建按钮容器
+                        const btnContainer = document.createElement('div');
+                        btnContainer.className = 'flex justify-end mt-3';
+                        btnContainer.appendChild(addBtn);
+                        
+                        lastItem.appendChild(btnContainer);
+                    } else {
+                        // 显示已存在的添加按钮
+                        addBtn.style.display = 'inline-flex';
+                    }
+                }
+            }
+        },
+        () => {
+            // 用户取消删除
+            console.log('删除操作已取消');
+        }
+    );
+}
+
+// 页面加载完成后检查问题输入框数量
+function checkQuestionCount() {
+    const container = document.getElementById('questions-container');
+    if (container) {
+        const questionItems = container.querySelectorAll('.question-item');
+        if (questionItems.length >= 3) {
+            const addButtons = container.querySelectorAll('.add-question-btn');
+            addButtons.forEach(btn => {
+                btn.style.display = 'none';
+            });
+        }
+    }
+}
+
 // ==================== 备忘录页面 ====================
 function renderRecordsList(container) {
     const today = new Date();
@@ -761,18 +1340,9 @@ function renderRecordsList(container) {
 
     container.innerHTML = `
         <div class="page-header">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="page-title">备忘录</h1>
-                    <p class="page-subtitle">${upcomingReminders.length} 个待办事项</p>
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="addReminder()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    添加提醒
-                </button>
+            <div>
+                <h1 class="page-title">备忘录</h1>
+                <p class="page-subtitle">${upcomingReminders.length} 个待办事项</p>
             </div>
         </div>
         
@@ -833,30 +1403,7 @@ function renderCompletedReminders() {
     `;
 }
 
-function addReminder() {
-    const title = prompt('请输入提醒标题：');
-    if (!title) return;
 
-    const date = prompt('请输入日期（格式：YYYY-MM-DD）：', new Date().toISOString().split('T')[0]);
-    if (!date) return;
-
-    const time = prompt('请输入时间（格式：HH:MM）：', '09:00');
-    if (!time) return;
-
-    const newReminder = {
-        id: Date.now().toString(),
-        title,
-        date,
-        time,
-        type: 'task',
-        completed: false
-    };
-
-    AppState.reminders.push(newReminder);
-    AppState.saveToStorage();
-    renderCurrentPage();
-    showToast('提醒添加成功');
-}
 
 function toggleReminder(id) {
     const reminder = AppState.reminders.find(r => r.id === id);
@@ -877,8 +1424,8 @@ function renderSettings(container) {
         ? (rawUser && rawUser.mingcheng ? rawUser.mingcheng : (userInfo.name || '用户'))
         : '未登录';
     const userAvatar = userInfo
-        ? (getTouxiangUrl(rawUser && rawUser.touxiang) || userInfo.avatar || 'dist/assets/img/morentouxiang.webp')
-        : 'dist/assets/img/morentouxiang.webp';
+        ? (getTouxiangUrl(rawUser && rawUser.touxiang) || userInfo.avatar || DEFAULT_AVATAR)
+        : DEFAULT_AVATAR;
     const userId = userInfo
         ? (rawUser && rawUser.escortCode ? rawUser.escortCode : '-')
         : '-';
@@ -956,21 +1503,26 @@ function renderSettings(container) {
             </div>
 
             <div class="settings-auth-actions">
-                <button class="btn btn-primary btn-lg w-full" onclick="goToLogin()">立即登录</button>
-                <button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>
+                ${userInfo ?
+            `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>` :
+            `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()">立即登录</button>`
+        }
             </div>
             
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
-                    <p>版本：1.0.0</p>
-                    <p style="white-space: pre-wrap; word-break: break-all; font-size: 12px;">${getMingdaoDebugText()}</p>
+                    <p>版本：1.0.8</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
             </div>
         </div>
     `;
+
+    // 移除了 Coze API 测试代码
 }
+
+
 
 function goToLogin() {
     if (window.wechatLogin && typeof window.wechatLogin.toWxLogin === 'function') {
@@ -1058,13 +1610,14 @@ function escapeHtml(text) {
         .replace(/'/g, '&#39;');
 }
 
+// 默认头像 (SVG Base64 fallback)
+const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0Ii8+PHBhdGggZD0iTTIwIDIxdi0yYTQgNCAwIDAgMC00LTRoLThhNCA0IDAgMCAwLTQgNHYyIi8+PC9zdmc+";
+
 function getTouxiangUrl(touxiang) {
     if (!touxiang) return '';
-
     if (Array.isArray(touxiang)) {
         return touxiang[0] && touxiang[0].large_thumbnail_full_path ? String(touxiang[0].large_thumbnail_full_path) : '';
     }
-
     if (typeof touxiang === 'string') {
         const trimmed = touxiang.trim();
         if (!trimmed) return '';
@@ -1075,7 +1628,6 @@ function getTouxiangUrl(touxiang) {
             }
         } catch (e) { }
     }
-
     return '';
 }
 
