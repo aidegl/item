@@ -7,7 +7,7 @@ class CozeChatAPI {
     constructor(options = {}) {
         this.options = {
             // 默认配置
-            botId: '7584776894743085106',
+            botId: '7593641609586819106',
             userId: '111',
             messagesContainer: '#chat-messages',
             inputElement: '#chat-input',
@@ -231,7 +231,7 @@ class CozeChatAPI {
         // 1. 更新状态
         this.chatState.messages.push({ ...this.chatState.streamingMessage });
         const finalMessage = this.chatState.messages[this.chatState.messages.length - 1];
-        
+
         this.chatState.streamingMessage = null;
         this.saveChatHistory();
 
@@ -342,7 +342,7 @@ class CozeChatAPI {
 
         this.chatState.isStreaming = true;
         this.updateSendButtonState();
-        
+
         // 开启调试日志
         this._log('INFO', '开始发送消息', { content });
 
@@ -371,7 +371,7 @@ class CozeChatAPI {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer pat_aSwaHdpGjZkBvWAuvs3MSs1Tn4PfMjD41W2WoVfGpcW4diQ7rdvduHvAfSOJob9C'
+                    'Authorization': 'Bearer pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb'
                 },
                 body: JSON.stringify(requestBody)
             });
@@ -395,17 +395,17 @@ class CozeChatAPI {
                 if (doneReading) {
                     break;
                 }
-                
+
                 const chunk = decoder.decode(value, { stream: true });
                 this._log('DEBUG', '收到原始数据块', chunk);
-                
+
                 buffer += chunk;
                 const lines = buffer.split('\n');
                 buffer = lines.pop() || '';
 
                 for (const line of lines) {
                     this._log('DEBUG', '处理行', line);
-                    
+
                     if (line.startsWith('event:')) {
                         currentEvent = line.slice(6).trim();
                     } else if (line.startsWith('data:')) {
@@ -415,7 +415,7 @@ class CozeChatAPI {
                         if (currentEvent && currentData) {
                             try {
                                 const data = JSON.parse(currentData);
-                                
+
                                 // 更新conversation_id
                                 if (data.conversation_id) {
                                     this.chatState.conversation_id = data.conversation_id;
@@ -445,7 +445,7 @@ class CozeChatAPI {
                     }
                 }
             }
-            
+
             this._log('INFO', '流式接收完成', { fullLength: streamingContent.length });
 
             // 完成流式消息
@@ -484,7 +484,7 @@ class CozeChatAPI {
     // 内部日志记录
     _log(type, message, detail = null) {
         const time = new Date().toLocaleTimeString();
-        
+
         // 控制台输出
         console.log(`[${type}] ${time} - ${message}`, detail || '');
     }
