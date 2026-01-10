@@ -921,8 +921,8 @@ function renderConsultationFlow(container) {
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">科室 *</label>
-                        <input type="text" name="department" class="input" required placeholder="请输入就诊科室">
+                        <label class="form-label">科室</label>
+                        <input type="text" name="department" class="input" placeholder="请输入就诊科室">
                     </div>
                     
                     <div class="form-group">
@@ -935,8 +935,23 @@ function renderConsultationFlow(container) {
                     <h3 class="card-title mb-2">症状描述</h3>
                     
                     <div class="form-group">
-                        <label class="form-label">主要症状 *</label>
-                        <textarea name="symptoms" class="textarea" required placeholder="请描述患者的主要症状..."></textarea>
+                        <label class="form-label">就诊核心诉求 *</label>
+                        <textarea name="coreAppeal" class="textarea" required placeholder="示例：确诊反复头痛原因、复查甲状腺结节大小、咨询用药副作用缓解方案等"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">起病时间</label>
+                        <input type="date" name="onsetDate" class="input" placeholder="年/月/日">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">持续时间/发作频率</label>
+                        <textarea name="duration" class="textarea" placeholder="请描述症状的持续时间或发作频率"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">伴随症状</label>
+                        <textarea name="associatedSymptoms" class="textarea" placeholder="示例：头痛伴恶心呕吐、咳嗽伴咳痰发热、腹痛伴腹泻等，无则填'无'"></textarea>
                     </div>
                 </div>
                 
@@ -975,19 +990,22 @@ function handleConsultationSubmit(event) {
     const formData = new FormData(form);
 
     const consultation = {
-        id: Date.now().toString(),
-        patientId: AppState.currentPatientId,
-        date: formData.get('date'),
-        hospital: formData.get('hospital'),
-        department: formData.get('department'),
-        doctor: formData.get('doctor') || '未记录',
-        symptoms: formData.get('symptoms'),
-        diagnosis: formData.get('diagnosis') || '未记录',
-        medication: formData.get('medication') || '未记录',
-        advice: formData.get('advice') || '未记录',
-        status: 'completed',
-        createdAt: new Date().toISOString()
-    };
+            id: Date.now().toString(),
+            patientId: AppState.currentPatientId,
+            date: formData.get('date'),
+            hospital: formData.get('hospital'),
+            department: formData.get('department') || '未记录',
+            doctor: formData.get('doctor') || '未记录',
+            coreAppeal: formData.get('coreAppeal'),
+            onsetDate: formData.get('onsetDate'),
+            duration: formData.get('duration'),
+            associatedSymptoms: formData.get('associatedSymptoms') || '未记录',
+            diagnosis: formData.get('diagnosis') || '未记录',
+            medication: formData.get('medication') || '未记录',
+            advice: formData.get('advice') || '未记录',
+            status: 'completed',
+            createdAt: new Date().toISOString()
+        };
 
     AppState.consultations.unshift(consultation);
     AppState.saveToStorage();
