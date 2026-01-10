@@ -606,20 +606,19 @@ function getAIResponse(question) {
 // ==================== 患者列表页面 ====================
 function renderPatientList(container) {
     container.innerHTML = `
-        <div class="page-header">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="page-title">患者库</h1>
-                    <p class="page-subtitle">共 ${AppState.patients.length} 位患者</p>
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="goToAddPatient()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    添加患者
-                </button>
+        <!-- 固定顶部标题和新增按钮 -->
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-size: 20px; font-weight: 600;">患者库</div>
+                <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">共 ${AppState.patients.length} 位患者</div>
             </div>
+            <button class="btn btn-primary btn-sm" onclick="goToAddPatient()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                新增
+            </button>
         </div>
         
         <div class="p-2">
@@ -682,17 +681,6 @@ function goToPatientDetail(patientId) {
 // ==================== 添加患者页面 ====================
 function renderAddPatient(container) {
     container.innerHTML = `
-        <div class="page-header">
-            <div class="flex items-center gap-2">
-                <button class="btn btn-icon btn-outline" onclick="backToPatientList()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                        <polyline points="15 18 9 12 15 6"/>
-                    </svg>
-                </button>
-                <h1 class="page-title">添加患者</h1>
-            </div>
-        </div>
-        
         <div class="p-2">
             <form id="addPatientForm" onsubmit="handleAddPatient(event)">
                 <div class="card">
@@ -782,17 +770,6 @@ function renderPatientDetail(container) {
     const patientConsultations = AppState.consultations.filter(c => c.patientId === patient.id);
 
     container.innerHTML = `
-        <div class="page-header">
-            <div class="flex items-center gap-2">
-                <button class="btn btn-icon btn-outline" onclick="backToPatientList()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                        <polyline points="15 18 9 12 15 6"/>
-                    </svg>
-                </button>
-                <h1 class="page-title">${patient.name}</h1>
-            </div>
-        </div>
-        
         <div class="p-2">
             <!-- 患者基本信息 -->
             <div class="card mb-2">
@@ -896,6 +873,7 @@ function renderConsultationFlow(container) {
     }
 
     container.innerHTML = `
+<<<<<<< HEAD
         <div class="page-header">
             <div class="flex items-center gap-2">
                 <button class="btn btn-icon btn-outline" onclick="goToPatientDetail('${patient.id}')">
@@ -904,12 +882,13 @@ function renderConsultationFlow(container) {
                     </svg>
                 </button>
                 <div>
-                    <h1 class="page-title">添加陪诊记录</h1>
-                    <p class="page-subtitle">${patient.name}</p>
+                    <h1 class="page-title">新增记录</h1>
                 </div>
             </div>
         </div>
         
+=======
+>>>>>>> 828ad42f7d5d64da5f3e6d20e698e4efe56bf4f4
         <div class="p-2">
             <form id="consultationForm" onsubmit="handleConsultationSubmit(event)">
                 <div class="card mb-2">
@@ -1335,10 +1314,11 @@ function renderRecordsList(container) {
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     container.innerHTML = `
-        <div class="page-header">
+        <!-- 固定顶部标题 -->
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px;">
             <div>
-                <h1 class="page-title">备忘录</h1>
-                <p class="page-subtitle">${upcomingReminders.length} 个待办事项</p>
+                <div style="font-size: 20px; font-weight: 600;">备忘录</div>
+                <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">${upcomingReminders.length} 个待办事项</div>
             </div>
         </div>
         
@@ -1427,11 +1407,38 @@ function renderSettings(container) {
         : '-';
 
     container.innerHTML = `
-        <div class="page-header">
-            <h1 class="page-title">设置</h1>
-        </div>
-        
         <div class="p-2">
+            <div class="card mb-2">
+                <h3 class="card-title mb-2">会员与订单</h3>
+                
+                <div class="list-item" onclick="showMyOrders()">
+                    <div class="flex justify-between items-center">
+                        <span>我的订单</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="list-item" onclick="showMembershipBenefits()">
+                    <div class="flex justify-between items-center">
+                        <span>会员权益</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="list-item" onclick="showConsumptionDetails()">
+                    <div class="flex justify-between items-center">
+                        <span>消耗明细</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
             <div class="card mb-2 user-info-card">
                 <div class="user-avatar-wrapper">
                     <img src="${escapeHtml(userAvatar)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
@@ -1537,6 +1544,19 @@ function goToLogin() {
         return;
     }
     showToast('请在小程序内打开以登录');
+}
+
+// ==================== 会员与订单功能 ====================
+function showMyOrders() {
+    showToast('我的订单功能开发中...');
+}
+
+function showMembershipBenefits() {
+    showToast('会员权益功能开发中...');
+}
+
+function showConsumptionDetails() {
+    showToast('消耗明细功能开发中...');
 }
 
 function logout() {
