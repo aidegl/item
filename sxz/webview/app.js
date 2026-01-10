@@ -242,6 +242,11 @@ function renderAIAssistant(container) {
             
             ${renderChatMessages()}
         </div>
+
+        <!-- 日志容器 -->
+        <div id="app-logs" style="position: fixed; top: 60px; right: 16px; width: 300px; max-height: 400px; background-color: rgba(0, 0, 0, 0.8); color: #fff; padding: 12px; border-radius: 8px; overflow-y: auto; font-size: 12px; z-index: 1000; display: block;">
+            <div style="font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #444; padding-bottom: 4px;">API 日志</div>
+        </div>
         
         <!-- 输入框 -->
         <div class="chat-input-container">
@@ -279,7 +284,7 @@ function renderAIAssistant(container) {
         const mainContent = document.getElementById('main-content');
         // 使用 main-content 的高度来计算，因为它包含了 header 和 content
         const actualContentHeight = (mainContent ? mainContent.scrollHeight : content.scrollHeight) - parseFloat(content.style.paddingBottom || '0');
-        
+
         if (actualContentHeight > availableHeight) {
             window.scrollTo(0, document.body.scrollHeight);
         } else {
@@ -300,7 +305,7 @@ function renderChatMessages() {
 
     return AppState.chatMessages.map(msg => {
         let contentHtml = msg.content;
-        
+
         // 处理图片消息
         if (msg.type === 'image') {
             contentHtml = `<img src="${msg.content}" style="max-width: 100%; border-radius: 8px; display: block;">`;
@@ -362,97 +367,97 @@ function handleImageUpload(input) {
         method: 'POST',
         body: formData
     })
-    .then(response => {
-        // 检查是否为 JSON 响应
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-            return response.json();
-        } else {
-            // 如果不是 JSON，尝试读取文本并抛出错误或尝试解析
-            return response.text().then(text => {
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    throw new Error('Server response not valid JSON: ' + text.substring(0, 50));
-                }
-            });
-        }
-    })
-    .then(data => {
-        if (data.error) {
-            throw new Error(data.error);
-        }
-
-        const fileUrl = data.url || data.link;
-        if (!fileUrl) {
-            throw new Error('No URL returned from server');
-        }
-
-        console.log('Upload success, temporary link:', fileUrl);
-        
-        // 自动复制到剪贴板
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(fileUrl).catch(err => {
-                console.error('Failed to copy URL:', err);
-            });
-        }
-
-        // 更新消息列表中的 loading 消息
-        const loadingMsgIndex = AppState.chatMessages.findIndex(msg => msg.id === loadingId);
-        if (loadingMsgIndex !== -1) {
-            // 移除 loading 消息
-            AppState.chatMessages.splice(loadingMsgIndex, 1);
-            
-            // 根据文件类型添加展示消息
-            const isImage = file.type.startsWith('image/');
-            AppState.chatMessages.push({
-                role: 'user',
-                type: isImage ? 'image' : 'text',
-                content: isImage ? fileUrl : `📄 已上传文件: [${file.name}](${fileUrl})`,
-                timestamp: new Date().toISOString()
-            });
-            
-            // 添加系统提示消息（包含链接和复制提示）
-            AppState.chatMessages.push({
-                role: 'system', // 需要在 renderChatMessages 中处理 system 角色
-                content: `文件上传成功！\n临时链接: ${fileUrl}\n(链接已尝试复制到剪贴板)`,
-                timestamp: new Date().toISOString()
-            });
-        }
-        
-        renderCurrentPage();
-
-        // 调用 Coze 工作流 API
-        setTimeout(async () => {
-            if (window.cozeWorkflow) {
-                // 将图片链接发送给 Coze 工作流 API
-                const result = await window.cozeWorkflow.runWorkflow(fileUrl);
-                // API 会自动打印请求体和返回结果到控制台和页面日志
+        .then(response => {
+            // 检查是否为 JSON 响应
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
             } else {
+                // 如果不是 JSON，尝试读取文本并抛出错误或尝试解析
+                return response.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        throw new Error('Server response not valid JSON: ' + text.substring(0, 50));
+                    }
+                });
+            }
+        })
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            const fileUrl = data.url || data.link;
+            if (!fileUrl) {
+                throw new Error('No URL returned from server');
+            }
+
+            console.log('Upload success, temporary link:', fileUrl);
+
+            // 自动复制到剪贴板
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(fileUrl).catch(err => {
+                    console.error('Failed to copy URL:', err);
+                });
+            }
+
+            // 更新消息列表中的 loading 消息
+            const loadingMsgIndex = AppState.chatMessages.findIndex(msg => msg.id === loadingId);
+            if (loadingMsgIndex !== -1) {
+                // 移除 loading 消息
+                AppState.chatMessages.splice(loadingMsgIndex, 1);
+
+                // 根据文件类型添加展示消息
+                const isImage = file.type.startsWith('image/');
                 AppState.chatMessages.push({
-                    role: 'assistant',
-                    content: '已收到您的文件链接。目前仅支持链接接收，后续将升级深度分析功能。',
+                    role: 'user',
+                    type: isImage ? 'image' : 'text',
+                    content: isImage ? fileUrl : `📄 已上传文件: [${file.name}](${fileUrl})`,
                     timestamp: new Date().toISOString()
                 });
-                renderCurrentPage();
-                AppState.saveToStorage();
-            }
-        }, 500);
 
-    })
-    .catch(error => {
-        console.error('Upload failed:', error);
-        
-        // 更新 loading 消息为错误消息
-        const loadingMsgIndex = AppState.chatMessages.findIndex(msg => msg.id === loadingId);
-        if (loadingMsgIndex !== -1) {
-             AppState.chatMessages[loadingMsgIndex].content = `❌ 上传失败: ${error.message}`;
-        } else {
-            showToast('上传失败: ' + error.message);
-        }
-        renderCurrentPage();
-    });
-    
+                // 添加系统提示消息（包含链接和复制提示）
+                AppState.chatMessages.push({
+                    role: 'system', // 需要在 renderChatMessages 中处理 system 角色
+                    content: `文件上传成功！\n临时链接: ${fileUrl}\n(链接已尝试复制到剪贴板)`,
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            renderCurrentPage();
+
+            // 调用 Coze 工作流 API
+            setTimeout(async () => {
+                if (window.cozeWorkflow) {
+                    // 将图片链接发送给 Coze 工作流 API
+                    const result = await window.cozeWorkflow.runWorkflow(fileUrl);
+                    // API 会自动打印请求体和返回结果到控制台和页面日志
+                } else {
+                    AppState.chatMessages.push({
+                        role: 'assistant',
+                        content: '已收到您的文件链接。目前仅支持链接接收，后续将升级深度分析功能。',
+                        timestamp: new Date().toISOString()
+                    });
+                    renderCurrentPage();
+                    AppState.saveToStorage();
+                }
+            }, 500);
+
+        })
+        .catch(error => {
+            console.error('Upload failed:', error);
+
+            // 更新 loading 消息为错误消息
+            const loadingMsgIndex = AppState.chatMessages.findIndex(msg => msg.id === loadingId);
+            if (loadingMsgIndex !== -1) {
+                AppState.chatMessages[loadingMsgIndex].content = `❌ 上传失败: ${error.message}`;
+            } else {
+                showToast('上传失败: ' + error.message);
+            }
+            renderCurrentPage();
+        });
+
     // 重置 input
     input.value = '';
 }
@@ -483,7 +488,7 @@ function initCozeAPI() {
         messagesContainer: null,
         inputElement: null,
         sendButton: null,
-        
+
         onStreamingStart: () => {
             // 添加空的 AI 消息占位
             AppState.chatMessages.push({
@@ -494,18 +499,18 @@ function initCozeAPI() {
             // 渲染页面，显示空气泡
             renderCurrentPage();
         },
-        
+
         onStreamingUpdate: (content) => {
             // 更新最后一条消息的内容
             const msgs = AppState.chatMessages;
             if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
                 msgs[msgs.length - 1].content = content;
-                
+
                 // 直接更新 DOM 以获得更好的流式体验
                 // 查找最后一个助手消息的气泡
                 const assistantMessages = document.querySelectorAll('.chat-message.assistant .message-text');
                 const lastBubble = assistantMessages[assistantMessages.length - 1];
-                
+
                 if (lastBubble) {
                     if (typeof marked !== 'undefined') {
                         try {
@@ -519,7 +524,7 @@ function initCozeAPI() {
                 }
             }
         },
-        
+
         onMessageReceived: (message) => {
             AppState.saveToStorage();
             // 可以在这里做一些收尾工作，比如移除光标效果等
@@ -527,7 +532,7 @@ function initCozeAPI() {
             // 我们已经通过 direct DOM update 更新了内容，所以这里可以选择不重绘，或者为了数据一致性重绘一次
             // renderCurrentPage();
         },
-        
+
         onError: (error) => {
             console.error('Coze API Error:', error);
             const msgs = AppState.chatMessages;
@@ -545,7 +550,7 @@ function sendMessage() {
     const message = input.value.trim();
 
     if (!message) return;
-    
+
     // 如果 API 未初始化，尝试初始化
     if (!cozeAPI) {
         initCozeAPI();
@@ -562,7 +567,7 @@ function sendMessage() {
 
     input.value = '';
     renderCurrentPage();
-    
+
     // 调用 Coze API
     if (cozeAPI) {
         cozeAPI.sendMessage(message);
@@ -1124,8 +1129,8 @@ function renderSettings(container) {
         ? (rawUser && rawUser.mingcheng ? rawUser.mingcheng : (userInfo.name || '用户'))
         : '未登录';
     const userAvatar = userInfo
-                ? (getTouxiangUrl(rawUser && rawUser.touxiang) || userInfo.avatar || DEFAULT_AVATAR)
-                : DEFAULT_AVATAR;
+        ? (getTouxiangUrl(rawUser && rawUser.touxiang) || userInfo.avatar || DEFAULT_AVATAR)
+        : DEFAULT_AVATAR;
     const userId = userInfo
         ? (rawUser && rawUser.escortCode ? rawUser.escortCode : '-')
         : '-';
@@ -1199,10 +1204,10 @@ function renderSettings(container) {
             </div>
 
             <div class="settings-auth-actions">
-                ${userInfo ? 
-                    `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>` : 
-                    `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()">立即登录</button>`
-                }
+                ${userInfo ?
+            `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>` :
+            `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()">立即登录</button>`
+        }
             </div>
             
             <div class="card">
