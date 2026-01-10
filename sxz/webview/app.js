@@ -242,11 +242,6 @@ function renderAIAssistant(container) {
             
             ${renderChatMessages()}
         </div>
-
-        <!-- 日志容器 -->
-        <div id="app-logs" style="position: fixed; top: 60px; right: 16px; width: 300px; max-height: 400px; background-color: rgba(0, 0, 0, 0.8); color: #fff; padding: 12px; border-radius: 8px; overflow-y: auto; font-size: 12px; z-index: 1000; display: block;">
-            <div style="font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #444; padding-bottom: 4px;">API 日志</div>
-        </div>
         
         <!-- 输入框 -->
         <div class="chat-input-container">
@@ -1214,25 +1209,16 @@ function renderSettings(container) {
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
                     <p>版本：1.0.5</p>
-                    <p id="coze-test-output" style="white-space: pre-wrap; word-break: break-all; font-size: 12px;">正在等待 Coze 智能体响应...</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
             </div>
         </div>
     `;
 
-    // 如果这是第一次渲染，且不在登录流程中，则尝试测试 Coze API
-    if (AppState.currentTab === 'settings') {
-        setTimeout(testCozeApi, 500);
-    }
+    // 移除了 Coze API 测试代码
 }
 
-// 全局变量保存测试实例
-// let testCozeInstance = null;
 
-// function testCozeApi() {
-//    // 已移除
-// }
 
 function goToLogin() {
     if (window.wechatLogin && typeof window.wechatLogin.toWxLogin === 'function') {
