@@ -904,8 +904,7 @@ function renderConsultationFlow(container) {
                     </svg>
                 </button>
                 <div>
-                    <h1 class="page-title">添加陪诊记录</h1>
-                    <p class="page-subtitle">${patient.name}</p>
+                    <h1 class="page-title">新增记录</h1>
                 </div>
             </div>
         </div>
@@ -1503,6 +1502,37 @@ function renderSettings(container) {
                 </div>
             </div>
 
+            <div class="card mb-2">
+                <h3 class="card-title mb-2">会员与订单</h3>
+                
+                <div class="list-item" onclick="showMyOrders()">
+                    <div class="flex justify-between items-center">
+                        <span>我的订单</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="list-item" onclick="showMembershipBenefits()">
+                    <div class="flex justify-between items-center">
+                        <span>会员权益</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="list-item" onclick="showConsumptionDetails()">
+                    <div class="flex justify-between items-center">
+                        <span>消耗明细</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
             <div class="settings-auth-actions">
                 ${userInfo ?
             `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>` :
@@ -1537,6 +1567,19 @@ function goToLogin() {
         return;
     }
     showToast('请在小程序内打开以登录');
+}
+
+// ==================== 会员与订单功能 ====================
+function showMyOrders() {
+    showToast('我的订单功能开发中...');
+}
+
+function showMembershipBenefits() {
+    showToast('会员权益功能开发中...');
+}
+
+function showConsumptionDetails() {
+    showToast('消耗明细功能开发中...');
 }
 
 function logout() {
