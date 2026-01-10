@@ -224,6 +224,10 @@ function renderAIAssistant(container) {
         `;
 
     container.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title">AI 陪诊助手</h1>
+            <p class="page-subtitle">随时为您解答陪诊相关问题</p>
+        </div>
         
         <div class="p-2 ai-chat-content">
             ${quickQuestions}
@@ -880,6 +884,10 @@ function renderSettings(container) {
         : '-';
 
     container.innerHTML = `
+        <div class="page-header">
+            <h1 class="page-title">设置</h1>
+        </div>
+        
         <div class="p-2">
             <div class="card mb-2 user-info-card">
                 <div class="user-avatar-wrapper">
