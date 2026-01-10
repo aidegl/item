@@ -246,34 +246,93 @@ body {
 }
 
 /* 输入框样式 */
-.input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 14px;
-    transition: border-color 0.2s;
-}
-
-.input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
+.input,
 .textarea {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 14px;
-    resize: vertical;
-    min-height: 80px;
     font-family: inherit;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 40px;
+    line-height: 1.5;
 }
 
+.input:focus,
 .textarea:focus {
     outline: none;
     border-color: var(--primary-color);
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    height: auto;
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* 日期输入框特殊样式 */
+.input[type="date"] {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 40px;
+    resize: none;
+}
+
+.input[type="date"]:focus {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 40px;
+    resize: none;
+}
+
+/* 聊天输入框特殊样式 */
+#chatInput {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 40px;
+    resize: none;
+}
+
+#chatInput:focus {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    height: auto;
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* 患者信息输入框特殊样式 */
+#patientForm .input {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 40px;
+    resize: none;
+}
+
+#patientForm .input:focus {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 40px;
+    resize: none;
+}
+
+#patientForm .textarea {
+    white-space: normal;
+    overflow: auto;
+    text-overflow: clip;
+    height: auto;
+    min-height: 80px;
+    resize: vertical;
 }
 
 .form-group {

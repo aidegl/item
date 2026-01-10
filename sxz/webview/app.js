@@ -956,6 +956,24 @@ function renderConsultationFlow(container) {
                 </div>
                 
                 <div class="card mb-2">
+                    <h3 class="card-title mb-2">患者核心疑问</h3>
+                    
+                    <div id="questions-container">
+                        <div class="form-group question-item">
+                            <div class="flex gap-2 items-end">
+                                <input type="text" name="patientQuestions[]" class="input flex-1" placeholder="请输入患者的核心疑问">
+                                <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-2">
                     <h3 class="card-title mb-2">诊断结果</h3>
                     
                     <div class="form-group">
@@ -981,6 +999,9 @@ function renderConsultationFlow(container) {
 
     // 设置默认日期为今天
     document.querySelector('input[name="date"]').value = new Date().toISOString().split('T')[0];
+    
+    // 检查问题输入框数量，确保按钮状态正确
+    checkQuestionCount();
 }
 
 function handleConsultationSubmit(event) {
@@ -989,23 +1010,34 @@ function handleConsultationSubmit(event) {
     const form = event.target;
     const formData = new FormData(form);
 
+    // 获取患者核心疑问
+    const patientQuestions = [];
+    const questionInputs = form.querySelectorAll('input[name="patientQuestions[]"]');
+    questionInputs.forEach(input => {
+        const value = input.value.trim();
+        if (value) {
+            patientQuestions.push(value);
+        }
+    });
+    
     const consultation = {
-            id: Date.now().toString(),
-            patientId: AppState.currentPatientId,
-            date: formData.get('date'),
-            hospital: formData.get('hospital'),
-            department: formData.get('department') || '未记录',
-            doctor: formData.get('doctor') || '未记录',
-            coreAppeal: formData.get('coreAppeal'),
-            onsetDate: formData.get('onsetDate'),
-            duration: formData.get('duration'),
-            associatedSymptoms: formData.get('associatedSymptoms') || '未记录',
-            diagnosis: formData.get('diagnosis') || '未记录',
-            medication: formData.get('medication') || '未记录',
-            advice: formData.get('advice') || '未记录',
-            status: 'completed',
-            createdAt: new Date().toISOString()
-        };
+        id: Date.now().toString(),
+        patientId: AppState.currentPatientId,
+        date: formData.get('date'),
+        hospital: formData.get('hospital'),
+        department: formData.get('department') || '未记录',
+        doctor: formData.get('doctor') || '未记录',
+        coreAppeal: formData.get('coreAppeal'),
+        onsetDate: formData.get('onsetDate'),
+        duration: formData.get('duration'),
+        associatedSymptoms: formData.get('associatedSymptoms') || '未记录',
+        patientQuestions: patientQuestions,
+        diagnosis: formData.get('diagnosis') || '未记录',
+        medication: formData.get('medication') || '未记录',
+        advice: formData.get('advice') || '未记录',
+        status: 'completed',
+        createdAt: new Date().toISOString()
+    };
 
     AppState.consultations.unshift(consultation);
     AppState.saveToStorage();
@@ -1015,6 +1047,61 @@ function handleConsultationSubmit(event) {
     setTimeout(() => {
         goToPatientDetail(AppState.currentPatientId);
     }, 1000);
+}
+
+// ==================== 患者核心疑问动态添加 ====================
+function addQuestion() {
+    const container = document.getElementById('questions-container');
+    const questionItems = container.querySelectorAll('.question-item');
+    
+    // 最多允许3个问题输入框
+    if (questionItems.length >= 3) {
+        // 隐藏或禁用添加按钮
+        const addButtons = container.querySelectorAll('.add-question-btn');
+        addButtons.forEach(btn => {
+            btn.style.display = 'none';
+        });
+        return;
+    }
+    
+    // 创建新的问题输入框
+    const newQuestionItem = document.createElement('div');
+    newQuestionItem.className = 'form-group question-item';
+    newQuestionItem.innerHTML = `
+        <div class="flex gap-2 items-end">
+            <input type="text" name="patientQuestions[]" class="input flex-1" placeholder="请输入患者的核心疑问">
+            <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(newQuestionItem);
+    
+    // 检查是否达到最大数量
+    if (container.querySelectorAll('.question-item').length >= 3) {
+        const addButtons = container.querySelectorAll('.add-question-btn');
+        addButtons.forEach(btn => {
+            btn.style.display = 'none';
+        });
+    }
+}
+
+// 页面加载完成后检查问题输入框数量
+function checkQuestionCount() {
+    const container = document.getElementById('questions-container');
+    if (container) {
+        const questionItems = container.querySelectorAll('.question-item');
+        if (questionItems.length >= 3) {
+            const addButtons = container.querySelectorAll('.add-question-btn');
+            addButtons.forEach(btn => {
+                btn.style.display = 'none';
+            });
+        }
+    }
 }
 
 // ==================== 备忘录页面 ====================
