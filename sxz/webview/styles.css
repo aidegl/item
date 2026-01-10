@@ -250,8 +250,7 @@ body {
 }
 
 /* 输入框样式 */
-.input,
-.textarea {
+.input, .textarea {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--border-color);
@@ -259,23 +258,79 @@ body {
     font-size: 14px;
     font-family: inherit;
     transition: all 0.3s ease;
+    line-height: 1.5;
+    text-align: left;
+    text-align: start;
+    vertical-align: top;
+    box-sizing: border-box;
+}
+
+/* 为input设置单行样式 */
+.input {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     height: 40px;
-    line-height: 1.5;
 }
 
-.input:focus,
+/* 为textarea设置单行省略样式 */
+.textarea {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 40px;
+    resize: none;
+    transition: all 0.3s ease;
+    text-align: left;
+    text-align: start;
+    vertical-align: top;
+}
+
+/* 为placeholder文本添加截断效果 */
+.input::-webkit-input-placeholder,
+.textarea::-webkit-input-placeholder {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.input::-moz-placeholder,
+.textarea::-moz-placeholder {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.input:focus:not([type="date"]),
 .textarea:focus {
     outline: none;
     border-color: var(--primary-color);
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
-    height: auto;
-    min-height: 80px;
-    resize: vertical;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 80px;
+    resize: none;
+    text-align: left;
+    text-align: start;
+    vertical-align: top;
+}
+
+/* 日期输入框聚焦时保持原样式 */
+.input[type="date"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 40px;
+    resize: none;
 }
 
 /* 日期输入框特殊样式 */
@@ -284,6 +339,23 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     height: 40px;
+    resize: none;
+}
+
+/* 就诊信息区域的医院、科室、医生输入框固定高度 */
+#consultationForm input[name="hospital"],
+#consultationForm input[name="department"],
+#consultationForm input[name="doctor"] {
+    height: 40px !important;
+}
+
+#consultationForm input[name="hospital"]:focus,
+#consultationForm input[name="department"]:focus,
+#consultationForm input[name="doctor"]:focus {
+    height: 40px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     resize: none;
 }
 
@@ -322,7 +394,18 @@ body {
     resize: none;
 }
 
-#patientForm .input:focus {
+#patientForm .input:focus:not([type="date"]) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 80px;
+    resize: none;
+    text-align: left;
+    text-align: start;
+    vertical-align: top;
+}
+
+#patientForm .input[type="date"]:focus {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -331,12 +414,26 @@ body {
 }
 
 #patientForm .textarea {
-    white-space: normal;
-    overflow: auto;
-    text-overflow: clip;
-    height: auto;
-    min-height: 80px;
-    resize: vertical;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 40px;
+    resize: none;
+    transition: all 0.3s ease;
+    text-align: left;
+    text-align: start;
+    vertical-align: top;
+}
+
+#patientForm .textarea:focus {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 80px;
+    resize: none;
+    text-align: left;
+    text-align: start;
+    vertical-align: top;
 }
 
 .form-group {
