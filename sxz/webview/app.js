@@ -170,8 +170,20 @@ function switchTab(tab) {
 
 function renderCurrentPage() {
     const content = document.getElementById('main-content');
+    const bottomNav = document.querySelector('.bottom-nav');
 
     document.body.classList.toggle('ai-tab', AppState.currentTab === 'ai');
+
+    // 控制底部导航栏显示/隐藏：只有四个主页面显示
+    if (bottomNav) {
+        const isMainPage =
+            (AppState.currentTab === 'ai') ||
+            (AppState.currentTab === 'patients' && AppState.currentView === 'main') ||
+            (AppState.currentTab === 'records') ||
+            (AppState.currentTab === 'settings');
+
+        bottomNav.style.display = isMainPage ? 'flex' : 'none';
+    }
 
     switch (AppState.currentTab) {
         case 'ai':
