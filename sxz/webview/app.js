@@ -693,8 +693,17 @@ function goToPatientDetail(patientId) {
 // ==================== 添加患者页面 ====================
 function renderAddPatient(container) {
     container.innerHTML = `
+        <!-- 返回按钮 -->
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px;">
+            <button class="btn btn-icon btn-outline" onclick="backToPatientList()" style="margin-left: 16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </button>
+        </div>
+        
         <div class="p-2">
-            <form id="addPatientForm" onsubmit="handleAddPatient(event)">
+            <form id="addPatientForm" onsubmit="handleAddPatient(event)">","}}}
                 <div class="card">
                     <div class="form-group">
                         <label class="form-label">姓名 *</label>
@@ -782,6 +791,15 @@ function renderPatientDetail(container) {
     const patientConsultations = AppState.consultations.filter(c => c.patientId === patient.id);
 
     container.innerHTML = `
+        <!-- 返回按钮 -->
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px;">
+            <button class="btn btn-icon btn-outline" onclick="backToPatientList()" style="margin-left: 16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </button>
+        </div>
+        
         <div class="p-2">
             <!-- 患者基本信息 -->
             <div class="card mb-2">
@@ -885,17 +903,13 @@ function renderConsultationFlow(container) {
     }
 
     container.innerHTML = `
-        <div class="page-header">
-            <div class="flex items-center gap-2">
-                <button class="btn btn-icon btn-outline" onclick="goToPatientDetail('${patient.id}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                        <polyline points="15 18 9 12 15 6"/>
-                    </svg>
-                </button>
-                <div>
-                    <h1 class="page-title">新增记录</h1>
-                </div>
-            </div>
+        <!-- 返回按钮 -->
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px;">
+            <button class="btn btn-icon btn-outline" onclick="goToPatientDetail('${patient.id}')" style="margin-left: 16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </button>
         </div>
         
         <div class="p-2">
