@@ -832,7 +832,7 @@ function renderPatientDetail(container) {
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
-                    开始陪诊
+                    添加陪诊记录
                 </button>
                 <button class="btn btn-outline w-full" onclick="editPatient('${patient.id}')">
                     编辑信息
@@ -899,7 +899,7 @@ function renderConsultationFlow(container) {
                     </svg>
                 </button>
                 <div>
-                    <h1 class="page-title">陪诊流程</h1>
+                    <h1 class="page-title">添加陪诊记录</h1>
                     <p class="page-subtitle">${patient.name}</p>
                 </div>
             </div>
