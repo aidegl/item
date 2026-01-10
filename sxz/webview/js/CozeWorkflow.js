@@ -3,7 +3,7 @@ class CozeWorkflow {
     constructor() {
         this.apiUrl = 'https://api.coze.cn/v1/workflow/run';
         this.workflowId = '7593545627851014196';
-        this.bearerToken = 'cztei_lo3Xq76LPH3VaVboF7gDqhrPpLRDnc1w2ZmhIDovoTvl5WmJk4Snl6RAruGAzShkc'; // Coze API密钥
+        this.bearerToken = 'pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb'; // Coze API密钥
     }
 
     // 设置API密钥
