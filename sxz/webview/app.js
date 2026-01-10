@@ -1013,18 +1013,9 @@ function renderRecordsList(container) {
 
     container.innerHTML = `
         <div class="page-header">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="page-title">备忘录</h1>
-                    <p class="page-subtitle">${upcomingReminders.length} 个待办事项</p>
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="addReminder()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    添加提醒
-                </button>
+            <div>
+                <h1 class="page-title">备忘录</h1>
+                <p class="page-subtitle">${upcomingReminders.length} 个待办事项</p>
             </div>
         </div>
         
@@ -1085,30 +1076,7 @@ function renderCompletedReminders() {
     `;
 }
 
-function addReminder() {
-    const title = prompt('请输入提醒标题：');
-    if (!title) return;
 
-    const date = prompt('请输入日期（格式：YYYY-MM-DD）：', new Date().toISOString().split('T')[0]);
-    if (!date) return;
-
-    const time = prompt('请输入时间（格式：HH:MM）：', '09:00');
-    if (!time) return;
-
-    const newReminder = {
-        id: Date.now().toString(),
-        title,
-        date,
-        time,
-        type: 'task',
-        completed: false
-    };
-
-    AppState.reminders.push(newReminder);
-    AppState.saveToStorage();
-    renderCurrentPage();
-    showToast('提醒添加成功');
-}
 
 function toggleReminder(id) {
     const reminder = AppState.reminders.find(r => r.id === id);
