@@ -1408,6 +1408,24 @@ function renderSettings(container) {
 
     container.innerHTML = `
         <div class="p-2">
+            <div class="card mb-2 user-info-card">
+                <div class="user-avatar-wrapper">
+                    <img src="${escapeHtml(userAvatar)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
+                </div>
+                <div class="user-details">
+                    <div class="user-nickname">${escapeHtml(userNickname)}</div>
+                    <div class="user-info-bottom">
+                        <span class="user-welcome">欢迎回来</span>
+                        <span class="user-id">ID: ${escapeHtml(userId)}</span>
+                    </div>
+                </div>
+                ${userInfo ? `
+                <div class="user-membership">
+                    <span class="membership-badge">免费版</span>
+                </div>
+                ` : ''}
+            </div>
+
             <div class="card mb-2">
                 <h3 class="card-title mb-2">会员与订单</h3>
                 
@@ -1437,24 +1455,6 @@ function renderSettings(container) {
                         </svg>
                     </div>
                 </div>
-            </div>
-
-            <div class="card mb-2 user-info-card">
-                <div class="user-avatar-wrapper">
-                    <img src="${escapeHtml(userAvatar)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
-                </div>
-                <div class="user-details">
-                    <div class="user-nickname">${escapeHtml(userNickname)}</div>
-                    <div class="user-info-bottom">
-                        <span class="user-welcome">欢迎回来</span>
-                        <span class="user-id">ID: ${escapeHtml(userId)}</span>
-                    </div>
-                </div>
-                ${userInfo ? `
-                <div class="user-membership">
-                    <span class="membership-badge">免费版</span>
-                </div>
-                ` : ''}
             </div>
 
             <div class="card mb-2">
