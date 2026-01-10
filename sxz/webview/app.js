@@ -796,7 +796,15 @@ function renderPatientDetail(container) {
         <div class="p-2">
             <!-- 患者基本信息 -->
             <div class="card mb-2">
-                <h3 class="card-title mb-2">基本信息</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 class="card-title mb-0">基本信息</h3>
+                    <button class="btn btn-icon btn-outline" onclick="editPatient('${patient.id}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </button>
+                </div>
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="info-label">姓名：</span>
@@ -825,23 +833,17 @@ function renderPatientDetail(container) {
                 </div>
             </div>
             
-            <!-- 操作按钮 -->
-            <div class="card mb-2">
-                <button class="btn btn-primary w-full mb-1" onclick="startConsultation('${patient.id}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    添加陪诊记录
-                </button>
-                <button class="btn btn-outline w-full" onclick="editPatient('${patient.id}')">
-                    编辑信息
-                </button>
-            </div>
-            
             <!-- 陪诊记录 -->
             <div class="card">
-                <h3 class="card-title mb-2">陪诊记录 (${patientConsultations.length})</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 class="card-title mb-0">陪诊记录 (${patientConsultations.length})</h3>
+                    <button class="btn btn-icon btn-primary" onclick="startConsultation('${patient.id}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
                 ${patientConsultations.length === 0 ? `
                     <p style="color: var(--text-secondary); text-align: center; padding: 20px;">
                         暂无陪诊记录
@@ -849,13 +851,16 @@ function renderPatientDetail(container) {
                 ` : patientConsultations.map(c => `
                     <div class="list-item" onclick="viewConsultation('${c.id}')">
                         <div class="flex justify-between items-center">
-                            <div>
-                                <div style="font-weight: 500;">${c.hospital} - ${c.department}</div>
-                                <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
-                                    ${formatDate(c.date)}
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 4px; height: 46px; border-radius: 3px; background-color: ${c.status === 'completed' ? '#10b981' : '#f59e0b'}; flex-shrink: 0;"></div>
+                                <div>
+                                    <div style="font-weight: 500;">${c.hospital} - ${c.department}</div>
+                                    <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
+                                        ${formatDate(c.date)}
+                                    </div>
                                 </div>
                             </div>
-                            <span class="badge ${c.status === 'completed' ? 'badge-success' : 'badge-warning'}">
+                            <span class="badge ${c.status === 'completed' ? 'badge-success' : 'badge-primary'}">
                                 ${c.status === 'completed' ? '已完成' : '进行中'}
                             </span>
                         </div>
@@ -1009,7 +1014,7 @@ function renderConsultationFlow(container) {
 
     // 设置默认日期为今天
     document.querySelector('input[name="date"]').value = new Date().toISOString().split('T')[0];
-    
+
     // 检查问题输入框数量，确保按钮状态正确
     checkQuestionCount();
 }
@@ -1023,19 +1028,19 @@ function handleConsultationSubmit(event) {
     // 获取患者核心疑问和医生解答
     const patientQuestions = [];
     const doctorAnswers = [];
-    
+
     const questionInputs = form.querySelectorAll('input[name="patientQuestions[]"]');
     questionInputs.forEach(input => {
         const value = input.value.trim();
         patientQuestions.push(value || '');
     });
-    
+
     const answerTextareas = form.querySelectorAll('textarea[name="doctorAnswers[]"]');
     answerTextareas.forEach(textarea => {
         const value = textarea.value.trim();
         doctorAnswers.push(value || '');
     });
-    
+
     const consultation = {
         id: Date.now().toString(),
         patientId: AppState.currentPatientId,
@@ -1052,7 +1057,7 @@ function handleConsultationSubmit(event) {
         diagnosis: formData.get('diagnosis') || '未记录',
         medication: formData.get('medication') || '未记录',
         advice: formData.get('advice') || '未记录',
-        status: 'completed',
+        status: 'pending',
         createdAt: new Date().toISOString()
     };
 
@@ -1082,7 +1087,7 @@ function showConfirmDialog(message, onConfirm, onCancel) {
     dialogContainer.style.zIndex = '1000';
     dialogContainer.style.padding = '20px';
     dialogContainer.id = 'confirm-dialog';
-    
+
     // 创建对话框内容
     const dialogContent = document.createElement('div');
     dialogContent.style.backgroundColor = 'var(--card-bg)';
@@ -1091,55 +1096,55 @@ function showConfirmDialog(message, onConfirm, onCancel) {
     dialogContent.style.width = '100%';
     dialogContent.style.boxShadow = 'var(--shadow-lg)';
     dialogContent.style.padding = '16px';
-    
+
     // 创建对话框头部
     const dialogHeader = document.createElement('div');
     dialogHeader.style.marginBottom = '16px';
-    
+
     const dialogTitle = document.createElement('h3');
     dialogTitle.style.fontSize = '16px';
     dialogTitle.style.fontWeight = '600';
     dialogTitle.style.color = 'var(--text-primary)';
     dialogTitle.textContent = '确认操作';
-    
+
     const dialogMessage = document.createElement('p');
     dialogMessage.style.marginTop = '4px';
     dialogMessage.style.fontSize = '14px';
     dialogMessage.style.color = 'var(--text-secondary)';
     dialogMessage.textContent = message;
-    
+
     dialogHeader.appendChild(dialogTitle);
     dialogHeader.appendChild(dialogMessage);
-    
+
     // 创建对话框按钮区域
     const dialogButtons = document.createElement('div');
     dialogButtons.style.display = 'flex';
     dialogButtons.style.gap = '8px';
     dialogButtons.style.justifyContent = 'flex-end';
-    
+
     const cancelButton = document.createElement('button');
     cancelButton.type = 'button';
     cancelButton.className = 'btn btn-outline';
     cancelButton.onclick = hideConfirmDialog;
     cancelButton.textContent = '取消';
-    
+
     const confirmButton = document.createElement('button');
     confirmButton.type = 'button';
     confirmButton.className = 'btn btn-primary';
     confirmButton.onclick = handleConfirm;
     confirmButton.textContent = '确认';
-    
+
     dialogButtons.appendChild(cancelButton);
     dialogButtons.appendChild(confirmButton);
-    
+
     // 组装对话框
     dialogContent.appendChild(dialogHeader);
     dialogContent.appendChild(dialogButtons);
     dialogContainer.appendChild(dialogContent);
-    
+
     // 添加到页面
     document.body.appendChild(dialogContainer);
-    
+
     // 保存回调函数
     window.confirmCallbacks = {
         onConfirm,
@@ -1152,12 +1157,12 @@ function hideConfirmDialog() {
     if (dialog) {
         dialog.remove();
     }
-    
+
     // 调用取消回调
     if (window.confirmCallbacks?.onCancel) {
         window.confirmCallbacks.onCancel();
     }
-    
+
     // 清理回调
     window.confirmCallbacks = null;
 }
@@ -1167,7 +1172,7 @@ function handleConfirm() {
     if (window.confirmCallbacks?.onConfirm) {
         window.confirmCallbacks.onConfirm();
     }
-    
+
     hideConfirmDialog();
 }
 
@@ -1175,21 +1180,21 @@ function handleConfirm() {
 function addQuestion() {
     const container = document.getElementById('questions-container');
     const questionItems = container.querySelectorAll('.question-item');
-    
+
     // 最多允许3个问题输入框
     if (questionItems.length >= 3) {
         return;
     }
-    
+
     // 隐藏所有现有添加按钮
     const addButtons = container.querySelectorAll('.add-question-btn');
     addButtons.forEach(btn => {
         btn.style.display = 'none';
     });
-    
+
     // 计算新问题的索引
     const newIndex = questionItems.length + 1;
-    
+
     // 创建新的问题输入框
     const newQuestionItem = document.createElement('div');
     newQuestionItem.className = 'form-group question-item';
@@ -1212,7 +1217,7 @@ function addQuestion() {
             <textarea name="doctorAnswers[]" class="textarea w-full" placeholder="请输入医生的解答..."></textarea>
         </div>
     `;
-    
+
     // 如果还没达到最大数量，添加"添加问题"按钮
     if (newIndex < 3) {
         newQuestionItem.innerHTML += `
@@ -1227,7 +1232,7 @@ function addQuestion() {
             </div>
         `;
     }
-    
+
     container.appendChild(newQuestionItem);
 }
 
@@ -1237,7 +1242,7 @@ function deleteQuestion(index) {
     if (index === 1) {
         return;
     }
-    
+
     // 显示确认对话框
     showConfirmDialog(
         '确定要删除这个问题及其解答吗？此操作不可恢复。',
@@ -1245,35 +1250,35 @@ function deleteQuestion(index) {
             // 用户确认删除
             const container = document.getElementById('questions-container');
             const questionItem = container.querySelector(`[data-question-index="${index}"]`);
-            
+
             if (questionItem) {
                 // 移除问题条目
                 questionItem.remove();
-                
+
                 // 重新编号剩余的问题条目
                 const remainingItems = container.querySelectorAll('.question-item');
                 remainingItems.forEach((item, idx) => {
                     const newIndex = idx + 1;
                     item.setAttribute('data-question-index', newIndex);
-                    
+
                     // 更新标题
                     const title = item.querySelector('.question-title');
                     if (title) {
                         title.textContent = `问题${newIndex}`;
                     }
-                    
+
                     // 更新删除按钮的onclick事件
                     const deleteBtn = item.querySelector('.delete-question-btn');
                     if (deleteBtn) {
                         deleteBtn.onclick = () => deleteQuestion(newIndex);
                     }
                 });
-                
+
                 // 如果删除后数量少于3，确保最后一个问题条目有添加按钮
                 if (remainingItems.length < 3) {
                     const lastItem = remainingItems[remainingItems.length - 1];
                     let addBtn = lastItem.querySelector('.add-question-btn');
-                    
+
                     if (!addBtn) {
                         // 创建添加按钮
                         addBtn = document.createElement('button');
@@ -1287,12 +1292,12 @@ function deleteQuestion(index) {
                             </svg>
                             添加问题
                         `;
-                        
+
                         // 创建按钮容器
                         const btnContainer = document.createElement('div');
                         btnContainer.className = 'flex justify-end mt-3';
                         btnContainer.appendChild(addBtn);
-                        
+
                         lastItem.appendChild(btnContainer);
                     } else {
                         // 显示已存在的添加按钮
