@@ -959,14 +959,24 @@ function renderConsultationFlow(container) {
                     <h3 class="card-title mb-2">患者核心疑问</h3>
                     
                     <div id="questions-container">
-                        <div class="form-group question-item">
-                            <div class="flex gap-2 items-end">
-                                <input type="text" name="patientQuestions[]" class="input flex-1" placeholder="请输入患者的核心疑问">
+                        <div class="form-group question-item" data-question-index="1">
+                            <div class="mb-2">
+                                <h4 class="question-title">问题1</h4>
+                            </div>
+                            <div class="mb-3">
+                                <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2"></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label text-sm mb-1">医生解答</label>
+                                <textarea name="doctorAnswers[]" class="textarea w-full" placeholder="请输入医生的解答..."></textarea>
+                            </div>
+                            <div class="flex justify-end mt-3">
                                 <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
                                         <line x1="12" y1="5" x2="12" y2="19"/>
                                         <line x1="5" y1="12" x2="19" y2="12"/>
                                     </svg>
+                                    添加问题
                                 </button>
                             </div>
                         </div>
@@ -1010,14 +1020,20 @@ function handleConsultationSubmit(event) {
     const form = event.target;
     const formData = new FormData(form);
 
-    // 获取患者核心疑问
+    // 获取患者核心疑问和医生解答
     const patientQuestions = [];
+    const doctorAnswers = [];
+    
     const questionInputs = form.querySelectorAll('input[name="patientQuestions[]"]');
     questionInputs.forEach(input => {
         const value = input.value.trim();
-        if (value) {
-            patientQuestions.push(value);
-        }
+        patientQuestions.push(value || '');
+    });
+    
+    const answerTextareas = form.querySelectorAll('textarea[name="doctorAnswers[]"]');
+    answerTextareas.forEach(textarea => {
+        const value = textarea.value.trim();
+        doctorAnswers.push(value || '');
     });
     
     const consultation = {
@@ -1032,6 +1048,7 @@ function handleConsultationSubmit(event) {
         duration: formData.get('duration'),
         associatedSymptoms: formData.get('associatedSymptoms') || '未记录',
         patientQuestions: patientQuestions,
+        doctorAnswers: doctorAnswers,
         diagnosis: formData.get('diagnosis') || '未记录',
         medication: formData.get('medication') || '未记录',
         advice: formData.get('advice') || '未记录',
@@ -1049,6 +1066,111 @@ function handleConsultationSubmit(event) {
     }, 1000);
 }
 
+// ==================== 确认对话框 ====================
+function showConfirmDialog(message, onConfirm, onCancel) {
+    // 创建对话框容器
+    const dialogContainer = document.createElement('div');
+    dialogContainer.style.position = 'fixed';
+    dialogContainer.style.top = '0';
+    dialogContainer.style.left = '0';
+    dialogContainer.style.right = '0';
+    dialogContainer.style.bottom = '0';
+    dialogContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    dialogContainer.style.display = 'flex';
+    dialogContainer.style.alignItems = 'center';
+    dialogContainer.style.justifyContent = 'center';
+    dialogContainer.style.zIndex = '1000';
+    dialogContainer.style.padding = '20px';
+    dialogContainer.id = 'confirm-dialog';
+    
+    // 创建对话框内容
+    const dialogContent = document.createElement('div');
+    dialogContent.style.backgroundColor = 'var(--card-bg)';
+    dialogContent.style.borderRadius = '12px';
+    dialogContent.style.maxWidth = '320px';
+    dialogContent.style.width = '100%';
+    dialogContent.style.boxShadow = 'var(--shadow-lg)';
+    dialogContent.style.padding = '16px';
+    
+    // 创建对话框头部
+    const dialogHeader = document.createElement('div');
+    dialogHeader.style.marginBottom = '16px';
+    
+    const dialogTitle = document.createElement('h3');
+    dialogTitle.style.fontSize = '16px';
+    dialogTitle.style.fontWeight = '600';
+    dialogTitle.style.color = 'var(--text-primary)';
+    dialogTitle.textContent = '确认操作';
+    
+    const dialogMessage = document.createElement('p');
+    dialogMessage.style.marginTop = '4px';
+    dialogMessage.style.fontSize = '14px';
+    dialogMessage.style.color = 'var(--text-secondary)';
+    dialogMessage.textContent = message;
+    
+    dialogHeader.appendChild(dialogTitle);
+    dialogHeader.appendChild(dialogMessage);
+    
+    // 创建对话框按钮区域
+    const dialogButtons = document.createElement('div');
+    dialogButtons.style.display = 'flex';
+    dialogButtons.style.gap = '8px';
+    dialogButtons.style.justifyContent = 'flex-end';
+    
+    const cancelButton = document.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.className = 'btn btn-outline';
+    cancelButton.onclick = hideConfirmDialog;
+    cancelButton.textContent = '取消';
+    
+    const confirmButton = document.createElement('button');
+    confirmButton.type = 'button';
+    confirmButton.className = 'btn btn-primary';
+    confirmButton.onclick = handleConfirm;
+    confirmButton.textContent = '确认';
+    
+    dialogButtons.appendChild(cancelButton);
+    dialogButtons.appendChild(confirmButton);
+    
+    // 组装对话框
+    dialogContent.appendChild(dialogHeader);
+    dialogContent.appendChild(dialogButtons);
+    dialogContainer.appendChild(dialogContent);
+    
+    // 添加到页面
+    document.body.appendChild(dialogContainer);
+    
+    // 保存回调函数
+    window.confirmCallbacks = {
+        onConfirm,
+        onCancel
+    };
+}
+
+function hideConfirmDialog() {
+    const dialog = document.getElementById('confirm-dialog');
+    if (dialog) {
+        dialog.remove();
+    }
+    
+    // 调用取消回调
+    if (window.confirmCallbacks?.onCancel) {
+        window.confirmCallbacks.onCancel();
+    }
+    
+    // 清理回调
+    window.confirmCallbacks = null;
+}
+
+function handleConfirm() {
+    // 调用确认回调
+    if (window.confirmCallbacks?.onConfirm) {
+        window.confirmCallbacks.onConfirm();
+    }
+    
+    hideConfirmDialog();
+}
+
 // ==================== 患者核心疑问动态添加 ====================
 function addQuestion() {
     const container = document.getElementById('questions-container');
@@ -1056,38 +1178,134 @@ function addQuestion() {
     
     // 最多允许3个问题输入框
     if (questionItems.length >= 3) {
-        // 隐藏或禁用添加按钮
-        const addButtons = container.querySelectorAll('.add-question-btn');
-        addButtons.forEach(btn => {
-            btn.style.display = 'none';
-        });
         return;
     }
+    
+    // 隐藏所有现有添加按钮
+    const addButtons = container.querySelectorAll('.add-question-btn');
+    addButtons.forEach(btn => {
+        btn.style.display = 'none';
+    });
+    
+    // 计算新问题的索引
+    const newIndex = questionItems.length + 1;
     
     // 创建新的问题输入框
     const newQuestionItem = document.createElement('div');
     newQuestionItem.className = 'form-group question-item';
+    newQuestionItem.setAttribute('data-question-index', newIndex);
     newQuestionItem.innerHTML = `
-        <div class="flex gap-2 items-end">
-            <input type="text" name="patientQuestions[]" class="input flex-1" placeholder="请输入患者的核心疑问">
-            <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
+        <div class="flex justify-between items-center mb-2">
+            <h4 class="question-title">问题${newIndex}</h4>
+            <button type="button" class="btn btn-danger-outline btn-sm delete-question-btn" onclick="deleteQuestion(${newIndex})">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                 </svg>
             </button>
         </div>
+        <div class="mb-3">
+            <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2"></textarea>
+        </div>
+        <div>
+            <label class="form-label text-sm mb-1">医生解答</label>
+            <textarea name="doctorAnswers[]" class="textarea w-full" placeholder="请输入医生的解答..."></textarea>
+        </div>
     `;
     
-    container.appendChild(newQuestionItem);
-    
-    // 检查是否达到最大数量
-    if (container.querySelectorAll('.question-item').length >= 3) {
-        const addButtons = container.querySelectorAll('.add-question-btn');
-        addButtons.forEach(btn => {
-            btn.style.display = 'none';
-        });
+    // 如果还没达到最大数量，添加"添加问题"按钮
+    if (newIndex < 3) {
+        newQuestionItem.innerHTML += `
+            <div class="flex justify-end mt-3">
+                <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    添加问题
+                </button>
+            </div>
+        `;
     }
+    
+    container.appendChild(newQuestionItem);
+}
+
+// ==================== 删除问题 ====================
+function deleteQuestion(index) {
+    // 问题1不能删除
+    if (index === 1) {
+        return;
+    }
+    
+    // 显示确认对话框
+    showConfirmDialog(
+        '确定要删除这个问题及其解答吗？此操作不可恢复。',
+        () => {
+            // 用户确认删除
+            const container = document.getElementById('questions-container');
+            const questionItem = container.querySelector(`[data-question-index="${index}"]`);
+            
+            if (questionItem) {
+                // 移除问题条目
+                questionItem.remove();
+                
+                // 重新编号剩余的问题条目
+                const remainingItems = container.querySelectorAll('.question-item');
+                remainingItems.forEach((item, idx) => {
+                    const newIndex = idx + 1;
+                    item.setAttribute('data-question-index', newIndex);
+                    
+                    // 更新标题
+                    const title = item.querySelector('.question-title');
+                    if (title) {
+                        title.textContent = `问题${newIndex}`;
+                    }
+                    
+                    // 更新删除按钮的onclick事件
+                    const deleteBtn = item.querySelector('.delete-question-btn');
+                    if (deleteBtn) {
+                        deleteBtn.onclick = () => deleteQuestion(newIndex);
+                    }
+                });
+                
+                // 如果删除后数量少于3，确保最后一个问题条目有添加按钮
+                if (remainingItems.length < 3) {
+                    const lastItem = remainingItems[remainingItems.length - 1];
+                    let addBtn = lastItem.querySelector('.add-question-btn');
+                    
+                    if (!addBtn) {
+                        // 创建添加按钮
+                        addBtn = document.createElement('button');
+                        addBtn.type = 'button';
+                        addBtn.className = 'btn btn-outline btn-sm add-question-btn';
+                        addBtn.onclick = addQuestion;
+                        addBtn.innerHTML = `
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            添加问题
+                        `;
+                        
+                        // 创建按钮容器
+                        const btnContainer = document.createElement('div');
+                        btnContainer.className = 'flex justify-end mt-3';
+                        btnContainer.appendChild(addBtn);
+                        
+                        lastItem.appendChild(btnContainer);
+                    } else {
+                        // 显示已存在的添加按钮
+                        addBtn.style.display = 'inline-flex';
+                    }
+                }
+            }
+        },
+        () => {
+            // 用户取消删除
+            console.log('删除操作已取消');
+        }
+    );
 }
 
 // 页面加载完成后检查问题输入框数量
