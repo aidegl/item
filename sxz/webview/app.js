@@ -990,22 +990,22 @@ function handleConsultationSubmit(event) {
     const formData = new FormData(form);
 
     const consultation = {
-            id: Date.now().toString(),
-            patientId: AppState.currentPatientId,
-            date: formData.get('date'),
-            hospital: formData.get('hospital'),
-            department: formData.get('department') || '未记录',
-            doctor: formData.get('doctor') || '未记录',
-            coreAppeal: formData.get('coreAppeal'),
-            onsetDate: formData.get('onsetDate'),
-            duration: formData.get('duration'),
-            associatedSymptoms: formData.get('associatedSymptoms') || '未记录',
-            diagnosis: formData.get('diagnosis') || '未记录',
-            medication: formData.get('medication') || '未记录',
-            advice: formData.get('advice') || '未记录',
-            status: 'completed',
-            createdAt: new Date().toISOString()
-        };
+        id: Date.now().toString(),
+        patientId: AppState.currentPatientId,
+        date: formData.get('date'),
+        hospital: formData.get('hospital'),
+        department: formData.get('department') || '未记录',
+        doctor: formData.get('doctor') || '未记录',
+        coreAppeal: formData.get('coreAppeal'),
+        onsetDate: formData.get('onsetDate'),
+        duration: formData.get('duration'),
+        associatedSymptoms: formData.get('associatedSymptoms') || '未记录',
+        diagnosis: formData.get('diagnosis') || '未记录',
+        medication: formData.get('medication') || '未记录',
+        advice: formData.get('advice') || '未记录',
+        status: 'completed',
+        createdAt: new Date().toISOString()
+    };
 
     AppState.consultations.unshift(consultation);
     AppState.saveToStorage();
@@ -1194,7 +1194,7 @@ function renderSettings(container) {
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
-                    <p>版本：1.0.5</p>
+                    <p>版本：1.0.6</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
             </div>
