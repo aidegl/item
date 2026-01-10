@@ -885,7 +885,6 @@ function renderConsultationFlow(container) {
     }
 
     container.innerHTML = `
-<<<<<<< HEAD
         <div class="page-header">
             <div class="flex items-center gap-2">
                 <button class="btn btn-icon btn-outline" onclick="goToPatientDetail('${patient.id}')">
@@ -899,8 +898,6 @@ function renderConsultationFlow(container) {
             </div>
         </div>
         
-=======
->>>>>>> 828ad42f7d5d64da5f3e6d20e698e4efe56bf4f4
         <div class="p-2">
             <form id="consultationForm" onsubmit="handleConsultationSubmit(event)">
                 <div class="card mb-2">
