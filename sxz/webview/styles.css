@@ -408,15 +408,37 @@ body {
     text-overflow: ellipsis;
     height: 40px;
     resize: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
 }
 
 #chatInput:focus {
     white-space: normal;
-    overflow: visible;
+    overflow: auto;
     text-overflow: clip;
     height: auto;
     min-height: 80px;
     resize: vertical;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+/* 针对 WebKit 浏览器的滚动条样式 */
+#chatInput::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chatInput::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#chatInput::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 3px;
+}
+
+#chatInput::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-secondary);
 }
 
 /* 患者信息输入框特殊样式 */
