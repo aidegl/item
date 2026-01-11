@@ -2193,10 +2193,11 @@ function subscribePackage() {
 
 // 返回设置页面
 function goBackToSettings() {
+    const container = document.getElementById('main-content');
     const bottomNav = document.querySelector('.bottom-nav');
 
     // 重新渲染设置页面
-    renderSettings(document.getElementById('main-content'));
+    renderSettings(container);
 
     // 确保底部导航栏正确显示
     if (bottomNav) {
