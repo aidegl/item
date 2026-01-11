@@ -2228,10 +2228,15 @@ function renderConsumptionDetailsPage() {
         </div>
         
         <!-- Tab切换 -->
-        <div class="tab-container mb-2">
-            <button type="button" class="tab-btn active" onclick="switchConsumptionTab('resources', this)">资源点</button>
-            <button type="button" class="tab-btn" onclick="switchConsumptionTab('reports', this)">报告生成</button>
+        <div class="tab-nav" style="position: sticky; top: 60px; z-index: 99; display: flex; border-bottom: 1px solid var(--border-color); background-color: var(--bg-color);">
+            <button class="tab-btn active" onclick="switchConsumptionTab('resources')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">
+                资源点
+                <div class="tab-indicator" style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--primary-color); border-radius: 2px;"></div>
+            </button>
+            <button class="tab-btn" onclick="switchConsumptionTab('reports')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">报告生成</button>
         </div>
+        
+        <div class="p-2">
         
         <!-- 资源点消耗明细 -->
         <div id="resources" class="tab-content active">
@@ -2278,29 +2283,44 @@ function renderConsumptionDetailsPage() {
                 </div>
             </div>
         </div>
+        </div>
     `;
 }
 
 // 消耗明细tab切换功能
-function switchConsumptionTab(tabId, button) {
+function switchConsumptionTab(tabId) {
+    // 更新标签按钮状态
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+        btn.classList.remove('active');
+        // 移除所有指示器
+        const existingIndicator = btn.querySelector('.tab-indicator');
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+    });
+    
+    // 获取当前点击的按钮
+    const button = event.target;
+    
+    // 更新当前标签按钮状态并添加指示器
+    button.classList.add('active');
+    
+    // 添加蓝色指示器
+    const indicator = document.createElement('div');
+    indicator.className = 'tab-indicator';
+    indicator.style.cssText = 'position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--primary-color); border-radius: 2px;';
+    button.appendChild(indicator);
+    
     // 隐藏所有tab内容
     const tabContents = document.querySelectorAll('.tab-content');
     tabContents.forEach(content => {
         content.classList.remove('active');
     });
     
-    // 移除所有tab按钮的active状态
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    tabBtns.forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
     // 显示当前tab内容
     const currentTabContent = document.getElementById(tabId);
     currentTabContent.classList.add('active');
-    
-    // 激活当前tab按钮
-    button.classList.add('active');
 }
 
 function showConsumptionDetails() {
