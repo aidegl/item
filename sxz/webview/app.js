@@ -1805,6 +1805,7 @@ function renderSettings(container) {
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
                     <p>版本：1.0.9</p>
+                    <p style="margin-top: 12px; font-size: 12px;">Hash ID: ${getHashId()}</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
             </div>
@@ -2462,6 +2463,11 @@ function showToast(message) {
     }, 2000);
 }
 
+// 获取URL中的hash ID
+function getHashId() {
+    return window.location.hash ? window.location.hash.substring(1) : '无';
+}
+
 // ==================== 应用初始化 ====================
 document.addEventListener('DOMContentLoaded', () => {
     AppState.init();
@@ -2473,6 +2479,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.addEventListener('wechatlogin:change', () => {
         if (AppState.currentTab === 'settings') renderCurrentPage();
+
+        // 真实登录后获取患者数据
+        if (window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function') {
+            const userInfo = window.wechatLogin.getUserInfo();
+            const rawUser = userInfo && userInfo.raw ? userInfo.raw : null;
+            const userId = rawUser && rawUser.rowid ? rawUser.rowid : null;
+
+            if (userId && typeof fetchPatientData === 'function') {
+                console.log('真实登录成功，用户ID:', userId);
+                fetchPatientData(userId);
+            }
+        }
     });
     renderCurrentPage();
 });
