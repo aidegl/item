@@ -904,7 +904,7 @@ async function handleAddPatient(event) {
         const rawUser = userInfo.raw || userInfo;
         userRowId = rawUser.rowid || rawUser.rowId;
     }
-    
+
     console.log('当前登录用户rowid:', userRowId);
 
     // 构造明道云API请求体
@@ -915,7 +915,8 @@ async function handleAddPatient(event) {
         { "controlId": "phone", "value": patientData.phone },
         { "controlId": "pastMedicalHistory", "value": patientData.medicalHistory },
         { "controlId": "allergy_history", "value": patientData.allergies },
-        { "controlId": "del", "value": 0 } // 设置为未删除状态
+        { "controlId": "del", "value": 0 },// 设置为未删除状态
+        { "controlId": "yonghu", "value": userRowId } // 关联当前登录用户
     ];
 
     // 打印请求体
