@@ -1793,7 +1793,7 @@ function renderSettings(container) {
                 </div>
             </div>
 
-            <div class="settings-auth-actions">
+            <div class="settings-auth-actions" style="width: 100%; max-width: 100%; display: flex; flex-direction: column; padding: 0 16px; box-sizing: border-box;">
                 ${userInfo ? '' : `<button class="btn btn-secondary btn-lg w-full mb-2" onclick="mockLogin()">模拟登录 (调试用)</button>`}
                 ${userInfo ?
             `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>` :
