@@ -358,8 +358,8 @@ body {
     vertical-align: top;
 }
 
-/* 日期输入框聚焦时保持原样式 */
-.input[type="date"]:focus {
+/* 搜索输入框聚焦时保持原样式 */
+.input.search-input:focus {
     outline: none;
     border-color: var(--primary-color);
     white-space: nowrap;
@@ -367,6 +367,9 @@ body {
     text-overflow: ellipsis;
     height: 40px;
     resize: none;
+    text-align: left;
+    text-align: start;
+    vertical-align: top;
 }
 
 /* 日期输入框特殊样式 */
