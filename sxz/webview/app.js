@@ -805,18 +805,18 @@ function renderAddPatient(container) {
         <!-- 返回按钮 -->
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center;">
-                <button class="btn btn-icon btn-outline" onclick="${isEditMode ? 'goToPatientDetail(AppState.currentPatientId)' : 'backToPatientList()'}" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                        <polyline points="15 18 9 12 15 6"/>
-                    </svg>
-                </button>
-            </div>
-            <div style="font-size: 16px; font-weight: 500; text-align: center;">${pageTitle}</div>
-            <div style="display: flex; align-items: center;">
-                <button class="btn btn-primary" onclick="document.getElementById('addPatientForm').submit()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;">
-                    保存
-                </button>
-            </div>
+                    <button class="btn btn-icon btn-outline" onclick="${isEditMode ? 'goToPatientDetail(AppState.currentPatientId)' : 'backToPatientList()'}" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                    </button>
+                </div>
+                <div style="font-size: 16px; font-weight: 500; text-align: center;">${pageTitle}</div>
+                <div style="display: flex; align-items: center;">
+                    <button class="btn btn-primary" type="submit" form="addPatientForm" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;">
+                        保存
+                    </button>
+                </div>
         </div>
         
         <div class="p-2">
@@ -879,28 +879,84 @@ function renderAddPatient(container) {
     `;
 }
 
-function handleAddPatient(event) {
+async function handleAddPatient(event) {
+    console.log('handleAddPatient函数被调用');
     event.preventDefault();
 
     const form = event.target;
     const formData = new FormData(form);
 
-    const newPatient = {
-        id: Date.now().toString(),
+    // 构造患者数据对象
+    const patientData = {
         name: formData.get('name'),
         age: parseInt(formData.get('age')),
         gender: formData.get('gender'),
         phone: formData.get('phone'),
         medicalHistory: formData.get('medicalHistory') || '无',
-        allergies: formData.get('allergies') || '无',
-        createdAt: new Date().toISOString()
+        allergies: formData.get('allergies') || '无'
     };
 
-    AppState.patients.unshift(newPatient);
-    AppState.saveToStorage();
+    console.log('患者数据对象:', patientData);
 
-    showToast('患者添加成功');
-    backToPatientList();
+    // 构造明道云API请求体
+    const apiControls = [
+        { "controlId": "name", "value": patientData.name },
+        { "controlId": "age", "value": patientData.age },
+        { "controlId": "gender", "value": patientData.gender },
+        { "controlId": "phone", "value": patientData.phone },
+        { "controlId": "medicalHistory", "value": patientData.medicalHistory },
+        { "controlId": "allergies", "value": patientData.allergies },
+        { "controlId": "del", "value": 0 } // 设置为未删除状态
+    ];
+
+    // 打印请求体
+    console.log('明道云API请求体:', { worksheetId: 'hzxxgl', controls: apiControls });
+
+    try {
+        // 检查明道云API组件是否可用
+        if (typeof window.MingDaoYunAddAPI === 'undefined') {
+            console.error('MingDaoYunAddAPI组件未加载');
+            alert('明道云API组件未加载，请刷新页面重试');
+            return;
+        }
+
+        // 调用明道云API添加患者数据
+        console.log('准备创建MingDaoYunAddAPI实例');
+        const api = new window.MingDaoYunAddAPI();
+        console.log('MingDaoYunAddAPI实例创建成功');
+        console.log('准备调用明道云API');
+        const result = await api.getData(
+            'hzxxgl', // 患者数据表别名
+            apiControls
+        );
+        console.log('明道云API调用完成');
+
+        // 打印API调用结果
+        console.log('明道云API添加结果:', result);
+
+        if (result.success) {
+            // 构造新患者对象，使用API返回的rowId作为id
+            const newPatient = {
+                id: result.data.rowId, // 使用明道云返回的rowId
+                ...patientData,
+                createdAt: new Date().toISOString()
+            };
+
+            // 添加到本地存储
+            AppState.patients.unshift(newPatient);
+            AppState.saveToStorage();
+
+            showToast('患者添加成功');
+            backToPatientList();
+        } else {
+            console.error('明道云添加失败:', result.error_msg, '错误代码:', result.error_code);
+            alert('添加失败：' + result.error_msg);
+        }
+    } catch (error) {
+        console.error('调用明道云API异常:', error);
+        console.error('异常堆栈:', error.stack);
+        alert('网络异常，请稍后重试');
+    }
 }
 
 function handleEditPatient(event) {
