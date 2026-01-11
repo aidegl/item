@@ -2014,8 +2014,128 @@ function showMyOrders() {
     showToast('我的订单功能开发中...');
 }
 
+// 会员套餐数据（模拟）
+const membershipPackages = [
+    {
+        id: 1,
+        name: '基础套餐',
+        price: 99,
+        period: '1个月',
+        benefits: ['10次AI咨询', '基础陪诊记录', '药品信息查询']
+    },
+    {
+        id: 2,
+        name: '高级套餐',
+        price: 258,
+        period: '3个月',
+        benefits: ['30次AI咨询', '高级陪诊记录', '药品信息查询', '健康提醒']
+    },
+    {
+        id: 3,
+        name: '尊享套餐',
+        price: 598,
+        period: '6个月',
+        benefits: ['60次AI咨询', '高级陪诊记录', '药品信息查询', '健康提醒', '优先客服']
+    },
+    {
+        id: 4,
+        name: '终身套餐',
+        price: 1998,
+        period: '终身',
+        benefits: ['无限次AI咨询', '高级陪诊记录', '药品信息查询', '健康提醒', '优先客服', '专属顾问']
+    }
+];
+
+// 渲染会员套餐页面
+function renderMembershipPage() {
+    const container = document.getElementById('main-content');
+
+    // 初始选择第一个套餐
+    const selectedPackage = membershipPackages[0];
+
+    container.innerHTML = `
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center;">
+                <button class="btn btn-icon btn-outline" onclick="renderSettings(container)" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="font-size: 16px; font-weight: 500; text-align: center;">会员套餐</div>
+            <div style="width: 72px;"></div> <!-- 占位 -->
+        </div>
+        
+        <div class="p-2">
+            <div class="card mb-2">
+                <h3 class="card-title mb-2">选择套餐</h3>
+                
+                <div class="package-list" id="packageList">
+                    ${membershipPackages.map(pkg => `
+                        <div class="package-item ${pkg.id === selectedPackage.id ? 'selected' : ''}" onclick="selectPackage(${pkg.id})" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px; cursor: pointer; ${pkg.id === selectedPackage.id ? 'border-color: var(--primary-color); background-color: rgba(59, 130, 246, 0.05);' : ''}">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 style="font-size: 16px; font-weight: 600; margin: 0;">${pkg.name}</h4>
+                                <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">¥${pkg.price}</div>
+                            </div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">${pkg.period}</div>
+                            <ul style="margin: 0; padding-left: 16px;">
+                                ${pkg.benefits.map(benefit => `<li style="font-size: 14px; margin-bottom: 4px;">${benefit}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 12px; font-size: 18px; font-weight: 600;">
+                立即开通 (¥${selectedPackage.price})
+            </button>
+        </div>
+    `;
+}
+
+// 选择套餐
+function selectPackage(packageId) {
+    const packageList = document.getElementById('packageList');
+    const subscribeBtn = document.getElementById('subscribeBtn');
+    const pkg = membershipPackages.find(p => p.id === packageId);
+
+    if (!pkg) return;
+
+    // 更新选择状态
+    const packageItems = packageList.querySelectorAll('.package-item');
+    packageItems.forEach(item => {
+        item.classList.remove('selected');
+        item.style.borderColor = 'var(--border-color)';
+        item.style.backgroundColor = 'transparent';
+    });
+
+    const selectedItem = packageList.querySelector(`[onclick="selectPackage(${packageId})"]`);
+    selectedItem.classList.add('selected');
+    selectedItem.style.borderColor = 'var(--primary-color)';
+    selectedItem.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+
+    // 更新按钮价格
+    subscribeBtn.textContent = `立即开通 (¥${pkg.price})`;
+}
+
+// 订阅套餐
+function subscribePackage() {
+    const selectedItem = document.querySelector('.package-item.selected');
+    if (!selectedItem) {
+        showToast('请先选择一个套餐');
+        return;
+    }
+
+    // 获取套餐ID
+    const packageId = parseInt(selectedItem.getAttribute('onclick').match(/\d+/)[0]);
+    const pkg = membershipPackages.find(p => p.id === packageId);
+
+    showToast(`即将开通${pkg.name}，价格¥${pkg.price}`);
+    // 这里可以添加实际的支付逻辑
+}
+
 function showMembershipBenefits() {
-    showToast('会员权益功能开发中...');
+    renderMembershipPage();
 }
 
 function showConsumptionDetails() {
