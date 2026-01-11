@@ -164,6 +164,7 @@ body {
 .btn-danger-outline {
     border-color: var(--danger-color);
     color: var(--danger-color);
+    background-color: #fee2e2;
 }
 
 .btn-danger-outline:hover {
@@ -174,6 +175,22 @@ body {
     display: grid;
     gap: 12px;
     margin-bottom: 16px;
+    width: 100%;
+}
+
+/* 设置按钮宽度为382px */
+.settings-auth-actions .btn {
+    width: 382px;
+    margin: 0;
+}
+
+.btn {
+    text-align: center;
+}
+
+/* 确保全宽按钮的内容居中 */
+.btn.w-full {
+    justify-content: center;
 }
 
 /* 用户信息样式 */

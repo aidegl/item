@@ -632,7 +632,15 @@ function getAIResponse(question) {
 }
 
 // ==================== 患者列表页面 ====================
+// 添加一个标志位，防止API请求无限循环
+let isFetchingPatients = false;
+
 function renderPatientList(container) {
+    // 只在页面首次加载或数据为空时获取API数据，避免无限循环
+    if (AppState.patients.length === 0 && !isFetchingPatients) {
+        fetchPatientData('ae75cf2e-0f73-4137-9e99-116d92c45a47');
+    }
+
     container.innerHTML = `
         <!-- 固定顶部标题和新增按钮 -->
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; justify-content: space-between; align-items: center;">
@@ -709,7 +717,7 @@ function renderAddPatient(container) {
     const patient = isEditMode ? AppState.patients.find(p => p.id === AppState.currentPatientId) : null;
 
     // 设置标题
-    const pageTitle = isEditMode ? '添加患者信息' : '添加患者';
+    const pageTitle = isEditMode ? '编辑患者信息' : '添加患者信息';
 
     // 设置表单提交事件
     const formSubmitEvent = isEditMode ? 'handleEditPatient(event)' : 'handleAddPatient(event)';
@@ -784,6 +792,21 @@ function renderAddPatient(container) {
                 
 
             </form>
+            
+            ${isEditMode ? `
+            <!-- 删除按钮 -->
+            <div style="padding: 0 16px 16px 16px;">
+                <button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="handleDeletePatient('${patient.id}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    删除患者
+                </button>
+            </div>
+            ` : ''}
         </div>
     `;
 }
@@ -842,6 +865,18 @@ function backToPatientList() {
     renderCurrentPage();
 }
 
+function handleDeletePatient(patientId) {
+    if (confirm('确定要删除该患者吗？此操作不可恢复！')) {
+        const patientIndex = AppState.patients.findIndex(p => p.id === patientId);
+        if (patientIndex !== -1) {
+            AppState.patients.splice(patientIndex, 1);
+            AppState.saveToStorage();
+            showToast('患者删除成功');
+            backToPatientList();
+        }
+    }
+}
+
 // ==================== 患者详情页面 ====================
 function renderPatientDetail(container) {
     const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
@@ -898,11 +933,11 @@ function renderPatientDetail(container) {
                     </div>
                     <div class="info-item">
                         <span class="info-label">病史：</span>
-                        <span>${patient.medicalHistory}</span>
+                        <span>${patient.pastMedicalHistory || patient.medicalHistory || ''}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">过敏：</span>
-                        <span>${patient.allergies}</span>
+                        <span>${patient.allergy_history || patient.allergies || ''}</span>
                     </div>
                 </div>
             </div>
@@ -1697,7 +1732,7 @@ function renderSettings(container) {
             </div>
 
             <div class="card mb-2">
-                <h3 class="card-title mb-2">会员与订单</h3>
+                <h3 class="card-title mb-2">会员相关</h3>
                 
                 <div class="list-item" onclick="showMyOrders()">
                     <div class="flex justify-between items-center">
@@ -1819,6 +1854,15 @@ function goToLogin() {
 
 // 获取患者数据函数（调试用）
 function fetchPatientData(userId) {
+    // 如果已经在请求中，直接返回
+    if (isFetchingPatients) {
+        console.log('患者数据请求正在进行中，跳过本次请求');
+        return;
+    }
+
+    // 设置请求中标志
+    isFetchingPatients = true;
+
     console.log('=== 开始获取患者数据（真实API调用） ===');
     console.log('用户ID:', userId);
 
@@ -1868,20 +1912,22 @@ function fetchPatientData(userId) {
             console.log('患者数据API响应数据:', JSON.stringify(data, null, 2));
 
             if (data.success) {
-                // 确保data.data是数组
-                const patientList = Array.isArray(data.data) ? data.data : [];
+                // 确保data.data.rows是数组
+                const patientList = Array.isArray(data.data?.rows) ? data.data.rows : [];
 
-                showToast(`获取到${patientList.length}条患者数据！`);
+                console.log('实际获取到的患者数据:', patientList);
 
                 // 将患者数据保存到应用状态
                 AppState.patients = patientList.map(patient => ({
                     id: patient.rowid,
-                    name: patient.xingming || '未知姓名',
-                    age: patient.nianling || 0,
-                    gender: patient.xingbie || '未知',
-                    phone: patient.dianhua || '未知电话',
-                    medicalHistory: patient.bingshi || '无',
-                    allergies: patient.guomin || '无',
+                    name: patient.name || '未知姓名',
+                    age: patient.age || 0,
+                    gender: patient.gender || '未知',
+                    phone: patient.phone || '未知电话',
+                    pastMedicalHistory: patient.pastMedicalHistory || '无',
+                    allergy_history: patient.allergy_history || '无',
+                    medicalHistory: patient.pastMedicalHistory || '无', // 保持向后兼容
+                    allergies: patient.allergy_history || '无', // 保持向后兼容
                     createdAt: new Date().toISOString()
                 }));
 
@@ -1896,6 +1942,8 @@ function fetchPatientData(userId) {
             showToast(`获取患者数据失败: ${error.message}`);
         })
         .finally(() => {
+            // 重置请求中标志，允许后续请求
+            isFetchingPatients = false;
             console.log('=== 获取患者数据完成 ===');
         });
 }
