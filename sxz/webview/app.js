@@ -232,8 +232,7 @@ function renderAIAssistant(container) {
                         📝 如何记录医嘱？
                     </button>
                 </div>
-            </div>
-        `;
+    `;
 
     container.innerHTML = `
         <!-- 固定顶部上传按钮 -->
@@ -976,7 +975,6 @@ function renderPatientDetail(container) {
                     </div>
                 `).join('')}
             </div>
-        </div>
     `;
 }
 
@@ -1712,7 +1710,6 @@ function renderSettings(container) {
         : '-';
 
     container.innerHTML = `
-        <div class="p-2">
             <div class="card mb-2 user-info-card">
                 <div class="user-avatar-wrapper">
                     <img src="${escapeHtml(userAvatar)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
@@ -1793,7 +1790,7 @@ function renderSettings(container) {
                 </div>
             </div>
 
-            <div class="settings-auth-actions" style="width: 100%; max-width: 100%; display: flex; flex-direction: column; padding: 0 16px; box-sizing: border-box;">
+            <div class="settings-auth-actions">
                 ${userInfo ? '' : `<button class="btn btn-secondary btn-lg w-full mb-2" onclick="mockLogin()">模拟登录 (调试用)</button>`}
                 ${userInfo ?
             `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>` :
@@ -1809,7 +1806,6 @@ function renderSettings(container) {
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
             </div>
-        </div>
     `;
 
     // 移除了 Coze API 测试代码
@@ -2300,25 +2296,25 @@ function switchConsumptionTab(tabId) {
             existingIndicator.remove();
         }
     });
-    
+
     // 获取当前点击的按钮
     const button = event.target;
-    
+
     // 更新当前标签按钮状态并添加指示器
     button.classList.add('active');
-    
+
     // 添加蓝色指示器
     const indicator = document.createElement('div');
     indicator.className = 'tab-indicator';
     indicator.style.cssText = 'position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--primary-color); border-radius: 2px;';
     button.appendChild(indicator);
-    
+
     // 隐藏所有tab内容
     const tabContents = document.querySelectorAll('.tab-content');
     tabContents.forEach(content => {
         content.classList.remove('active');
     });
-    
+
     // 显示当前tab内容
     const currentTabContent = document.getElementById(tabId);
     currentTabContent.classList.add('active');
