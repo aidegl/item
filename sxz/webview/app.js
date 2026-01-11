@@ -1817,6 +1817,89 @@ function goToLogin() {
     showToast('请在小程序内打开以登录');
 }
 
+// 获取患者数据函数（调试用）
+function fetchPatientData(userId) {
+    console.log('=== 开始获取患者数据（真实API调用） ===');
+    console.log('用户ID:', userId);
+
+    // 构造请求体
+    const patientData = {
+        "appKey": "59c7bdc2cdf74e5e",
+        "sign": "YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==",
+        "worksheetId": "hzxxgl",
+        "filters": [
+            {
+                "controlId": "yonghu",
+                "dataType": 2,
+                "spliceType": 1,
+                "filterType": 24,
+                "value": userId
+            },
+            {
+                "controlId": "del",
+                "dataType": 2,
+                "spliceType": 1,
+                "filterType": 2,
+                "value": 0
+            }
+        ],
+        "pageSize": 100,
+        "pageIndex": 1
+    };
+
+    console.log('患者数据请求体:', JSON.stringify(patientData, null, 2));
+
+    // 调用明道云的getFilterRows接口获取患者数据
+    fetch('https://api.mingdao.com/v2/open/worksheet/getFilterRows', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(patientData)
+    })
+        .then(response => {
+            console.log('患者数据API响应状态:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('患者数据API响应数据:', JSON.stringify(data, null, 2));
+
+            if (data.success) {
+                // 确保data.data是数组
+                const patientList = Array.isArray(data.data) ? data.data : [];
+
+                showToast(`获取到${patientList.length}条患者数据！`);
+
+                // 将患者数据保存到应用状态
+                AppState.patients = patientList.map(patient => ({
+                    id: patient.rowid,
+                    name: patient.xingming || '未知姓名',
+                    age: patient.nianling || 0,
+                    gender: patient.xingbie || '未知',
+                    phone: patient.dianhua || '未知电话',
+                    medicalHistory: patient.bingshi || '无',
+                    allergies: patient.guomin || '无',
+                    createdAt: new Date().toISOString()
+                }));
+
+                AppState.saveToStorage();
+                console.log('患者数据已保存到应用状态');
+            } else {
+                showToast(`获取患者数据失败: ${data.error_msg || '未知错误'}`);
+            }
+        })
+        .catch(error => {
+            console.error('患者数据API调用失败:', error);
+            showToast(`获取患者数据失败: ${error.message}`);
+        })
+        .finally(() => {
+            console.log('=== 获取患者数据完成 ===');
+        });
+}
+
 // 模拟登录功能（调试用）
 function mockLogin() {
     console.log('=== 开始模拟登录（真实API调用） ===');
@@ -1874,8 +1957,19 @@ function mockLogin() {
 
                 showToast('登录成功！');
 
+                // 调试信息：打印用户ID
+                console.log('登录成功，用户ID:', data.data.rowid);
+
                 // 重新渲染设置页面
                 renderSettings(document.getElementById('main-content'));
+
+                // 确保fetchPatientData函数存在
+                if (typeof fetchPatientData === 'function') {
+                    console.log('调用fetchPatientData函数');
+                    fetchPatientData(data.data.rowid);
+                } else {
+                    console.error('fetchPatientData函数不存在');
+                }
             } else {
                 // 登录失败
                 showToast(`登录失败: ${data.error_msg || '未知错误'}`);
