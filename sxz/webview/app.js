@@ -257,7 +257,7 @@ function renderAIAssistant(container) {
         
         <!-- 输入框 -->
         <div class="chat-input-container">
-            <textarea id="chatInput" class="input" placeholder="输入您的问题..." onkeypress="handleChatKeyPress(event)" oninput="autoResizeTextarea(this)" style="resize: none; min-height: 40px; max-height: 120px; overflow-y: auto;"></textarea>
+            <textarea id="chatInput" class="input" placeholder="输入您的问题..." onkeypress="handleChatKeyPress(event)" oninput="autoResizeTextarea(this)" style="resize: none; min-height: 40px; max-height: 120px;"></textarea>
             <button class="btn btn-primary btn-icon" onclick="sendMessage()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                     <line x1="22" y1="2" x2="11" y2="13"/>
