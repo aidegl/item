@@ -895,6 +895,16 @@ async function handleAddPatient(event) {
 
     console.log('患者数据对象:', patientData);
 
+    // 获取当前登录用户的rowid
+    let userRowId = null;
+    const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function' ? window.wechatLogin.getUserInfo() : null;
+    if (userInfo) {
+        const rawUser = userInfo.raw || userInfo;
+        userRowId = rawUser.rowid || rawUser.rowId;
+    }
+    
+    console.log('当前登录用户rowid:', userRowId);
+
     // 构造明道云API请求体
     const apiControls = [
         { "controlId": "name", "value": patientData.name },
@@ -903,7 +913,8 @@ async function handleAddPatient(event) {
         { "controlId": "phone", "value": patientData.phone },
         { "controlId": "medicalHistory", "value": patientData.medicalHistory },
         { "controlId": "allergies", "value": patientData.allergies },
-        { "controlId": "del", "value": 0 } // 设置为未删除状态
+        { "controlId": "del", "value": 0 }, // 设置为未删除状态
+        { "controlId": "yonghu", "value": userRowId } // 创建者字段
     ];
 
     // 打印请求体
