@@ -192,7 +192,7 @@ function renderCurrentPage() {
         case 'patients':
             if (AppState.currentView === 'main') {
                 renderPatientList(content);
-            } else if (AppState.currentView === 'add') {
+            } else if (AppState.currentView === 'add' || AppState.currentView === 'edit') {
                 renderAddPatient(content);
             } else if (AppState.currentView === 'detail') {
                 renderPatientDetail(content);
@@ -640,11 +640,7 @@ function renderPatientList(container) {
                 <div style="font-size: 20px; font-weight: 600;">患者库</div>
                 <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">共 ${AppState.patients.length} 位患者</div>
             </div>
-            <button class="btn btn-primary btn-sm" onclick="goToAddPatient()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
+            <button class="btn btn-primary" onclick="goToAddPatient()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;">
                 新增
             </button>
         </div>
@@ -708,59 +704,85 @@ function goToPatientDetail(patientId) {
 
 // ==================== 添加患者页面 ====================
 function renderAddPatient(container) {
+    // 检查是否是编辑模式
+    const isEditMode = AppState.currentView === 'edit';
+    const patient = isEditMode ? AppState.patients.find(p => p.id === AppState.currentPatientId) : null;
+
+    // 设置标题
+    const pageTitle = isEditMode ? '添加患者信息' : '添加患者';
+
+    // 设置表单提交事件
+    const formSubmitEvent = isEditMode ? 'handleEditPatient(event)' : 'handleAddPatient(event)';
+
+    // 填充患者数据
+    const name = patient ? patient.name : '';
+    const age = patient ? patient.age : '';
+    const genderMale = patient && patient.gender === '男' ? 'checked' : '';
+    const genderFemale = patient && patient.gender === '女' ? 'checked' : '';
+    const phone = patient ? patient.phone : '';
+    const medicalHistory = patient ? patient.medicalHistory : '';
+    const allergies = patient ? patient.allergies : '';
+
     container.innerHTML = `
         <!-- 返回按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px; display: flex; align-items: center;">
-            <button class="btn btn-icon btn-outline" onclick="backToPatientList()" style="margin-left: 16px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
-            </button>
-            <div style="margin-left: 12px; font-size: 16px; font-weight: 500;">添加患者</div>
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center;">
+                <button class="btn btn-icon btn-outline" onclick="${isEditMode ? 'goToPatientDetail(AppState.currentPatientId)' : 'backToPatientList()'}" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="font-size: 16px; font-weight: 500; text-align: center;">${pageTitle}</div>
+            <div style="display: flex; align-items: center;">
+                <button class="btn btn-primary" onclick="document.getElementById('addPatientForm').submit()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;">
+                    保存
+                </button>
+            </div>
         </div>
         
         <div class="p-2">
-            <form id="addPatientForm" onsubmit="handleAddPatient(event)">
+            <form id="addPatientForm" onsubmit="${formSubmitEvent}">
                 <div class="card">
                     <div class="form-group">
                         <label class="form-label">姓名 *</label>
-                        <input type="text" name="name" class="input" required placeholder="请输入患者姓名" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <input type="text" name="name" class="input" required placeholder="请输入患者姓名" value="${name}" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">年龄 *</label>
-                        <input type="number" name="age" class="input" required placeholder="请输入年龄" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <input type="number" name="age" class="input" required placeholder="请输入年龄" value="${age}" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">性别 *</label>
                         <div class="flex gap-2">
                             <label class="radio-label">
-                                <input type="radio" name="gender" value="男" required> 男
+                                <input type="radio" name="gender" value="男" required ${genderMale}> 男
                             </label>
                             <label class="radio-label">
-                                <input type="radio" name="gender" value="女" required> 女
+                                <input type="radio" name="gender" value="女" required ${genderFemale}> 女
                             </label>
                         </div>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">联系电话 *</label>
-                        <input type="tel" name="phone" class="input" required placeholder="请输入联系电话" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <input type="tel" name="phone" class="input" required placeholder="请输入联系电话" value="${phone}" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">既往病史</label>
-                        <textarea name="medicalHistory" class="textarea" placeholder="请输入既往病史，如高血压、糖尿病等"></textarea>
+                        <textarea name="medicalHistory" class="textarea" placeholder="请输入既往病史，如高血压、糖尿病等">${medicalHistory}</textarea>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">过敏史</label>
-                        <textarea name="allergies" class="textarea" placeholder="请输入过敏史，如青霉素过敏等"></textarea>
+                        <textarea name="allergies" class="textarea" placeholder="请输入过敏史，如青霉素过敏等">${allergies}</textarea>
                     </div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary w-full mt-2">保存患者信息</button>
+
             </form>
         </div>
     `;
@@ -790,6 +812,30 @@ function handleAddPatient(event) {
     backToPatientList();
 }
 
+function handleEditPatient(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+
+    const patientIndex = AppState.patients.findIndex(p => p.id === AppState.currentPatientId);
+    if (patientIndex !== -1) {
+        AppState.patients[patientIndex] = {
+            ...AppState.patients[patientIndex],
+            name: formData.get('name'),
+            age: parseInt(formData.get('age')),
+            gender: formData.get('gender'),
+            phone: formData.get('phone'),
+            medicalHistory: formData.get('medicalHistory') || '无',
+            allergies: formData.get('allergies') || '无'
+        };
+
+        AppState.saveToStorage();
+        showToast('患者信息更新成功');
+        goToPatientDetail(AppState.currentPatientId);
+    }
+}
+
 function backToPatientList() {
     AppState.currentView = 'main';
     AppState.currentPatientId = null;
@@ -809,13 +855,16 @@ function renderPatientDetail(container) {
 
     container.innerHTML = `
         <!-- 返回按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px; display: flex; align-items: center;">
-            <button class="btn btn-icon btn-outline" onclick="backToPatientList()" style="margin-left: 16px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
-            </button>
-            <div style="margin-left: 12px; font-size: 16px; font-weight: 500;">患者信息</div>
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center;">
+                <button class="btn btn-icon btn-outline" onclick="backToPatientList()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="font-size: 16px; font-weight: 500; text-align: center;">患者信息</div>
+            <div style="width: 72px;"></div> <!-- 占位 -->
         </div>
         
         <div class="p-2">
@@ -904,7 +953,9 @@ function startConsultation(patientId) {
 }
 
 function editPatient(patientId) {
-    showToast('编辑功能开发中...');
+    AppState.currentPatientId = patientId;
+    AppState.currentView = 'edit';
+    renderCurrentPage();
 }
 
 function viewConsultation(consultationId) {
@@ -1035,13 +1086,16 @@ function renderConsultationFlow(container) {
 
     container.innerHTML = `
         <!-- 返回按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px; display: flex; align-items: center;">
-            <button class="btn btn-icon btn-outline" onclick="goToPatientDetail('${patient.id}')" style="margin-left: 16px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
-            </button>
-            <div style="margin-left: 12px; font-size: 16px; font-weight: 500;">创建陪诊记录</div>
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center;">
+                <button class="btn btn-icon btn-outline" onclick="goToPatientDetail('${patient.id}')" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="font-size: 16px; font-weight: 500; text-align: center;">创建陪诊记录</div>
+            <div style="width: 72px;"></div> <!-- 占位 -->
         </div>
         
         <!-- 标签页导航 -->
@@ -1727,6 +1781,7 @@ function renderSettings(container) {
             </div>
 
             <div class="settings-auth-actions">
+                ${userInfo ? '' : `<button class="btn btn-secondary btn-lg w-full mb-2" onclick="mockLogin()">模拟登录 (调试用)</button>`}
                 ${userInfo ?
             `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>` :
             `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()">立即登录</button>`
@@ -1760,6 +1815,104 @@ function goToLogin() {
         return;
     }
     showToast('请在小程序内打开以登录');
+}
+
+// 模拟登录功能（调试用）
+function mockLogin() {
+    console.log('=== 开始模拟登录（真实API调用） ===');
+
+    // 参考明道云API的调用格式
+    const rowid = '0940f8f5-23c9-4111-9265-f2dec3eaeba4';
+    const worksheetId = 'yonghu'; // 用户表的别名
+
+    // 使用与明道云API一致的请求体格式
+    const loginData = {
+        "appKey": "59c7bdc2cdf74e5e",
+        "sign": "YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==",
+        "worksheetId": worksheetId,
+        "rowId": rowid,
+        "getSystemControl": "false"
+    };
+
+    console.log('登录API请求体:', JSON.stringify(loginData, null, 2));
+
+    // 调用明道云的getRowByIdPost接口获取用户信息（参考MingdaoQuery.js）
+    fetch('https://api.mingdao.com/v2/open/worksheet/getRowByIdPost', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData)
+    })
+        .then(response => {
+            console.log('登录API响应状态:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('登录API响应数据:', JSON.stringify(data, null, 2));
+
+            // 处理登录成功的响应
+            if (data.success && data.data) {
+                // 保存用户信息到window.wechatLogin
+                if (!window.wechatLogin) {
+                    window.wechatLogin = {};
+                }
+
+                // 转换明道云返回的用户数据格式为系统需要的格式
+                const userInfo = {
+                    name: data.data.mingcheng || '用户',
+                    avatar: data.data.touxiang || 'https://via.placeholder.com/150',
+                    raw: data.data // 保存原始数据
+                };
+
+                window.wechatLogin.getUserInfo = function () {
+                    return userInfo;
+                };
+
+                showToast('登录成功！');
+
+                // 重新渲染设置页面
+                renderSettings(document.getElementById('main-content'));
+            } else {
+                // 登录失败
+                showToast(`登录失败: ${data.error_msg || '未知错误'}`);
+            }
+        })
+        .catch(error => {
+            console.error('登录API调用失败:', error);
+
+            // 如果API调用失败，可以提供降级方案或提示用户
+            showToast(`登录API调用失败: ${error.message}`);
+
+            // 降级方案：使用模拟数据（仅作为备选）
+            console.log('使用降级方案：模拟登录数据');
+            const mockUserInfo = {
+                name: '调试用户',
+                avatar: 'https://via.placeholder.com/150',
+                raw: {
+                    mingcheng: '调试用户',
+                    touxiang: '',
+                    escortCode: '0940f8f5-23c9-4111-9265-f2dec3eaeba4',
+                    rowid: '0940f8f5-23c9-4111-9265-f2dec3eaeba4'
+                }
+            };
+
+            if (!window.wechatLogin) {
+                window.wechatLogin = {};
+            }
+
+            window.wechatLogin.getUserInfo = function () {
+                return mockUserInfo;
+            };
+
+            renderSettings(document.getElementById('main-content'));
+        })
+        .finally(() => {
+            console.log('=== 模拟登录完成 ===');
+        });
 }
 
 // ==================== 会员与订单功能 ====================
