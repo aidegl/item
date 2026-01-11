@@ -864,14 +864,9 @@ function backToPatientList() {
 }
 
 function handleDeletePatient(patientId) {
-    if (confirm('确定要删除该患者吗？此操作不可恢复！')) {
-        const patientIndex = AppState.patients.findIndex(p => p.id === patientId);
-        if (patientIndex !== -1) {
-            AppState.patients.splice(patientIndex, 1);
-            AppState.saveToStorage();
-            showToast('患者删除成功');
-            backToPatientList();
-        }
+    const patient = AppState.patients.find(p => p.id === patientId);
+    if (patient) {
+        showDeleteVerificationDialog(patientId, patient.name);
     }
 }
 
@@ -1516,6 +1511,164 @@ function addQuestion() {
     }
 
     container.appendChild(newQuestionItem);
+}
+
+// ==================== 删除患者验证对话框 ====================
+function showDeleteVerificationDialog(patientId, patientName) {
+    // 创建对话框容器
+    const dialogContainer = document.createElement('div');
+    dialogContainer.style.position = 'fixed';
+    dialogContainer.style.top = '0';
+    dialogContainer.style.left = '0';
+    dialogContainer.style.right = '0';
+    dialogContainer.style.bottom = '0';
+    dialogContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    dialogContainer.style.display = 'flex';
+    dialogContainer.style.alignItems = 'center';
+    dialogContainer.style.justifyContent = 'center';
+    dialogContainer.style.zIndex = '1000';
+    dialogContainer.style.padding = '20px';
+    dialogContainer.id = 'delete-verification-dialog';
+
+    // 创建对话框内容
+    const dialogContent = document.createElement('div');
+    dialogContent.style.backgroundColor = 'var(--card-bg)';
+    dialogContent.style.borderRadius = '12px';
+    dialogContent.style.maxWidth = '320px';
+    dialogContent.style.width = '100%';
+    dialogContent.style.boxShadow = 'var(--shadow-lg)';
+    dialogContent.style.padding = '20px';
+
+    // 创建对话框头部
+    const dialogHeader = document.createElement('div');
+    dialogHeader.style.marginBottom = '16px';
+
+    const dialogTitle = document.createElement('h3');
+    dialogTitle.style.fontSize = '18px';
+    dialogTitle.style.fontWeight = '600';
+    dialogTitle.style.color = 'var(--danger-color)';
+    dialogTitle.textContent = '确认删除患者';
+
+    dialogHeader.appendChild(dialogTitle);
+
+    // 创建对话框消息
+    const dialogMessage = document.createElement('p');
+    dialogMessage.style.marginTop = '4px';
+    dialogMessage.style.fontSize = '14px';
+    dialogMessage.style.color = 'var(--text-secondary)';
+    dialogMessage.style.lineHeight = '1.5';
+    dialogMessage.innerHTML = '删除后数据不可恢复，请谨慎操作。<br><br>请输入患者姓名 "<strong>' + escapeHtml(patientName) + '</strong>" 进行确认：';
+
+    // 创建输入框
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'input';
+    nameInput.style.marginTop = '12px';
+    nameInput.style.marginBottom = '16px';
+    nameInput.placeholder = '请输入患者姓名';
+
+    // 创建错误提示
+    const errorHint = document.createElement('p');
+    errorHint.style.color = 'var(--danger-color)';
+    errorHint.style.fontSize = '12px';
+    errorHint.style.marginTop = '-12px';
+    errorHint.style.marginBottom = '16px';
+    errorHint.style.display = 'none';
+    errorHint.textContent = '姓名输入错误，请重新输入';
+
+    // 创建对话框按钮区域
+    const dialogButtons = document.createElement('div');
+    dialogButtons.style.display = 'flex';
+    dialogButtons.style.gap = '8px';
+    dialogButtons.style.justifyContent = 'flex-end';
+
+    const cancelButton = document.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.className = 'btn btn-outline';
+    cancelButton.onclick = hideDeleteVerificationDialog;
+    cancelButton.textContent = '取消';
+
+    const confirmButton = document.createElement('button');
+    confirmButton.type = 'button';
+    confirmButton.className = 'btn btn-danger-outline';
+    confirmButton.onclick = () => handleDeleteVerification(patientId, patientName, nameInput, errorHint);
+    confirmButton.textContent = '确认删除';
+
+    dialogButtons.appendChild(cancelButton);
+    dialogButtons.appendChild(confirmButton);
+
+    // 组装对话框
+    dialogContent.appendChild(dialogHeader);
+    dialogContent.appendChild(dialogMessage);
+    dialogContent.appendChild(nameInput);
+    dialogContent.appendChild(errorHint);
+    dialogContent.appendChild(dialogButtons);
+    dialogContainer.appendChild(dialogContent);
+
+    // 添加到页面
+    document.body.appendChild(dialogContainer);
+
+    // 自动聚焦输入框
+    nameInput.focus();
+}
+
+function hideDeleteVerificationDialog() {
+    const dialog = document.getElementById('delete-verification-dialog');
+    if (dialog) {
+        dialog.remove();
+    }
+}
+
+function handleDeleteVerification(patientId, expectedName, nameInput, errorHint) {
+    const enteredName = nameInput.value.trim();
+    if (enteredName === expectedName) {
+        // 姓名验证通过，执行删除操作
+        hideDeleteVerificationDialog();
+        performDeletePatient(patientId);
+    } else {
+        // 姓名验证失败，显示错误提示
+        errorHint.style.display = 'block';
+        nameInput.focus();
+    }
+}
+
+// ==================== 执行患者删除 ====================
+async function performDeletePatient(patientId) {
+    const patient = AppState.patients.find(p => p.id === patientId);
+    if (!patient) return;
+
+    try {
+        // 调用明道云API进行逻辑删除
+        const api = new window.MingDaoYunUpdateAPI();
+        const result = await api.getData(
+            patientId, // rowid
+            'hzxxgl', // 患者数据表别名
+            [
+                {
+                    "controlId": "del",
+                    "value": 1 // 设置为已删除状态
+                }
+            ]
+        );
+
+        if (result.success) {
+            // 从本地数组中删除患者数据
+            const patientIndex = AppState.patients.findIndex(p => p.id === patientId);
+            if (patientIndex !== -1) {
+                AppState.patients.splice(patientIndex, 1);
+                AppState.saveToStorage();
+            }
+
+            showToast('患者删除成功');
+            backToPatientList();
+        } else {
+            console.error('明道云删除失败:', result.error_msg, '错误代码:', result.error_code);
+            alert('删除失败：' + result.error_msg);
+        }
+    } catch (error) {
+        console.error('调用明道云API异常:', error);
+        alert('网络异常，请稍后重试');
+    }
 }
 
 // ==================== 删除问题 ====================
