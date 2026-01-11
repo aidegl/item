@@ -2208,8 +2208,124 @@ function showMembershipBenefits() {
     renderMembershipPage();
 }
 
+// 渲染消耗明细页面
+function renderConsumptionDetailsPage() {
+    const container = document.getElementById('main-content');
+    const bottomNav = document.querySelector('.bottom-nav');
+
+    // 隐藏底部导航栏，因为这是二级页面
+    if (bottomNav) {
+        bottomNav.style.display = 'none';
+    }
+
+    // Mock数据 - 资源点消耗明细
+    const resourceConsumption = [
+        { id: 1, date: '2026-01-10', description: 'AI健康咨询', amount: -5, balance: 125 },
+        { id: 2, date: '2026-01-08', description: '药品信息查询', amount: -3, balance: 130 },
+        { id: 3, date: '2026-01-05', description: '资源点充值', amount: 100, balance: 133 },
+        { id: 4, date: '2026-01-03', description: 'AI健康咨询', amount: -5, balance: 33 },
+        { id: 5, date: '2026-01-01', description: '新年福利', amount: 50, balance: 38 }
+    ];
+
+    // Mock数据 - 报告生成明细
+    const reportGeneration = [
+        { id: 1, date: '2026-01-09', patient: '张三', type: '诊断报告', status: '已完成' },
+        { id: 2, date: '2026-01-06', patient: '李四', type: '陪诊记录', status: '已完成' },
+        { id: 3, date: '2026-01-04', patient: '王五', type: '诊断报告', status: '已完成' },
+        { id: 4, date: '2026-01-02', patient: '赵六', type: '健康评估', status: '已完成' }
+    ];
+
+    container.innerHTML = `
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center;">
+                <button class="btn btn-icon btn-outline" onclick="goBackToSettings()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="font-size: 16px; font-weight: 500; text-align: center;">消耗明细</div>
+            <div style="width: 72px;"></div> <!-- 占位 -->
+        </div>
+        
+        <!-- Tab切换 -->
+        <div class="tab-container mb-2">
+            <button type="button" class="tab-btn active" onclick="switchConsumptionTab('resources', this)">资源点</button>
+            <button type="button" class="tab-btn" onclick="switchConsumptionTab('reports', this)">报告生成</button>
+        </div>
+        
+        <!-- 资源点消耗明细 -->
+        <div id="resources" class="tab-content active">
+            <div class="card mb-2">
+                <h3 class="card-title mb-2">资源点消耗</h3>
+                
+                <div class="p-2">
+                    ${resourceConsumption.map(item => `
+                        <div class="consumption-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+                            <div>
+                                <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px;">${item.description}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${item.date}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 14px; ${item.amount < 0 ? 'color: var(--danger-color);' : 'color: var(--success-color);'}">
+                                    ${item.amount > 0 ? '+' : ''}${item.amount}
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">余额: ${item.balance}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        
+        <!-- 报告生成明细 -->
+        <div id="reports" class="tab-content">
+            <div class="card mb-2">
+                <h3 class="card-title mb-2">报告生成记录</h3>
+                
+                <div class="p-2">
+                    ${reportGeneration.map(item => `
+                        <div class="report-item" style="padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div style="font-size: 14px; font-weight: 500;">${item.type}</div>
+                                <div class="badge badge-success">${item.status}</div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-size: 12px; color: var(--text-secondary);">患者: ${item.patient}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${item.date}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// 消耗明细tab切换功能
+function switchConsumptionTab(tabId, button) {
+    // 隐藏所有tab内容
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // 移除所有tab按钮的active状态
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // 显示当前tab内容
+    const currentTabContent = document.getElementById(tabId);
+    currentTabContent.classList.add('active');
+    
+    // 激活当前tab按钮
+    button.classList.add('active');
+}
+
 function showConsumptionDetails() {
-    showToast('消耗明细功能开发中...');
+    renderConsumptionDetailsPage();
 }
 
 function logout() {
