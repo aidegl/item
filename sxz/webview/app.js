@@ -257,7 +257,7 @@ function renderAIAssistant(container) {
         
         <!-- 输入框 -->
         <div class="chat-input-container">
-            <textarea id="chatInput" class="input" placeholder="输入您的问题..." onkeypress="handleChatKeyPress(event)" oninput="autoResizeTextarea(this)" style="resize: none; min-height: 40px; max-height: 120px; overflow-y: auto;"></textarea>
+            <textarea id="chatInput" class="input" placeholder="输入您的问题..." onkeypress="handleChatKeyPress(event)" oninput="autoResizeTextarea(this)" style="resize: none; min-height: 40px; max-height: 120px;"></textarea>
             <button class="btn btn-primary btn-icon" onclick="sendMessage()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                     <line x1="22" y1="2" x2="11" y2="13"/>
@@ -1774,28 +1774,6 @@ function renderSettings(container) {
                     </div>
                 </div>
                 
-                <div class="list-item" onclick="showToast('功能开发中...')">
-                    <div class="flex justify-between items-center">
-                        <span>通知设置</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
-                            <polyline points="9 18 15 12 9 6"/>
-                        </svg>
-                    </div>
-                </div>
-                
-                <div class="list-item" onclick="showToast('功能开发中...')">
-                    <div class="flex justify-between items-center">
-                        <span>隐私设置</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
-                            <polyline points="9 18 15 12 9 6"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card mb-2">
-                <h3 class="card-title mb-2">数据管理</h3>
-                
                 <div class="list-item" onclick="exportData()">
                     <div class="flex justify-between items-center">
                         <span>导出数据</span>
@@ -1826,7 +1804,7 @@ function renderSettings(container) {
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
-                    <p>版本：1.0.8</p>
+                    <p>版本：1.0.9</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
             </div>
@@ -2193,10 +2171,11 @@ function subscribePackage() {
 
 // 返回设置页面
 function goBackToSettings() {
+    const container = document.getElementById('main-content');
     const bottomNav = document.querySelector('.bottom-nav');
 
     // 重新渲染设置页面
-    renderSettings(document.getElementById('main-content'));
+    renderSettings(container);
 
     // 确保底部导航栏正确显示
     if (bottomNav) {
