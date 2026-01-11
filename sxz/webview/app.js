@@ -232,7 +232,8 @@ function renderAIAssistant(container) {
                         📝 如何记录医嘱？
                     </button>
                 </div>
-    `;
+            </div>
+        `;
 
     container.innerHTML = `
         <!-- 固定顶部上传按钮 -->
@@ -975,6 +976,7 @@ function renderPatientDetail(container) {
                     </div>
                 `).join('')}
             </div>
+        </div>
     `;
 }
 
@@ -1710,6 +1712,7 @@ function renderSettings(container) {
         : '-';
 
     container.innerHTML = `
+        <div class="p-2">
             <div class="card mb-2 user-info-card">
                 <div class="user-avatar-wrapper">
                     <img src="${escapeHtml(userAvatar)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
@@ -1801,11 +1804,12 @@ function renderSettings(container) {
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
-                    <p>版本：1.0.10</p>
+                    <p>版本：1.0.9</p>
                     <p style="margin-top: 12px; font-size: 12px;">Hash ID: ${getHashId()}</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
             </div>
+        </div>
     `;
 
     // 移除了 Coze API 测试代码
