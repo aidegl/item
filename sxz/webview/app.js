@@ -1805,6 +1805,7 @@ function renderSettings(container) {
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
                     <p>版本：1.0.9</p>
+                    <p style="margin-top: 12px; font-size: 12px;">Hash ID: ${getHashId()}</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
             </div>
@@ -2288,17 +2289,17 @@ function switchConsumptionTab(tabId, button) {
     tabContents.forEach(content => {
         content.classList.remove('active');
     });
-    
+
     // 移除所有tab按钮的active状态
     const tabBtns = document.querySelectorAll('.tab-btn');
     tabBtns.forEach(btn => {
         btn.classList.remove('active');
     });
-    
+
     // 显示当前tab内容
     const currentTabContent = document.getElementById(tabId);
     currentTabContent.classList.add('active');
-    
+
     // 激活当前tab按钮
     button.classList.add('active');
 }
@@ -2440,6 +2441,11 @@ function showToast(message) {
             document.body.removeChild(toast);
         }, 300);
     }, 2000);
+}
+
+// 获取URL中的hash ID
+function getHashId() {
+    return window.location.hash ? window.location.hash.substring(1) : '无';
 }
 
 // ==================== 应用初始化 ====================
