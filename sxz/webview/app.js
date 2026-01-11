@@ -795,17 +795,15 @@ function renderAddPatient(container) {
             
             ${isEditMode ? `
             <!-- 删除按钮 -->
-            <div style="padding: 0 16px 16px 16px;">
-                <button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="handleDeletePatient('${patient.id}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>
-                    删除患者
-                </button>
-            </div>
+            <button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="handleDeletePatient('${patient.id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+                删除患者
+            </button>
             ` : ''}
         </div>
     `;
