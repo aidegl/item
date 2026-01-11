@@ -2046,7 +2046,7 @@ const membershipPackages = [
     }
 ];
 
-// 渲染会员套餐页面
+// 渲染会员权益页面
 function renderMembershipPage() {
     const container = document.getElementById('main-content');
     const bottomNav = document.querySelector('.bottom-nav');
@@ -2068,13 +2068,13 @@ function renderMembershipPage() {
                     </svg>
                 </button>
             </div>
-            <div style="font-size: 16px; font-weight: 500; text-align: center;">会员套餐</div>
+            <div style="font-size: 16px; font-weight: 500; text-align: center;">会员权益</div>
             <div style="width: 72px;"></div> <!-- 占位 -->
         </div>
         
-        <div class="p-2">
+        <div class="p-2" style="padding-bottom: 80px;"> <!-- 添加底部空间，避免内容被固定区域遮挡 -->
             <div class="card mb-2">
-                <h3 class="card-title mb-2">选择套餐</h3>
+                <h3 class="card-title mb-2">选择权益</h3>
                 
                 <div class="package-list" id="packageList">
                     ${membershipPackages.map(pkg => `
@@ -2091,15 +2091,18 @@ function renderMembershipPage() {
                     `).join('')}
                 </div>
             </div>
-            
-            <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 12px; font-size: 18px; font-weight: 600;">
+        </div>
+        
+        <!-- 固定底部区域 -->
+        <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: var(--bg-color); border-top: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; z-index: 100;">
+            <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 10px 20px; font-size: 18px; font-weight: 600; text-align: center; border-radius: 8px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
                 立即开通 (¥${selectedPackage.price})
             </button>
         </div>
     `;
 }
 
-// 选择套餐
+// 选择权益
 function selectPackage(packageId) {
     const packageList = document.getElementById('packageList');
     const subscribeBtn = document.getElementById('subscribeBtn');
@@ -2124,11 +2127,11 @@ function selectPackage(packageId) {
     subscribeBtn.textContent = `立即开通 (¥${pkg.price})`;
 }
 
-// 订阅套餐
+// 订阅权益
 function subscribePackage() {
     const selectedItem = document.querySelector('.package-item.selected');
     if (!selectedItem) {
-        showToast('请先选择一个套餐');
+        showToast('请先选择一个权益套餐');
         return;
     }
 
