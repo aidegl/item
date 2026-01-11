@@ -659,13 +659,13 @@ function renderPatientList(container) {
             <div class="search-container" style="position: relative; width: 100%;">
                 <input type="text" 
                        id="patientSearchInput" 
-                       class="input" 
+                       class="input search-input" 
                        placeholder="搜索姓名、电话或病史..." 
                        value="${AppState.patientSearchTerm}"
                        oninput="handlePatientSearch(event)"
                        style="width: 100%; padding-right: 40px; box-sizing: border-box;">
                 <div class="search-icon" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; vertical-align: middle; display: block;">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
@@ -673,8 +673,8 @@ function renderPatientList(container) {
             </div>
         </div>
         
-        <div class="p-2">
-            ${AppState.patients.length === 0 ? renderEmptyPatients() : renderPatientItems()}
+        <div class="p-2" id="patients-list-container">
+            ${renderPatientItems()}
         </div>
     `;
 }
@@ -692,7 +692,10 @@ function renderEmptyPatients() {
 // 处理患者搜索输入
 function handlePatientSearch(event) {
     AppState.patientSearchTerm = event.target.value;
-    renderCurrentPage();
+    const patientsListContainer = document.getElementById('patients-list-container');
+    if (patientsListContainer) {
+        patientsListContainer.innerHTML = renderPatientItems();
+    }
 }
 
 // 过滤患者列表的辅助函数
