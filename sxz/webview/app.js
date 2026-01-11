@@ -239,8 +239,8 @@ function renderAIAssistant(container) {
         <!-- 固定顶部上传按钮 -->
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px;">
             <input type="file" id="imageUploadInput" accept="image/*,.pdf" class="hidden" onchange="handleImageUpload(this)">
-            <button class="upload-btn" onclick="document.getElementById('imageUploadInput').click()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button class="upload-btn" onclick="document.getElementById('imageUploadInput').click()" style="display: flex; align-items: center;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-right: 8px;">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
                     <polyline points="21 15 16 10 5 21"></polyline>
@@ -257,7 +257,7 @@ function renderAIAssistant(container) {
         
         <!-- 输入框 -->
         <div class="chat-input-container">
-            <input type="text" id="chatInput" class="input" placeholder="输入您的问题..." onkeypress="handleChatKeyPress(event)">
+            <textarea id="chatInput" class="input" placeholder="输入您的问题..." onkeypress="handleChatKeyPress(event)" oninput="autoResizeTextarea(this)" style="resize: none; min-height: 40px; max-height: 120px; overflow-y: auto;"></textarea>
             <button class="btn btn-primary btn-icon" onclick="sendMessage()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                     <line x1="22" y1="2" x2="11" y2="13"/>
@@ -475,7 +475,8 @@ function askQuestion(question) {
 }
 
 function handleChatKeyPress(event) {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault(); // 防止插入换行符
         sendMessage();
     }
 }
@@ -497,13 +498,14 @@ function initCozeAPI() {
         sendButton: null,
 
         onStreamingStart: () => {
-            // 添加空的 AI 消息占位
+            // 添加"正在思考中..."的AI消息占位
             AppState.chatMessages.push({
                 role: 'assistant',
-                content: '',
-                timestamp: new Date().toISOString()
+                content: '正在思考中...',
+                timestamp: new Date().toISOString(),
+                isLoading: true
             });
-            // 渲染页面，显示空气泡
+            // 渲染页面，显示加载状态
             renderCurrentPage();
         },
 
@@ -511,6 +513,10 @@ function initCozeAPI() {
             // 更新最后一条消息的内容
             const msgs = AppState.chatMessages;
             if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
+                // 如果是加载状态，移除标记
+                if (msgs[msgs.length - 1].isLoading) {
+                    delete msgs[msgs.length - 1].isLoading;
+                }
                 msgs[msgs.length - 1].content = content;
 
                 // 直接更新 DOM 以获得更好的流式体验
@@ -579,14 +585,24 @@ function sendMessage() {
     if (cozeAPI) {
         cozeAPI.sendMessage(message);
     } else {
-        // 降级处理
+        // 降级处理：先显示加载状态
+        AppState.chatMessages.push({
+            role: 'assistant',
+            content: '正在思考中...',
+            timestamp: new Date().toISOString(),
+            isLoading: true
+        });
+        renderCurrentPage();
+
         setTimeout(() => {
+            // 更新为实际回复
             const aiResponse = "抱歉，智能体服务暂时无法连接。";
-            AppState.chatMessages.push({
-                role: 'assistant',
-                content: aiResponse,
-                timestamp: new Date().toISOString()
-            });
+            const msgs = AppState.chatMessages;
+            if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant' && msgs[msgs.length - 1].isLoading) {
+                delete msgs[msgs.length - 1].isLoading;
+                msgs[msgs.length - 1].content = aiResponse;
+                msgs[msgs.length - 1].timestamp = new Date().toISOString();
+            }
             AppState.saveToStorage();
             renderCurrentPage();
         }, 1000);
@@ -694,25 +710,26 @@ function goToPatientDetail(patientId) {
 function renderAddPatient(container) {
     container.innerHTML = `
         <!-- 返回按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px; display: flex; align-items: center;">
             <button class="btn btn-icon btn-outline" onclick="backToPatientList()" style="margin-left: 16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                     <polyline points="15 18 9 12 15 6"/>
                 </svg>
             </button>
+            <div style="margin-left: 12px; font-size: 16px; font-weight: 500;">添加患者</div>
         </div>
         
         <div class="p-2">
-            <form id="addPatientForm" onsubmit="handleAddPatient(event)">","}}}
+            <form id="addPatientForm" onsubmit="handleAddPatient(event)">
                 <div class="card">
                     <div class="form-group">
                         <label class="form-label">姓名 *</label>
-                        <input type="text" name="name" class="input" required placeholder="请输入患者姓名">
+                        <input type="text" name="name" class="input" required placeholder="请输入患者姓名" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">年龄 *</label>
-                        <input type="number" name="age" class="input" required placeholder="请输入年龄">
+                        <input type="number" name="age" class="input" required placeholder="请输入年龄" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
@@ -729,7 +746,7 @@ function renderAddPatient(container) {
                     
                     <div class="form-group">
                         <label class="form-label">联系电话 *</label>
-                        <input type="tel" name="phone" class="input" required placeholder="请输入联系电话">
+                        <input type="tel" name="phone" class="input" required placeholder="请输入联系电话" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
@@ -792,12 +809,13 @@ function renderPatientDetail(container) {
 
     container.innerHTML = `
         <!-- 返回按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px; display: flex; align-items: center;">
             <button class="btn btn-icon btn-outline" onclick="backToPatientList()" style="margin-left: 16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                     <polyline points="15 18 9 12 15 6"/>
                 </svg>
             </button>
+            <div style="margin-left: 12px; font-size: 16px; font-weight: 500;">患者信息</div>
         </div>
         
         <div class="p-2">
@@ -893,6 +911,119 @@ function viewConsultation(consultationId) {
     showToast('查看陪诊记录功能开发中...');
 }
 
+// 文本框自动调整高度函数
+function autoResizeTextarea(textarea) {
+    // 重置高度为auto，以便准确计算scrollHeight
+    textarea.style.height = 'auto';
+
+    // 设置高度为scrollHeight，但不超过maxHeight
+    const maxHeight = parseInt(textarea.style.maxHeight) || 120;
+    const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = `${newHeight}px`;
+
+    // 如果高度变化，重新计算底部导航栏和输入框容器的位置
+    const inputContainer = document.querySelector('.chat-input-container');
+    const bottomNav = document.querySelector('.bottom-nav');
+    const content = document.querySelector('.ai-chat-content');
+
+    if (inputContainer && bottomNav && content) {
+        const bottomNavHeight = bottomNav.getBoundingClientRect().height;
+        const inputHeight = inputContainer.getBoundingClientRect().height;
+
+        inputContainer.style.bottom = `${bottomNavHeight}px`;
+        content.style.paddingBottom = `${bottomNavHeight + inputHeight + 24}px`;
+    }
+}
+
+// 标签页切换函数
+function switchConsultationTab(tabName) {
+    // 更新标签按钮状态
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+        btn.classList.remove('active');
+        // 移除所有指示器
+        const existingIndicator = btn.querySelector('.tab-indicator');
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+    });
+
+    // 更新当前标签按钮状态并添加指示器
+    const activeBtn = document.querySelector(`[onclick="switchConsultationTab('${tabName}')"]`);
+    activeBtn.classList.add('active');
+
+    // 添加蓝色指示器
+    const indicator = document.createElement('div');
+    indicator.className = 'tab-indicator';
+    indicator.style.cssText = 'position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--primary-color); border-radius: 2px;';
+    activeBtn.appendChild(indicator);
+
+    // 更新标签内容显示
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.add('hidden'));
+    document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+}
+
+// 上传语音函数
+function uploadVoice(tabType) {
+    // 创建隐藏的文件输入
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'audio/*';
+    fileInput.style.display = 'none';
+
+    // 添加文件选择事件处理
+    fileInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            showToast(`正在上传${tabType === 'pre' ? '诊前' : '诊后'}语音...`);
+            // 这里可以添加实际的语音上传逻辑
+            setTimeout(() => {
+                showToast(`语音上传成功：${file.name}`);
+            }, 1000);
+        }
+    });
+
+    // 触发文件选择
+    document.body.appendChild(fileInput);
+    fileInput.click();
+
+    // 清理
+    setTimeout(() => {
+        document.body.removeChild(fileInput);
+    }, 1000);
+}
+
+// OCR识别函数
+function ocrRecognition() {
+    // 创建隐藏的文件输入
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,application/pdf';
+    fileInput.style.display = 'none';
+
+    // 添加文件选择事件处理
+    fileInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            showToast('正在进行OCR识别...');
+            // 这里可以添加实际的OCR识别逻辑
+            setTimeout(() => {
+                showToast(`OCR识别完成：${file.name}`);
+            }, 1500);
+        }
+    });
+
+    // 触发文件选择
+    document.body.appendChild(fileInput);
+    fileInput.click();
+
+    // 清理
+    setTimeout(() => {
+        document.body.removeChild(fileInput);
+    }, 1000);
+}
+
 // ==================== 陪诊流程页面 ====================
 function renderConsultationFlow(container) {
     const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
@@ -904,37 +1035,60 @@ function renderConsultationFlow(container) {
 
     container.innerHTML = `
         <!-- 返回按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px; display: flex; align-items: center;">
             <button class="btn btn-icon btn-outline" onclick="goToPatientDetail('${patient.id}')" style="margin-left: 16px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                     <polyline points="15 18 9 12 15 6"/>
                 </svg>
             </button>
+            <div style="margin-left: 12px; font-size: 16px; font-weight: 500;">创建陪诊记录</div>
+        </div>
+        
+        <!-- 标签页导航 -->
+        <div class="tab-nav" style="position: sticky; top: 60px; z-index: 99; display: flex; border-bottom: 1px solid var(--border-color); background-color: var(--bg-color);">
+            <button class="tab-btn active" onclick="switchConsultationTab('pre')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">诊前</button>
+            <button class="tab-btn" onclick="switchConsultationTab('post')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">诊后</button>
         </div>
         
         <div class="p-2">
             <form id="consultationForm" onsubmit="handleConsultationSubmit(event)">
+                <!-- 诊前内容 -->
+                <div id="pre-tab" class="tab-content">
+                <div class="card mb-2">
+                    <h3 class="card-title mb-2">语音记录</h3>
+                    <div class="upload-voice-section" style="padding: 16px;">
+                        <button class="upload-btn" onclick="uploadVoice('pre')" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-size: 14px; font-weight: 400; width: 100%;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                            </svg>
+                            <span>语音识别</span>
+                        </button>
+                    </div>
+                </div>
                 <div class="card mb-2">
                     <h3 class="card-title mb-2">就诊信息</h3>
                     
                     <div class="form-group">
                         <label class="form-label">就诊日期 *</label>
-                        <input type="date" name="date" class="input" required>
+                        <input type="date" name="date" class="input" required style="height: 40px; resize: none;">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">医院 *</label>
-                        <input type="text" name="hospital" class="input" required placeholder="请输入医院名称">
+                        <input type="text" name="hospital" class="input" required placeholder="请输入医院名称" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">科室</label>
-                        <input type="text" name="department" class="input" placeholder="请输入就诊科室">
+                        <input type="text" name="department" class="input" placeholder="请输入就诊科室" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">医生</label>
-                        <input type="text" name="doctor" class="input" placeholder="请输入医生姓名">
+                        <input type="text" name="doctor" class="input" placeholder="请输入医生姓名" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                 </div>
                 
@@ -948,7 +1102,7 @@ function renderConsultationFlow(container) {
                     
                     <div class="form-group">
                         <label class="form-label">起病时间</label>
-                        <input type="date" name="onsetDate" class="input" placeholder="年/月/日">
+                        <input type="date" name="onsetDate" class="input" placeholder="年/月/日" style="height: 40px; resize: none;">
                     </div>
                     
                     <div class="form-group">
@@ -989,23 +1143,53 @@ function renderConsultationFlow(container) {
                         </div>
                     </div>
                 </div>
+                </div>
                 
-                <div class="card mb-2">
-                    <h3 class="card-title mb-2">诊断结果</h3>
-                    
-                    <div class="form-group">
-                        <label class="form-label">医生诊断</label>
-                        <textarea name="diagnosis" class="textarea" placeholder="请输入医生的诊断结果..."></textarea>
+                <!-- 诊后内容 -->
+                <div id="post-tab" class="tab-content hidden">
+                    <div class="card mb-2">
+                        <h3 class="card-title mb-2">辅助功能</h3>
+                        <div class="upload-buttons-section" style="padding: 8px 0; display: flex; gap: 8px;">
+                            <button class="upload-btn" onclick="uploadVoice('post')" style="display: flex; align-items: center; padding: 8px 16px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; flex: 1; font-size: 14px; font-weight: 400; gap: 0;">
+                                <div style="width: 30%; display: flex; justify-content: center;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                                    </svg>
+                                </div>
+                                <div style="width: 70%; text-align: center; flex-shrink: 0;">语音识别</div>
+                            </button>
+                            <button class="ocr-btn" onclick="ocrRecognition()" style="display: flex; align-items: center; padding: 8px 16px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; flex: 1; font-size: 14px; font-weight: 400;">
+                                <div style="width: 30%; display: flex; justify-content: center;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                </div>
+                                <div style="width: 70%; text-align: center; flex-shrink: 0;">OCR识别</div>
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">用药建议</label>
-                        <textarea name="medication" class="textarea" placeholder="请输入医生开具的药物及用法..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">医嘱</label>
-                        <textarea name="advice" class="textarea" placeholder="请输入医生的其他建议..."></textarea>
+                    <div class="card mb-2">
+                        <h3 class="card-title mb-2">诊断结果</h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">医生诊断</label>
+                            <textarea name="diagnosis" class="textarea" placeholder="请输入医生的诊断结果..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">用药建议</label>
+                            <textarea name="medication" class="textarea" placeholder="请输入医生开具的药物及用法..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">医嘱</label>
+                            <textarea name="advice" class="textarea" placeholder="请输入医生的其他建议..."></textarea>
+                        </div>
                     </div>
                 </div>
                 
@@ -1019,6 +1203,15 @@ function renderConsultationFlow(container) {
 
     // 检查问题输入框数量，确保按钮状态正确
     checkQuestionCount();
+
+    // 为初始激活的标签页添加蓝色指示器
+    const initialActiveBtn = document.querySelector('.tab-btn.active');
+    if (initialActiveBtn) {
+        const indicator = document.createElement('div');
+        indicator.className = 'tab-indicator';
+        indicator.style.cssText = 'position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--primary-color); border-radius: 2px;';
+        initialActiveBtn.appendChild(indicator);
+    }
 }
 
 function handleConsultationSubmit(event) {
