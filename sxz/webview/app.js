@@ -1774,28 +1774,6 @@ function renderSettings(container) {
                     </div>
                 </div>
                 
-                <div class="list-item" onclick="showToast('功能开发中...')">
-                    <div class="flex justify-between items-center">
-                        <span>通知设置</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
-                            <polyline points="9 18 15 12 9 6"/>
-                        </svg>
-                    </div>
-                </div>
-                
-                <div class="list-item" onclick="showToast('功能开发中...')">
-                    <div class="flex justify-between items-center">
-                        <span>隐私设置</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
-                            <polyline points="9 18 15 12 9 6"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card mb-2">
-                <h3 class="card-title mb-2">数据管理</h3>
-                
                 <div class="list-item" onclick="exportData()">
                     <div class="flex justify-between items-center">
                         <span>导出数据</span>
