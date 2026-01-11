@@ -643,19 +643,18 @@ function renderPatientList(container) {
     }
 
     container.innerHTML = `
-        <!-- 固定顶部标题和新增按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <div style="font-size: 20px; font-weight: 600;">患者库</div>
-                <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">共 ${AppState.patients.length} 位患者</div>
+        <!-- 固定顶部标题、新增按钮和搜索框 -->
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <!-- 标题和新增按钮 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div>
+                    <div style="font-size: 20px; font-weight: 600;">患者库</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">共 ${AppState.patients.length} 位患者</div>
+                </div>
+                <button class="btn btn-primary" onclick="goToAddPatient()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;">
+                    新增
+                </button>
             </div>
-            <button class="btn btn-primary" onclick="goToAddPatient()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;">
-                新增
-            </button>
-        </div>
-        
-        <!-- 搜索框 -->
-        <div style="padding: 0 16px 16px 16px;">
             <div class="search-container" style="position: relative; width: 100%;">
                 <input type="text" 
                        id="patientSearchInput" 
@@ -904,8 +903,8 @@ async function handleAddPatient(event) {
         { "controlId": "age", "value": patientData.age },
         { "controlId": "gender", "value": patientData.gender },
         { "controlId": "phone", "value": patientData.phone },
-        { "controlId": "medicalHistory", "value": patientData.medicalHistory },
-        { "controlId": "allergies", "value": patientData.allergies },
+        { "controlId": "pastMedicalHistory", "value": patientData.medicalHistory },
+        { "controlId": "allergy_history", "value": patientData.allergies },
         { "controlId": "del", "value": 0 } // 设置为未删除状态
     ];
 
@@ -935,10 +934,31 @@ async function handleAddPatient(event) {
         console.log('明道云API添加结果:', result);
 
         if (result.success) {
-            // 构造新患者对象，使用API返回的rowId作为id
+            // 处理API返回结果：可能是字符串格式的rowid或包含rowid/rowId的对象
+            let rowId;
+
+            // 检查返回的data类型
+            if (typeof result.data === 'string') {
+                // 直接返回字符串rowid
+                rowId = result.data;
+            } else {
+                // 返回对象，可能包含rowid或rowId
+                rowId = result.data?.rowid || result.data?.rowId;
+            }
+
+            if (!rowId) {
+                console.error('新增患者成功但未返回有效的rowid:', result);
+                showToast('患者添加成功，但无法获取记录ID，可能无法删除');
+                backToPatientList();
+                return;
+            }
+
+            // 构造新患者对象，使用API返回的rowid作为id，并确保转换为字符串类型
             const newPatient = {
-                id: result.data.rowId, // 使用明道云返回的rowId
+                id: String(rowId), // 使用明道云返回的rowid并转换为字符串
                 ...patientData,
+                pastMedicalHistory: patientData.medicalHistory, // 存储为pastMedicalHistory以保持一致性
+                allergy_history: patientData.allergies, // 存储为allergy_history以保持一致性
                 createdAt: new Date().toISOString()
             };
 
@@ -959,7 +979,7 @@ async function handleAddPatient(event) {
     }
 }
 
-function handleEditPatient(event) {
+async function handleEditPatient(event) {
     event.preventDefault();
 
     const form = event.target;
@@ -967,7 +987,7 @@ function handleEditPatient(event) {
 
     const patientIndex = AppState.patients.findIndex(p => p.id === AppState.currentPatientId);
     if (patientIndex !== -1) {
-        AppState.patients[patientIndex] = {
+        const updatedPatient = {
             ...AppState.patients[patientIndex],
             name: formData.get('name'),
             age: parseInt(formData.get('age')),
@@ -977,9 +997,46 @@ function handleEditPatient(event) {
             allergies: formData.get('allergies') || '无'
         };
 
-        AppState.saveToStorage();
-        showToast('患者信息更新成功');
-        goToPatientDetail(AppState.currentPatientId);
+        // 构造明道云API请求体
+        const apiControls = [
+            { "controlId": "name", "value": updatedPatient.name },
+            { "controlId": "age", "value": updatedPatient.age },
+            { "controlId": "gender", "value": updatedPatient.gender },
+            { "controlId": "phone", "value": updatedPatient.phone },
+            { "controlId": "pastMedicalHistory", "value": updatedPatient.medicalHistory },
+            { "controlId": "allergy_history", "value": updatedPatient.allergies }
+        ];
+
+        try {
+            // 检查明道云API组件是否可用
+            if (typeof window.MingDaoYunUpdateAPI === 'undefined') {
+                console.error('MingDaoYunUpdateAPI组件未加载');
+                alert('明道云API组件未加载，请刷新页面重试');
+                return;
+            }
+
+            // 调用明道云API更新患者数据
+            const api = new window.MingDaoYunUpdateAPI();
+            const result = await api.getData(
+                AppState.currentPatientId,
+                'hzxxgl',
+                apiControls
+            );
+
+            if (result.success) {
+                // 更新本地存储
+                AppState.patients[patientIndex] = updatedPatient;
+                AppState.saveToStorage();
+                showToast('患者信息更新成功');
+                goToPatientDetail(AppState.currentPatientId);
+            } else {
+                console.error('明道云更新失败:', result.error_msg, '错误代码:', result.error_code);
+                alert('更新失败：' + result.error_msg);
+            }
+        } catch (error) {
+            console.error('调用明道云API异常:', error);
+            alert('网络异常，请稍后重试');
+        }
     }
 }
 
@@ -1239,7 +1296,7 @@ function renderConsultationFlow(container) {
     }
 
     container.innerHTML = `
-        <!-- 返回按钮 -->
+        <!-- 返回按钮和保存按钮 -->
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center;">
                 <button class="btn btn-icon btn-outline" onclick="goToPatientDetail('${patient.id}')" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
@@ -1249,7 +1306,11 @@ function renderConsultationFlow(container) {
                 </button>
             </div>
             <div style="font-size: 16px; font-weight: 500; text-align: center;">创建陪诊记录</div>
-            <div style="width: 72px;"></div> <!-- 占位 -->
+            <div style="width: 72px; display: flex; justify-content: flex-end;">
+                <button type="submit" form="consultationForm" class="btn btn-primary" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;">
+                    保存
+                </button>
+            </div>
         </div>
         
         <!-- 标签页导航 -->
@@ -1400,9 +1461,8 @@ function renderConsultationFlow(container) {
                         </div>
                     </div>
                 </div>
-                
-                <button type="submit" class="btn btn-primary w-full">保存并生成报告</button>
-            </form>
+        
+        </form>
         </div>
     `;
 
@@ -2382,7 +2442,7 @@ function fetchPatientData(userId) {
 
                 // 将患者数据保存到应用状态
                 AppState.patients = patientList.map(patient => ({
-                    id: patient.rowid,
+                    id: patient.rowid || patient.rowId, // 同时支持小写和驼峰命名的rowid
                     name: patient.name || '未知姓名',
                     age: patient.age || 0,
                     gender: patient.gender || '未知',
