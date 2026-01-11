@@ -172,17 +172,19 @@ body {
 }
 
 .settings-auth-actions {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 12px;
     margin-bottom: 16px;
     width: 100%;
+    box-sizing: border-box;
 }
 
-/* 设置按钮宽度为382px */
+/* 确保按钮使用容器的可用宽度 */
 .settings-auth-actions .btn {
-    width: 382px;
-    margin-left: auto;
-    margin-right: auto;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .btn {
