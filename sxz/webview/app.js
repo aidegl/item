@@ -2049,6 +2049,12 @@ const membershipPackages = [
 // 渲染会员套餐页面
 function renderMembershipPage() {
     const container = document.getElementById('main-content');
+    const bottomNav = document.querySelector('.bottom-nav');
+
+    // 隐藏底部导航栏，因为这是二级页面
+    if (bottomNav) {
+        bottomNav.style.display = 'none';
+    }
 
     // 初始选择第一个套餐
     const selectedPackage = membershipPackages[0];
@@ -2056,7 +2062,7 @@ function renderMembershipPage() {
     container.innerHTML = `
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center;">
-                <button class="btn btn-icon btn-outline" onclick="renderSettings(container)" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                <button class="btn btn-icon btn-outline" onclick="goBackToSettings()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                         <polyline points="15 18 9 12 15 6"/>
                     </svg>
@@ -2132,6 +2138,19 @@ function subscribePackage() {
 
     showToast(`即将开通${pkg.name}，价格¥${pkg.price}`);
     // 这里可以添加实际的支付逻辑
+}
+
+// 返回设置页面
+function goBackToSettings() {
+    const bottomNav = document.querySelector('.bottom-nav');
+
+    // 重新渲染设置页面
+    renderSettings(document.getElementById('main-content'));
+
+    // 确保底部导航栏正确显示
+    if (bottomNav) {
+        bottomNav.style.display = 'flex';
+    }
 }
 
 function showMembershipBenefits() {
