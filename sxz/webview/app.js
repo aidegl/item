@@ -1939,7 +1939,7 @@ function renderSettings(container) {
                     <img src="${escapeHtml(userAvatar)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
                 </div>
                 <div class="user-details">
-                    <div class="user-nickname">${escapeHtml(userNickname)}</div>
+                    <div class="user-nickname" onclick="handleNicknameClick('${userInfo ? 'logged' : 'notlogged'}')" style="cursor: pointer; ${userInfo ? 'text-decoration: underline;' : ''}">${escapeHtml(userNickname)}</div>
                     <div class="user-info-bottom">
                         <span class="user-welcome">欢迎回来</span>
                         <span class="user-id">ID: ${escapeHtml(userId)}</span>
@@ -2050,6 +2050,213 @@ function goToLogin() {
         return;
     }
     showToast('请在小程序内打开以登录');
+}
+
+// 处理昵称点击事件
+function handleNicknameClick(status) {
+    if (status === 'notlogged') {
+        // 未登录状态，跳转到登录
+        goToLogin();
+    } else {
+        // 已登录状态，显示修改昵称对话框
+        showEditNicknameDialog();
+    }
+}
+
+// 显示修改昵称对话框
+function showEditNicknameDialog() {
+    // 获取当前用户信息
+    const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function'
+        ? window.wechatLogin.getUserInfo()
+        : null;
+    const rawUser = userInfo && userInfo.raw ? userInfo.raw : null;
+    const currentNickname = rawUser && rawUser.mingcheng ? rawUser.mingcheng : (userInfo.name || '用户');
+
+    // 创建对话框容器
+    const dialogContainer = document.createElement('div');
+    dialogContainer.style.position = 'fixed';
+    dialogContainer.style.top = '0';
+    dialogContainer.style.left = '0';
+    dialogContainer.style.right = '0';
+    dialogContainer.style.bottom = '0';
+    dialogContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    dialogContainer.style.display = 'flex';
+    dialogContainer.style.alignItems = 'center';
+    dialogContainer.style.justifyContent = 'center';
+    dialogContainer.style.zIndex = '1000';
+    dialogContainer.style.padding = '20px';
+    dialogContainer.id = 'edit-nickname-dialog';
+
+    // 创建对话框内容
+    const dialogContent = document.createElement('div');
+    dialogContent.style.backgroundColor = 'var(--card-bg)';
+    dialogContent.style.borderRadius = '12px';
+    dialogContent.style.maxWidth = '320px';
+    dialogContent.style.width = '100%';
+    dialogContent.style.boxShadow = 'var(--shadow-lg)';
+    dialogContent.style.padding = '20px';
+
+    // 对话框头部
+    const dialogHeader = document.createElement('div');
+    dialogHeader.style.marginBottom = '16px';
+
+    const dialogTitle = document.createElement('h3');
+    dialogTitle.style.fontSize = '18px';
+    dialogTitle.style.fontWeight = '600';
+    dialogTitle.style.color = 'var(--text-primary)';
+    dialogTitle.textContent = '修改昵称';
+
+    dialogHeader.appendChild(dialogTitle);
+
+    // 输入框
+    const nicknameInput = document.createElement('input');
+    nicknameInput.type = 'text';
+    nicknameInput.value = currentNickname;
+    nicknameInput.style.width = '100%';
+    nicknameInput.style.padding = '12px';
+    nicknameInput.style.border = '1px solid var(--border-color)';
+    nicknameInput.style.borderRadius = '8px';
+    nicknameInput.style.fontSize = '16px';
+    nicknameInput.style.marginBottom = '16px';
+    nicknameInput.style.boxSizing = 'border-box';
+
+    // 聚焦输入框并选中内容
+    nicknameInput.onfocus = function () {
+        setTimeout(() => {
+            this.select();
+        }, 100);
+    };
+
+    // 错误提示
+    const errorHint = document.createElement('div');
+    errorHint.style.color = 'var(--danger-color)';
+    errorHint.style.fontSize = '14px';
+    errorHint.style.marginBottom = '16px';
+    errorHint.style.minHeight = '20px';
+
+    // 对话框按钮
+    const dialogButtons = document.createElement('div');
+    dialogButtons.style.display = 'flex';
+    dialogButtons.style.gap = '8px';
+    dialogButtons.style.justifyContent = 'flex-end';
+
+    // 取消按钮
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = '取消';
+    cancelButton.className = 'btn btn-outline';
+    cancelButton.style.width = '80px';
+    cancelButton.onclick = function () {
+        closeEditNicknameDialog();
+    };
+
+    // 确认按钮
+    const confirmButton = document.createElement('button');
+    confirmButton.textContent = '保存';
+    confirmButton.className = 'btn btn-primary';
+    confirmButton.style.width = '80px';
+    confirmButton.onclick = function () {
+        const newNickname = nicknameInput.value.trim();
+        if (!newNickname) {
+            errorHint.textContent = '昵称不能为空';
+            return;
+        }
+        if (newNickname === currentNickname) {
+            errorHint.textContent = '昵称未变化';
+            return;
+        }
+
+        // 更新昵称
+        updateNickname(newNickname);
+    };
+
+    dialogButtons.appendChild(cancelButton);
+    dialogButtons.appendChild(confirmButton);
+
+    // 组装对话框
+    dialogContent.appendChild(dialogHeader);
+    dialogContent.appendChild(nicknameInput);
+    dialogContent.appendChild(errorHint);
+    dialogContent.appendChild(dialogButtons);
+    dialogContainer.appendChild(dialogContent);
+
+    // 添加到页面
+    document.body.appendChild(dialogContainer);
+
+    // 自动聚焦输入框
+    nicknameInput.focus();
+}
+
+// 关闭修改昵称对话框
+function closeEditNicknameDialog() {
+    const dialog = document.getElementById('edit-nickname-dialog');
+    if (dialog) {
+        dialog.remove();
+    }
+}
+
+// 更新昵称函数
+async function updateNickname(newNickname) {
+    try {
+        // 获取当前用户信息
+        const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function'
+            ? window.wechatLogin.getUserInfo()
+            : null;
+
+        if (!userInfo || !userInfo.raw) {
+            showToast('获取用户信息失败');
+            closeEditNicknameDialog();
+            return;
+        }
+
+        const rawUser = userInfo.raw;
+        const rowid = rawUser.rowId || rawUser.id;
+        const worksheetId = 'yonghu'; // 用户表的工作表ID
+
+        if (!rowid) {
+            showToast('获取用户ID失败');
+            closeEditNicknameDialog();
+            return;
+        }
+
+        // 构造更新字段
+        const controls = [
+            {
+                "controlId": "mingcheng", // 昵称字段的controlId
+                "value": newNickname
+            }
+        ];
+
+        console.log('更新昵称请求参数:', { rowid, worksheetId, controls });
+
+        // 调用明道云更新API
+        const api = new window.MingDaoYunUpdateAPI();
+        const result = await api.getData(rowid, worksheetId, controls);
+
+        console.log('更新昵称请求结果:', result);
+
+        if (result.success) {
+            // 更新成功，刷新用户信息
+            if (window.wechatLogin && typeof window.wechatLogin.refreshUserInfo === 'function') {
+                window.wechatLogin.refreshUserInfo();
+            }
+
+            showToast('昵称更新成功');
+            closeEditNicknameDialog();
+
+            // 重新渲染设置页面
+            const container = document.getElementById('main-content');
+            renderSettings(container);
+        } else {
+            // 更新失败
+            const errorMsg = result.error_msg || '昵称更新失败';
+            showToast(errorMsg);
+            console.error('昵称更新失败:', errorMsg);
+        }
+    } catch (error) {
+        // 处理异常
+        console.error('更新昵称异常:', error);
+        showToast('网络异常，请稍后重试');
+    }
 }
 
 // 获取患者数据函数（调试用）
