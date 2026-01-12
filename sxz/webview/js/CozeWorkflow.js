@@ -34,12 +34,15 @@ class CozeWorkflow {
                 throw new Error('Coze API密钥未设置');
             }
 
+            const headers = {
+                'Authorization': `Bearer ${this.bearerToken}`,
+                'Content-Type': 'application/json'
+            };
+            this.log('API请求头', headers);
+
             const response = await fetch(this.apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.bearerToken}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: headers,
                 body: JSON.stringify(requestBody)
             });
 

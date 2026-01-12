@@ -49,11 +49,14 @@ class MingDaoYunArrayAPI {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
         try {
+          const headers = {
+            "Content-Type": "application/json"
+          };
+          console.log("[组件日志] 准备发起请求，请求头：", headers);
+
           const response = await fetch(this.baseUrl, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: headers,
             body: JSON.stringify(requestBody),
             signal: controller.signal
           });

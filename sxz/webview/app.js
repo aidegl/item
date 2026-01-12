@@ -777,10 +777,103 @@ function goToAddPatient() {
     renderCurrentPage();
 }
 
-function goToPatientDetail(patientId) {
+async function goToPatientDetail(patientId) {
     AppState.currentPatientId = patientId;
     AppState.currentView = 'detail';
+    
+    // 加载陪诊记录
+    await loadConsultations(patientId);
+    
     renderCurrentPage();
+}
+
+async function loadConsultations(patientId) {
+    console.log('开始加载陪诊记录, patientId:', patientId);
+    try {
+        if (typeof window.MingDaoYunArrayAPI === 'undefined') {
+            console.error('MingDaoYunArrayAPI未加载');
+            return;
+        }
+
+        const queryParams = {
+            worksheetId: 'pzfwjl',
+            pageSize: 50,
+            pageIndex: 1,
+            filters: [
+                {
+                    "controlId": "patientId",
+                    "dataType": 2,
+                    "spliceType": 1,
+                    "filterType": 24,
+                    "value": patientId
+                },
+                {
+                    "controlId": "del",
+                    "dataType": 2,
+                    "spliceType": 1,
+                    "filterType": 2,
+                    "value": 0
+                }
+            ]
+        };
+
+        console.log('明道云查询请求参数 (pzfwjl):', JSON.stringify(queryParams, null, 2));
+
+        const api = new window.MingDaoYunArrayAPI();
+        const result = await api.getData(queryParams);
+
+        console.log('明道云查询结果:', result);
+
+        // 模仿 fetchPatientData 的取值逻辑，增加健壮性
+        const rows = (result.success && result.data && Array.isArray(result.data.rows)) ? result.data.rows : [];
+        
+        console.log(`实际获取到的陪诊记录数量: ${rows.length}`);
+        if (rows.length > 0) {
+            console.log('第一条原始数据样本:', JSON.stringify(rows[0], null, 2));
+        }
+
+        // 将明道云数据映射回本地格式 (即使 rows 为空也进行更新，以清除旧数据)
+        AppState.consultations = rows.map(row => {
+            // 关键：处理关联字段返回的 JSON 字符串或数组格式
+            let pId = row.patientId;
+            if (typeof pId === 'string' && pId.startsWith('[')) {
+                try {
+                    const parsed = JSON.parse(pId);
+                    pId = parsed[0]?.sid || pId;
+                } catch (e) {}
+            } else if (Array.isArray(pId)) {
+                pId = pId[0]?.sid || pId;
+            }
+
+            return {
+                id: row.rowid || row.rowId,
+                patientId: pId,
+                date: row.appointmentTime,
+                hospital: row.medicalOrgName,
+                department: row.departmentName,
+                doctor: row.doctorName,
+                coreAppeal: row.serviceTitle,
+                onsetDate: row.actualStartDate,
+                duration: row.cxfzsj_pl,
+                associatedSymptoms: row.bszz,
+                patientQuestions: [row.wentiyi, row.wentier, row.wentisan].filter(q => q),
+                doctorAnswers: [row.wtyjd, row.wtejd, row.wtsjd].filter(a => a),
+                diagnosis: row.specialNote,
+                examSummary: row.zhjy,
+                lifestyleAdvice: row.zjbz,
+                followupDate: row.hxfcap,
+                nurseReminder: row.pzszhtx,
+                medication: row.yyzd,
+                advice: row.nextAction,
+                status: 'completed', // 假设从数据库加载的都是已完成或已存在的
+                createdAt: row.ctime
+            };
+        });
+        AppState.saveToStorage();
+        console.log('映射后的陪诊记录:', AppState.consultations);
+    } catch (error) {
+        console.error('加载陪诊记录失败:', error);
+    }
 }
 
 // ==================== 添加患者页面 ====================
@@ -1185,7 +1278,15 @@ function editPatient(patientId) {
 }
 
 function viewConsultation(consultationId) {
-    showToast('查看陪诊记录功能开发中...');
+    const consultation = AppState.consultations.find(c => c.id === consultationId);
+    if (consultation) {
+        AppState.currentPatientId = consultation.patientId;
+        AppState.currentConsultationId = consultationId;
+        AppState.currentView = 'consultation';
+        renderCurrentPage();
+    } else {
+        showToast('未找到该陪诊记录');
+    }
 }
 
 // 文本框自动调整高度函数
@@ -1214,6 +1315,9 @@ function autoResizeTextarea(textarea) {
 
 // 标签页切换函数
 function switchConsultationTab(tabName) {
+    // 每次切换标签时，自动滚动到顶部，确保用户看到的是新页面的开始部分
+    window.scrollTo(0, 0);
+
     // 更新标签按钮状态
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
@@ -1304,6 +1408,8 @@ function ocrRecognition() {
 // ==================== 陪诊流程页面 ====================
 function renderConsultationFlow(container) {
     const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
+    const consultation = AppState.currentConsultationId ? AppState.consultations.find(c => c.id === AppState.currentConsultationId) : null;
+    const isEditMode = !!consultation;
 
     if (!patient) {
         backToPatientList();
@@ -1320,7 +1426,7 @@ function renderConsultationFlow(container) {
                     </svg>
                 </button>
             </div>
-            <div style="font-size: 16px; font-weight: 500; text-align: center;">创建陪诊记录</div>
+            <div style="font-size: 16px; font-weight: 500; text-align: center;">${isEditMode ? '编辑陪诊记录' : '创建陪诊记录'}</div>
             <div style="width: 72px; display: flex; justify-content: flex-end;">
                 <button type="submit" form="consultationForm" class="btn btn-primary" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;">
                     保存
@@ -1329,12 +1435,12 @@ function renderConsultationFlow(container) {
         </div>
         
         <!-- 标签页导航 -->
-        <div class="tab-nav" style="position: sticky; top: 60px; z-index: 99; display: flex; border-bottom: 1px solid var(--border-color); background-color: var(--bg-color);">
+        <div class="tab-nav" style="position: sticky; top: 54px; z-index: 99; display: flex; border-bottom: 1px solid var(--border-color); background-color: var(--bg-color);">
             <button class="tab-btn active" onclick="switchConsultationTab('pre')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">诊前</button>
             <button class="tab-btn" onclick="switchConsultationTab('post')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">诊后</button>
         </div>
         
-        <div class="p-2">
+        <div class="p-2 pt-0">
             <form id="consultationForm" onsubmit="handleConsultationSubmit(event)">
                 <!-- 诊前内容 -->
                 <div id="pre-tab" class="tab-content">
@@ -1357,22 +1463,22 @@ function renderConsultationFlow(container) {
                     
                     <div class="form-group">
                         <label class="form-label">就诊日期 *</label>
-                        <input type="date" name="date" class="input" required style="height: 40px; resize: none;">
+                        <input type="date" name="date" class="input" required style="height: 40px; resize: none;" value="${isEditMode ? formatDateForInput(consultation.date) : new Date().toISOString().split('T')[0]}">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">医院 *</label>
-                        <input type="text" name="hospital" class="input" required placeholder="请输入医院名称" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <input type="text" name="hospital" class="input" required placeholder="请输入医院名称" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" value="${isEditMode ? (consultation.hospital || '') : ''}">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">科室</label>
-                        <input type="text" name="department" class="input" placeholder="请输入就诊科室" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <input type="text" name="department" class="input" placeholder="请输入就诊科室" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" value="${isEditMode ? (consultation.department || '') : ''}">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">医生</label>
-                        <input type="text" name="doctor" class="input" placeholder="请输入医生姓名" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <input type="text" name="doctor" class="input" placeholder="请输入医生姓名" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" value="${isEditMode ? (consultation.doctor || '') : ''}">
                     </div>
                 </div>
                 
@@ -1381,22 +1487,22 @@ function renderConsultationFlow(container) {
                     
                     <div class="form-group">
                         <label class="form-label">就诊核心诉求 *</label>
-                        <textarea name="coreAppeal" class="textarea" required placeholder="示例：确诊反复头痛原因、复查甲状腺结节大小、咨询用药副作用缓解方案等"></textarea>
+                        <textarea name="coreAppeal" class="textarea" required placeholder="示例：确诊反复头痛原因、复查甲状腺结节大小、咨询用药副作用缓解方案等">${isEditMode ? (consultation.coreAppeal || '') : ''}</textarea>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">起病时间</label>
-                        <input type="date" name="onsetDate" class="input" placeholder="年/月/日" style="height: 40px; resize: none;">
+                        <input type="date" name="onsetDate" class="input" placeholder="年/月/日" style="height: 40px; resize: none;" value="${isEditMode ? formatDateForInput(consultation.onsetDate) : ''}">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">持续时间/发作频率</label>
-                        <textarea name="duration" class="textarea" placeholder="请描述症状的持续时间或发作频率"></textarea>
+                        <textarea name="duration" class="textarea" placeholder="请描述症状的持续时间或发作频率">${isEditMode ? (consultation.duration || '') : ''}</textarea>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">伴随症状</label>
-                        <textarea name="associatedSymptoms" class="textarea" placeholder="示例：头痛伴恶心呕吐、咳嗽伴咳痰发热、腹痛伴腹泻等，无则填'无'"></textarea>
+                        <textarea name="associatedSymptoms" class="textarea" placeholder="示例：头痛伴恶心呕吐、咳嗽伴咳痰发热、腹痛伴腹泻等，无则填'无'">${isEditMode ? (consultation.associatedSymptoms || '') : ''}</textarea>
                     </div>
                 </div>
                 
@@ -1404,23 +1510,55 @@ function renderConsultationFlow(container) {
                     <h3 class="card-title mb-2">患者核心疑问</h3>
                     
                     <div id="questions-container">
-                        <div class="form-group question-item" data-question-index="1">
-                            <div class="mb-2">
-                                <h4 class="question-title">问题1</h4>
-                            </div>
-                            <div class="mb-3">
-                                <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2" oninput="syncQuestionsToAnswers()"></textarea>
-                            </div>
-                            <div class="flex justify-end mt-3">
-                                <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                                        <line x1="12" y1="5" x2="12" y2="19"/>
-                                        <line x1="5" y1="12" x2="19" y2="12"/>
-                                    </svg>
-                                    添加问题
-                                </button>
-                            </div>
-                        </div>
+                        ${isEditMode && consultation.patientQuestions && consultation.patientQuestions.length > 0 ? 
+                            consultation.patientQuestions.map((q, i) => `
+                                <div class="form-group question-item" data-question-index="${i+1}">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h4 class="question-title">问题${i+1}</h4>
+                                        ${i > 0 ? `
+                                        <button type="button" class="btn btn-danger-outline btn-sm delete-question-btn" onclick="deleteQuestion(${i+1})">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                                <polyline points="3 6 5 6 21 6"/>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                            </svg>
+                                        </button>
+                                        ` : ''}
+                                    </div>
+                                    <div class="mb-3">
+                                        <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2" oninput="syncQuestionsToAnswers()">${escapeHtml(q)}</textarea>
+                                    </div>
+                                    ${i === consultation.patientQuestions.length - 1 && i < 2 ? `
+                                    <div class="flex justify-end mt-3">
+                                        <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                            添加问题
+                                        </button>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            `).join('') : `
+                                <div class="form-group question-item" data-question-index="1">
+                                    <div class="mb-2">
+                                        <h4 class="question-title">问题1</h4>
+                                    </div>
+                                    <div class="mb-3">
+                                        <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2" oninput="syncQuestionsToAnswers()"></textarea>
+                                    </div>
+                                    <div class="flex justify-end mt-3">
+                                        <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                            </svg>
+                                            添加问题
+                                        </button>
+                                    </div>
+                                </div>
+                            `
+                        }
                     </div>
                 </div>
                 </div>
@@ -1454,22 +1592,22 @@ function renderConsultationFlow(container) {
                         </div>
                     </div>
 
-                    <!-- 疑问解答板块 -->
-                    <div id="answers-container">
-                        <!-- 动态生成的疑问解答项将放在这里 -->
-                    </div>
-
                     <div class="card mb-2">
                         <h3 class="card-title mb-2">诊疗详情</h3>
                         
                         <div class="form-group">
                             <label class="form-label">医生诊断</label>
-                            <textarea name="diagnosis" class="textarea" placeholder="请输入医生的诊疗详情..."></textarea>
+                            <textarea name="diagnosis" class="textarea" placeholder="请输入医生的诊疗详情...">${isEditMode ? (consultation.diagnosis || '') : ''}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">检查结果摘要</label>
+                            <textarea name="examSummary" class="textarea" placeholder="请输入检查结果摘要...">${isEditMode ? (consultation.examSummary || '') : ''}</textarea>
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label">医嘱</label>
-                            <textarea name="advice" class="textarea" placeholder="请输入医生的其他建议..."></textarea>
+                            <label class="form-label">医嘱检查项目</label>
+                            <textarea name="advice" class="textarea" placeholder="请输入医生的其他建议...">${isEditMode ? (consultation.advice || '') : ''}</textarea>
                         </div>
                     </div>
 
@@ -1489,20 +1627,68 @@ function renderConsultationFlow(container) {
                             <!-- 动态生成的用药行将放在这里 -->
                         </div>
                     </div>
+
+                    <!-- 医生诊后建议板块 -->
+                    <div class="card mb-2">
+                        <h3 class="card-title mb-2">医生诊后建议</h3>
+                        <div class="form-group">
+                            <label class="form-label">生活方式调整</label>
+                            <textarea name="lifestyleAdvice" class="textarea" placeholder="如：低盐低脂饮食、加强体育锻炼等...">${isEditMode ? (consultation.lifestyleAdvice || '') : ''}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">后续复查安排</label>
+                            <input type="date" name="followupDate" class="input w-full" value="${isEditMode ? formatDateForInput(consultation.followupDate) : ''}">
+                        </div>
+                    </div>
+
+                    <!-- 疑问解答板块 -->
+                    <div id="answers-container">
+                        <!-- 动态生成的疑问解答项将放在这里 -->
+                    </div>
+
+                    <!-- 其他板块 -->
+                    <div class="card mb-2">
+                        <h3 class="card-title mb-2">其他</h3>
+                        <div class="form-group">
+                            <label class="form-label">陪诊师诊后提醒</label>
+                            <textarea name="nurseReminder" class="textarea" placeholder="请输入陪诊师给患者的诊后温馨提醒...">${isEditMode ? (consultation.nurseReminder || '') : ''}</textarea>
+                        </div>
+                    </div>
+
+                    ${isEditMode ? `
+                    <div style="margin: 20px 0; padding: 0 16px;">
+                        <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                            删除陪诊记录
+                        </button>
+                    </div>
+                    ` : ''}
                 </div>
         
         </form>
         </div>
     `;
 
-    // 设置默认日期为今天
-    document.querySelector('input[name="date"]').value = new Date().toISOString().split('T')[0];
+    // 初始化诊后疑问解答板块
+    if (isEditMode && consultation.doctorAnswers) {
+        syncQuestionsToAnswers(consultation.doctorAnswers);
+    } else {
+        syncQuestionsToAnswers();
+    }
+
+    // 初始化用药记录
+    if (isEditMode && consultation.medication) {
+        try {
+            const medications = JSON.parse(consultation.medication);
+            if (Array.isArray(medications)) {
+                medications.forEach(med => addMedicationRow(med));
+            }
+        } catch (e) {
+            console.error('解析用药记录失败:', e);
+        }
+    }
 
     // 检查问题输入框数量，确保按钮状态正确
     checkQuestionCount();
-
-    // 初始化诊后疑问解答板块
-    syncQuestionsToAnswers();
 
     // 为初始激活的标签页添加蓝色指示器
     const initialActiveBtn = document.querySelector('.tab-btn.active');
@@ -1514,9 +1700,10 @@ function renderConsultationFlow(container) {
     }
 }
 
-function handleConsultationSubmit(event) {
+async function handleConsultationSubmit(event) {
     event.preventDefault();
 
+    const isEditMode = !!AppState.currentConsultationId;
     const form = event.target;
     const formData = new FormData(form);
 
@@ -1555,34 +1742,135 @@ function handleConsultationSubmit(event) {
         }
     });
 
-    const consultation = {
-        id: Date.now().toString(),
-        patientId: AppState.currentPatientId,
-        date: formData.get('date'),
-        hospital: formData.get('hospital'),
-        department: formData.get('department') || '未记录',
-        doctor: formData.get('doctor') || '未记录',
-        coreAppeal: formData.get('coreAppeal'),
-        onsetDate: formData.get('onsetDate'),
-        duration: formData.get('duration'),
-        associatedSymptoms: formData.get('associatedSymptoms') || '未记录',
-        patientQuestions: patientQuestions,
-        doctorAnswers: doctorAnswers,
-        diagnosis: formData.get('diagnosis') || '未记录',
-        medication: JSON.stringify(medicationList),
-        advice: formData.get('advice') || '未记录',
-        status: 'pending',
-        createdAt: new Date().toISOString()
-    };
+    // 构造明道云API请求体
+    const apiControls = [
+        { "controlId": "appointmentTime", "value": formData.get('date') },
+        { "controlId": "medicalOrgName", "value": formData.get('hospital') },
+        { "controlId": "departmentName", "value": formData.get('department') || '未记录' },
+        { "controlId": "doctorName", "value": formData.get('doctor') || '未记录' },
+        { "controlId": "serviceTitle", "value": formData.get('coreAppeal') },
+        { "controlId": "actualStartDate", "value": formData.get('onsetDate') },
+        { "controlId": "cxfzsj_pl", "value": formData.get('duration') },
+        { "controlId": "bszz", "value": formData.get('associatedSymptoms') || '未记录' },
+        { "controlId": "wentiyi", "value": patientQuestions[0] || '' },
+        { "controlId": "wentier", "value": patientQuestions[1] || '' },
+        { "controlId": "wentisan", "value": patientQuestions[2] || '' },
+        { "controlId": "specialNote", "value": formData.get('diagnosis') || '未记录' },
+        { "controlId": "zhjy", "value": formData.get('examSummary') || '未记录' },
+        { "controlId": "nextAction", "value": formData.get('advice') || '未记录' },
+        { "controlId": "yyzd", "value": JSON.stringify(medicationList) },
+        { "controlId": "zjbz", "value": formData.get('lifestyleAdvice') || '未记录' },
+        { "controlId": "hxfcap", "value": formData.get('followupDate') || '未记录' },
+        { "controlId": "wtyjd", "value": doctorAnswers[0] || '' },
+        { "controlId": "wtejd", "value": doctorAnswers[1] || '' },
+        { "controlId": "wtsjd", "value": doctorAnswers[2] || '' },
+        { "controlId": "pzszhtx", "value": formData.get('nurseReminder') || '未记录' },
+        { "controlId": "patientId", "value": AppState.currentPatientId }, // 关联患者ID
+        { "controlId": "del", "value": "0" } // 逻辑删除标识
+    ];
 
-    AppState.consultations.unshift(consultation);
-    AppState.saveToStorage();
+    try {
+        let result;
+        if (isEditMode) {
+            if (typeof window.MingDaoYunUpdateAPI === 'undefined') {
+                showToast('更新API组件未加载，请刷新页面');
+                return;
+            }
+            const api = new window.MingDaoYunUpdateAPI();
+            result = await api.getData(AppState.currentConsultationId, 'pzfwjl', apiControls);
+        } else {
+            if (typeof window.MingDaoYunAddAPI === 'undefined') {
+                showToast('新增API组件未加载，请刷新页面');
+                return;
+            }
+            const api = new window.MingDaoYunAddAPI();
+            result = await api.getData('pzfwjl', apiControls);
+        }
 
-    showToast('陪诊记录已保存');
+        if (result.success) {
+            const rowId = isEditMode ? AppState.currentConsultationId : (typeof result.data === 'string' ? result.data : (result.data?.rowid || result.data?.rowId));
+            
+            const consultation = {
+                id: String(rowId),
+                patientId: AppState.currentPatientId,
+                date: formData.get('date'),
+                hospital: formData.get('hospital'),
+                department: formData.get('department') || '未记录',
+                doctor: formData.get('doctor') || '未记录',
+                coreAppeal: formData.get('coreAppeal'),
+                onsetDate: formData.get('onsetDate'),
+                duration: formData.get('duration'),
+                associatedSymptoms: formData.get('associatedSymptoms') || '未记录',
+                patientQuestions: patientQuestions,
+                doctorAnswers: doctorAnswers,
+                diagnosis: formData.get('diagnosis') || '未记录',
+                examSummary: formData.get('examSummary') || '未记录',
+                lifestyleAdvice: formData.get('lifestyleAdvice') || '未记录',
+                followupDate: formData.get('followupDate') || '未记录',
+                nurseReminder: formData.get('nurseReminder') || '未记录',
+                medication: JSON.stringify(medicationList),
+                advice: formData.get('advice') || '未记录',
+                status: 'completed',
+                createdAt: new Date().toISOString()
+            };
 
-    setTimeout(() => {
-        goToPatientDetail(AppState.currentPatientId);
-    }, 1000);
+            if (isEditMode) {
+                const index = AppState.consultations.findIndex(c => c.id === String(rowId));
+                if (index !== -1) {
+                    AppState.consultations[index] = consultation;
+                }
+            } else {
+                AppState.consultations.unshift(consultation);
+            }
+            
+            AppState.saveToStorage();
+
+            showToast(isEditMode ? '陪诊记录已更新' : '陪诊记录已保存');
+
+            setTimeout(() => {
+                goToPatientDetail(AppState.currentPatientId);
+            }, 1000);
+        } else {
+            console.error('明道云保存失败:', result.error_msg);
+            alert('保存失败：' + result.error_msg);
+        }
+    } catch (error) {
+        console.error('保存异常:', error);
+        alert('网络异常，请稍后重试');
+    }
+}
+
+async function handleConsultationDelete(consultationId) {
+    if (!confirm('确定要删除这条陪诊记录吗？')) {
+        return;
+    }
+
+    try {
+        if (typeof window.MingDaoYunUpdateAPI === 'undefined') {
+            showToast('API组件未加载，请刷新页面');
+            return;
+        }
+
+        const api = new window.MingDaoYunUpdateAPI();
+        const result = await api.getData(consultationId, 'pzfwjl', [
+            { "controlId": "del", "value": "1" }
+        ]);
+
+        if (result.success) {
+            AppState.consultations = AppState.consultations.filter(c => c.id !== consultationId);
+            AppState.saveToStorage();
+            showToast('陪诊记录已删除');
+            setTimeout(() => {
+                goToPatientDetail(AppState.currentPatientId);
+            }, 1000);
+        } else {
+            console.error('明道云删除失败:', result.error_msg);
+            alert('删除失败：' + result.error_msg);
+        }
+    } catch (error) {
+        console.error('删除异常:', error);
+        alert('网络异常，请稍后重试');
+    }
 }
 
 // ==================== 确认对话框 ====================
@@ -1750,7 +2038,7 @@ function addQuestion() {
 }
 
 // ==================== 同步问题到诊后解答板块 ====================
-function syncQuestionsToAnswers() {
+function syncQuestionsToAnswers(initialAnswers = null) {
     const questionsContainer = document.getElementById('questions-container');
     const answersContainer = document.getElementById('answers-container');
     
@@ -1758,10 +2046,14 @@ function syncQuestionsToAnswers() {
 
     const questionTextareas = questionsContainer.querySelectorAll('textarea[name="patientQuestions[]"]');
     
-    // 记录当前的答案，以免重新渲染时丢失
-    const currentAnswers = [];
-    const answerTextareas = answersContainer.querySelectorAll('textarea[name="doctorAnswers[]"]');
-    answerTextareas.forEach(ta => currentAnswers.push(ta.value));
+    // 记录当前的答案，优先使用传入的 initialAnswers，否则使用 DOM 中的
+    let currentAnswers = [];
+    if (initialAnswers && Array.isArray(initialAnswers)) {
+        currentAnswers = initialAnswers;
+    } else {
+        const answerTextareas = answersContainer.querySelectorAll('textarea[name="doctorAnswers[]"]');
+        answerTextareas.forEach(ta => currentAnswers.push(ta.value));
+    }
 
     // 构建新的解答板块 HTML
     if (questionTextareas.length === 0) {
@@ -2051,7 +2343,7 @@ function checkQuestionCount() {
 }
 
 // 用药指导相关功能
-function addMedicationRow() {
+function addMedicationRow(initialData = null) {
     const container = document.getElementById('medication-container');
     if (!container) return;
 
@@ -2071,19 +2363,19 @@ function addMedicationRow() {
         <div class="grid grid-cols-2 gap-2">
             <div class="form-group mb-1">
                 <label class="form-label text-xs" style="font-size: 10px; margin-bottom: 2px;">药物名称</label>
-                <input type="text" name="med_name[]" class="input w-full text-sm" placeholder="如：阿莫西林" style="padding: 4px 8px; font-size: 12px; height: 28px;">
+                <input type="text" name="med_name[]" class="input w-full text-sm" placeholder="如：阿莫西林" style="padding: 4px 8px; font-size: 12px; height: 28px;" value="${initialData ? (initialData.name || '') : ''}">
             </div>
             <div class="form-group mb-1">
                 <label class="form-label text-xs" style="font-size: 10px; margin-bottom: 2px;">服用剂量</label>
-                <input type="text" name="med_dosage[]" class="input w-full text-sm" placeholder="如：3 颗" style="padding: 4px 8px; font-size: 12px; height: 28px;">
+                <input type="text" name="med_dosage[]" class="input w-full text-sm" placeholder="如：3 颗" style="padding: 4px 8px; font-size: 12px; height: 28px;" value="${initialData ? (initialData.dosage || '') : ''}">
             </div>
             <div class="form-group mb-0">
                 <label class="form-label text-xs" style="font-size: 10px; margin-bottom: 2px;">服用频率</label>
-                <input type="text" name="med_frequency[]" class="input w-full text-sm" placeholder="如：早晚" style="padding: 4px 8px; font-size: 12px; height: 28px;">
+                <input type="text" name="med_frequency[]" class="input w-full text-sm" placeholder="如：早晚" style="padding: 4px 8px; font-size: 12px; height: 28px;" value="${initialData ? (initialData.frequency || '') : ''}">
             </div>
             <div class="form-group mb-0">
                 <label class="form-label text-xs" style="font-size: 10px; margin-bottom: 2px;">服用时长</label>
-                <input type="text" name="med_duration[]" class="input w-full text-sm" placeholder="如：4 天" style="padding: 4px 8px; font-size: 12px; height: 28px;">
+                <input type="text" name="med_duration[]" class="input w-full text-sm" placeholder="如：4 天" style="padding: 4px 8px; font-size: 12px; height: 28px;" value="${initialData ? (initialData.duration || '') : ''}">
             </div>
         </div>
     `;
@@ -2573,12 +2865,15 @@ function fetchPatientData(userId) {
 
     console.log('患者数据请求体:', JSON.stringify(patientData, null, 2));
 
+    const headers = {
+        'Content-Type': 'application/json',
+    };
+    console.log('患者数据API请求头:', headers);
+
     // 调用明道云的getFilterRows接口获取患者数据
     fetch('https://api.mingdao.com/v2/open/worksheet/getFilterRows', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(patientData)
     })
         .then(response => {
@@ -2647,12 +2942,15 @@ function mockLogin() {
 
     console.log('登录API请求体:', JSON.stringify(loginData, null, 2));
 
+    const headers = {
+        'Content-Type': 'application/json',
+    };
+    console.log('登录API请求头:', headers);
+
     // 调用明道云的getRowByIdPost接口获取用户信息（参考MingdaoQuery.js）
     fetch('https://api.mingdao.com/v2/open/worksheet/getRowByIdPost', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(loginData)
     })
         .then(response => {
@@ -3099,6 +3397,24 @@ function escapeHtml(text) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+/**
+ * 将日期字符串格式化为 <input type="date"> 所需的 yyyy-MM-dd 格式
+ * @param {string} dateStr 
+ * @returns {string}
+ */
+function formatDateForInput(dateStr) {
+    if (!dateStr) return '';
+    // 如果包含空格，取第一部分 (yyyy-MM-dd)
+    if (dateStr.includes(' ')) {
+        return dateStr.split(' ')[0];
+    }
+    // 如果包含 T，取第一部分
+    if (dateStr.includes('T')) {
+        return dateStr.split('T')[0];
+    }
+    return dateStr;
 }
 
 // 默认头像 (SVG Base64 fallback)

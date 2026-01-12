@@ -367,12 +367,16 @@ class CozeChatAPI {
 
             this._log('API', '发起请求', { url, body: requestBody });
 
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb'
+            };
+
+            this._log('API', '请求头', headers);
+
             const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb'
-                },
+                headers: headers,
                 body: JSON.stringify(requestBody)
             });
 
