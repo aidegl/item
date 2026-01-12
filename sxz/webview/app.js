@@ -2055,33 +2055,33 @@ function addMedicationRow() {
     if (!container) return;
 
     const row = document.createElement('div');
-    row.className = 'medication-row my-2 p-3 bg-gray-50 rounded-lg relative border border-gray-100';
+    row.className = 'medication-row mt-2 mb-1 px-2 py-1 bg-gray-50 rounded-lg relative border border-gray-100';
     row.innerHTML = `
-        <div class="flex justify-between items-center mb-3">
-            <h4 class="text-xs font-semibold text-gray-500">药品条目</h4>
-            <button type="button" class="btn btn-danger-outline btn-sm" onclick="deleteMedicationRow(this)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+        <div class="flex justify-between items-center mb-1">
+            <h4 class="text-xs font-semibold text-gray-500" style="font-size: 10px;">药品条目</h4>
+            <button type="button" class="btn btn-danger-outline btn-sm" onclick="deleteMedicationRow(this)" style="padding: 2px 4px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
                     <polyline points="3 6 5 6 21 6"></polyline>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                 </svg>
             </button>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-            <div class="form-group mb-2">
-                <label class="form-label text-xs">药物名称</label>
-                <input type="text" name="med_name[]" class="input w-full text-sm" placeholder="如：阿莫西林">
+        <div class="grid grid-cols-2 gap-2">
+            <div class="form-group mb-1">
+                <label class="form-label text-xs" style="font-size: 10px; margin-bottom: 2px;">药物名称</label>
+                <input type="text" name="med_name[]" class="input w-full text-sm" placeholder="如：阿莫西林" style="padding: 4px 8px; font-size: 12px; height: 28px;">
             </div>
-            <div class="form-group mb-2">
-                <label class="form-label text-xs">服用剂量</label>
-                <input type="text" name="med_dosage[]" class="input w-full text-sm" placeholder="如：3 颗">
-            </div>
-            <div class="form-group mb-0">
-                <label class="form-label text-xs">服用频率</label>
-                <input type="text" name="med_frequency[]" class="input w-full text-sm" placeholder="如：早晚">
+            <div class="form-group mb-1">
+                <label class="form-label text-xs" style="font-size: 10px; margin-bottom: 2px;">服用剂量</label>
+                <input type="text" name="med_dosage[]" class="input w-full text-sm" placeholder="如：3 颗" style="padding: 4px 8px; font-size: 12px; height: 28px;">
             </div>
             <div class="form-group mb-0">
-                <label class="form-label text-xs">服用时长</label>
-                <input type="text" name="med_duration[]" class="input w-full text-sm" placeholder="如：4 天">
+                <label class="form-label text-xs" style="font-size: 10px; margin-bottom: 2px;">服用频率</label>
+                <input type="text" name="med_frequency[]" class="input w-full text-sm" placeholder="如：早晚" style="padding: 4px 8px; font-size: 12px; height: 28px;">
+            </div>
+            <div class="form-group mb-0">
+                <label class="form-label text-xs" style="font-size: 10px; margin-bottom: 2px;">服用时长</label>
+                <input type="text" name="med_duration[]" class="input w-full text-sm" placeholder="如：4 天" style="padding: 4px 8px; font-size: 12px; height: 28px;">
             </div>
         </div>
     `;
