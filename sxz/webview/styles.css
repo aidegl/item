@@ -509,13 +509,107 @@ body {
     color: var(--text-primary);
 }
 
-/* 徽章 */
-.badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
+/* 用药指导样式 */
+.medication-row {
+    transition: all 0.2s ease;
+}
+
+.medication-row:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.medication-row .input {
+    background-color: var(--bg-color);
+}
+
+/* 按钮样式增强 */
+.btn-danger-outline {
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+.btn-danger-outline:hover {
+    background-color: #fee2e2;
+}
+
+.flex {
+    display: flex;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.grid {
+    display: grid;
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+
+.relative {
+    position: relative;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.top-2 {
+    top: 0.5rem;
+}
+
+.right-2 {
+    right: 0.5rem;
+}
+
+.text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.p-3 {
+    padding: 0.75rem;
+}
+
+.bg-gray-50 {
+    background-color: #f9fafb;
+}
+
+.border-gray-100 {
+    border-color: #f3f4f6;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.my-2 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .badge-primary {
