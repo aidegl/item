@@ -898,6 +898,8 @@ async function loadConsultations(patientId) {
                 nurseReminder: row.pzszhtx,
                 medication: row.yyzd,
                 advice: row.nextAction,
+                shouzhen: (row.shouzhen == '1' || row.shouzhen == 1 || (Array.isArray(row.shouzhen) && row.shouzhen[0] == '1')) ? 1 : 0,
+                firstRecordId: row.firstRecordId,
                 status: (row.specialNote && row.specialNote !== '未记录') ? 'completed' : 'pending',
                 createdAt: row.ctime
             };
@@ -1544,6 +1546,50 @@ function renderConsultationFlow(container) {
                     <h3 class="card-title mb-2">就诊信息</h3>
                     
                     <div class="form-group">
+                        <label class="form-label">是否初诊 *</label>
+                        <div style="display: flex; gap: 20px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                <input type="radio" name="shouzhen" value="1" ${!isEditMode || (consultation.shouzhen == 1 || consultation.shouzhen == '1') ? 'checked' : ''} onchange="handleShouzhenChange(this)">
+                                <span>是</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                <input type="radio" name="shouzhen" value="0" ${isEditMode && (consultation.shouzhen == 0 || consultation.shouzhen == '0') ? 'checked' : ''} onchange="handleShouzhenChange(this)">
+                                <span>否</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="followup-section" style="display: ${isEditMode && (consultation.shouzhen == 0 || consultation.shouzhen == '0') ? 'block' : 'none'}; margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+                        <div class="form-group">
+                            <label class="form-label" style="font-size: 13px;">系统是否记录了该复诊的首次陪诊记录？</label>
+                            <div style="display: flex; gap: 20px; margin-top: 8px;">
+                                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                    <input type="radio" name="hasFirstRecord" value="1" ${isEditMode && consultation.firstRecordId ? 'checked' : ''} onchange="handleHasFirstRecordChange(this)">
+                                    <span style="font-size: 13px;">是</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                    <input type="radio" name="hasFirstRecord" value="0" ${isEditMode && !consultation.firstRecordId ? 'checked' : ''} onchange="handleHasFirstRecordChange(this)">
+                                    <span style="font-size: 13px;">否</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="first-record-selector" style="display: ${isEditMode && consultation.firstRecordId ? 'block' : 'none'}; margin-top: 12px;">
+                            <label class="form-label" style="font-size: 13px;">请选择该复诊的首次陪诊记录 *</label>
+                            <select name="firstRecordId" class="input" style="height: 40px; margin-top: 4px; font-size: 13px;">
+                                <option value="">-- 请选择记录 --</option>
+                                ${AppState.consultations
+                                    .filter(c => c.patientId === AppState.currentPatientId && (c.shouzhen == 1 || c.shouzhen == '1') && c.id !== (isEditMode ? consultation.id : ''))
+                                    .map(c => `
+                                        <option value="${c.id}" ${isEditMode && consultation.firstRecordId === c.id ? 'selected' : ''}>
+                                            ${formatDate(c.date)} - ${c.hospital} - ${c.doctor || '未记录'}
+                                        </option>
+                                    `).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
                         <label class="form-label">就诊日期 *</label>
                         <input type="date" name="date" class="input" style="height: 40px; resize: none;" value="${isEditMode ? formatDateForInput(consultation.date) : new Date().toISOString().split('T')[0]}">
                     </div>
@@ -1805,6 +1851,24 @@ async function handleConsultationSubmit(event) {
         }
     }
 
+    // 初诊/复诊逻辑校验
+    const shouzhen = formData.get('shouzhen');
+    let firstRecordId = null;
+    if (shouzhen === '0') {
+        const hasFirstRecord = formData.get('hasFirstRecord');
+        if (!hasFirstRecord) {
+            showConfirmDialog('请确认系统是否记录了首次陪诊记录！', null, null, '去填写', '');
+            return;
+        }
+        if (hasFirstRecord === '1') {
+            firstRecordId = formData.get('firstRecordId');
+            if (!firstRecordId) {
+                showConfirmDialog('请选择首次陪诊记录！', null, null, '去选择', '');
+                return;
+            }
+        }
+    }
+
     // 获取患者核心疑问和医生解答
     const patientQuestions = [];
     const doctorAnswers = [];
@@ -1863,6 +1927,8 @@ async function handleConsultationSubmit(event) {
         { "controlId": "wtejd", "value": doctorAnswers[1] || '' },
         { "controlId": "wtsjd", "value": doctorAnswers[2] || '' },
         { "controlId": "pzszhtx", "value": formData.get('nurseReminder') || '未记录' },
+        { "controlId": "shouzhen", "value": shouzhen === '1' ? 1 : 0 },
+        { "controlId": "firstRecordId", "value": firstRecordId || '' },
         { "controlId": "patientId", "value": AppState.currentPatientId }, // 关联患者ID
         { "controlId": "del", "value": "0" } // 逻辑删除标识
     ];
@@ -1908,6 +1974,8 @@ async function handleConsultationSubmit(event) {
                 nurseReminder: formData.get('nurseReminder') || '未记录',
                 medication: JSON.stringify(medicationList),
                 advice: formData.get('advice') || '未记录',
+                shouzhen: parseInt(shouzhen),
+                firstRecordId: firstRecordId,
                 status: (formData.get('diagnosis') && formData.get('diagnosis') !== '未记录') ? 'completed' : 'pending',
                 createdAt: new Date().toISOString()
             };
@@ -1973,6 +2041,32 @@ async function handleConsultationDelete(consultationId) {
 }
 
 // ==================== 确认对话框 ====================
+function handleShouzhenChange(radio) {
+    const followupSection = document.getElementById('followup-section');
+    if (radio.value === '0') {
+        followupSection.style.display = 'block';
+    } else {
+        followupSection.style.display = 'none';
+        // 清重置复诊相关的选择
+        const hasFirstRecordRadios = document.getElementsByName('hasFirstRecord');
+        hasFirstRecordRadios.forEach(r => r.checked = false);
+        document.getElementById('first-record-selector').style.display = 'none';
+        const select = document.querySelector('select[name="firstRecordId"]');
+        if (select) select.value = '';
+    }
+}
+
+function handleHasFirstRecordChange(radio) {
+    const selector = document.getElementById('first-record-selector');
+    if (radio.value === '1') {
+        selector.style.display = 'block';
+    } else {
+        selector.style.display = 'none';
+        const select = document.querySelector('select[name="firstRecordId"]');
+        if (select) select.value = '';
+    }
+}
+
 function showConfirmDialog(message, onConfirm, onCancel, confirmText = '确认', cancelText = '取消') {
     // 创建对话框容器
     const dialogContainer = document.createElement('div');
