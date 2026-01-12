@@ -644,7 +644,7 @@ function renderPatientList(container) {
 
     container.innerHTML = `
         <!-- 固定顶部标题、新增按钮和搜索框 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 0;">
             <!-- 标题和新增按钮 -->
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <div>
