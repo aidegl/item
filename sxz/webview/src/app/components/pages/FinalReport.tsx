@@ -117,7 +117,7 @@ export function FinalReport({
           </h2>
 
           <div className="mb-4">
-            <h3 className="text-sm mb-2">(一) 最终诊断结果</h3>
+            <h3 className="text-sm mb-2">(一) 最终诊疗详情</h3>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
               <div className="text-yellow-800">{recordData.diagnosis}</div>
             </div>
