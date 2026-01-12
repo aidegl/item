@@ -3547,7 +3547,7 @@ function renderConsumptionDetailsPage() {
         </div>
         
         <!-- 报告生成明细 -->
-        <div id="reports" class="tab-content">
+        <div id="reports" class="tab-content" style="display: none;">
             <div class="card mb-2">
                 <h3 class="card-title mb-2">报告生成记录</h3>
                 
@@ -3574,7 +3574,7 @@ function renderConsumptionDetailsPage() {
 // 消耗明细tab切换功能
 function switchConsumptionTab(tabId) {
     // 更新标签按钮状态
-    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabButtons = document.querySelectorAll('.tab-nav .tab-btn');
     tabButtons.forEach(btn => {
         btn.classList.remove('active');
         // 移除所有指示器
@@ -3585,7 +3585,7 @@ function switchConsumptionTab(tabId) {
     });
 
     // 获取当前点击的按钮
-    const button = event.target;
+    const button = event.currentTarget;
 
     // 更新当前标签按钮状态并添加指示器
     button.classList.add('active');
@@ -3600,11 +3600,15 @@ function switchConsumptionTab(tabId) {
     const tabContents = document.querySelectorAll('.tab-content');
     tabContents.forEach(content => {
         content.classList.remove('active');
+        content.style.display = 'none';
     });
 
     // 显示当前tab内容
     const currentTabContent = document.getElementById(tabId);
-    currentTabContent.classList.add('active');
+    if (currentTabContent) {
+        currentTabContent.classList.add('active');
+        currentTabContent.style.display = 'block';
+    }
 }
 
 function showConsumptionDetails() {
@@ -3828,7 +3832,7 @@ function initApp() {
         if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
             const userInfo = window.wechatLogin.getUserInfo();
             const rawUser = userInfo && userInfo.raw ? userInfo.raw : null;
-            
+
             // 优先使用真实用户的 rowid，如果没有（可能是模拟登录），则使用 openid 或默认调试 ID
             let userId = rawUser && rawUser.rowid ? rawUser.rowid : null;
             if (!userId) {
