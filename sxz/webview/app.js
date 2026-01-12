@@ -1405,11 +1405,7 @@ function renderConsultationFlow(container) {
                                 <h4 class="question-title">问题1</h4>
                             </div>
                             <div class="mb-3">
-                                <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2"></textarea>
-                            </div>
-                            <div>
-                                <label class="form-label text-sm mb-1">医生解答</label>
-                                <textarea name="doctorAnswers[]" class="textarea w-full" placeholder="请输入医生的解答..."></textarea>
+                                <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2" oninput="syncQuestionsToAnswers()"></textarea>
                             </div>
                             <div class="flex justify-end mt-3">
                                 <button type="button" class="btn btn-outline btn-sm add-question-btn" onclick="addQuestion()">
@@ -1453,22 +1449,40 @@ function renderConsultationFlow(container) {
                             </button>
                         </div>
                     </div>
+
+                    <!-- 疑问解答板块 -->
+                    <div id="answers-container">
+                        <!-- 动态生成的疑问解答项将放在这里 -->
+                    </div>
+
                     <div class="card mb-2">
-                        <h3 class="card-title mb-2">诊断结果</h3>
+                        <h3 class="card-title mb-2">诊疗详情</h3>
                         
                         <div class="form-group">
                             <label class="form-label">医生诊断</label>
-                            <textarea name="diagnosis" class="textarea" placeholder="请输入医生的诊断结果..."></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">用药建议</label>
-                            <textarea name="medication" class="textarea" placeholder="请输入医生开具的药物及用法..."></textarea>
+                            <textarea name="diagnosis" class="textarea" placeholder="请输入医生的诊疗详情..."></textarea>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">医嘱</label>
                             <textarea name="advice" class="textarea" placeholder="请输入医生的其他建议..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 用药指导板块 -->
+                    <div class="card mb-2">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="card-title mb-0">用药指导</h3>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="addMedicationRow()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 4px;">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                添加药物
+                            </button>
+                        </div>
+                        <div id="medication-container">
+                            <!-- 动态生成的用药行将放在这里 -->
                         </div>
                     </div>
                 </div>
@@ -1482,6 +1496,12 @@ function renderConsultationFlow(container) {
 
     // 检查问题输入框数量，确保按钮状态正确
     checkQuestionCount();
+
+    // 初始化诊后疑问解答板块
+    syncQuestionsToAnswers();
+
+    // 初始化用药指导第一行
+    addMedicationRow();
 
     // 为初始激活的标签页添加蓝色指示器
     const initialActiveBtn = document.querySelector('.tab-btn.active');
@@ -1503,9 +1523,9 @@ function handleConsultationSubmit(event) {
     const patientQuestions = [];
     const doctorAnswers = [];
 
-    const questionInputs = form.querySelectorAll('input[name="patientQuestions[]"]');
-    questionInputs.forEach(input => {
-        const value = input.value.trim();
+    const questionTextareas = form.querySelectorAll('textarea[name="patientQuestions[]"]');
+    questionTextareas.forEach(textarea => {
+        const value = textarea.value.trim();
         patientQuestions.push(value || '');
     });
 
@@ -1513,6 +1533,25 @@ function handleConsultationSubmit(event) {
     answerTextareas.forEach(textarea => {
         const value = textarea.value.trim();
         doctorAnswers.push(value || '');
+    });
+
+    // 获取用药指导数据
+    const medicationList = [];
+    const medRows = form.querySelectorAll('.medication-row');
+    medRows.forEach(row => {
+        const nameInput = row.querySelector('input[name="med_name[]"]');
+        const dosageInput = row.querySelector('input[name="med_dosage[]"]');
+        const frequencyInput = row.querySelector('input[name="med_frequency[]"]');
+        const durationInput = row.querySelector('input[name="med_duration[]"]');
+        
+        const name = nameInput ? nameInput.value.trim() : '';
+        const dosage = dosageInput ? dosageInput.value.trim() : '';
+        const frequency = frequencyInput ? frequencyInput.value.trim() : '';
+        const duration = durationInput ? durationInput.value.trim() : '';
+        
+        if (name) {
+            medicationList.push({ name, dosage, frequency, duration });
+        }
     });
 
     const consultation = {
@@ -1529,7 +1568,7 @@ function handleConsultationSubmit(event) {
         patientQuestions: patientQuestions,
         doctorAnswers: doctorAnswers,
         diagnosis: formData.get('diagnosis') || '未记录',
-        medication: formData.get('medication') || '未记录',
+        medication: JSON.stringify(medicationList),
         advice: formData.get('advice') || '未记录',
         status: 'pending',
         createdAt: new Date().toISOString()
@@ -1684,11 +1723,7 @@ function addQuestion() {
             </button>
         </div>
         <div class="mb-3">
-            <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2"></textarea>
-        </div>
-        <div>
-            <label class="form-label text-sm mb-1">医生解答</label>
-            <textarea name="doctorAnswers[]" class="textarea w-full" placeholder="请输入医生的解答..."></textarea>
+            <textarea name="patientQuestions[]" class="textarea w-full" placeholder="请输入患者的核心疑问" rows="2" oninput="syncQuestionsToAnswers()"></textarea>
         </div>
     `;
 
@@ -1708,6 +1743,58 @@ function addQuestion() {
     }
 
     container.appendChild(newQuestionItem);
+    
+    // 同步到诊后板块
+    syncQuestionsToAnswers();
+}
+
+// ==================== 同步问题到诊后解答板块 ====================
+function syncQuestionsToAnswers() {
+    const questionsContainer = document.getElementById('questions-container');
+    const answersContainer = document.getElementById('answers-container');
+    
+    if (!questionsContainer || !answersContainer) return;
+
+    const questionTextareas = questionsContainer.querySelectorAll('textarea[name="patientQuestions[]"]');
+    
+    // 记录当前的答案，以免重新渲染时丢失
+    const currentAnswers = [];
+    const answerTextareas = answersContainer.querySelectorAll('textarea[name="doctorAnswers[]"]');
+    answerTextareas.forEach(ta => currentAnswers.push(ta.value));
+
+    // 构建新的解答板块 HTML
+    if (questionTextareas.length === 0) {
+        answersContainer.innerHTML = '';
+        return;
+    }
+
+    let itemsHtml = '';
+    questionTextareas.forEach((textarea, index) => {
+        const questionText = textarea.value.trim() || '(请在诊前页填写问题内容)';
+        const savedAnswer = currentAnswers[index] || '';
+        const questionNum = index + 1;
+        
+        itemsHtml += `
+            <div class="answer-item mb-3" data-answer-index="${questionNum}">
+                <div class="form-group mb-1">
+                    <div class="question-display" style="display: block; font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.5;">
+                        问题${questionNum}：${escapeHtml(questionText)}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="font-size: 13px; color: var(--text-secondary); font-weight: 400;">医生解答：</label>
+                    <textarea name="doctorAnswers[]" class="textarea w-full" placeholder="请输入医生的解答..." rows="3">${escapeHtml(savedAnswer)}</textarea>
+                </div>
+            </div>
+        `;
+    });
+
+    answersContainer.innerHTML = `
+        <div class="card mb-2">
+            <h3 class="card-title mb-3">患者疑问解答</h3>
+            ${itemsHtml}
+        </div>
+    `;
 }
 
 // ==================== 删除患者验证对话框 ====================
@@ -1936,6 +2023,9 @@ function deleteQuestion(index) {
                         addBtn.style.display = 'inline-flex';
                     }
                 }
+                
+                // 同步到诊后板块
+                syncQuestionsToAnswers();
             }
         },
         () => {
@@ -1956,6 +2046,58 @@ function checkQuestionCount() {
                 btn.style.display = 'none';
             });
         }
+    }
+}
+
+// 用药指导相关功能
+function addMedicationRow() {
+    const container = document.getElementById('medication-container');
+    if (!container) return;
+
+    const row = document.createElement('div');
+    row.className = 'medication-row my-2 p-3 bg-gray-50 rounded-lg relative border border-gray-100';
+    row.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <h4 class="text-xs font-semibold text-gray-500">药品条目</h4>
+            <button type="button" class="btn btn-danger-outline btn-sm" onclick="deleteMedicationRow(this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="form-group mb-2">
+                <label class="form-label text-xs">药物名称</label>
+                <input type="text" name="med_name[]" class="input w-full text-sm" placeholder="如：阿莫西林">
+            </div>
+            <div class="form-group mb-2">
+                <label class="form-label text-xs">服用剂量</label>
+                <input type="text" name="med_dosage[]" class="input w-full text-sm" placeholder="如：3 颗">
+            </div>
+            <div class="form-group mb-0">
+                <label class="form-label text-xs">服用频率</label>
+                <input type="text" name="med_frequency[]" class="input w-full text-sm" placeholder="如：早晚">
+            </div>
+            <div class="form-group mb-0">
+                <label class="form-label text-xs">服用时长</label>
+                <input type="text" name="med_duration[]" class="input w-full text-sm" placeholder="如：4 天">
+            </div>
+        </div>
+    `;
+    container.appendChild(row);
+}
+
+function deleteMedicationRow(button) {
+    const row = button.closest('.medication-row');
+    const container = document.getElementById('medication-container');
+    
+    // 至少保留一行
+    if (container.querySelectorAll('.medication-row').length > 1) {
+        row.remove();
+    } else {
+        // 如果是最后一行，则清空内容而不是删除
+        row.querySelectorAll('input').forEach(input => input.value = '');
     }
 }
 
