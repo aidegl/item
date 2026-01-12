@@ -668,7 +668,7 @@ function renderPatientList(container) {
         if (!openid) {
             openid = localStorage.getItem('openid') || '';
         }
-        
+
         fetchPatientData(openid || 'ae75cf2e-0f73-4137-9e99-116d92c45a47');
     }
 
@@ -807,10 +807,10 @@ function goToAddPatient() {
 async function goToPatientDetail(patientId) {
     AppState.currentPatientId = patientId;
     AppState.currentView = 'detail';
-    
+
     // 加载陪诊记录
     await loadConsultations(patientId);
-    
+
     renderCurrentPage();
 }
 
@@ -853,7 +853,7 @@ async function loadConsultations(patientId) {
 
         // 模仿 fetchPatientData 的取值逻辑，增加健壮性
         const rows = (result.success && result.data && Array.isArray(result.data.rows)) ? result.data.rows : [];
-        
+
         console.log(`实际获取到的陪诊记录数量: ${rows.length}`);
         if (rows.length > 0) {
             console.log('第一条原始数据样本:', JSON.stringify(rows[0], null, 2));
@@ -867,7 +867,7 @@ async function loadConsultations(patientId) {
                 try {
                     const parsed = JSON.parse(pId);
                     pId = parsed[0]?.sid || pId;
-                } catch (e) {}
+                } catch (e) { }
             } else if (Array.isArray(pId)) {
                 pId = pId[0]?.sid || pId;
             }
@@ -1554,13 +1554,13 @@ function renderConsultationFlow(container) {
                     <h3 class="card-title mb-2">患者核心疑问</h3>
                     
                     <div id="questions-container">
-                        ${isEditMode && consultation.patientQuestions && consultation.patientQuestions.length > 0 ? 
-                            consultation.patientQuestions.map((q, i) => `
-                                <div class="form-group question-item" data-question-index="${i+1}">
+                        ${isEditMode && consultation.patientQuestions && consultation.patientQuestions.length > 0 ?
+            consultation.patientQuestions.map((q, i) => `
+                                <div class="form-group question-item" data-question-index="${i + 1}">
                                     <div class="flex justify-between items-center mb-2">
-                                        <h4 class="question-title">问题${i+1}</h4>
+                                        <h4 class="question-title">问题${i + 1}</h4>
                                         ${i > 0 ? `
-                                        <button type="button" class="btn btn-danger-outline btn-sm delete-question-btn" onclick="deleteQuestion(${i+1})">
+                                        <button type="button" class="btn btn-danger-outline btn-sm delete-question-btn" onclick="deleteQuestion(${i + 1})">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
                                                 <polyline points="3 6 5 6 21 6"/>
                                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -1602,7 +1602,7 @@ function renderConsultationFlow(container) {
                                     </div>
                                 </div>
                             `
-                        }
+        }
                     </div>
                 </div>
                 </div>
@@ -1776,12 +1776,12 @@ async function handleConsultationSubmit(event) {
         const dosageInput = row.querySelector('input[name="med_dosage[]"]');
         const frequencyInput = row.querySelector('input[name="med_frequency[]"]');
         const durationInput = row.querySelector('input[name="med_duration[]"]');
-        
+
         const name = nameInput ? nameInput.value.trim() : '';
         const dosage = dosageInput ? dosageInput.value.trim() : '';
         const frequency = frequencyInput ? frequencyInput.value.trim() : '';
         const duration = durationInput ? durationInput.value.trim() : '';
-        
+
         if (name) {
             medicationList.push({ name, dosage, frequency, duration });
         }
@@ -1834,7 +1834,7 @@ async function handleConsultationSubmit(event) {
 
         if (result.success) {
             const rowId = isEditMode ? AppState.currentConsultationId : (typeof result.data === 'string' ? result.data : (result.data?.rowid || result.data?.rowId));
-            
+
             const consultation = {
                 id: String(rowId),
                 patientId: AppState.currentPatientId,
@@ -1867,7 +1867,7 @@ async function handleConsultationSubmit(event) {
             } else {
                 AppState.consultations.unshift(consultation);
             }
-            
+
             AppState.saveToStorage();
 
             showToast(isEditMode ? '陪诊记录已更新' : '陪诊记录已保存');
@@ -2078,7 +2078,7 @@ function addQuestion() {
     }
 
     container.appendChild(newQuestionItem);
-    
+
     // 同步到诊后板块
     syncQuestionsToAnswers();
 }
@@ -2087,11 +2087,11 @@ function addQuestion() {
 function syncQuestionsToAnswers(initialAnswers = null) {
     const questionsContainer = document.getElementById('questions-container');
     const answersContainer = document.getElementById('answers-container');
-    
+
     if (!questionsContainer || !answersContainer) return;
 
     const questionTextareas = questionsContainer.querySelectorAll('textarea[name="patientQuestions[]"]');
-    
+
     // 记录当前的答案，优先使用传入的 initialAnswers，否则使用 DOM 中的
     let currentAnswers = [];
     if (initialAnswers && Array.isArray(initialAnswers)) {
@@ -2112,7 +2112,7 @@ function syncQuestionsToAnswers(initialAnswers = null) {
         const questionText = textarea.value.trim() || '(请在诊前页填写问题内容)';
         const savedAnswer = currentAnswers[index] || '';
         const questionNum = index + 1;
-        
+
         itemsHtml += `
             <div class="answer-item mb-3" data-answer-index="${questionNum}">
                 <div class="form-group mb-1">
@@ -2362,7 +2362,7 @@ function deleteQuestion(index) {
                         addBtn.style.display = 'inline-flex';
                     }
                 }
-                
+
                 // 同步到诊后板块
                 syncQuestionsToAnswers();
             }
@@ -3085,7 +3085,161 @@ function mockLogin() {
 
 // ==================== 会员与订单功能 ====================
 function showMyOrders() {
-    showToast('我的订单功能开发中...');
+    renderMyOrdersPage();
+}
+
+// 渲染我的订单页面
+function renderMyOrdersPage() {
+    const container = document.getElementById('main-content');
+    const bottomNav = document.querySelector('.bottom-nav');
+
+    // 隐藏底部导航栏，因为这是二级页面
+    if (bottomNav) {
+        bottomNav.style.display = 'none';
+    }
+
+    // Mock数据 - 我的订单
+    const myOrders = [
+        { id: 'ORD20260112001', date: '2026-01-12 10:30', name: '高级套餐 (3个月)', price: 258, status: '已支付', statusClass: 'success' },
+        { id: 'ORD20260105002', date: '2026-01-05 15:45', name: '资源点充值 (100点)', price: 99, status: '已支付', statusClass: 'success' },
+        { id: 'ORD20251228003', date: '2025-12-28 09:20', name: '基础套餐 (1个月)', price: 99, status: '已完成', statusClass: 'secondary' },
+        { id: 'ORD20251215004', date: '2025-12-15 14:10', name: '资源点充值 (50点)', price: 50, status: '已取消', statusClass: 'danger' }
+    ];
+
+    container.innerHTML = `
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center;">
+                <button class="btn btn-icon btn-outline" onclick="goBackToSettings()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="font-size: 16px; font-weight: 500; text-align: center;">我的订单</div>
+            <div style="width: 72px;"></div> <!-- 占位 -->
+        </div>
+        
+        <!-- Tab切换 -->
+        <div class="tab-nav" style="position: sticky; top: 60px; z-index: 99; display: flex; border-bottom: 1px solid var(--border-color); background-color: var(--bg-color);">
+            <button class="tab-btn active" onclick="switchOrderTab('all')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">
+                全部
+                <div class="tab-indicator" style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--primary-color); border-radius: 2px;"></div>
+            </button>
+            <button class="tab-btn" onclick="switchOrderTab('unpaid')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">待支付</button>
+            <button class="tab-btn" onclick="switchOrderTab('completed')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">已完成</button>
+        </div>
+        
+        <div class="p-2">
+            <!-- 全部订单 -->
+            <div id="all-orders" class="tab-content active">
+                ${myOrders.map(order => `
+                    <div class="card mb-2">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;">
+                            <div style="font-size: 12px; color: var(--text-secondary);">订单号: ${order.id}</div>
+                            <div class="badge badge-${order.statusClass}">${order.status}</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">${order.name}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${order.date}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 16px; font-weight: 600; color: var(--primary-color);">￥${order.price}</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; mt-2; padding-top: 10px;">
+                            ${order.status === '待支付' ? `
+                                <button class="btn btn-sm btn-outline" style="margin-right: 8px;">取消订单</button>
+                                <button class="btn btn-sm btn-primary">立即支付</button>
+                            ` : `
+                                <button class="btn btn-sm btn-outline">查看详情</button>
+                            `}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- 待支付订单 (空) -->
+            <div id="unpaid-orders" class="tab-content" style="display: none;">
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.3;">
+                        <rect x="2" y="4" width="20" height="16" rx="2" />
+                        <path d="M7 15h0M2 9.5h20" />
+                    </svg>
+                    <p>暂无待支付订单</p>
+                </div>
+            </div>
+
+            <!-- 已完成订单 -->
+            <div id="completed-orders" class="tab-content" style="display: none;">
+                ${myOrders.filter(o => o.status === '已支付' || o.status === '已完成').map(order => `
+                    <div class="card mb-2">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;">
+                            <div style="font-size: 12px; color: var(--text-secondary);">订单号: ${order.id}</div>
+                            <div class="badge badge-${order.statusClass}">${order.status}</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">${order.name}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${order.date}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 16px; font-weight: 600; color: var(--primary-color);">￥${order.price}</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; mt-2; padding-top: 10px;">
+                            <button class="btn btn-sm btn-outline">查看详情</button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// 我的订单tab切换功能
+function switchOrderTab(tabId) {
+    // 更新标签按钮状态
+    const tabButtons = document.querySelectorAll('.tab-nav .tab-btn');
+    tabButtons.forEach(btn => {
+        btn.classList.remove('active');
+        // 移除所有指示器
+        const existingIndicator = btn.querySelector('.tab-indicator');
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+    });
+
+    // 获取当前点击的按钮
+    const button = event.currentTarget;
+
+    // 更新当前标签按钮状态并添加指示器
+    button.classList.add('active');
+
+    // 添加蓝色指示器
+    const indicator = document.createElement('div');
+    indicator.className = 'tab-indicator';
+    indicator.style.cssText = 'position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--primary-color); border-radius: 2px;';
+    button.appendChild(indicator);
+
+    // 隐藏所有tab内容
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none';
+    });
+
+    // 显示当前tab内容
+    let contentId = '';
+    if (tabId === 'all') contentId = 'all-orders';
+    else if (tabId === 'unpaid') contentId = 'unpaid-orders';
+    else if (tabId === 'completed') contentId = 'completed-orders';
+
+    const currentTabContent = document.getElementById(contentId);
+    if (currentTabContent) {
+        currentTabContent.classList.add('active');
+        currentTabContent.style.display = 'block';
+    }
 }
 
 // 会员套餐数据（模拟）
