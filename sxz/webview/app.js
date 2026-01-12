@@ -173,6 +173,9 @@ function renderCurrentPage() {
     const content = document.getElementById('main-content');
     const bottomNav = document.querySelector('.bottom-nav');
 
+    // 每次切换页面时，先滚动到顶部，避免旧页面的滚动位置影响新页面布局
+    window.scrollTo(0, 0);
+
     document.body.classList.toggle('ai-tab', AppState.currentTab === 'ai');
 
     // 控制底部导航栏显示/隐藏：只有四个主页面显示
@@ -238,7 +241,7 @@ function renderAIAssistant(container) {
 
     container.innerHTML = `
         <!-- 固定顶部上传按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px;">
             <input type="file" id="imageUploadInput" accept="image/*,.pdf" class="hidden" onchange="handleImageUpload(this)">
             <button class="upload-btn" onclick="document.getElementById('imageUploadInput').click()" style="display: flex; align-items: center;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; margin-right: 8px;">
@@ -250,7 +253,7 @@ function renderAIAssistant(container) {
             </button>
         </div>
 
-        <div class="ai-chat-content" style="padding: 0 16px;">
+        <div class="ai-chat-content" style="padding: 12px 16px 0 16px;">
             ${quickQuestions}
             
             ${renderChatMessages()}
@@ -293,7 +296,8 @@ function renderAIAssistant(container) {
         // 使用 main-content 的高度来计算，因为它包含了 header 和 content
         const actualContentHeight = (mainContent ? mainContent.scrollHeight : content.scrollHeight) - parseFloat(content.style.paddingBottom || '0');
 
-        if (actualContentHeight > availableHeight) {
+        // 只有在有聊天记录且内容超过可视区域时才滚动到底部
+        if (AppState.chatMessages.length > 0 && actualContentHeight > availableHeight) {
             window.scrollTo(0, document.body.scrollHeight);
         } else {
             window.scrollTo(0, 0);
@@ -644,7 +648,7 @@ function renderPatientList(container) {
 
     container.innerHTML = `
         <!-- 固定顶部标题、新增按钮和搜索框 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 0;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 0;">
             <!-- 标题和新增按钮 -->
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <div>
@@ -802,7 +806,7 @@ function renderAddPatient(container) {
 
     container.innerHTML = `
         <!-- 返回按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center;">
                     <button class="btn btn-icon btn-outline" onclick="${isEditMode ? 'goToPatientDetail(AppState.currentPatientId)' : 'backToPatientList()'}" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
@@ -1077,7 +1081,7 @@ function renderPatientDetail(container) {
 
     container.innerHTML = `
         <!-- 返回按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center;">
                 <button class="btn btn-icon btn-outline" onclick="backToPatientList()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
@@ -1308,7 +1312,7 @@ function renderConsultationFlow(container) {
 
     container.innerHTML = `
         <!-- 返回按钮和保存按钮 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center;">
                 <button class="btn btn-icon btn-outline" onclick="goToPatientDetail('${patient.id}')" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
@@ -1499,9 +1503,6 @@ function renderConsultationFlow(container) {
 
     // 初始化诊后疑问解答板块
     syncQuestionsToAnswers();
-
-    // 初始化用药指导第一行
-    addMedicationRow();
 
     // 为初始激活的标签页添加蓝色指示器
     const initialActiveBtn = document.querySelector('.tab-btn.active');
@@ -2054,11 +2055,12 @@ function addMedicationRow() {
     const container = document.getElementById('medication-container');
     if (!container) return;
 
+    const rowCount = container.querySelectorAll('.medication-row').length;
     const row = document.createElement('div');
     row.className = 'medication-row mt-2 mb-1 px-2 py-1 bg-gray-50 rounded-lg relative border border-gray-100';
     row.innerHTML = `
         <div class="flex justify-between items-center mb-1">
-            <h4 class="text-xs font-semibold text-gray-500" style="font-size: 10px;">药品条目</h4>
+            <h4 class="text-xs font-semibold text-gray-500 medication-title" style="font-size: 10px;">药品${rowCount + 1}</h4>
             <button type="button" class="btn btn-danger-outline btn-sm" onclick="deleteMedicationRow(this)" style="padding: 2px 4px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
                     <polyline points="3 6 5 6 21 6"></polyline>
@@ -2088,17 +2090,19 @@ function addMedicationRow() {
     container.appendChild(row);
 }
 
+function updateMedicationTitles() {
+    const container = document.getElementById('medication-container');
+    if (!container) return;
+    const titles = container.querySelectorAll('.medication-title');
+    titles.forEach((title, index) => {
+        title.textContent = `药品${index + 1}`;
+    });
+}
+
 function deleteMedicationRow(button) {
     const row = button.closest('.medication-row');
-    const container = document.getElementById('medication-container');
-    
-    // 至少保留一行
-    if (container.querySelectorAll('.medication-row').length > 1) {
-        row.remove();
-    } else {
-        // 如果是最后一行，则清空内容而不是删除
-        row.querySelectorAll('input').forEach(input => input.value = '');
-    }
+    row.remove();
+    updateMedicationTitles();
 }
 
 // ==================== 备忘录页面 ====================
@@ -2110,7 +2114,7 @@ function renderRecordsList(container) {
 
     container.innerHTML = `
         <!-- 固定顶部标题 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px;">
             <div>
                 <div style="font-size: 20px; font-weight: 600;">备忘录</div>
                 <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">${upcomingReminders.length} 个待办事项</div>
@@ -2784,7 +2788,7 @@ function renderMembershipPage() {
     const selectedPackage = membershipPackages[0];
 
     container.innerHTML = `
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center;">
                 <button class="btn btn-icon btn-outline" onclick="goBackToSettings()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
@@ -2913,7 +2917,7 @@ function renderConsumptionDetailsPage() {
     ];
 
     container.innerHTML = `
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 16px 16px 16px 16px; display: flex; align-items: center; justify-content: space-between;">
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center;">
                 <button class="btn btn-icon btn-outline" onclick="goBackToSettings()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
