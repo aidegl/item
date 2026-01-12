@@ -773,6 +773,7 @@ function clearPatientSearch() {
 }
 
 function goToAddPatient() {
+    if (!checkLoginAndProceed()) return;
     AppState.currentView = 'add';
     renderCurrentPage();
 }
@@ -976,6 +977,7 @@ function renderAddPatient(container) {
 }
 
 async function handleAddPatient(event) {
+    if (!checkLoginAndProceed()) return;
     console.log('handleAddPatient函数被调用');
     event.preventDefault();
 
@@ -991,6 +993,12 @@ async function handleAddPatient(event) {
         medicalHistory: formData.get('medicalHistory') || '无',
         allergies: formData.get('allergies') || '无'
     };
+
+    // 校验电话号码
+    if (!validatePhoneNumber(patientData.phone)) {
+        showToast('请输入正确的11位中国手机号码');
+        return;
+    }
 
     console.log('患者数据对象:', patientData);
 
@@ -1088,6 +1096,7 @@ async function handleAddPatient(event) {
 }
 
 async function handleEditPatient(event) {
+    if (!checkLoginAndProceed()) return;
     event.preventDefault();
 
     const form = event.target;
@@ -1104,6 +1113,12 @@ async function handleEditPatient(event) {
             medicalHistory: formData.get('medicalHistory') || '无',
             allergies: formData.get('allergies') || '无'
         };
+
+        // 校验电话号码
+        if (!validatePhoneNumber(updatedPatient.phone)) {
+            showToast('请输入正确的11位中国手机号码');
+            return;
+        }
 
         // 构造明道云API请求体
         const apiControls = [
@@ -1155,6 +1170,7 @@ function backToPatientList() {
 }
 
 function handleDeletePatient(patientId) {
+    if (!checkLoginAndProceed()) return;
     const patient = AppState.patients.find(p => p.id === patientId);
     if (patient) {
         showDeleteVerificationDialog(patientId, patient.name);
@@ -1265,6 +1281,7 @@ function renderPatientDetail(container) {
 }
 
 function startConsultation(patientId) {
+    if (!checkLoginAndProceed()) return;
     AppState.currentPatientId = patientId;
     AppState.currentView = 'consultation';
     AppState.currentConsultationId = null;
@@ -1272,6 +1289,7 @@ function startConsultation(patientId) {
 }
 
 function editPatient(patientId) {
+    if (!checkLoginAndProceed()) return;
     AppState.currentPatientId = patientId;
     AppState.currentView = 'edit';
     renderCurrentPage();
@@ -1701,6 +1719,7 @@ function renderConsultationFlow(container) {
 }
 
 async function handleConsultationSubmit(event) {
+    if (!checkLoginAndProceed()) return;
     event.preventDefault();
 
     const isEditMode = !!AppState.currentConsultationId;
@@ -1841,6 +1860,7 @@ async function handleConsultationSubmit(event) {
 }
 
 async function handleConsultationDelete(consultationId) {
+    if (!checkLoginAndProceed()) return;
     if (!confirm('确定要删除这条陪诊记录吗？')) {
         return;
     }
@@ -3415,6 +3435,41 @@ function formatDateForInput(dateStr) {
         return dateStr.split('T')[0];
     }
     return dateStr;
+}
+
+/**
+ * 校验中国手机号码格式
+ * @param {string} phone 
+ * @returns {boolean}
+ */
+function validatePhoneNumber(phone) {
+    if (!phone) return false;
+    // 去掉空格和 +86 前缀
+    const cleanPhone = phone.replace(/\s+/g, '').replace(/^\+86/, '');
+    // 校验 11 位中国手机号格式
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    return phoneRegex.test(cleanPhone);
+}
+
+/**
+ * 检查登录状态，如果未登录则提示前往登录
+ * @param {Function} callback 登录后执行的回调
+ * @returns {boolean} 是否已登录
+ */
+function checkLoginAndProceed(callback) {
+    const isLoggedIn = window.wechatLogin && window.wechatLogin.isLoggedIn();
+    if (isLoggedIn) {
+        if (callback) callback();
+        return true;
+    }
+    showConfirmDialog('您尚未登录，无法进行该操作。是否前往登录页面？', () => {
+        if (window.wechatLogin && typeof window.wechatLogin.toWxLogin === 'function') {
+            window.wechatLogin.toWxLogin();
+        } else {
+            showToast('登录组件不可用');
+        }
+    });
+    return false;
 }
 
 // 默认头像 (SVG Base64 fallback)
