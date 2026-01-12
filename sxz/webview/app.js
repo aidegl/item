@@ -909,13 +909,13 @@ async function handleAddPatient(event) {
 
     // 构造明道云API请求体
     const apiControls = [
-        { "controlId": "name", "value": patientData.name },
-        { "controlId": "age", "value": patientData.age },
-        { "controlId": "gender", "value": patientData.gender },
-        { "controlId": "phone", "value": patientData.phone },
+        { "controlId": "姓名", "value": patientData.name },
+        { "controlId": "年龄", "value": String(patientData.age) },
+        { "controlId": "性别", "value": patientData.gender },
+        { "controlId": "电话", "value": patientData.phone },
         { "controlId": "pastMedicalHistory", "value": patientData.medicalHistory },
         { "controlId": "allergy_history", "value": patientData.allergies },
-        { "controlId": "del", "value": 0 },// 设置为未删除状态
+        { "controlId": "del", "value": "0" }, // 设置为未删除状态
         { "controlId": "yonghu", "value": userRowId } // 关联当前登录用户
     ];
 
@@ -1011,7 +1011,7 @@ async function handleEditPatient(event) {
         // 构造明道云API请求体
         const apiControls = [
             { "controlId": "name", "value": updatedPatient.name },
-            { "controlId": "age", "value": updatedPatient.age },
+            { "controlId": "age", "value": String(updatedPatient.age) },
             { "controlId": "gender", "value": updatedPatient.gender },
             { "controlId": "phone", "value": updatedPatient.phone },
             { "controlId": "pastMedicalHistory", "value": updatedPatient.medicalHistory },
