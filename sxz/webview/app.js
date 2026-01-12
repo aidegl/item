@@ -641,6 +641,23 @@ function getAIResponse(question) {
 let isFetchingPatients = false;
 
 function renderPatientList(container) {
+    const isLoggedIn = window.wechatLogin && window.wechatLogin.isLoggedIn();
+
+    // 如果未登录，不获取数据且显示登录提示
+    if (!isLoggedIn) {
+        container.innerHTML = `
+            <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 0;">
+                <div style="font-size: 20px; font-weight: 600;">患者库</div>
+            </div>
+            <div class="empty-state" style="padding: 40px 20px; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 16px;">🔒</div>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">请先登录以查看患者数据</p>
+                <button class="btn btn-primary" onclick="window.wechatLogin.toWxLogin()" style="width: 120px; display: inline-flex; align-items: center; justify-content: center;">前往登录</button>
+            </div>
+        `;
+        return;
+    }
+
     // 只在页面首次加载或数据为空时获取API数据，避免无限循环
     if (AppState.patients.length === 0 && !isFetchingPatients) {
         fetchPatientData('ae75cf2e-0f73-4137-9e99-116d92c45a47');
@@ -687,7 +704,7 @@ function renderEmptyPatients() {
         <div class="empty-state">
             <div class="empty-icon">👥</div>
             <p class="empty-text">还没有患者信息</p>
-            <button class="btn btn-primary" onclick="goToAddPatient()">添加第一位患者</button>
+            <button class="btn btn-primary" onclick="goToAddPatient()" style="display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 16px;">添加第一位患者</button>
         </div>
     `;
 }
@@ -728,7 +745,7 @@ function renderPatientItems() {
             <div class="empty-state">
                 <div class="empty-icon">🔍</div>
                 <p class="empty-text">未找到匹配的患者</p>
-                <button class="btn btn-primary" onclick="clearPatientSearch()">清除搜索</button>
+                <button class="btn btn-primary" onclick="clearPatientSearch()" style="display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 16px;">清除搜索</button>
             </div>
         `;
     }
@@ -2600,10 +2617,10 @@ function renderSettings(container) {
             </div>
 
             <div class="settings-auth-actions">
-                ${userInfo ? '' : `<button class="btn btn-secondary btn-lg w-full mb-2" onclick="mockLogin()">模拟登录 (调试用)</button>`}
+                ${userInfo ? '' : `<button class="btn btn-secondary btn-lg w-full mb-2" onclick="mockLogin()" style="display: flex; align-items: center; justify-content: center;">模拟登录 (调试用)</button>`}
                 ${userInfo ?
-            `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()">退出登录</button>` :
-            `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()">立即登录</button>`
+            `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()" style="display: flex; align-items: center; justify-content: center;">退出登录</button>` :
+            `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()" style="display: flex; align-items: center; justify-content: center;">立即登录</button>`
         }
             </div>
             
@@ -3141,7 +3158,7 @@ function renderMembershipPage() {
         
         <!-- 固定底部区域 -->
         <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: var(--bg-color); border-top: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; z-index: 100;">
-            <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 10px 20px; font-size: 18px; font-weight: 600; text-align: center; border-radius: 8px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+            <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 10px 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
                 立即开通 (¥${selectedPackage.price})
             </button>
         </div>
