@@ -675,12 +675,15 @@ function renderPatientList(container) {
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <div>
                     <div style="font-size: 20px; font-weight: 600;">患者库</div>
-                    <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">共 ${AppState.patients.length} 位患者</div>
+                    ${isLoggedIn ? `<div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">共 ${AppState.patients.length} 位患者</div>` : ''}
                 </div>
+                ${isLoggedIn ? `
                 <button class="btn btn-primary" onclick="goToAddPatient()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;">
                     新增
                 </button>
+                ` : ''}
             </div>
+            ${isLoggedIn ? `
             <div class="search-container" style="position: relative; width: 100%;">
                 <input type="text" 
                        id="patientSearchInput" 
@@ -696,6 +699,7 @@ function renderPatientList(container) {
                     </svg>
                 </div>
             </div>
+            ` : ''}
         </div>
         
         <div class="p-2" id="patients-list-container">
@@ -894,7 +898,7 @@ async function loadConsultations(patientId) {
                 nurseReminder: row.pzszhtx,
                 medication: row.yyzd,
                 advice: row.nextAction,
-                status: 'completed', // 假设从数据库加载的都是已完成或已存在的
+                status: (row.specialNote && row.specialNote !== '未记录') ? 'completed' : 'pending',
                 createdAt: row.ctime
             };
         });
@@ -949,29 +953,29 @@ function renderAddPatient(container) {
                 <div class="card">
                     <div class="form-group">
                         <label class="form-label">姓名 *</label>
-                        <input type="text" name="name" class="input" required placeholder="请输入患者姓名" value="${name}" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <input type="text" name="name" class="input" placeholder="请输入患者姓名" value="${name}" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">年龄 *</label>
-                        <input type="number" name="age" class="input" required placeholder="请输入年龄" value="${age}" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <input type="number" name="age" class="input" placeholder="请输入年龄" value="${age}" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">性别 *</label>
                         <div class="flex gap-2">
                             <label class="radio-label">
-                                <input type="radio" name="gender" value="男" required ${genderMale}> 男
+                                <input type="radio" name="gender" value="男" ${genderMale}> 男
                             </label>
                             <label class="radio-label">
-                                <input type="radio" name="gender" value="女" required ${genderFemale}> 女
+                                <input type="radio" name="gender" value="女" ${genderFemale}> 女
                             </label>
                         </div>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">联系电话 *</label>
-                        <input type="tel" name="phone" class="input" required placeholder="请输入联系电话" value="${phone}" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <input type="tel" name="phone" class="input" placeholder="请输入联系电话" value="${phone}" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     </div>
                     
                     <div class="form-group">
@@ -1011,6 +1015,22 @@ async function handleAddPatient(event) {
 
     const form = event.target;
     const formData = new FormData(form);
+
+    // 必填项校验
+    const requiredFields = [
+        { name: 'name', label: '姓名' },
+        { name: 'age', label: '年龄' },
+        { name: 'gender', label: '性别' },
+        { name: 'phone', label: '联系电话' }
+    ];
+
+    for (const field of requiredFields) {
+        const value = formData.get(field.name);
+        if (!value || !value.trim()) {
+            showConfirmDialog('患者核心信息未填写完整！', null, null, '去填写', '');
+            return;
+        }
+    }
 
     // 构造患者数据对象
     const patientData = {
@@ -1129,6 +1149,22 @@ async function handleEditPatient(event) {
 
     const form = event.target;
     const formData = new FormData(form);
+
+    // 必填项校验
+    const requiredFields = [
+        { name: 'name', label: '姓名' },
+        { name: 'age', label: '年龄' },
+        { name: 'gender', label: '性别' },
+        { name: 'phone', label: '联系电话' }
+    ];
+
+    for (const field of requiredFields) {
+        const value = formData.get(field.name);
+        if (!value || !value.trim()) {
+            showConfirmDialog('患者核心信息未填写完整！', null, null, '去填写', '');
+            return;
+        }
+    }
 
     const patientIndex = AppState.patients.findIndex(p => p.id === AppState.currentPatientId);
     if (patientIndex !== -1) {
@@ -1289,7 +1325,7 @@ function renderPatientDetail(container) {
                     <div class="list-item" onclick="viewConsultation('${c.id}')">
                         <div class="flex justify-between items-center">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 4px; height: 46px; border-radius: 3px; background-color: ${c.status === 'completed' ? '#10b981' : '#f59e0b'}; flex-shrink: 0;"></div>
+                                <div style="width: 4px; height: 46px; border-radius: 3px; background-color: ${c.status === 'completed' ? 'var(--success-color)' : 'var(--warning-color)'}; flex-shrink: 0;"></div>
                                 <div>
                                     <div style="font-weight: 500;">${c.hospital} - ${c.department}</div>
                                     <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
@@ -1297,7 +1333,7 @@ function renderPatientDetail(container) {
                                     </div>
                                 </div>
                             </div>
-                            <span class="badge ${c.status === 'completed' ? 'badge-success' : 'badge-primary'}">
+                            <span class="badge ${c.status === 'completed' ? 'badge-success' : 'badge-warning'}">
                                 ${c.status === 'completed' ? '已完成' : '进行中'}
                             </span>
                         </div>
@@ -1509,12 +1545,12 @@ function renderConsultationFlow(container) {
                     
                     <div class="form-group">
                         <label class="form-label">就诊日期 *</label>
-                        <input type="date" name="date" class="input" required style="height: 40px; resize: none;" value="${isEditMode ? formatDateForInput(consultation.date) : new Date().toISOString().split('T')[0]}">
+                        <input type="date" name="date" class="input" style="height: 40px; resize: none;" value="${isEditMode ? formatDateForInput(consultation.date) : new Date().toISOString().split('T')[0]}">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">医院 *</label>
-                        <input type="text" name="hospital" class="input" required placeholder="请输入医院名称" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" value="${isEditMode ? (consultation.hospital || '') : ''}">
+                        <input type="text" name="hospital" class="input" placeholder="请输入医院名称" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" value="${isEditMode ? (consultation.hospital || '') : ''}">
                     </div>
                     
                     <div class="form-group">
@@ -1533,7 +1569,7 @@ function renderConsultationFlow(container) {
                     
                     <div class="form-group">
                         <label class="form-label">就诊核心诉求 *</label>
-                        <textarea name="coreAppeal" class="textarea" required placeholder="示例：确诊反复头痛原因、复查甲状腺结节大小、咨询用药副作用缓解方案等">${isEditMode ? (consultation.coreAppeal || '') : ''}</textarea>
+                        <textarea name="coreAppeal" class="textarea" placeholder="示例：确诊反复头痛原因、复查甲状腺结节大小、咨询用药副作用缓解方案等">${isEditMode ? (consultation.coreAppeal || '') : ''}</textarea>
                     </div>
                     
                     <div class="form-group">
@@ -1754,6 +1790,21 @@ async function handleConsultationSubmit(event) {
     const form = event.target;
     const formData = new FormData(form);
 
+    // 必填项校验
+    const requiredFields = [
+        { name: 'date', label: '就诊日期' },
+        { name: 'hospital', label: '医院' },
+        { name: 'coreAppeal', label: '就诊核心诉求' }
+    ];
+
+    for (const field of requiredFields) {
+        const value = formData.get(field.name);
+        if (!value || !value.trim()) {
+            showConfirmDialog('诊前核心信息未填写完整！', null, null, '去填写', '');
+            return;
+        }
+    }
+
     // 获取患者核心疑问和医生解答
     const patientQuestions = [];
     const doctorAnswers = [];
@@ -1857,7 +1908,7 @@ async function handleConsultationSubmit(event) {
                 nurseReminder: formData.get('nurseReminder') || '未记录',
                 medication: JSON.stringify(medicationList),
                 advice: formData.get('advice') || '未记录',
-                status: 'completed',
+                status: (formData.get('diagnosis') && formData.get('diagnosis') !== '未记录') ? 'completed' : 'pending',
                 createdAt: new Date().toISOString()
             };
 
@@ -1972,11 +2023,14 @@ function showConfirmDialog(message, onConfirm, onCancel, confirmText = '确认',
     dialogButtons.style.gap = '8px';
     dialogButtons.style.justifyContent = 'flex-end';
 
-    const cancelButton = document.createElement('button');
-    cancelButton.type = 'button';
-    cancelButton.className = 'btn btn-outline';
-    cancelButton.onclick = hideConfirmDialog;
-    cancelButton.textContent = cancelText;
+    if (cancelText) {
+        const cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.className = 'btn btn-outline';
+        cancelButton.onclick = hideConfirmDialog;
+        cancelButton.textContent = cancelText;
+        dialogButtons.appendChild(cancelButton);
+    }
 
     const confirmButton = document.createElement('button');
     confirmButton.type = 'button';
@@ -1984,7 +2038,6 @@ function showConfirmDialog(message, onConfirm, onCancel, confirmText = '确认',
     confirmButton.onclick = handleConfirm;
     confirmButton.textContent = confirmText;
 
-    dialogButtons.appendChild(cancelButton);
     dialogButtons.appendChild(confirmButton);
 
     // 组装对话框
@@ -2940,23 +2993,32 @@ function fetchPatientData(userId) {
 
                 console.log('实际获取到的患者数据:', patientList);
 
-                // 将患者数据保存到应用状态
-                AppState.patients = patientList.map(patient => ({
-                    id: patient.rowid || patient.rowId, // 同时支持小写和驼峰命名的rowid
-                    name: patient.name || '未知姓名',
-                    age: patient.age || 0,
-                    gender: patient.gender || '未知',
-                    phone: patient.phone || '未知电话',
-                    pastMedicalHistory: patient.pastMedicalHistory || '无',
-                    allergy_history: patient.allergy_history || '无',
-                    medicalHistory: patient.pastMedicalHistory || '无', // 保持向后兼容
-                    allergies: patient.allergy_history || '无', // 保持向后兼容
-                    createdAt: new Date().toISOString()
-                }));
+                // 如果获取到的数据为空，且当前是模拟登录/调试模式，保留现有的模拟数据
+                if (patientList.length === 0 && (userId === 'ae75cf2e-0f73-4137-9e99-116d92c45a47' || userId === '0940f8f5-23c9-4111-9265-f2dec3eaeba4')) {
+                    console.log('API 返回数据为空，但在模拟/调试模式下保留现有模拟数据');
+                    // 如果当前没有数据，初始化一些模拟数据
+                    if (AppState.patients.length === 0) {
+                        AppState.initMockData();
+                    }
+                } else {
+                    // 将获取到的患者数据保存到应用状态
+                    AppState.patients = patientList.map(patient => ({
+                        id: patient.rowid || patient.rowId,
+                        name: patient.name || '未知姓名',
+                        age: patient.age || 0,
+                        gender: patient.gender || '未知',
+                        phone: patient.phone || '未知电话',
+                        pastMedicalHistory: patient.pastMedicalHistory || '无',
+                        allergy_history: patient.allergy_history || '无',
+                        medicalHistory: patient.pastMedicalHistory || '无',
+                        allergies: patient.allergy_history || '无',
+                        createdAt: new Date().toISOString()
+                    }));
+                }
 
                 AppState.saveToStorage();
-                console.log('患者数据已保存到应用状态');
-                // 数据更新后重新渲染当前页面，以便在患者库视图中显示数据
+                console.log('患者数据已处理完成');
+                // 数据更新后重新渲染当前页面
                 renderCurrentPage();
             } else {
                 showToast(`获取患者数据失败: ${data.error_msg || '未知错误'}`);
@@ -3024,28 +3086,27 @@ function mockLogin() {
                 const userInfo = {
                     name: data.data.mingcheng || '用户',
                     avatar: data.data.touxiang || 'https://via.placeholder.com/150',
+                    openid: data.data.rowid, // 模拟登录时将 rowid 作为 openid 使用
                     raw: data.data // 保存原始数据
                 };
 
-                window.wechatLogin.getUserInfo = function () {
-                    return userInfo;
-                };
+                // 注入必要的方法确保兼容性
+                window.wechatLogin.getUserInfo = () => userInfo;
+                window.wechatLogin.isLoggedIn = () => true;
+                window.wechatLogin.getOpenid = () => data.data.rowid;
 
                 showToast('登录成功！');
 
                 // 调试信息：打印用户ID
                 console.log('登录成功，用户ID:', data.data.rowid);
 
-                // 重新渲染设置页面
-                renderSettings(document.getElementById('main-content'));
+                // 触发登录状态变更事件，通知系统更新
+                window.dispatchEvent(new CustomEvent('wechatlogin:change', {
+                    detail: { type: 'login', isLoggedIn: true, userInfo: userInfo }
+                }));
 
-                // 确保fetchPatientData函数存在
-                if (typeof fetchPatientData === 'function') {
-                    console.log('调用fetchPatientData函数');
-                    fetchPatientData(data.data.rowid);
-                } else {
-                    console.error('fetchPatientData函数不存在');
-                }
+                // 重新渲染页面
+                renderCurrentPage();
             } else {
                 // 登录失败
                 showToast(`登录失败: ${data.error_msg || '未知错误'}`);
@@ -3062,11 +3123,12 @@ function mockLogin() {
             const mockUserInfo = {
                 name: '调试用户',
                 avatar: 'https://via.placeholder.com/150',
+                openid: 'ae75cf2e-0f73-4137-9e99-116d92c45a47',
                 raw: {
                     mingcheng: '调试用户',
                     touxiang: '',
-                    escortCode: '0940f8f5-23c9-4111-9265-f2dec3eaeba4',
-                    rowid: '0940f8f5-23c9-4111-9265-f2dec3eaeba4'
+                    escortCode: 'ae75cf2e-0f73-4137-9e99-116d92c45a47',
+                    rowid: 'ae75cf2e-0f73-4137-9e99-116d92c45a47'
                 }
             };
 
@@ -3074,11 +3136,16 @@ function mockLogin() {
                 window.wechatLogin = {};
             }
 
-            window.wechatLogin.getUserInfo = function () {
-                return mockUserInfo;
-            };
+            window.wechatLogin.getUserInfo = () => mockUserInfo;
+            window.wechatLogin.isLoggedIn = () => true;
+            window.wechatLogin.getOpenid = () => mockUserInfo.openid;
 
-            renderSettings(document.getElementById('main-content'));
+            // 触发登录状态变更事件
+            window.dispatchEvent(new CustomEvent('wechatlogin:change', {
+                detail: { type: 'login', isLoggedIn: true, userInfo: mockUserInfo }
+            }));
+
+            renderCurrentPage();
         })
         .finally(() => {
             console.log('=== 模拟登录完成 ===');
@@ -3590,18 +3657,38 @@ function initApp() {
         // 无论当前在哪个标签页，登录状态改变时都重新渲染，确保 UI 同步
         renderCurrentPage();
 
-        // 真实登录后获取患者数据
-        if (window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function') {
+        // 登录后获取患者数据
+        if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
             const userInfo = window.wechatLogin.getUserInfo();
             const rawUser = userInfo && userInfo.raw ? userInfo.raw : null;
-            const userId = rawUser && rawUser.rowid ? rawUser.rowid : null;
+            
+            // 优先使用真实用户的 rowid，如果没有（可能是模拟登录），则使用 openid 或默认调试 ID
+            let userId = rawUser && rawUser.rowid ? rawUser.rowid : null;
+            if (!userId) {
+                userId = (userInfo && userInfo.openid) || (userInfo && userInfo.rowid) || localStorage.getItem('openid') || 'ae75cf2e-0f73-4137-9e99-116d92c45a47';
+                console.log('检测到登录状态但未获取到真实 rowid (可能是模拟登录)，使用备选 ID:', userId);
+            }
 
             if (userId && typeof fetchPatientData === 'function') {
-                console.log('真实登录成功，用户ID:', userId);
+                console.log('触发患者数据加载，用户ID:', userId);
                 fetchPatientData(userId);
             }
         }
     });
+
+    // 检查初始登录状态（处理 WechatLogin 初始化时已经完成的登录/恢复）
+    if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+        console.log('初始状态已登录，手动触发数据加载');
+        const userInfo = window.wechatLogin.getUserInfo();
+        const rawUser = userInfo && userInfo.raw ? userInfo.raw : null;
+        let userId = rawUser && rawUser.rowid ? rawUser.rowid : null;
+        if (!userId) {
+            userId = (userInfo && userInfo.openid) || (userInfo && userInfo.rowid) || localStorage.getItem('openid') || 'ae75cf2e-0f73-4137-9e99-116d92c45a47';
+        }
+        if (userId && typeof fetchPatientData === 'function') {
+            fetchPatientData(userId);
+        }
+    }
 
     // 初始渲染，使用 setTimeout 确保在下一帧执行，避免 DOM 渲染竞争
     setTimeout(() => {
