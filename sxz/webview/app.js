@@ -3100,12 +3100,12 @@ function renderMyOrdersPage() {
         bottomNav.style.display = 'none';
     }
 
-    // Mock数据 - 我的订单
+    // Mock数据 - 我的订单 (仅显示已完成记录)
     const myOrders = [
-        { id: 'ORD20260112001', date: '2026-01-12 10:30', name: '高级套餐 (3个月)', price: 258, status: '已支付', statusClass: 'success' },
-        { id: 'ORD20260105002', date: '2026-01-05 15:45', name: '资源点充值 (100点)', price: 99, status: '已支付', statusClass: 'success' },
-        { id: 'ORD20251228003', date: '2025-12-28 09:20', name: '基础套餐 (1个月)', price: 99, status: '已完成', statusClass: 'secondary' },
-        { id: 'ORD20251215004', date: '2025-12-15 14:10', name: '资源点充值 (50点)', price: 50, status: '已取消', statusClass: 'danger' }
+        { id: 'ORD20260112001', date: '2026-01-12 10:30', name: '高级套餐 (3个月)', price: 258, status: '已支付', statusClass: 'success', type: 'membership' },
+        { id: 'ORD20260105002', date: '2026-01-05 15:45', name: '资源点充值 (100点)', price: 99, status: '已支付', statusClass: 'success', type: 'resource' },
+        { id: 'ORD20251228003', date: '2025-12-28 09:20', name: '基础套餐 (1个月)', price: 99, status: '已完成', statusClass: 'secondary', type: 'membership' },
+        { id: 'ORD20251215004', date: '2025-12-15 14:10', name: '资源点充值 (50点)', price: 50, status: '已完成', statusClass: 'secondary', type: 'resource' }
     ];
 
     container.innerHTML = `
@@ -3122,19 +3122,48 @@ function renderMyOrdersPage() {
         </div>
         
         <!-- Tab切换 -->
-        <div class="tab-nav" style="position: sticky; top: 60px; z-index: 99; display: flex; border-bottom: 1px solid var(--border-color); background-color: var(--bg-color);">
+        <div class="tab-nav" style="position: sticky; top: 54px; z-index: 99; display: flex; border-bottom: 1px solid var(--border-color); background-color: var(--bg-color);">
             <button class="tab-btn active" onclick="switchOrderTab('all')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">
                 全部
                 <div class="tab-indicator" style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--primary-color); border-radius: 2px;"></div>
             </button>
-            <button class="tab-btn" onclick="switchOrderTab('unpaid')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">待支付</button>
-            <button class="tab-btn" onclick="switchOrderTab('completed')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">已完成</button>
+            <button class="tab-btn" onclick="switchOrderTab('membership')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">会员</button>
+            <button class="tab-btn" onclick="switchOrderTab('resource')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">资源点</button>
         </div>
         
         <div class="p-2">
             <!-- 全部订单 -->
             <div id="all-orders" class="tab-content active">
                 ${myOrders.map(order => `
+                    <div class="card mb-2">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;">
+                            <div style="font-size: 12px; color: var(--text-secondary);">订单号: ${order.id}</div>
+                            <div class="badge badge-${order.statusClass}">${order.status}</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                    <span style="font-size: 10px; padding: 1px 4px; border-radius: 4px; background-color: ${order.type === 'membership' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)'}; color: ${order.type === 'membership' ? 'var(--primary-color)' : 'var(--success-color)'}; border: 1px solid ${order.type === 'membership' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)'};">
+                                        ${order.type === 'membership' ? '会员' : '资源点'}
+                                    </span>
+                                    <div style="font-size: 15px; font-weight: 600;">${order.name}</div>
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${order.date}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 16px; font-weight: 600; color: var(--primary-color);">￥${order.price}</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; mt-2; padding-top: 10px;">
+                            <button class="btn btn-sm btn-outline">查看详情</button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- 会员订单 -->
+            <div id="membership-orders" class="tab-content" style="display: none;">
+                ${myOrders.filter(o => o.type === 'membership').map(order => `
                     <div class="card mb-2">
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;">
                             <div style="font-size: 12px; color: var(--text-secondary);">订单号: ${order.id}</div>
@@ -3150,31 +3179,15 @@ function renderMyOrdersPage() {
                             </div>
                         </div>
                         <div style="display: flex; justify-content: flex-end; mt-2; padding-top: 10px;">
-                            ${order.status === '待支付' ? `
-                                <button class="btn btn-sm btn-outline" style="margin-right: 8px;">取消订单</button>
-                                <button class="btn btn-sm btn-primary">立即支付</button>
-                            ` : `
-                                <button class="btn btn-sm btn-outline">查看详情</button>
-                            `}
+                            <button class="btn btn-sm btn-outline">查看详情</button>
                         </div>
                     </div>
                 `).join('')}
             </div>
 
-            <!-- 待支付订单 (空) -->
-            <div id="unpaid-orders" class="tab-content" style="display: none;">
-                <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.3;">
-                        <rect x="2" y="4" width="20" height="16" rx="2" />
-                        <path d="M7 15h0M2 9.5h20" />
-                    </svg>
-                    <p>暂无待支付订单</p>
-                </div>
-            </div>
-
-            <!-- 已完成订单 -->
-            <div id="completed-orders" class="tab-content" style="display: none;">
-                ${myOrders.filter(o => o.status === '已支付' || o.status === '已完成').map(order => `
+            <!-- 资源点订单 -->
+            <div id="resource-orders" class="tab-content" style="display: none;">
+                ${myOrders.filter(o => o.type === 'resource').map(order => `
                     <div class="card mb-2">
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;">
                             <div style="font-size: 12px; color: var(--text-secondary);">订单号: ${order.id}</div>
@@ -3234,8 +3247,8 @@ function switchOrderTab(tabId) {
     // 显示当前tab内容
     let contentId = '';
     if (tabId === 'all') contentId = 'all-orders';
-    else if (tabId === 'unpaid') contentId = 'unpaid-orders';
-    else if (tabId === 'completed') contentId = 'completed-orders';
+    else if (tabId === 'membership') contentId = 'membership-orders';
+    else if (tabId === 'resource') contentId = 'resource-orders';
 
     const currentTabContent = document.getElementById(contentId);
     if (currentTabContent) {
@@ -3432,7 +3445,7 @@ function renderConsumptionDetailsPage() {
         </div>
         
         <!-- Tab切换 -->
-        <div class="tab-nav" style="position: sticky; top: 60px; z-index: 99; display: flex; border-bottom: 1px solid var(--border-color); background-color: var(--bg-color);">
+        <div class="tab-nav" style="position: sticky; top: 54px; z-index: 99; display: flex; border-bottom: 1px solid var(--border-color); background-color: var(--bg-color);">
             <button class="tab-btn active" onclick="switchConsumptionTab('resources')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">
                 资源点
                 <div class="tab-indicator" style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--primary-color); border-radius: 2px;"></div>
