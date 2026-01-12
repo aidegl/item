@@ -655,6 +655,17 @@ body {
     margin-bottom: 1rem;
 }
 
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
 .badge-primary {
     background-color: #dbeafe;
     color: var(--primary-color);
