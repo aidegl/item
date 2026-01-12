@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  background-color: #0A0A0A;
+  color: white;
+  font-family: 'Inter', 'Source Han Sans SC', sans-serif;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #007AFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-brand-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #007AFF 100%);
+}
