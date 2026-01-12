@@ -111,35 +111,14 @@
     </div>
 
     <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
-    <script>
-        // 动态加载脚本以绕过缓存
-        (function() {
-            const version = new Date().getTime(); // 使用时间戳确保每次都是最新
-            const scripts = [
-                '../mingdao/MingdaoQuery.js',
-                '../mingdao/MingdaoAdd.js',
-                '../mingdao/MingdaoUpdate.js',
-                '../mingdao/MingdaoArray.js',
-                'js/WechatLogin.js',
-                'js/coze.js',
-                'js/CozeWorkflow.js',
-                'app.js'
-            ];
-            
-            function loadScript(index) {
-                if (index >= scripts.length) return;
-                const src = scripts[index];
-                const script = document.createElement('script');
-                script.src = src + '?v=' + version;
-                script.onload = function() {
-                    loadScript(index + 1);
-                };
-                document.body.appendChild(script);
-            }
-            
-            loadScript(0);
-        })();
-    </script>
+    <script src="../mingdao/MingdaoQuery.js?v=2026011114"></script>
+    <script src="../mingdao/MingdaoAdd.js?v=2026011114"></script>
+    <script src="../mingdao/MingdaoUpdate.js?v=2026011114"></script>
+    <script src="../mingdao/MingdaoArray.js?v=2026011114"></script>
+    <script src="js/WechatLogin.js?v=2026011114"></script>
+    <script src="js/coze.js?v=2026011114"></script>
+    <script src="js/CozeWorkflow.js?v=2026011114"></script>
+    <script src="app.js?v=2026011114"></script>
 </body>
 
 </html>

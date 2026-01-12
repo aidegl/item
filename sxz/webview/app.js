@@ -173,6 +173,11 @@ function renderCurrentPage() {
     const content = document.getElementById('main-content');
     const bottomNav = document.querySelector('.bottom-nav');
 
+    if (!content) {
+        console.warn('未找到 main-content 容器');
+        return;
+    }
+
     // 每次切换页面时，先滚动到顶部，避免旧页面的滚动位置影响新页面布局
     window.scrollTo(0, 0);
 
@@ -355,6 +360,9 @@ function renderChatMessages() {
 }
 
 function handleImageUpload(input) {
+    // 检查登录状态
+    if (!checkLoginAndProceed()) return;
+
     const file = input.files[0];
     if (!file) return;
 
@@ -564,6 +572,9 @@ function initCozeAPI() {
 }
 
 function sendMessage() {
+    // 检查登录状态
+    if (!checkLoginAndProceed()) return;
+
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
 
@@ -643,23 +654,8 @@ let isFetchingPatients = false;
 function renderPatientList(container) {
     const isLoggedIn = window.wechatLogin && window.wechatLogin.isLoggedIn();
 
-    // 如果未登录，不获取数据且显示登录提示
-    if (!isLoggedIn) {
-        container.innerHTML = `
-            <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 0;">
-                <div style="font-size: 20px; font-weight: 600;">患者库</div>
-            </div>
-            <div class="empty-state" style="padding: 40px 20px; text-align: center;">
-                <div style="font-size: 48px; margin-bottom: 16px;">🔒</div>
-                <p style="color: var(--text-secondary); margin-bottom: 20px;">请先登录以查看患者数据</p>
-                <button class="btn btn-primary" onclick="window.wechatLogin.toWxLogin()" style="width: 120px; display: inline-flex; align-items: center; justify-content: center;">前往登录</button>
-            </div>
-        `;
-        return;
-    }
-
-    // 只在页面首次加载或数据为空时获取API数据，避免无限循环
-    if (AppState.patients.length === 0 && !isFetchingPatients) {
+    // 只在已登录且页面首次加载或数据为空时获取API数据，避免无限循环
+    if (isLoggedIn && AppState.patients.length === 0 && !isFetchingPatients) {
         let openid = '';
         if (window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function') {
             const userInfo = window.wechatLogin.getUserInfo();
@@ -703,7 +699,13 @@ function renderPatientList(container) {
         </div>
         
         <div class="p-2" id="patients-list-container">
-            ${renderPatientItems()}
+            ${isLoggedIn ? renderPatientItems() : `
+                <div class="empty-state" style="padding: 40px 20px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🔒</div>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">请先登录以查看患者数据</p>
+                    <button class="btn btn-primary" onclick="window.wechatLogin.toWxLogin()" style="width: 120px; display: inline-flex; align-items: center; justify-content: center;">前往登录</button>
+                </div>
+            `}
         </div>
     `;
 }
@@ -1920,7 +1922,7 @@ async function handleConsultationDelete(consultationId) {
 }
 
 // ==================== 确认对话框 ====================
-function showConfirmDialog(message, onConfirm, onCancel) {
+function showConfirmDialog(message, onConfirm, onCancel, confirmText = '确认', cancelText = '取消') {
     // 创建对话框容器
     const dialogContainer = document.createElement('div');
     dialogContainer.style.position = 'fixed';
@@ -1953,7 +1955,7 @@ function showConfirmDialog(message, onConfirm, onCancel) {
     dialogTitle.style.fontSize = '16px';
     dialogTitle.style.fontWeight = '600';
     dialogTitle.style.color = 'var(--text-primary)';
-    dialogTitle.textContent = '确认操作';
+    dialogTitle.textContent = '提示';
 
     const dialogMessage = document.createElement('p');
     dialogMessage.style.marginTop = '4px';
@@ -1974,13 +1976,13 @@ function showConfirmDialog(message, onConfirm, onCancel) {
     cancelButton.type = 'button';
     cancelButton.className = 'btn btn-outline';
     cancelButton.onclick = hideConfirmDialog;
-    cancelButton.textContent = '取消';
+    cancelButton.textContent = cancelText;
 
     const confirmButton = document.createElement('button');
     confirmButton.type = 'button';
     confirmButton.className = 'btn btn-primary';
     confirmButton.onclick = handleConfirm;
-    confirmButton.textContent = '确认';
+    confirmButton.textContent = confirmText;
 
     dialogButtons.appendChild(cancelButton);
     dialogButtons.appendChild(confirmButton);
@@ -2636,7 +2638,7 @@ function renderSettings(container) {
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
-                    <p>版本：1.0.13 (强制刷新已启用)</p>
+                    <p>版本：1.0.14 (强制刷新已启用)</p>
                     <p style="margin-top: 12px; font-size: 12px;">Hash ID: ${getHashId()}</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
@@ -3644,13 +3646,19 @@ function checkLoginAndProceed(callback) {
         if (callback) callback();
         return true;
     }
-    showConfirmDialog('您尚未登录，无法进行该操作。是否前往登录页面？', () => {
-        if (window.wechatLogin && typeof window.wechatLogin.toWxLogin === 'function') {
-            window.wechatLogin.toWxLogin();
-        } else {
-            showToast('登录组件不可用');
-        }
-    });
+    showConfirmDialog(
+        '您尚未登录，无法进行该操作。是否前往登录页面？',
+        () => {
+            if (window.wechatLogin && typeof window.wechatLogin.toWxLogin === 'function') {
+                window.wechatLogin.toWxLogin();
+            } else {
+                showToast('登录组件不可用');
+            }
+        },
+        null,
+        '去登录',
+        '先看看'
+    );
     return false;
 }
 
@@ -3723,7 +3731,7 @@ function getHashId() {
 }
 
 // ==================== 应用初始化 ====================
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
     AppState.init();
     if (!window.wechatLogin && typeof WechatLogin === 'function') {
         window.wechatLogin = new WechatLogin({
@@ -3732,7 +3740,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     window.addEventListener('wechatlogin:change', () => {
-        if (AppState.currentTab === 'settings') renderCurrentPage();
+        console.log('登录状态变化，重新渲染页面');
+        // 无论当前在哪个标签页，登录状态改变时都重新渲染，确保 UI 同步
+        renderCurrentPage();
 
         // 真实登录后获取患者数据
         if (window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function') {
@@ -3746,5 +3756,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-    renderCurrentPage();
-});
+
+    // 初始渲染，使用 setTimeout 确保在下一帧执行，避免 DOM 渲染竞争
+    setTimeout(() => {
+        console.log('执行初始渲染');
+        renderCurrentPage();
+    }, 0);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
