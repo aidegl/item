@@ -11,18 +11,15 @@
     <!-- 引入 Markdown 渲染库 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
-    <link rel="stylesheet" href="styles.css?v=2026011216">
+    <script>
+        document.write('<link rel="stylesheet" href="styles.css?v=' + new Date().getTime() + '">');
+    </script>
     <!-- 防缓存 Meta -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <meta http-equiv="Cache-Control" content="max-age=0" />
     <meta http-equiv="cache-control" content="no-cache" />
-    <!-- 复用组件：用户数据获取 -->
-    <script src="../mingdao/MingdaoQuery.js"></script>
-    <script src="../mingdao/MingdaoAdd.js"></script>
-    <script src="../mingdao/MingdaoUpdate.js"></script>
-    <script src="../mingdao/MingdaoArray.js"></script>
 </head>
 
 <body>
@@ -113,10 +110,35 @@
     </div>
 
     <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
-    <script src="js/WechatLogin.js?v=2026011216"></script>
-    <script src="js/coze.js?v=2026011216"></script>
-    <script src="js/CozeWorkflow.js?v=2026011216"></script>
-    <script src="app.js?v=2026011216"></script>
+    <script>
+        // 动态加载脚本以绕过缓存
+        (function() {
+            const version = new Date().getTime(); // 使用时间戳确保每次都是最新
+            const scripts = [
+                '../mingdao/MingdaoQuery.js',
+                '../mingdao/MingdaoAdd.js',
+                '../mingdao/MingdaoUpdate.js',
+                '../mingdao/MingdaoArray.js',
+                'js/WechatLogin.js',
+                'js/coze.js',
+                'js/CozeWorkflow.js',
+                'app.js'
+            ];
+            
+            function loadScript(index) {
+                if (index >= scripts.length) return;
+                const src = scripts[index];
+                const script = document.createElement('script');
+                script.src = src + '?v=' + version;
+                script.onload = function() {
+                    loadScript(index + 1);
+                };
+                document.body.appendChild(script);
+            }
+            
+            loadScript(0);
+        })();
+    </script>
 </body>
 
 </html>
