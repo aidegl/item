@@ -660,7 +660,16 @@ function renderPatientList(container) {
 
     // 只在页面首次加载或数据为空时获取API数据，避免无限循环
     if (AppState.patients.length === 0 && !isFetchingPatients) {
-        fetchPatientData('ae75cf2e-0f73-4137-9e99-116d92c45a47');
+        let openid = '';
+        if (window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function') {
+            const userInfo = window.wechatLogin.getUserInfo();
+            openid = userInfo?.openid || '';
+        }
+        if (!openid) {
+            openid = localStorage.getItem('openid') || '';
+        }
+        
+        fetchPatientData(openid || 'ae75cf2e-0f73-4137-9e99-116d92c45a47');
     }
 
     container.innerHTML = `
@@ -2627,7 +2636,7 @@ function renderSettings(container) {
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
-                    <p>版本：1.0.9</p>
+                    <p>版本：1.0.10</p>
                     <p style="margin-top: 12px; font-size: 12px;">Hash ID: ${getHashId()}</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
@@ -2945,6 +2954,8 @@ function fetchPatientData(userId) {
 
                 AppState.saveToStorage();
                 console.log('患者数据已保存到应用状态');
+                // 数据更新后重新渲染当前页面，以便在患者库视图中显示数据
+                renderCurrentPage();
             } else {
                 showToast(`获取患者数据失败: ${data.error_msg || '未知错误'}`);
             }
