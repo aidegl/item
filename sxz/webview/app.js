@@ -9,6 +9,7 @@ const AppState = {
     consultations: [],
     reminders: [],
     chatMessages: [],
+    globalSettings: null,
     aiQuickQuestionsHidden: false,
     patientSearchTerm: '',
 
@@ -3463,6 +3464,11 @@ function renderMembershipPage() {
     // 初始选择第一个套餐
     const selectedPackage = membershipPackages[0];
 
+    // 获取全局设置中的资源剩余量，如果没有则使用用户提供的默认值
+    const globalSettings = AppState.globalSettings || {};
+    const monthlyRemaining = globalSettings.dy_sy || '103444';
+    const fixedRemaining = globalSettings.gd_sy || '109289';
+
     container.innerHTML = `
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center;">
@@ -3478,6 +3484,34 @@ function renderMembershipPage() {
         
         <div class="p-2" style="padding-bottom: 80px;"> <!-- 添加底部空间，避免内容被固定区域遮挡 -->
             <div class="card mb-2">
+                <!-- 资源剩余显示 -->
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.03) 100%); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
+                    <div style="flex: 1;">
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            当月剩余
+                        </div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${monthlyRemaining}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">资源</span></div>
+                    </div>
+                    <div style="width: 1px; background-color: rgba(59, 130, 246, 0.1);"></div>
+                    <div style="flex: 1; padding-left: 12px;">
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                            </svg>
+                            固定剩余
+                        </div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${fixedRemaining}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">资源</span></div>
+                    </div>
+                </div>
+
                 <h3 class="card-title mb-2">选择权益</h3>
                 
                 <div class="package-list" id="packageList">
@@ -3908,9 +3942,37 @@ function getHashId() {
     return window.location.hash ? window.location.hash.substring(1) : '无';
 }
 
+/**
+ * 加载全局设置
+ */
+async function loadGlobalSettings() {
+    console.log('开始加载全局设置...');
+    try {
+        if (typeof window.MingDaoYunAPI === 'undefined') {
+            console.warn('MingDaoYunAPI 未加载，跳过全局设置加载');
+            return;
+        }
+        const api = new window.MingDaoYunAPI();
+        const worksheetId = 'qjsz';
+        const rowId = '9e5a5ed8-258b-4f20-a5c0-a1d9b9a97c2f';
+        
+        const result = await api.getData(rowId, worksheetId);
+        if (result && result.success) {
+            console.log('全局设置加载成功:', result.data);
+            // 这里可以根据需要将设置保存到 AppState 或 localStorage
+            AppState.globalSettings = result.data;
+        } else {
+            console.error('全局设置加载失败:', result ? result.error_msg : '未知错误');
+        }
+    } catch (error) {
+        console.error('加载全局设置异常:', error);
+    }
+}
+
 // ==================== 应用初始化 ====================
 function initApp() {
     AppState.init();
+    loadGlobalSettings(); // 加载全局设置
     if (!window.wechatLogin && typeof WechatLogin === 'function') {
         window.wechatLogin = new WechatLogin({
             miniProgramLoginUrl: '/pages/login/index',
