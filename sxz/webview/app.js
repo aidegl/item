@@ -2891,44 +2891,22 @@ async function testPayment() {
     }
 
     try {
-        // 4. 构建支付参数
-        // 注意：PemKey 和 PemCert 可能非常长，URL 传参有长度限制（通常 2KB）
+        // 4. 构建简化的支付参数
+        // 不再通过 URL 传递敏感的商户密钥，直接让小程序端读取 zhifu.js
         const payData = {
             type: 'test_payment',
             amount: '0.01',
-            shmc: settings.shmc || '',
-            pemkey: settings.pemkey || '',
-            apiv2: settings.apiv2 || '',
-            pemcert: settings.pemcert || '',
-            apiv3: settings.apiv3 || '',
             timestamp: Date.now()
         };
 
-        // 过滤掉空值
         const params = [];
         for (const key in payData) {
-            if (payData[key]) {
-                params.push(`${key}=${encodeURIComponent(payData[key])}`);
-            }
+            params.push(`${key}=${encodeURIComponent(payData[key])}`);
         }
 
         const queryString = params.join('&');
         const targetUrl = `/pages/payment/index?${queryString}`;
         
-        console.log('目标跳转 URL 长度:', targetUrl.length);
-        if (targetUrl.length > 2000) {
-            const confirm = await new Promise(resolve => {
-                showConfirmDialog(
-                    `参数过长警告: 支付参数长度为 ${targetUrl.length}，超过了微信建议的 2048 字节限制，可能导致跳转失败。是否继续？`,
-                    () => resolve(true),
-                    () => resolve(false),
-                    '继续尝试',
-                    '取消支付'
-                );
-            });
-            if (!confirm) return;
-        }
-
         console.log('正在执行 navigateTo:', targetUrl);
         
         // 确保在微信 SDK 准备就绪后执行
@@ -2941,7 +2919,7 @@ async function testPayment() {
                 },
                 fail: function(err) {
                     console.error('跳转指令发送失败:', err);
-                    showConfirmDialog(`跳转失败: ${JSON.stringify(err)}。可能是 URL 过长或页面路径不正确。`, null, null, '确定', '');
+                    showConfirmDialog(`跳转失败: ${JSON.stringify(err)}。请检查小程序是否配置了 /pages/payment/index 页面。`, null, null, '确定', '');
                 }
             });
         };
