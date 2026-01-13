@@ -66,8 +66,11 @@ Page({
       },
       success: (res) => {
         wx.hideLoading();
-        if (res.data && res.data.success) {
-          const payParams = res.data.payParams; // 后端返回的支付参数
+        console.log('后端返回原始数据:', res.data);
+
+        if (res.data && res.data.success && res.data.payParams) {
+          const payParams = res.data.payParams;
+          console.log('准备调用支付参数:', payParams);
           
           wx.requestPayment({
             ...payParams,
@@ -77,7 +80,7 @@ Page({
               self.setData({ status: '支付成功', loading: false });
             },
             fail: (err) => {
-              console.error('支付失败:', err);
+              console.error('微信支付窗口调用失败:', err);
               if (err.errMsg.indexOf('cancel') > -1) {
                 wx.showToast({ title: '用户取消支付', icon: 'none' });
                 self.setData({ status: '支付已取消', loading: false });
@@ -88,7 +91,13 @@ Page({
             }
           });
         } else {
-          wx.showModal({ title: '下单失败', content: res.data.message || '未知错误', showCancel: false });
+          console.error('后端返回数据异常:', res.data);
+          const errorMsg = res.data ? (res.data.message || JSON.stringify(res.data)) : '后端未返回有效数据';
+          wx.showModal({ 
+            title: '下单失败', 
+            content: '后端接口未返回正确的支付参数。具体返回：' + errorMsg, 
+            showCancel: false 
+          });
           self.setData({ status: '下单失败', loading: false });
         }
       },
