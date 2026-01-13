@@ -2180,14 +2180,14 @@ function showConfirmDialog(message, onConfirm, onCancel, confirmText = '确认',
     };
 }
 
-function hideConfirmDialog() {
+function hideConfirmDialog(fromConfirm = false) {
     const dialog = document.getElementById('confirm-dialog');
     if (dialog) {
         dialog.remove();
     }
 
-    // 调用取消回调
-    if (window.confirmCallbacks?.onCancel) {
+    // 调用取消回调（仅当不是从确认按钮点击时）
+    if (!fromConfirm && window.confirmCallbacks?.onCancel) {
         window.confirmCallbacks.onCancel();
     }
 
@@ -2196,12 +2196,15 @@ function hideConfirmDialog() {
 }
 
 function handleConfirm() {
+    // 保存回调，防止在 hideConfirmDialog 中被清理
+    const onConfirm = window.confirmCallbacks?.onConfirm;
+    
+    hideConfirmDialog(true);
+    
     // 调用确认回调
-    if (window.confirmCallbacks?.onConfirm) {
-        window.confirmCallbacks.onConfirm();
+    if (onConfirm) {
+        onConfirm();
     }
-
-    hideConfirmDialog();
 }
 
 // ==================== 患者核心疑问动态添加 ====================
@@ -2848,24 +2851,51 @@ function goToLogin() {
 /**
  * 支付测试：跳转小程序原生支付页面
  */
-function testPayment() {
-    console.log('开始支付测试...');
+async function testPayment() {
+    console.log('--- 支付测试开始 ---');
     
-    // 获取全局设置中的商户信息
-    const settings = AppState.globalSettings;
+    // 1. 环境检查
+    const isMiniProgram = window.__wxjs_environment === 'miniprogram' || /miniProgram/i.test(navigator.userAgent);
+    console.log('当前环境是否为小程序:', isMiniProgram);
+
+    // 2. 检查全局设置
+    let settings = AppState.globalSettings;
     if (!settings) {
-        showToast('全局设置尚未加载，请稍后再试');
-        console.warn('支付测试失败：AppState.globalSettings 为空');
+        console.log('全局设置为空，尝试手动加载...');
+        showToast('正在初始化支付配置...');
+        try {
+            await loadGlobalSettings();
+            settings = AppState.globalSettings;
+        } catch (e) {
+            console.error('加载全局设置失败:', e);
+        }
+    }
+
+    if (!settings) {
+        showConfirmDialog('无法获取商户支付配置，请刷新页面重试。', null, null, '确定', '');
         return;
     }
 
+    // 3. 检查微信 JS-SDK
     const wx = window.wx;
-    if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
-        // 构建支付测试参数
-        // 包含用户提到的商户密钥信息（虽然通常由后端处理，但按要求传递给小程序原生端）
+    if (!wx) {
+        showConfirmDialog('未检测到微信JS-SDK，请确保在微信环境中打开。', null, null, '确定', '');
+        return;
+    }
+
+    if (!wx.miniProgram || typeof wx.miniProgram.navigateTo !== 'function') {
+        console.error('wx.miniProgram.navigateTo 不可用', wx.miniProgram);
+        const msg = isMiniProgram ? '微信SDK初始化失败，请重试。' : '当前非小程序环境，无法测试支付跳转。';
+        showConfirmDialog(msg, null, null, '确定', '');
+        return;
+    }
+
+    try {
+        // 4. 构建支付参数
+        // 注意：PemKey 和 PemCert 可能非常长，URL 传参有长度限制（通常 2KB）
         const payData = {
             type: 'test_payment',
-            amount: 0.01,
+            amount: '0.01',
             shmc: settings.shmc || '',
             pemkey: settings.pemkey || '',
             apiv2: settings.apiv2 || '',
@@ -2874,27 +2904,56 @@ function testPayment() {
             timestamp: Date.now()
         };
 
-        // 将参数序列化为查询字符串
-        const queryString = Object.keys(payData)
-            .map(key => `${key}=${encodeURIComponent(payData[key])}`)
-            .join('&');
-
-        const targetUrl = `/pages/payment/index?${queryString}`;
-        console.log('正在跳转至小程序支付页面:', targetUrl);
-        
-        wx.miniProgram.navigateTo({
-            url: targetUrl,
-            success: function() {
-                console.log('跳转小程序支付页面成功');
-            },
-            fail: function(err) {
-                console.error('跳转小程序支付页面失败:', err);
-                showToast('跳转支付失败，请检查环境');
+        // 过滤掉空值
+        const params = [];
+        for (const key in payData) {
+            if (payData[key]) {
+                params.push(`${key}=${encodeURIComponent(payData[key])}`);
             }
-        });
-    } else {
-        console.error('当前环境不支持微信小程序跳转');
-        showToast('请在微信小程序环境内进行支付测试');
+        }
+
+        const queryString = params.join('&');
+        const targetUrl = `/pages/payment/index?${queryString}`;
+        
+        console.log('目标跳转 URL 长度:', targetUrl.length);
+        if (targetUrl.length > 2000) {
+            const confirm = await new Promise(resolve => {
+                showConfirmDialog(
+                    `参数过长警告: 支付参数长度为 ${targetUrl.length}，超过了微信建议的 2048 字节限制，可能导致跳转失败。是否继续？`,
+                    () => resolve(true),
+                    () => resolve(false),
+                    '继续尝试',
+                    '取消支付'
+                );
+            });
+            if (!confirm) return;
+        }
+
+        console.log('正在执行 navigateTo:', targetUrl);
+        
+        // 确保在微信 SDK 准备就绪后执行
+        const performNavigate = () => {
+            wx.miniProgram.navigateTo({
+                url: targetUrl,
+                success: function() {
+                    console.log('跳转指令发送成功');
+                    showToast('正在跳转支付页面...');
+                },
+                fail: function(err) {
+                    console.error('跳转指令发送失败:', err);
+                    showConfirmDialog(`跳转失败: ${JSON.stringify(err)}。可能是 URL 过长或页面路径不正确。`, null, null, '确定', '');
+                }
+            });
+        };
+
+        if (typeof wx.ready === 'function') {
+            wx.ready(performNavigate);
+        } else {
+            performNavigate();
+        }
+    } catch (error) {
+        console.error('支付测试执行异常:', error);
+        showConfirmDialog(`支付逻辑出错: ${error.message}`, null, null, '确定', '');
     }
 }
 
