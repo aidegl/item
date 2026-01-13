@@ -1,4 +1,29 @@
 // ==================== 应用状态管理 ====================
+console.log('app.js 正在加载...');
+
+// 全局暴露跳转函数
+window.testPayment = function() {
+    console.log('--- 支付测试开始 (Global) ---');
+    try {
+        const wx = window.wx;
+        const targetUrl = '/pages/payment/index?type=test_payment&amount=0.01&timestamp=' + Date.now();
+        
+        if (typeof showToast === 'function') showToast('跳转中...');
+
+        if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+            wx.miniProgram.navigateTo({
+                url: targetUrl,
+                success: () => console.log('跳转指令发送成功'),
+                fail: (err) => alert('跳转失败: ' + JSON.stringify(err))
+            });
+        } else {
+            alert('环境不支持：请在微信小程序内打开，或等待 SDK 加载完毕');
+        }
+    } catch (e) {
+        alert('发生异常: ' + e.message);
+    }
+};
+
 const AppState = {
     currentTab: 'ai',
     currentView: 'main',
@@ -2815,7 +2840,7 @@ function renderSettings(container) {
             `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()" style="display: flex; align-items: center; justify-content: center;">退出登录</button>` :
             `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()" style="display: flex; align-items: center; justify-content: center;">立即登录</button>`
         }
-                <button class="btn btn-outline btn-lg w-full mt-2" onclick="testPayment()" style="display: flex; align-items: center; justify-content: center; border-color: var(--primary-color); color: var(--primary-color);">支付测试</button>
+                <button class="btn btn-outline btn-lg w-full mt-2" onclick="console.log('支付测试按钮被点击'); testPayment()" style="display: flex; align-items: center; justify-content: center; border-color: var(--primary-color); color: var(--primary-color);">支付测试</button>
             </div>
             
             <div class="card">
@@ -2846,93 +2871,6 @@ function goToLogin() {
         return;
     }
     showToast('请在小程序内打开以登录');
-}
-
-/**
- * 支付测试：跳转小程序原生支付页面
- */
-async function testPayment() {
-    console.log('--- 支付测试开始 ---');
-    
-    // 1. 环境检查
-    const isMiniProgram = window.__wxjs_environment === 'miniprogram' || /miniProgram/i.test(navigator.userAgent);
-    console.log('当前环境是否为小程序:', isMiniProgram);
-
-    // 2. 检查全局设置
-    let settings = AppState.globalSettings;
-    if (!settings) {
-        console.log('全局设置为空，尝试手动加载...');
-        showToast('正在初始化支付配置...');
-        try {
-            await loadGlobalSettings();
-            settings = AppState.globalSettings;
-        } catch (e) {
-            console.error('加载全局设置失败:', e);
-        }
-    }
-
-    if (!settings) {
-        showConfirmDialog('无法获取商户支付配置，请刷新页面重试。', null, null, '确定', '');
-        return;
-    }
-
-    // 3. 检查微信 JS-SDK
-    const wx = window.wx;
-    if (!wx) {
-        showConfirmDialog('未检测到微信JS-SDK，请确保在微信环境中打开。', null, null, '确定', '');
-        return;
-    }
-
-    if (!wx.miniProgram || typeof wx.miniProgram.navigateTo !== 'function') {
-        console.error('wx.miniProgram.navigateTo 不可用', wx.miniProgram);
-        const msg = isMiniProgram ? '微信SDK初始化失败，请重试。' : '当前非小程序环境，无法测试支付跳转。';
-        showConfirmDialog(msg, null, null, '确定', '');
-        return;
-    }
-
-    try {
-        // 4. 构建简化的支付参数
-        // 不再通过 URL 传递敏感的商户密钥，直接让小程序端读取 zhifu.js
-        const payData = {
-            type: 'test_payment',
-            amount: '0.01',
-            timestamp: Date.now()
-        };
-
-        const params = [];
-        for (const key in payData) {
-            params.push(`${key}=${encodeURIComponent(payData[key])}`);
-        }
-
-        const queryString = params.join('&');
-        const targetUrl = `/pages/payment/index?${queryString}`;
-        
-        console.log('正在执行 navigateTo:', targetUrl);
-        
-        // 确保在微信 SDK 准备就绪后执行
-        const performNavigate = () => {
-            wx.miniProgram.navigateTo({
-                url: targetUrl,
-                success: function() {
-                    console.log('跳转指令发送成功');
-                    showToast('正在跳转支付页面...');
-                },
-                fail: function(err) {
-                    console.error('跳转指令发送失败:', err);
-                    showConfirmDialog(`跳转失败: ${JSON.stringify(err)}。请检查小程序是否配置了 /pages/payment/index 页面。`, null, null, '确定', '');
-                }
-            });
-        };
-
-        if (typeof wx.ready === 'function') {
-            wx.ready(performNavigate);
-        } else {
-            performNavigate();
-        }
-    } catch (error) {
-        console.error('支付测试执行异常:', error);
-        showConfirmDialog(`支付逻辑出错: ${error.message}`, null, null, '确定', '');
-    }
 }
 
 // 处理昵称点击事件
