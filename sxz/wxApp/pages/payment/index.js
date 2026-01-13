@@ -21,32 +21,101 @@ Page({
     const self = this;
     const { amount } = this.data;
     
-    console.log('使用商户配置进行支付:', zhifu.shmc);
+    console.log('--- 准备发起支付 ---');
+    console.log('商户名称:', zhifu.shmc);
+    console.log('支付金额:', amount);
     
-    // 这里是实际发起支付的地方
-    // 1. 调用后端接口获取支付参数 (timeStamp, nonceStr, package, paySign等)
-    // 2. 使用获取到的参数调用 wx.requestPayment
+    wx.showLoading({ title: '正在下单...' });
     
-    wx.showLoading({ title: '准备支付中' });
+    // 实际支付流程说明：
+    // 1. 小程序端调用后端接口 (例如: https://your-backend.com/api/pay/createOrder)
+    // 2. 后端接收请求，使用商户证书 (zhifu.pemkey, zhifu.pemcert) 和 密钥 (zhifu.apiv3) 
+    //    向微信支付 V3 接口发起统一下单请求，获取 prepay_id。
+    // 3. 后端对支付参数进行二次签名，并返回给小程序：
+    //    { timeStamp, nonceStr, package, signType, paySign }
+    // 4. 小程序调用 wx.requestPayment(params) 弹出支付窗口。
+
+    // 注意：出于安全性考虑，支付签名必须在服务器端完成，不能在小程序前端直接使用私钥签名。
+    // 这里我们模拟一个后端调用的过程。
     
-    // 模拟一个支付过程
+    // 请在此处填写您的后端接口地址
+    const BACKEND_API_URL = ''; // 例如: 'https://api.yourdomain.com/pay/unifiedorder'
+
+    if (!BACKEND_API_URL) {
+      setTimeout(() => {
+        wx.hideLoading();
+        wx.showModal({
+          title: '支付配置提示',
+          content: '请在 pages/payment/index.js 中配置 BACKEND_API_URL 以连接您的后端支付接口。如果您没有后端，目前只能进行模拟支付。',
+          confirmText: '模拟支付',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              this.simulatePayment();
+            } else {
+              self.setData({ status: '支付已取消', loading: false });
+            }
+          }
+        });
+      }, 1000);
+      return;
+    }
+
+    // 发起真实支付请求
+    wx.request({
+      url: BACKEND_API_URL,
+      method: 'POST',
+      data: {
+        amount: amount,
+        openid: wx.getStorageSync('openid') || '',
+        description: '支付测试 - 0.01元'
+      },
+      success: (res) => {
+        wx.hideLoading();
+        if (res.data && res.data.success) {
+          const payParams = res.data.payParams; // 后端返回的支付参数
+          
+          wx.requestPayment({
+            ...payParams,
+            success: (payRes) => {
+              console.log('支付成功:', payRes);
+              wx.showToast({ title: '支付成功', icon: 'success' });
+              self.setData({ status: '支付成功', loading: false });
+            },
+            fail: (err) => {
+              console.error('支付失败:', err);
+              if (err.errMsg.indexOf('cancel') > -1) {
+                wx.showToast({ title: '用户取消支付', icon: 'none' });
+                self.setData({ status: '支付已取消', loading: false });
+              } else {
+                wx.showModal({ title: '支付失败', content: err.errMsg, showCancel: false });
+                self.setData({ status: '支付失败', loading: false });
+              }
+            }
+          });
+        } else {
+          wx.showModal({ title: '下单失败', content: res.data.message || '未知错误', showCancel: false });
+          self.setData({ status: '下单失败', loading: false });
+        }
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        wx.showModal({ title: '网络错误', content: '无法连接到支付服务器', showCancel: false });
+        self.setData({ status: '连接失败', loading: false });
+      }
+    });
+  },
+
+  // 保留模拟支付逻辑供测试使用
+  simulatePayment: function() {
+    const self = this;
+    const { amount } = this.data;
+    wx.showLoading({ title: '正在模拟支付...' });
+    
     setTimeout(() => {
       wx.hideLoading();
-      wx.showModal({
-        title: '支付测试',
-        content: `正在为您向【${zhifu.shmc}】发起 ${amount} 元的支付测试。`,
-        confirmText: '模拟成功',
-        cancelText: '模拟失败',
-        success: (res) => {
-          if (res.confirm) {
-            wx.showToast({ title: '支付成功', icon: 'success' });
-            self.setData({ status: '支付成功', loading: false });
-          } else {
-            wx.showToast({ title: '支付取消', icon: 'none' });
-            self.setData({ status: '支付失败', loading: false });
-          }
-        }
-      });
+      wx.showToast({ title: '支付成功(模拟)', icon: 'success' });
+      self.setData({ status: '支付成功(模拟)', loading: false });
     }, 1500);
   },
 
