@@ -39,7 +39,7 @@ Page({
     // 这里我们模拟一个后端调用的过程。
     
     // 请在此处填写您的后端接口地址
-    const BACKEND_API_URL = ''; // 例如: 'https://api.yourdomain.com/pay/unifiedorder'
+    const BACKEND_API_URL = 'https://api.100000whys.cn/api/pay'; 
 
     if (!BACKEND_API_URL) {
       setTimeout(() => {
