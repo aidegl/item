@@ -1859,6 +1859,16 @@ async function handleConsultationSubmit(event) {
 
     // 初诊/复诊逻辑校验
     const shouzhen = formData.get('shouzhen');
+    const consultationDate = formData.get('date');
+    const today = new Date().toISOString().split('T')[0];
+
+    if (shouzhen === '1') {
+        if (consultationDate < today) {
+            showToast('初诊不能选择今天以前的日期');
+            return;
+        }
+    }
+
     let firstRecordId = null;
     if (shouzhen === '0') {
         const hasFirstRecord = formData.get('hasFirstRecord');
@@ -2049,9 +2059,9 @@ async function handleConsultationDelete(consultationId) {
 // ==================== 确认对话框 ====================
 function handleShouzhenChange(radio) {
     const followupSection = document.getElementById('followup-section');
-    if (radio.value === '0') {
-        followupSection.style.display = 'block';
-    } else {
+    const dateInput = document.querySelector('input[name="date"]');
+    
+    if (radio.value === '1') {
         followupSection.style.display = 'none';
         // 清重置复诊相关的选择
         const hasFirstRecordRadios = document.getElementsByName('hasFirstRecord');
@@ -2059,6 +2069,21 @@ function handleShouzhenChange(radio) {
         document.getElementById('first-record-selector').style.display = 'none';
         const select = document.querySelector('select[name="firstRecordId"]');
         if (select) select.value = '';
+        
+        // 初诊逻辑：自动设置为当天
+        const today = new Date().toISOString().split('T')[0];
+        if (dateInput) {
+            dateInput.value = today;
+            // 虽然设置了当天，但用户可能还是想改（比如昨天初诊今天录入），
+            // 但根据要求：“初诊选择日期时校验：不能选择今天以前的日期”
+            // 以及“选择初诊后，就诊日期自动显示当天，且不能修改其他日期”
+            // 这里的“不能修改其他日期”可能意味着变灰或者只读，但用户又说“初诊选择日期时校验”，这有点矛盾。
+            // 最稳妥的做法是：自动设为今天，但允许修改，提交时校验不能早于今天。
+            // 如果要严格执行“不能修改其他日期”，就设为 readOnly。
+            // 我们按用户说的“初诊选择日期时校验”和“自动显示当天”来做。
+        }
+    } else {
+        followupSection.style.display = 'block';
     }
 }
 
@@ -2787,6 +2812,7 @@ function renderSettings(container) {
             `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()" style="display: flex; align-items: center; justify-content: center;">退出登录</button>` :
             `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()" style="display: flex; align-items: center; justify-content: center;">立即登录</button>`
         }
+                <button class="btn btn-outline btn-lg w-full mt-2" onclick="testPayment()" style="display: flex; align-items: center; justify-content: center; border-color: var(--primary-color); color: var(--primary-color);">支付测试</button>
             </div>
             
             <div class="card">
@@ -2817,6 +2843,59 @@ function goToLogin() {
         return;
     }
     showToast('请在小程序内打开以登录');
+}
+
+/**
+ * 支付测试：跳转小程序原生支付页面
+ */
+function testPayment() {
+    console.log('开始支付测试...');
+    
+    // 获取全局设置中的商户信息
+    const settings = AppState.globalSettings;
+    if (!settings) {
+        showToast('全局设置尚未加载，请稍后再试');
+        console.warn('支付测试失败：AppState.globalSettings 为空');
+        return;
+    }
+
+    const wx = window.wx;
+    if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+        // 构建支付测试参数
+        // 包含用户提到的商户密钥信息（虽然通常由后端处理，但按要求传递给小程序原生端）
+        const payData = {
+            type: 'test_payment',
+            amount: 0.01,
+            shmc: settings.shmc || '',
+            pemkey: settings.pemkey || '',
+            apiv2: settings.apiv2 || '',
+            pemcert: settings.pemcert || '',
+            apiv3: settings.apiv3 || '',
+            timestamp: Date.now()
+        };
+
+        // 将参数序列化为查询字符串
+        const queryString = Object.keys(payData)
+            .map(key => `${key}=${encodeURIComponent(payData[key])}`)
+            .join('&');
+
+        const targetUrl = `/pages/payment/index?${queryString}`;
+        console.log('正在跳转至小程序支付页面:', targetUrl);
+        
+        wx.miniProgram.navigateTo({
+            url: targetUrl,
+            success: function() {
+                console.log('跳转小程序支付页面成功');
+            },
+            fail: function(err) {
+                console.error('跳转小程序支付页面失败:', err);
+                showToast('跳转支付失败，请检查环境');
+            }
+        });
+    } else {
+        console.error('当前环境不支持微信小程序跳转');
+        showToast('请在微信小程序环境内进行支付测试');
+    }
 }
 
 // 处理昵称点击事件
