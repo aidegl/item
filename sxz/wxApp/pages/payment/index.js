@@ -41,33 +41,27 @@ Page({
     // 请在此处填写您的后端接口地址
     const BACKEND_API_URL = 'https://api.100000whys.cn/api/pay'; 
 
-    if (!BACKEND_API_URL) {
-      setTimeout(() => {
-        wx.hideLoading();
-        wx.showModal({
-          title: '支付配置提示',
-          content: '请在 pages/payment/index.js 中配置 BACKEND_API_URL 以连接您的后端支付接口。如果您没有后端，目前只能进行模拟支付。',
-          confirmText: '模拟支付',
-          cancelText: '取消',
-          success: (res) => {
-            if (res.confirm) {
-              this.simulatePayment();
-            } else {
-              self.setData({ status: '支付已取消', loading: false });
-            }
-          }
-        });
-      }, 1000);
+    console.log('正在请求后端支付接口:', BACKEND_API_URL);
+
+    // 发起真实支付请求
+    const openid = wx.getStorageSync('openid');
+    if (!openid) {
+      wx.hideLoading();
+      wx.showModal({
+        title: '支付失败',
+        content: '未获取到用户身份(OpenID)，请重新登录后再试',
+        showCancel: false
+      });
+      self.setData({ status: '身份缺失', loading: false });
       return;
     }
 
-    // 发起真实支付请求
     wx.request({
       url: BACKEND_API_URL,
       method: 'POST',
       data: {
         amount: amount,
-        openid: wx.getStorageSync('openid') || '',
+        openid: openid,
         description: '支付测试 - 0.01元'
       },
       success: (res) => {
