@@ -1,0 +1,61 @@
+<view class="container">
+  <view class="payment-card">
+    <view class="title">支付测试</view>
+    <view class="amount-box">
+      <text class="currency">￥</text>
+      <text class="amount">{{amount}}</text>
+    </view>
+    <view class="status {{loading ? 'loading' : ''}}">{{status}}</view>
+    
+    <button wx:if="{{!loading}}" class="btn-back" bindtap="goBack">返回</button>
+  </view>
+</view>
+
+<style>
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f8f8f8;
+}
+.payment-card {
+  width: 80%;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  text-align: center;
+}
+.title {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 20px;
+}
+.amount-box {
+  margin-bottom: 20px;
+}
+.currency {
+  font-size: 24px;
+  font-weight: bold;
+}
+.amount {
+  font-size: 48px;
+  font-weight: bold;
+}
+.status {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 30px;
+}
+.loading {
+  color: #007aff;
+}
+.btn-back {
+  background-color: #07c160;
+  color: white;
+  border-radius: 6px;
+  font-size: 16px;
+}
+</style>

@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/webview/index",
+    "pages/payment/index",
     "pages/login/index",
     "pages/logout/index"
   ],
