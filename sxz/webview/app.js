@@ -899,7 +899,12 @@ async function loadConsultations(patientId) {
                 nurseReminder: row.pzszhtx,
                 medication: row.yyzd,
                 advice: row.nextAction,
-                shouzhen: (row.shouzhen == '1' || row.shouzhen == 1 || (Array.isArray(row.shouzhen) && row.shouzhen[0] == '1')) ? 1 : 0,
+                shouzhen: (function(val) {
+                    if (val == '1' || val == 1) return 1;
+                    if (Array.isArray(val) && val[0] == '1') return 1;
+                    if (typeof val === 'string' && val.includes('1')) return 1; // 处理可能出现的 "[\"1\"]" 格式
+                    return 0;
+                })(row.shouzhen),
                 firstRecordId: row.firstRecordId,
                 status: (row.specialNote && row.specialNote !== '未记录') ? 'completed' : 'pending',
                 createdAt: row.ctime
@@ -1548,36 +1553,36 @@ function renderConsultationFlow(container) {
                     
                     <div class="form-group">
                         <label class="form-label">是否初诊 *</label>
-                        <div style="display: flex; gap: 20px; margin-top: 8px;">
-                            <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                                <input type="radio" name="shouzhen" value="1" ${!isEditMode || (consultation.shouzhen == 1 || consultation.shouzhen == '1') ? 'checked' : ''} onchange="handleShouzhenChange(this)">
-                                <span>是</span>
+                        <div class="radio-group" style="display: flex; gap: 24px; margin-top: 8px;">
+                            <label class="radio-item" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="radio" name="shouzhen" value="1" ${!isEditMode || (consultation.shouzhen == 1 || consultation.shouzhen == '1') ? 'checked' : ''} onchange="handleShouzhenChange(this)" style="width: 16px; height: 16px;">
+                                <span style="font-size: 14px; color: var(--text-primary);">是</span>
                             </label>
-                            <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                                <input type="radio" name="shouzhen" value="0" ${isEditMode && (consultation.shouzhen == 0 || consultation.shouzhen == '0') ? 'checked' : ''} onchange="handleShouzhenChange(this)">
-                                <span>否</span>
+                            <label class="radio-item" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="radio" name="shouzhen" value="0" ${isEditMode && (consultation.shouzhen == 0 || consultation.shouzhen == '0') ? 'checked' : ''} onchange="handleShouzhenChange(this)" style="width: 16px; height: 16px;">
+                                <span style="font-size: 14px; color: var(--text-primary);">否</span>
                             </label>
                         </div>
                     </div>
 
-                    <div id="followup-section" style="display: ${isEditMode && (consultation.shouzhen == 0 || consultation.shouzhen == '0') ? 'block' : 'none'}; margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 8px;">
-                        <div class="form-group">
-                            <label class="form-label" style="font-size: 13px;">系统是否记录了该复诊的首次陪诊记录？</label>
-                            <div style="display: flex; gap: 20px; margin-top: 8px;">
-                                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                                    <input type="radio" name="hasFirstRecord" value="1" ${isEditMode && consultation.firstRecordId ? 'checked' : ''} onchange="handleHasFirstRecordChange(this)">
-                                    <span style="font-size: 13px;">是</span>
+                    <div id="followup-section" style="display: ${isEditMode && (consultation.shouzhen == 0 || consultation.shouzhen == '0') ? 'block' : 'none'}; margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.03); border-radius: 8px; border: 1px dashed rgba(59, 130, 246, 0.2);">
+                        <div class="form-group mb-0">
+                            <label class="form-label" style="font-size: 13px; color: var(--text-secondary);">系统是否记录了该复诊的首次陪诊记录？</label>
+                            <div class="radio-group" style="display: flex; gap: 24px; margin-top: 8px;">
+                                <label class="radio-item" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                    <input type="radio" name="hasFirstRecord" value="1" ${isEditMode && consultation.firstRecordId ? 'checked' : ''} onchange="handleHasFirstRecordChange(this)" style="width: 14px; height: 14px;">
+                                    <span style="font-size: 13px; color: var(--text-primary);">是</span>
                                 </label>
-                                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                                    <input type="radio" name="hasFirstRecord" value="0" ${isEditMode && !consultation.firstRecordId ? 'checked' : ''} onchange="handleHasFirstRecordChange(this)">
-                                    <span style="font-size: 13px;">否</span>
+                                <label class="radio-item" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                    <input type="radio" name="hasFirstRecord" value="0" ${isEditMode && !consultation.firstRecordId ? 'checked' : ''} onchange="handleHasFirstRecordChange(this)" style="width: 14px; height: 14px;">
+                                    <span style="font-size: 13px; color: var(--text-primary);">否</span>
                                 </label>
                             </div>
                         </div>
 
-                        <div id="first-record-selector" style="display: ${isEditMode && consultation.firstRecordId ? 'block' : 'none'}; margin-top: 12px;">
-                            <label class="form-label" style="font-size: 13px;">请选择该复诊的首次陪诊记录 *</label>
-                            <select name="firstRecordId" class="input" style="height: 40px; margin-top: 4px; font-size: 13px;">
+                        <div id="first-record-selector" style="display: ${isEditMode && consultation.firstRecordId ? 'block' : 'none'}; margin-top: 16px; border-top: 1px solid rgba(59, 130, 246, 0.1); pt-12;">
+                            <label class="form-label" style="font-size: 13px; color: var(--text-secondary); margin-top: 12px;">请选择该复诊的首次陪诊记录 *</label>
+                            <select name="firstRecordId" class="input" style="height: 38px; margin-top: 6px; font-size: 13px; background-color: white;">
                                 <option value="">-- 请选择记录 --</option>
                                 ${AppState.consultations
                                     .filter(c => c.patientId === AppState.currentPatientId && (c.shouzhen == 1 || c.shouzhen == '1') && c.id !== (isEditMode ? consultation.id : ''))
@@ -2692,6 +2697,7 @@ function renderSettings(container) {
     const userId = userInfo
         ? (rawUser && rawUser.escortCode ? rawUser.escortCode : '-')
         : '-';
+    const userLevel = userInfo && rawUser && rawUser.dengji ? rawUser.dengji : '免费版';
 
     container.innerHTML = `
         <div class="p-2">
@@ -2708,7 +2714,7 @@ function renderSettings(container) {
                 </div>
                 ${userInfo ? `
                 <div class="user-membership">
-                    <span class="membership-badge">免费版</span>
+                    <span class="membership-badge">${escapeHtml(userLevel)}</span>
                 </div>
                 ` : ''}
             </div>
@@ -3419,37 +3425,37 @@ function switchOrderTab(tabId) {
     }
 }
 
-// 会员套餐数据（模拟）
-const membershipPackages = [
-    {
-        id: 1,
-        name: '基础套餐',
-        price: 99,
-        period: '1个月',
-        benefits: ['10次AI咨询', '基础陪诊记录', '药品信息查询']
-    },
-    {
-        id: 2,
-        name: '高级套餐',
-        price: 258,
-        period: '3个月',
-        benefits: ['30次AI咨询', '高级陪诊记录', '药品信息查询', '健康提醒']
-    },
-    {
-        id: 3,
-        name: '尊享套餐',
-        price: 598,
-        period: '6个月',
-        benefits: ['60次AI咨询', '高级陪诊记录', '药品信息查询', '健康提醒', '优先客服']
-    },
-    {
-        id: 4,
-        name: '终身套餐',
-        price: 1998,
-        period: '终身',
-        benefits: ['无限次AI咨询', '高级陪诊记录', '药品信息查询', '健康提醒', '优先客服', '专属顾问']
-    }
-];
+// 会员套餐数据
+function getMembershipPackages() {
+    const settings = AppState.globalSettings || {};
+    return [
+        {
+            id: 1,
+            name: '免费版',
+            price: '免费版',
+            isFree: true,
+            description: settings.mfbms || '- 10次AI咨询\n- 基础陪诊记录\n- 药品信息查询'
+        },
+        {
+            id: 2,
+            name: '月卡会员',
+            price: settings.ykjg || '258',
+            description: settings.ykms || '- 30次AI咨询\n- 高级陪诊记录\n- 药品信息查询\n- 健康提醒'
+        },
+        {
+            id: 3,
+            name: '季卡会员',
+            price: settings.jkjg || '598',
+            description: settings.jkms || '- 60次AI咨询\n- 高级陪诊记录\n- 药品信息查询\n- 健康提醒\n- 优先客服'
+        },
+        {
+            id: 4,
+            name: '年卡会员',
+            price: settings.nkjg || '1998',
+            description: settings.nkms || '- 无限次AI咨询\n- 高级陪诊记录\n- 药品信息查询\n- 健康提醒\n- 优先客服\n- 专属顾问'
+        }
+    ];
+}
 
 // 渲染会员权益页面
 function renderMembershipPage() {
@@ -3461,10 +3467,30 @@ function renderMembershipPage() {
         bottomNav.style.display = 'none';
     }
 
-    // 初始选择第一个套餐
-    const selectedPackage = membershipPackages[0];
+    const packages = getMembershipPackages();
+    
+    // 获取当前用户的会员等级
+    let userLevel = '免费版';
+    if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+        const userInfo = window.wechatLogin.getUserInfo();
+        if (userInfo && userInfo.raw && userInfo.raw.dengji) {
+            userLevel = userInfo.raw.dengji;
+        }
+    }
 
-    // 获取全局设置中的资源剩余量，如果没有则使用用户提供的默认值
+    // 定义等级权重，用于比较高低
+    const levelWeights = {
+        '免费版': 1,
+        '月卡会员': 2,
+        '季卡会员': 3,
+        '年卡会员': 4
+    };
+    const currentUserWeight = levelWeights[userLevel] || 1;
+
+    // 默认选中当前等级的套餐
+    let selectedPackage = packages.find(pkg => pkg.name === userLevel) || packages[0];
+
+    // 获取全局设置中的资源剩余量
     const globalSettings = AppState.globalSettings || {};
     const monthlyRemaining = globalSettings.dy_sy || '103444';
     const fixedRemaining = globalSettings.gd_sy || '109289';
@@ -3482,7 +3508,7 @@ function renderMembershipPage() {
             <div style="width: 72px;"></div> <!-- 占位 -->
         </div>
         
-        <div class="p-2" style="padding-bottom: 80px;"> <!-- 添加底部空间，避免内容被固定区域遮挡 -->
+        <div class="p-2" style="padding-bottom: 80px;">
             <div class="card mb-2">
                 <!-- 资源剩余显示 -->
                 <div style="display: flex; gap: 12px; margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.03) 100%); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
@@ -3515,26 +3541,54 @@ function renderMembershipPage() {
                 <h3 class="card-title mb-2">选择权益</h3>
                 
                 <div class="package-list" id="packageList">
-                    ${membershipPackages.map(pkg => `
-                        <div class="package-item ${pkg.id === selectedPackage.id ? 'selected' : ''}" onclick="selectPackage(${pkg.id})" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px; cursor: pointer; ${pkg.id === selectedPackage.id ? 'border-color: var(--primary-color); background-color: rgba(59, 130, 246, 0.05);' : ''}">
-                            <div class="flex justify-between items-center mb-2">
-                                <h4 style="font-size: 16px; font-weight: 600; margin: 0;">${pkg.name}</h4>
-                                <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">¥${pkg.price}</div>
+                    ${packages.map(pkg => {
+                        const pkgWeight = levelWeights[pkg.name] || 0;
+                        const isCurrentLevel = pkg.name === userLevel;
+                        const isDisabled = pkgWeight < currentUserWeight;
+                        const isSelected = pkg.id === selectedPackage.id;
+                        
+                        let itemStyle = `border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s;`;
+                        if (isCurrentLevel) {
+                            itemStyle += `border-color: #10b981; background-color: rgba(16, 185, 129, 0.05);`;
+                        } else if (isSelected) {
+                            itemStyle += `border-color: var(--primary-color); background-color: rgba(59, 130, 246, 0.05);`;
+                        }
+                        
+                        if (isDisabled) {
+                            itemStyle += `opacity: 0.6; cursor: not-allowed; filter: grayscale(0.5);`;
+                        } else {
+                            itemStyle += `cursor: pointer;`;
+                        }
+
+                        return `
+                            <div class="package-item ${isSelected ? 'selected' : ''} ${isCurrentLevel ? 'current' : ''} ${isDisabled ? 'disabled' : ''}" 
+                                 ${!isDisabled ? `onclick="selectPackage(${pkg.id})"` : ''} 
+                                 style="${itemStyle}">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 style="font-size: 16px; font-weight: 600; margin: 0; color: ${isCurrentLevel ? '#10b981' : 'inherit'};">
+                                        ${pkg.name}
+                                        ${isCurrentLevel ? '<span style="font-size: 12px; font-weight: 400; margin-left: 8px; padding: 2px 6px; background: #10b981; color: white; border-radius: 4px;">当前等级</span>' : ''}
+                                    </h4>
+                                    <div style="font-size: 18px; font-weight: 700; color: ${isCurrentLevel ? '#10b981' : 'var(--primary-color)'};">
+                                        ${pkg.isFree ? '免费' : '¥' + pkg.price}
+                                    </div>
+                                </div>
+                                <!-- Markdown 描述内容 -->
+                                <div class="markdown-content" style="font-size: 14px; color: var(--text-secondary);">
+                                    ${typeof marked !== 'undefined' ? marked.parse(pkg.description) : pkg.description.replace(/\n/g, '<br>')}
+                                </div>
+                                ${isDisabled ? '<div style="font-size: 12px; color: #ef4444; margin-top: 8px;">该套餐等级低于当前等级</div>' : ''}
                             </div>
-                            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">${pkg.period}</div>
-                            <ul style="margin: 0; padding-left: 16px;">
-                                ${pkg.benefits.map(benefit => `<li style="font-size: 14px; margin-bottom: 4px;">${benefit}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             </div>
         </div>
         
         <!-- 固定底部区域 -->
         <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: var(--bg-color); border-top: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; z-index: 100;">
-            <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 10px 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
-                立即开通 (¥${selectedPackage.price})
+            <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 10px 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); ${selectedPackage.name === userLevel ? 'background-color: #10b981; border-color: #10b981;' : ''}">
+                ${selectedPackage.name === userLevel ? (selectedPackage.name === '免费版' ? '当前等级' : '立即续费') : (levelWeights[selectedPackage.name] > currentUserWeight ? `立即升级 (¥${selectedPackage.price})` : `立即开通 (¥${selectedPackage.price})`)}
             </button>
         </div>
     `;
@@ -3544,25 +3598,65 @@ function renderMembershipPage() {
 function selectPackage(packageId) {
     const packageList = document.getElementById('packageList');
     const subscribeBtn = document.getElementById('subscribeBtn');
-    const pkg = membershipPackages.find(p => p.id === packageId);
+    const packages = getMembershipPackages();
+    const pkg = packages.find(p => p.id === packageId);
 
     if (!pkg) return;
 
-    // 更新选择状态
+    // 获取当前用户信息以确定等级权重
+    let userLevel = '免费版';
+    if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+        const userInfo = window.wechatLogin.getUserInfo();
+        if (userInfo && userInfo.raw && userInfo.raw.dengji) {
+            userLevel = userInfo.raw.dengji;
+        }
+    }
+
+    const levelWeights = {
+        '免费版': 1,
+        '月卡会员': 2,
+        '季卡会员': 3,
+        '年卡会员': 4
+    };
+    const currentUserWeight = levelWeights[userLevel] || 1;
+    const pkgWeight = levelWeights[pkg.name] || 0;
+
+    // 更新选择状态 UI
     const packageItems = packageList.querySelectorAll('.package-item');
     packageItems.forEach(item => {
         item.classList.remove('selected');
-        item.style.borderColor = 'var(--border-color)';
-        item.style.backgroundColor = 'transparent';
+        // 恢复默认边框和背景，除非是当前等级
+        if (!item.classList.contains('current')) {
+            item.style.borderColor = 'var(--border-color)';
+            item.style.backgroundColor = 'transparent';
+        }
     });
 
     const selectedItem = packageList.querySelector(`[onclick="selectPackage(${packageId})"]`);
-    selectedItem.classList.add('selected');
-    selectedItem.style.borderColor = 'var(--primary-color)';
-    selectedItem.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+    if (selectedItem) {
+        selectedItem.classList.add('selected');
+        // 如果不是当前等级，则显示选中蓝色样式
+        if (!selectedItem.classList.contains('current')) {
+            selectedItem.style.borderColor = 'var(--primary-color)';
+            selectedItem.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+        }
+    }
 
-    // 更新按钮价格
-    subscribeBtn.textContent = `立即开通 (¥${pkg.price})`;
+    // 更新按钮显示
+    if (pkg.name === userLevel) {
+        subscribeBtn.textContent = pkg.name === '免费版' ? '当前等级' : '立即续费';
+        subscribeBtn.disabled = pkg.name === '免费版';
+        subscribeBtn.style.opacity = '1';
+        subscribeBtn.style.backgroundColor = '#10b981';
+        subscribeBtn.style.borderColor = '#10b981';
+    } else {
+        const isUpgrade = pkgWeight > currentUserWeight;
+        subscribeBtn.textContent = isUpgrade ? `立即升级 (¥${pkg.price})` : `立即开通 (¥${pkg.price})`;
+        subscribeBtn.disabled = false;
+        subscribeBtn.style.opacity = '1';
+        subscribeBtn.style.backgroundColor = 'var(--primary-color)';
+        subscribeBtn.style.borderColor = 'var(--primary-color)';
+    }
 }
 
 // 订阅权益
@@ -3575,7 +3669,10 @@ function subscribePackage() {
 
     // 获取套餐ID
     const packageId = parseInt(selectedItem.getAttribute('onclick').match(/\d+/)[0]);
-    const pkg = membershipPackages.find(p => p.id === packageId);
+    const packages = getMembershipPackages();
+    const pkg = packages.find(p => p.id === packageId);
+
+    if (pkg.isFree) return;
 
     showToast(`即将开通${pkg.name}，价格¥${pkg.price}`);
     // 这里可以添加实际的支付逻辑
