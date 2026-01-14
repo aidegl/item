@@ -1,61 +1,148 @@
+page {
+  background-color: #f0f2f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
 .container {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部背景装饰 */
+.header-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 400rpx;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-bottom-left-radius: 80rpx;
+  border-bottom-right-radius: 80rpx;
+  z-index: 1;
+}
+
+.content-wrapper {
+  position: relative;
+  z-index: 2;
+  padding: 60rpx 40rpx;
+  flex: 1;
+}
+
+/* 支付主卡片 */
+.payment-card {
+  background: #ffffff;
+  border-radius: 48rpx;
+  padding: 60rpx 48rpx;
+  box-shadow: 0 20rpx 80rpx rgba(0, 0, 0, 0.08);
+  margin-top: 40rpx;
+}
+
+/* 状态指示 */
+.status-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40rpx;
-  min-height: 100vh;
-  background-color: #f7f8fa;
-}
-
-.payment-card {
-  width: 100%;
-  background: #ffffff;
-  border-radius: 24rpx;
-  padding: 60rpx 40rpx;
-  box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.04);
-  box-sizing: border-box;
-}
-
-.header {
-  text-align: center;
   margin-bottom: 60rpx;
 }
 
-.shop-name {
-  font-size: 28rpx;
-  color: #666;
+.status-icon {
+  width: 120rpx;
+  height: 120rpx;
+  position: relative;
+  margin-bottom: 24rpx;
+}
+
+.icon-main {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  z-index: 2;
+}
+
+.processing .icon-main {
+  background: #3b82f6;
+  box-shadow: 0 8rpx 24rpx rgba(59, 130, 246, 0.3);
+}
+
+.error .icon-main {
+  background: #ef4444;
+  box-shadow: 0 8rpx 24rpx rgba(239, 68, 68, 0.3);
+}
+
+.icon-pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  z-index: 1;
+  animation: pulse 2s infinite;
+}
+
+.processing .icon-pulse {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.error .icon-pulse {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.status-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8rpx;
+}
+
+.status-desc {
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+/* 金额主展示 */
+.price-display {
+  text-align: center;
+  padding: 40rpx 0;
+  border-bottom: 2rpx solid #f1f5f9;
+  margin-bottom: 40rpx;
+}
+
+.price-label {
+  font-size: 26rpx;
+  color: #64748b;
   margin-bottom: 12rpx;
 }
 
-.title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.amount-section {
+.price-amount {
+  color: #1e293b;
   display: flex;
   align-items: baseline;
   justify-content: center;
-  margin-bottom: 80rpx;
-  color: #333;
 }
 
-.currency {
-  font-size: 40rpx;
+.price-symbol {
+  font-size: 48rpx;
   font-weight: 600;
-  margin-right: 8rpx;
+  margin-right: 4rpx;
 }
 
-.amount {
+.price-integer {
   font-size: 80rpx;
-  font-weight: 700;
+  font-weight: 800;
 }
 
+/* 权益详情列表 */
 .info-list {
-  background-color: #f9fafb;
-  border-radius: 16rpx;
-  padding: 30rpx;
   margin-bottom: 60rpx;
 }
 
@@ -63,68 +150,120 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 32rpx;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  color: #64748b;
+}
+
+.info-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 16rpx;
+  opacity: 0.6;
+}
+
+.info-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #334155;
+}
+
+.info-value.highlight {
+  color: #3b82f6;
+}
+
+/* 分割线 */
+.card-divider {
+  display: flex;
+  align-items: center;
+  margin: 40rpx 0;
+  position: relative;
+}
+
+.divider-line {
+  flex: 1;
+  height: 2rpx;
+  background: repeating-linear-gradient(to right, #e2e8f0 0, #e2e8f0 8rpx, transparent 8rpx, transparent 16rpx);
+}
+
+.divider-dot {
+  width: 32rpx;
+  height: 32rpx;
+  background-color: #f0f2f5;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.divider-dot.left { left: -64rpx; }
+.divider-dot.right { right: -64rpx; }
+
+/* 操作按钮区 */
+.button-group {
+  margin-top: 40rpx;
+}
+
+.btn-main {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  border-radius: 24rpx;
+  height: 100rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: 600;
+  box-shadow: 0 12rpx 32rpx rgba(37, 99, 235, 0.25);
+  border: none;
   margin-bottom: 24rpx;
 }
 
-.info-item:last-child {
-  margin-bottom: 0;
+.btn-main:active {
+  transform: scale(0.98);
+  opacity: 0.9;
 }
 
-.label {
-  font-size: 26rpx;
-  color: #999;
-}
-
-.value {
-  font-size: 28rpx;
-  color: #333;
-  font-weight: 500;
-}
-
-.value.highlight {
-  color: #07c160;
-}
-
-.status {
-  color: #666;
-}
-
-.status.loading {
-  color: #007aff;
-}
-
-.footer {
+.btn-ghost {
+  background: transparent;
+  color: #94a3b8;
+  border-radius: 24rpx;
+  height: 100rpx;
   display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-}
-
-.btn-action {
-  width: 100% !important;
-  height: 88rpx;
-  line-height: 88rpx;
-  border-radius: 44rpx;
-  font-size: 32rpx;
-  font-weight: 500;
-  background-color: #f2f2f2;
-  color: #333;
-  padding: 0;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
   border: none;
 }
 
-.btn-action.primary {
-  background-color: #07c160;
-  color: #ffffff;
+.pulse {
+  animation: shadow-pulse 2s infinite;
+}
+
+@keyframes shadow-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  70% { box-shadow: 0 0 0 20rpx rgba(37, 99, 235, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0;
 }
 
 .loading-spinner {
-  width: 40rpx;
-  height: 40rpx;
-  border: 4rpx solid #f3f3f3;
-  border-top: 4rpx solid #07c160;
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid #e2e8f0;
+  border-top: 4rpx solid #3b82f6;
   border-radius: 50%;
-  margin: 0 auto;
   animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
 }
 
 @keyframes spin {
@@ -132,15 +271,46 @@
   100% { transform: rotate(360deg); }
 }
 
-.safety-tips {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 40rpx;
-  gap: 10rpx;
+.loading-state text {
+  font-size: 24rpx;
+  color: #94a3b8;
 }
 
-.safety-tips text {
-  font-size: 24rpx;
-  color: #999;
+/* 底部信任标识 */
+.trust-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40rpx;
+  padding: 0 20rpx;
+}
+
+.security-badge {
+  display: flex;
+  align-items: center;
+  font-size: 22rpx;
+  color: #64748b;
+}
+
+.security-badge icon {
+  margin-right: 6rpx;
+}
+
+/* 底部安全说明 */
+.safety-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0 80rpx;
+  opacity: 0.5;
+}
+
+.wechat-pay-logo {
+  height: 32rpx;
+  width: 160rpx;
+  margin-bottom: 12rpx;
+}
+
+.safety-tip text {
+  font-size: 20rpx;
+  color: #94a3b8;
 }

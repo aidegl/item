@@ -1,39 +1,129 @@
 <view class="container">
-  <view class="payment-card">
-    <view class="header">
-      <view class="shop-name">沈仙子 AI</view>
-      <view class="title">确认支付</view>
-    </view>
-
-    <view class="amount-section">
-      <text class="currency">￥</text>
-      <text class="amount">{{amount}}</text>
-    </view>
-
-    <view class="info-list">
-      <view class="info-item">
-        <text class="label">产品名称</text>
-        <text class="value">{{productName}}</text>
+  <!-- 顶部沉浸式背景 -->
+  <view class="premium-header">
+    <view class="header-content">
+      <view class="back-btn" bindtap="goBack">
+        <icon type="cancel" size="20" color="#ffffff" />
       </view>
-      <view class="info-item">
-        <text class="label">到期时间</text>
-        <text class="value highlight">{{expiryDate}}</text>
-      </view>
-      <view class="info-item">
-        <text class="label">支付状态</text>
-        <text class="value status {{loading ? 'loading' : ''}}">{{status}}</text>
-      </view>
-    </view>
-
-    <view class="footer">
-      <view wx:if="{{loading}}" class="loading-spinner"></view>
-      <button wx:if="{{!loading}}" class="btn-action" bindtap="goBack">返回首页</button>
-      <button wx:if="{{status === '支付已取消'}}" class="btn-action primary" bindtap="initiatePayment">重新支付</button>
+      <text class="header-title">确认订单</text>
     </view>
   </view>
 
-  <view class="safety-tips">
-    <icon type="success" size="14" color="#999"/>
-    <text>微信支付安全环境已开启</text>
+  <view class="content-body">
+    <!-- 会员卡片预览 -->
+    <view class="vip-card-preview {{productName.includes('年') ? 'gold' : productName.includes('季') ? 'silver' : 'bronze'}}">
+      <view class="card-glass"></view>
+      <view class="card-info">
+        <view class="card-top">
+          <view class="vip-tag">VIP MEMBER</view>
+          <image class="card-logo" src="/static/images/logo-white.png" mode="aspectFit" />
+        </view>
+        <view class="card-middle">
+          <text class="card-product-name">{{productName}}</text>
+          <view class="card-price-row">
+            <text class="card-currency">¥</text>
+            <text class="card-amount">{{amount}}</text>
+          </view>
+        </view>
+        <view class="card-bottom">
+          <text class="card-expiry">有效期至: {{expiryDate}}</text>
+        </view>
+      </view>
+      <!-- 装饰元素 -->
+      <view class="card-decorator-1"></view>
+      <view class="card-decorator-2"></view>
+    </view>
+
+    <!-- 订单详情列表 -->
+    <view class="order-details">
+      <view class="section-title">订单明细</view>
+      <view class="detail-card">
+        <view class="detail-row">
+          <text class="label">商品类型</text>
+          <text class="value">沈仙子 AI 尊享会员</text>
+        </view>
+        <view class="detail-row">
+          <text class="label">支付方式</text>
+          <view class="value-with-icon">
+            <icon type="success" size="14" color="#07C160" />
+            <text>微信支付</text>
+          </view>
+        </view>
+        <view class="detail-row">
+          <text class="label">下单时间</text>
+          <text class="value">{{currentTime}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 会员权益简述 -->
+    <view class="benefits-section">
+      <view class="section-title">包含权益</view>
+      <view class="benefits-grid">
+        <view class="benefit-item">
+          <view class="benefit-icon-box blue">
+            <image src="/static/icons/ai.png" mode="aspectFit" />
+          </view>
+          <text>无限次 AI 对话</text>
+        </view>
+        <view class="benefit-item">
+          <view class="benefit-icon-box gold">
+            <image src="/static/icons/speed.png" mode="aspectFit" />
+          </view>
+          <text>极速响应优先</text>
+        </view>
+        <view class="benefit-item">
+          <view class="benefit-icon-box purple">
+            <image src="/static/icons/pro.png" mode="aspectFit" />
+          </view>
+          <text>解锁高级模型</text>
+        </view>
+        <view class="benefit-item">
+          <view class="benefit-icon-box green">
+            <image src="/static/icons/support.png" mode="aspectFit" />
+          </view>
+          <text>专属客户支持</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 安全提示 -->
+    <view class="security-notice">
+      <icon type="info" size="12" color="#94a3b8" />
+      <text>支付成功后，会员权益将立即自动生效</text>
+    </view>
+  </view>
+
+  <!-- 底部固定支付栏 -->
+  <view class="footer-bar">
+    <view class="footer-left">
+      <text class="total-label">实付款</text>
+      <view class="total-price">
+        <text class="symbol">¥</text>
+        <text class="amount">{{amount}}</text>
+      </view>
+    </view>
+    <view class="footer-right">
+      <button class="pay-btn {{loading ? 'loading' : ''}}" bindtap="initiatePayment" disabled="{{loading}}">
+        <block wx:if="{{!loading}}">
+          <text>立即支付</text>
+          <view class="btn-shine"></view>
+        </block>
+        <view wx:else class="btn-loading-spinner"></view>
+      </button>
+    </view>
+  </view>
+
+  <!-- 支付取消/错误弹窗 (可选增强) -->
+  <view class="status-overlay" wx:if="{{status === '支付已取消'}}">
+    <view class="status-modal">
+      <icon type="warn" size="48" color="#ef4444" />
+      <text class="modal-title">支付已取消</text>
+      <text class="modal-desc">订单还未完成，权益尚未生效</text>
+      <view class="modal-btns">
+        <button class="btn-retry" bindtap="initiatePayment">重新支付</button>
+        <button class="btn-cancel" bindtap="goBack">返回</button>
+      </view>
+    </view>
   </view>
 </view>
