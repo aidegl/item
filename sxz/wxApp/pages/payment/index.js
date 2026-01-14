@@ -4,20 +4,38 @@ Page({
   data: {
     amount: '0.01',
     description: '会员订阅',
+    productName: '会员套餐',
+    expiryDate: '',
     status: '正在发起支付...',
     loading: true
   },
 
   onLoad: function (options) {
     console.log('支付页面加载，参数:', options);
-    if (options.amount) {
-      this.setData({ amount: options.amount });
-    }
-    if (options.description) {
-      this.setData({ description: decodeURIComponent(options.description) });
-    }
+    const amount = options.amount || '0.01';
+    const description = options.description ? decodeURIComponent(options.description) : '会员订阅';
     
-    // 模拟支付逻辑，实际应调用 wx.requestPayment
+    // 提取产品名称
+    let productName = description.replace('购买', '');
+    
+    // 计算到期时间
+    const now = new Date();
+    let durationMonths = 0;
+    if (productName.includes('月')) durationMonths = 1;
+    else if (productName.includes('季')) durationMonths = 3;
+    else if (productName.includes('年')) durationMonths = 12;
+    
+    const expiry = new Date(now.getFullYear(), now.getMonth() + durationMonths, now.getDate());
+    const expiryDateStr = `${expiry.getFullYear()}-${(expiry.getMonth() + 1).toString().padStart(2, '0')}-${expiry.getDate().toString().padStart(2, '0')}`;
+
+    this.setData({ 
+      amount, 
+      description,
+      productName,
+      expiryDate: expiryDateStr
+    });
+    
+    // 发起支付
     this.initiatePayment();
   },
 

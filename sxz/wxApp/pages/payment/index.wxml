@@ -1,61 +1,39 @@
 <view class="container">
   <view class="payment-card">
-    <view class="title">支付测试</view>
-    <view class="amount-box">
+    <view class="header">
+      <view class="shop-name">沈仙子 AI</view>
+      <view class="title">确认支付</view>
+    </view>
+
+    <view class="amount-section">
       <text class="currency">￥</text>
       <text class="amount">{{amount}}</text>
     </view>
-    <view class="status {{loading ? 'loading' : ''}}">{{status}}</view>
-    
-    <button wx:if="{{!loading}}" class="btn-back" bindtap="goBack">返回</button>
+
+    <view class="info-list">
+      <view class="info-item">
+        <text class="label">产品名称</text>
+        <text class="value">{{productName}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">到期时间</text>
+        <text class="value highlight">{{expiryDate}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">支付状态</text>
+        <text class="value status {{loading ? 'loading' : ''}}">{{status}}</text>
+      </view>
+    </view>
+
+    <view class="footer">
+      <view wx:if="{{loading}}" class="loading-spinner"></view>
+      <button wx:if="{{!loading}}" class="btn-action" bindtap="goBack">返回首页</button>
+      <button wx:if="{{status === '支付已取消'}}" class="btn-action primary" bindtap="initiatePayment">重新支付</button>
+    </view>
+  </view>
+
+  <view class="safety-tips">
+    <icon type="success" size="14" color="#999"/>
+    <text>微信支付安全环境已开启</text>
   </view>
 </view>
-
-<style>
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background-color: #f8f8f8;
-}
-.payment-card {
-  width: 80%;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  text-align: center;
-}
-.title {
-  font-size: 18px;
-  color: #333;
-  margin-bottom: 20px;
-}
-.amount-box {
-  margin-bottom: 20px;
-}
-.currency {
-  font-size: 24px;
-  font-weight: bold;
-}
-.amount {
-  font-size: 48px;
-  font-weight: bold;
-}
-.status {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 30px;
-}
-.loading {
-  color: #007aff;
-}
-.btn-back {
-  background-color: #07c160;
-  color: white;
-  border-radius: 6px;
-  font-size: 16px;
-}
-</style>
