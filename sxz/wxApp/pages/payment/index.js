@@ -6,8 +6,19 @@ Page({
     description: '会员订阅',
     productName: '会员套餐',
     expiryDate: '',
+    currentTime: '',
     status: '正在发起支付...',
-    loading: true
+    loading: true,
+    // 新增字段
+    orderId: '',
+    validityPeriod: '',
+    originalPrice: '0.00',
+    discountAmount: '0.00',
+    // 弹窗相关
+    showModal: false,
+    modalType: '', // success, error, cancel
+    modalTitle: '',
+    modalDesc: ''
   },
 
   onLoad: function (options) {
@@ -18,32 +29,57 @@ Page({
     // 提取产品名称
     let productName = description.replace('购买', '');
     
-    // 计算到期时间
+    // 生成订单编号
     const now = new Date();
+    const orderId = `ORDER${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    
+    // 计算当前时间和到期时间
+    const currentTimeStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
     let durationMonths = 0;
-    if (productName.includes('月')) durationMonths = 1;
-    else if (productName.includes('季')) durationMonths = 3;
-    else if (productName.includes('年')) durationMonths = 12;
+    let validityPeriod = '';
+    if (productName.includes('月')) {
+      durationMonths = 1;
+      validityPeriod = '1个月';
+    } else if (productName.includes('季')) {
+      durationMonths = 3;
+      validityPeriod = '3个月';
+    } else if (productName.includes('年')) {
+      durationMonths = 12;
+      validityPeriod = '12个月';
+    }
     
     const expiry = new Date(now.getFullYear(), now.getMonth() + durationMonths, now.getDate());
     const expiryDateStr = `${expiry.getFullYear()}-${(expiry.getMonth() + 1).toString().padStart(2, '0')}-${expiry.getDate().toString().padStart(2, '0')}`;
+
+    // 计算价格明细
+    const originalPrice = parseFloat(amount) * 1.2; // 假设原价是实付的1.2倍
+    const discountAmount = originalPrice - parseFloat(amount);
 
     this.setData({ 
       amount, 
       description,
       productName,
-      expiryDate: expiryDateStr
+      expiryDate: expiryDateStr,
+      currentTime: currentTimeStr,
+      orderId,
+      validityPeriod,
+      originalPrice: originalPrice.toFixed(2),
+      discountAmount: discountAmount.toFixed(2)
     });
     
-    // 发起支付
-    this.initiatePayment();
+    // 延迟发起支付，让用户先看到订单详情
+    setTimeout(() => {
+      this.initiatePayment();
+    }, 1500);
   },
 
   initiatePayment: function () {
     const self = this;
-    const { amount, description } = this.data;
+    const { amount, description, orderId } = this.data;
     
     console.log('--- 准备发起支付 ---');
+    console.log('订单编号:', orderId);
     console.log('商户名称:', zhifu.shmc);
     console.log('支付金额:', amount);
     console.log('支付描述:', description);
@@ -70,11 +106,7 @@ Page({
     const openid = wx.getStorageSync('openid');
     if (!openid) {
       wx.hideLoading();
-      wx.showModal({
-        title: '支付失败',
-        content: '未获取到用户身份(OpenID)，请重新登录后再试',
-        showCancel: false
-      });
+      self.showPaymentModal('error', '支付失败', '未获取到用户身份(OpenID)，请重新登录后再试');
       self.setData({ status: '身份缺失', loading: false });
       return;
     }
@@ -85,7 +117,8 @@ Page({
       data: {
         amount: amount,
         openid: openid,
-        description: description
+        description: description,
+        orderId: orderId
       },
       success: (res) => {
         wx.hideLoading();
@@ -99,16 +132,16 @@ Page({
             ...payParams,
             success: (payRes) => {
               console.log('支付成功:', payRes);
-              wx.showToast({ title: '支付成功', icon: 'success' });
+              self.showPaymentModal('success', '支付成功', '会员权益已自动生效，可在我的页面查看详细信息');
               self.setData({ status: '支付成功', loading: false });
             },
             fail: (err) => {
               console.error('微信支付窗口调用失败:', err);
               if (err.errMsg.indexOf('cancel') > -1) {
-                wx.showToast({ title: '用户取消支付', icon: 'none' });
+                self.showPaymentModal('cancel', '支付已取消', '订单还未完成，权益尚未生效');
                 self.setData({ status: '支付已取消', loading: false });
               } else {
-                wx.showModal({ title: '支付失败', content: err.errMsg, showCancel: false });
+                self.showPaymentModal('error', '支付失败', err.errMsg);
                 self.setData({ status: '支付失败', loading: false });
               }
             }
@@ -116,19 +149,53 @@ Page({
         } else {
           console.error('后端返回数据异常:', res.data);
           const errorMsg = res.data ? (res.data.message || JSON.stringify(res.data)) : '后端未返回有效数据';
-          wx.showModal({ 
-            title: '下单失败', 
-            content: '后端接口未返回正确的支付参数。具体返回：' + errorMsg, 
-            showCancel: false 
-          });
+          self.showPaymentModal('error', '下单失败', '后端接口未返回正确的支付参数');
           self.setData({ status: '下单失败', loading: false });
         }
       },
       fail: (err) => {
         wx.hideLoading();
-        wx.showModal({ title: '网络错误', content: '无法连接到支付服务器', showCancel: false });
+        self.showPaymentModal('error', '网络错误', '无法连接到支付服务器，请检查网络设置');
         self.setData({ status: '连接失败', loading: false });
       }
+    });
+  },
+
+  // 显示支付状态弹窗
+  showPaymentModal: function(type, title, desc) {
+    this.setData({
+      showModal: true,
+      modalType: type,
+      modalTitle: title,
+      modalDesc: desc
+    });
+  },
+
+  // 关闭弹窗
+  closeModal: function() {
+    this.setData({
+      showModal: false
+    });
+  },
+
+  // 跳转到我的页面
+  goToMyPage: function() {
+    wx.navigateTo({
+      url: '/pages/my/my'
+    });
+  },
+
+  // 打开服务协议
+  openAgreement: function() {
+    wx.navigateTo({
+      url: '/pages/agreement/agreement'
+    });
+  },
+
+  // 打开隐私政策
+  openPrivacy: function() {
+    wx.navigateTo({
+      url: '/pages/privacy/privacy'
     });
   },
 
@@ -140,7 +207,7 @@ Page({
     
     setTimeout(() => {
       wx.hideLoading();
-      wx.showToast({ title: '支付成功(模拟)', icon: 'success' });
+      self.showPaymentModal('success', '支付成功(模拟)', '会员权益已自动生效，可在我的页面查看详细信息');
       self.setData({ status: '支付成功(模拟)', loading: false });
     }, 1500);
   },
