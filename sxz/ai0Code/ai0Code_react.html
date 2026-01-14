@@ -15,9 +15,9 @@
 
     body {
       margin: 0;
-      padding: 20px;
+      padding: 10px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #e0e0e0;
+      background-color: #f5f5f7;
       box-sizing: border-box;
       overflow: hidden;
       display: flex;
@@ -131,12 +131,15 @@
     /* 渲染区域样式 */
     #canvas-container {
       flex: 1;
-      background: #ccc;
-      padding: 20px;
+      background: #f0f2f5;
+      padding: 0;
       overflow: auto;
       border-radius: 8px;
       height: 100%;
       position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     #right-panel {
@@ -198,13 +201,13 @@
     }
 
     .props-pre {
-      margin: 0;
+      background: #f8f8f8;
       padding: 8px;
-      background: #f7f7f7;
-      border-radius: 6px;
-      font-size: 12px;
-      overflow: auto;
-      max-height: 180px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
 
     /* 调试信息样式 */
@@ -360,12 +363,64 @@
       transition: all 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
       color: rgba(0, 0, 0, 0.85);
     }
+
+    /* 手机预览容器 */
+    .phone-preview-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: transparent;
+      padding: 40px 0;
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 667px;
+      background: #000;
+      border-radius: 40px;
+      padding: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      position: relative;
+      border: 4px solid #333;
+    }
+
+    /* 手机听筒 */
+    .phone-frame::before {
+      content: '';
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 5px;
+      background: #222;
+      border-radius: 10px;
+      z-index: 2;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 30px;
+      overflow: hidden;
+      border: none;
+    }
+
+    .phone-screen iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
   </style>
 </head>
 
 <body>
 
   <div id="toolbar">
+    <button id="toggle-dev-mode" style="padding: 4px 12px; border: none; border-radius: 4px; color: #fff; font-weight: bold; cursor: pointer; transition: all 0.3s; min-width: 120px;">加载中...</button>
     <button id="toggle-debug">显示/隐藏数据</button>
     <input type="file" id="file-input" accept=".json,application/json">
     <button id="export-json-btn">导出JSON</button>
@@ -405,137 +460,57 @@
         "parentId": null,
         "sort": 1,
         "type": "Page",
-        "name": "示例页面",
+        "name": "页面根节点",
         "basicProps": {
-          "padding": "20px",
-          "backgroundColor": "#f0f2f5",
-          "height": "100%"
-        }
-      },
-      {
-        "id": "header_card",
-        "parentId": "page_root",
-        "sort": 1,
-        "type": "Card",
-        "name": "头部卡片",
-        "basicProps": {
-          "title": "工作台",
-          "marginBottom": "16px"
-        }
-      },
-      {
-        "id": "search_row",
-        "parentId": "header_card",
-        "sort": 1,
-        "type": "Row",
-        "name": "搜索行",
-        "basicProps": {
-          "gutter": 16,
+          "padding": "0",
+          "backgroundColor": "transparent",
+          "height": "100%",
           "display": "flex",
-          "gap": "16px"
+          "justifyContent": "center",
+          "alignItems": "center"
         }
       },
       {
-        "id": "search_input",
-        "parentId": "search_row",
+        "id": "mobile_preview",
+        "parentId": "page_root",
         "sort": 1,
-        "type": "Input",
-        "name": "搜索框",
+        "type": "PhonePreview",
+        "name": "手机实时预览 (HTML)",
         "basicProps": {
-          "placeholder": "请输入关键词",
-          "width": "200px"
+          "url": "http://localhost:5500/webview/index.html?dev=1"
         }
       },
       {
-        "id": "search_btn",
-        "parentId": "search_row",
-        "sort": 2,
-        "type": "Button",
-        "name": "搜索按钮",
-        "basicProps": {
-          "text": "查询",
-          "type": "primary"
-        }
-      },
-      {
-        "id": "main_content",
+        "id": "mock_header",
         "parentId": "page_root",
         "sort": 2,
-        "type": "Row",
-        "name": "主内容区",
-        "basicProps": {
-           "display": "flex",
-           "gap": "16px"
-        }
+        "type": "Header",
+        "name": "顶部导航栏",
+        "basicProps": { "height": "60px", "backgroundColor": "#fff" }
       },
       {
-        "id": "left_col",
-        "parentId": "main_content",
-        "sort": 1,
-        "type": "Col",
-        "name": "左侧列表",
-        "basicProps": {
-          "flex": "1"
-        }
+        "id": "mock_content",
+        "parentId": "page_root",
+        "sort": 3,
+        "type": "Content",
+        "name": "内容区",
+        "basicProps": { "padding": "20px" }
       },
       {
-        "id": "data_table",
-        "parentId": "left_col",
+        "id": "mock_table",
+        "parentId": "mock_content",
         "sort": 1,
         "type": "Table",
         "name": "数据表格",
-        "basicProps": {
-          "columns": [
-            {"title": "姓名", "dataIndex": "name"},
-            {"title": "年龄", "dataIndex": "age"},
-            {"title": "地址", "dataIndex": "address"}
-          ]
-        }
+        "basicProps": { "columns": 5, "rows": 10 }
       },
       {
-        "id": "right_col",
-        "parentId": "main_content",
-        "sort": 2,
-        "type": "Col",
-        "name": "右侧详情",
-        "basicProps": {
-          "width": "300px"
-        }
-      },
-      {
-        "id": "info_card",
-        "parentId": "right_col",
-        "sort": 1,
-        "type": "Card",
-        "name": "详情卡片",
-        "basicProps": {
-          "title": "详细信息"
-        }
-      },
-      {
-        "id": "user_avatar",
-        "parentId": "info_card",
-        "sort": 1,
-        "type": "Avatar",
-        "name": "用户头像",
-        "basicProps": {
-          "src": "https://api.dicebear.com/7.x/miniavs/svg?seed=1",
-          "size": 64
-        },
-        "styleProps": {
-          "display": "block",
-          "margin": "0 auto 16px"
-        }
-      },
-      {
-        "id": "user_desc",
-        "parentId": "info_card",
-        "sort": 2,
-        "type": "Descriptions",
-        "name": "描述列表",
-        "basicProps": {
-          "column": 1
-        }
+        "id": "mock_footer",
+        "parentId": "page_root",
+        "sort": 4,
+        "type": "Footer",
+        "name": "底部版权信息",
+        "basicProps": { "height": "40px", "textAlign": "center" }
       }
     ];
 
@@ -544,6 +519,7 @@
     let selectedId = null;
     let componentSchemaMap = {};
     let schemaLoaded = false;
+    let isDevMode = false; // 全局开发模式状态
 
     function buildTree(items) {
       const rootItems = [];
@@ -715,6 +691,43 @@
       } else if (type === 'Descriptions') {
          // 简单模拟
          el.innerHTML = '<div style="font-size:14px;color:#333;">Descriptions Component (Placeholder)</div>';
+      } else if (type === 'PhonePreview') {
+        // 渲染手机预览
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'phone-preview-container';
+        
+        const frame = document.createElement('div');
+        frame.className = 'phone-frame';
+        
+        const screen = document.createElement('div');
+        screen.className = 'phone-screen';
+        
+        const iframe = document.createElement('iframe');
+        // 默认加载 webview/index.html 并开启开发模式
+        iframe.src = props.url || 'http://localhost:5500/webview/index.html?dev=1';
+        iframe.id = 'preview-iframe';
+        
+        screen.appendChild(iframe);
+        frame.appendChild(screen);
+        previewContainer.appendChild(frame);
+        el.appendChild(previewContainer);
+        
+        // 监听 iframe 消息
+        window.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'dev-class-selected') {
+            console.log('从 Iframe 收到选中类名:', event.data.className);
+          }
+        });
+
+        // 当 iframe 加载完成后，同步当前的开发模式状态
+        iframe.addEventListener('load', () => {
+          if (iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+              type: 'toggle-dev-mode',
+              active: isDevMode
+            }, '*');
+          }
+        });
       }
       // 对于其他组件，如果没有特殊处理且是容器，就默认渲染
       // 如果不是容器且没有 children，显示一个占位符
@@ -965,7 +978,7 @@
       const fromList = evt.from;
       const descendants = getDescendantsIds(itemId);
       if (newParentId && (newParentId === itemId || descendants.includes(newParentId))) {
-        renderTree();
+        renderAll();
         return;
       }
       rawData = rawData.map(it => it.id === itemId ? { ...it, parentId: newParentId } : it);
@@ -981,28 +994,49 @@
           rawData = rawData.map(it => it.id === id ? { ...it, sort: idx + 1 } : it);
         });
       }
-      renderTree();
-      renderCanvas();
-      setDebugOutput(rawData);
+      renderAll();
     }
 
     function renderCanvas() {
       const container = document.getElementById('canvas-container');
       container.innerHTML = '';
-      const treeData = buildTree(rawData);
-      treeData.forEach(rootNode => {
-        const dom = renderComponent(rootNode);
-        container.appendChild(dom);
-      });
-      applySortable(container);
+      
+      // 始终渲染手机预览组件，实现结构树与预览的完全分离
+      // 这里的配置是固定的，不受 webview_layout.json 变化的影响
+      const phonePreviewNode = {
+        "id": "mobile_preview",
+        "parentId": null,
+        "sort": 1,
+        "type": "PhonePreview",
+        "name": "手机实时预览 (HTML)",
+        "basicProps": {
+          "url": "http://localhost:5500/webview/index.html?dev=1"
+        }
+      };
+
+      const dom = renderComponent({ ...phonePreviewNode, children: [] });
+      container.appendChild(dom);
+      
       refreshSelectionClasses();
     }
 
-    function init() {
+    function renderAll() {
       renderCanvas();
       renderTree();
       renderPropertiesPanel();
       setDebugOutput(rawData);
+    }
+
+    async function init() {
+      try {
+        const response = await fetch('./webview_layout.json');
+        if (response.ok) {
+          rawData = await response.json();
+        }
+      } catch (e) {
+        console.error('加载 webview_layout.json 失败:', e);
+      }
+      renderAll();
     }
 
     function applySortable(rootEl) {
@@ -1050,7 +1084,7 @@
           const parsed = JSON.parse(val);
           if (!Array.isArray(parsed)) return;
           rawData = parsed;
-          init();
+          renderAll();
         } catch (e) { }
       });
       exportBtn.addEventListener('click', () => {
@@ -1065,9 +1099,33 @@
         URL.revokeObjectURL(url);
       });
       resetBtn.addEventListener('click', () => {
-        rawData = JSON.parse(JSON.stringify(defaultData));
-        init();
+        init(); // 重置按钮重新从 webview_layout.json 加载
       });
+      
+      const devModeBtn = document.getElementById('toggle-dev-mode');
+      if (devModeBtn) {
+        // 初始化按钮样式
+        const updateBtnStyle = () => {
+          devModeBtn.innerText = `当前状态: ${isDevMode ? '编辑中' : '预览中'}`;
+          devModeBtn.style.backgroundColor = isDevMode ? '#ff4d4f' : '#52c41a';
+          devModeBtn.style.color = isDevMode ? '#fff' : '#333';
+        };
+        updateBtnStyle();
+
+        devModeBtn.addEventListener('click', () => {
+          isDevMode = !isDevMode;
+          updateBtnStyle();
+          
+          const iframe = document.getElementById('preview-iframe');
+          if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+              type: 'toggle-dev-mode',
+              active: isDevMode
+            }, '*');
+          }
+        });
+      }
+
       toggleBtn.addEventListener('click', () => {
         const panel = document.getElementById('debug-info');
         if (panel.style.display === 'none') {
@@ -1084,7 +1142,7 @@
           const parsed = JSON.parse(text);
           if (!Array.isArray(parsed)) return;
           rawData = parsed;
-          init();
+          renderAll();
         } catch (e) { }
         fileInput.value = '';
       });
