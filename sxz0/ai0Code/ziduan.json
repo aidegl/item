@@ -1,0 +1,572 @@
+[
+  {
+    "name": "Text",
+    "cnName": "文本",
+    "category": "基础通用组件",
+    "description": "用于展示标题、描述、标签等各类文本内容，支持字体样式、颜色等属性配置"
+  },
+  {
+    "name": "Button",
+    "cnName": "按钮",
+    "category": "基础通用组件",
+    "description": "触发交互操作的核心组件，如提交、重置、跳转等，支持普通按钮、图标按钮等样式"
+  },
+  {
+    "name": "Input",
+    "cnName": "单行输入框",
+    "category": "基础通用组件",
+    "description": "单行文本输入组件，适用于用户名、手机号、关键词等简短内容录入"
+  },
+  {
+    "name": "Image",
+    "cnName": "图片",
+    "category": "基础通用组件",
+    "description": "展示本地或网络图片，支持图片裁剪、缩放、懒加载等功能，常用于LOGO、海报展示"
+  },
+  {
+    "name": "Container",
+    "cnName": "基础容器",
+    "category": "布局容器组件",
+    "description": "通用基础布局容器，用于承载和包裹其他组件，控制子组件的排列方式和间距"
+  },
+  {
+    "name": "Card",
+    "cnName": "卡片",
+    "category": "布局容器组件",
+    "description": "带边框、阴影样式的容器，用于承载独立模块内容，提升页面层次感，如功能卡片、数据卡片"
+  },
+  {
+    "name": "Form",
+    "cnName": "表单",
+    "category": "表单组件",
+    "description": "表单总容器，用于承载所有表单项，提供统一的数据校验、批量提交、重置等功能"
+  },
+  {
+    "name": "FormItem",
+    "cnName": "表单项",
+    "category": "表单组件",
+    "description": "单个表单项容器，配合Form使用，用于包裹表单控件并展示标签、校验提示等"
+  },
+  {
+    "name": "Table",
+    "cnName": "表格",
+    "category": "数据展示组件",
+    "description": "结构化数据展示核心组件，支持排序、分页、筛选、编辑等功能，适用于用户列表、订单列表等场景"
+  },
+  {
+    "name": "List",
+    "cnName": "列表",
+    "category": "数据展示组件",
+    "description": "简单数据列表展示组件，样式灵活，适用于消息列表、功能列表等无需复杂操作的场景"
+  },
+  {
+    "name": "Modal",
+    "cnName": "弹窗",
+    "category": "弹窗与交互组件",
+    "description": "居中弹出的面板组件，用于承载操作确认、表单录入、详情展示等内容，支持自定义大小和样式"
+  },
+  {
+    "name": "Row",
+    "cnName": "行",
+    "category": "布局容器组件",
+    "description": "栅格布局的行容器，配合Col组件使用，用于实现页面的多列布局，控制响应式适配"
+  },
+  {
+    "name": "Col",
+    "cnName": "列",
+    "category": "布局容器组件",
+    "description": "栅格布局的列容器，配合Row组件使用，可自定义列宽占比，实现灵活的页面布局划分"
+  },
+  {
+    "name": "Icon",
+    "cnName": "图标",
+    "category": "基础通用组件",
+    "description": "展示内置或自定义图标，用于辅助说明、美化界面，可单独使用或配合按钮、文本组合使用"
+  },
+  {
+    "name": "Space",
+    "cnName": "间距",
+    "category": "基础通用组件",
+    "description": "统一控制组件之间的间距，支持水平、垂直间距配置，避免手动设置margin造成的布局混乱"
+  },
+  {
+    "name": "Select",
+    "cnName": "下拉选择框",
+    "category": "表单组件",
+    "description": "下拉选择框组件，支持单选和多选模式，适用于从固定选项列表中选择内容，如地区、性别"
+  },
+  {
+    "name": "Switch",
+    "cnName": "开关",
+    "category": "表单组件",
+    "description": "开启/关闭状态切换组件，适用于简单的二选一配置，如启用/禁用功能、显示/隐藏内容"
+  },
+  {
+    "name": "Tabs",
+    "cnName": "标签页",
+    "category": "布局容器组件",
+    "description": "标签页切换容器，用于在同一区域展示多份不同内容，节省页面空间，如详情页多标签切换"
+  },
+  {
+    "name": "TabPane",
+    "cnName": "标签页面板",
+    "category": "布局容器组件",
+    "description": "Tabs组件的子组件，对应单个标签页的内容区域，每个TabPane对应一个标签标题和内容"
+  },
+  {
+    "name": "Alert",
+    "cnName": "提示框",
+    "category": "基础通用组件",
+    "description": "页面提示组件，用于展示成功、警告、错误、信息类提示，支持自动消失或手动关闭"
+  },
+  {
+    "name": "Menu",
+    "cnName": "菜单",
+    "category": "导航组件",
+    "description": "站点导航核心组件，支持水平和垂直布局，用于构建顶部导航、侧边栏导航等"
+  },
+  {
+    "name": "MenuItem",
+    "cnName": "菜单项",
+    "category": "导航组件",
+    "description": "Menu组件的子组件，对应单个导航菜单项，支持绑定跳转链接或点击事件"
+  },
+  {
+    "name": "Pagination",
+    "cnName": "分页",
+    "category": "导航组件",
+    "description": "分页控制组件，配合Table、List使用，用于分割大量数据，实现分页加载和切换"
+  },
+  {
+    "name": "Breadcrumb",
+    "cnName": "面包屑",
+    "category": "导航组件",
+    "description": "面包屑导航组件，展示当前页面的路径层级，便于用户返回上级页面，提升页面导航体验"
+  },
+  {
+    "name": "BreadcrumbItem",
+    "cnName": "面包屑项",
+    "category": "导航组件",
+    "description": "Breadcrumb组件的子组件，对应单个路径节点，支持自定义路径名称和跳转链接"
+  },
+  {
+    "name": "InputTextArea",
+    "cnName": "文本域",
+    "category": "表单组件",
+    "description": "多行文本输入组件，适用于备注、简介、反馈等大段内容录入，支持高度自适应"
+  },
+  {
+    "name": "RadioGroup",
+    "cnName": "单选框组",
+    "category": "表单组件",
+    "description": "单选框组容器，配合Radio组件使用，实现互斥单选逻辑，适用于性别、类型等二选一/多选一场景"
+  },
+  {
+    "name": "Radio",
+    "cnName": "单选框",
+    "category": "表单组件",
+    "description": "单个单选按钮，需配合RadioGroup使用，用于展示单选选项"
+  },
+  {
+    "name": "CheckboxGroup",
+    "cnName": "复选框组",
+    "category": "表单组件",
+    "description": "复选框组容器，配合Checkbox组件使用，实现多选项勾选逻辑，适用于兴趣、权限等多选场景"
+  },
+  {
+    "name": "Checkbox",
+    "cnName": "复选框",
+    "category": "表单组件",
+    "description": "单个复选按钮，需配合CheckboxGroup使用，用于展示多选选项"
+  },
+  {
+    "name": "Upload",
+    "cnName": "上传",
+    "category": "表单组件",
+    "description": "文件/图片上传组件，支持批量上传、拖拽上传、格式校验和大小限制，适用于头像上传、附件提交"
+  },
+  {
+    "name": "DatePicker",
+    "cnName": "日期选择器",
+    "category": "表单组件",
+    "description": "日期选择组件，支持选择单个日期、日期范围，适用于生日、下单时间、有效期等日期录入场景"
+  },
+  {
+    "name": "Layout",
+    "cnName": "页面布局",
+    "category": "布局容器组件",
+    "description": "全局页面布局容器，包含Header、Content、Sider、Footer子组件，快速构建页面骨架"
+  },
+  {
+    "name": "Header",
+    "cnName": "头部",
+    "category": "布局容器组件",
+    "description": "Layout子组件，用于构建页面头部或模块头部，常展示导航、LOGO、用户信息等"
+  },
+  {
+    "name": "Content",
+    "cnName": "内容区",
+    "category": "布局容器组件",
+    "description": "Layout子组件，页面核心内容承载区域，用于展示业务核心数据和操作组件"
+  },
+  {
+    "name": "Footer",
+    "cnName": "底部",
+    "category": "布局容器组件",
+    "description": "Layout子组件，用于构建页面底部，常展示版权信息、联系方式、备案号等"
+  },
+  {
+    "name": "Sider",
+    "cnName": "侧边栏",
+    "category": "布局容器组件",
+    "description": "Layout子组件，侧边栏容器，用于构建左侧/右侧导航菜单、筛选条件等区域"
+  },
+  {
+    "name": "Divider",
+    "cnName": "分割线",
+    "category": "基础通用组件",
+    "description": "用于分隔页面内容或组件，支持水平和垂直两种样式，提升页面排版整洁度"
+  },
+  {
+    "name": "Badge",
+    "cnName": "角标",
+    "category": "基础通用组件",
+    "description": "消息提醒角标，用于展示未读消息数量、状态标记等，常配合图标、菜单、头像使用"
+  },
+  {
+    "name": "Tooltip",
+    "cnName": "悬浮提示",
+    "category": "基础通用组件",
+    "description": "鼠标悬浮提示组件，用于展示组件的详细说明或补充信息，不占用页面常驻空间"
+  },
+  {
+    "name": "TableColumn",
+    "cnName": "表格列",
+    "category": "数据展示组件",
+    "description": "Table组件的子组件，用于定义表格的单个列，配置列标题、数据字段、宽度等属性"
+  },
+  {
+    "name": "ListItem",
+    "cnName": "列表项",
+    "category": "数据展示组件",
+    "description": "List组件的子组件，对应单个列表项，可自定义展示内容和样式，支持图文组合布局"
+  },
+  {
+    "name": "Avatar",
+    "cnName": "头像",
+    "category": "数据展示组件",
+    "description": "用户头像展示组件，支持圆形、方形样式，可配置默认占位图，适用于用户信息、评论者展示"
+  },
+  {
+    "name": "Descriptions",
+    "cnName": "描述列表",
+    "category": "数据展示组件",
+    "description": "键值对形式的详情展示组件，适用于用户详情、订单详情、商品参数等信息展示"
+  },
+  {
+    "name": "DescriptionsItem",
+    "cnName": "描述列表项",
+    "category": "数据展示组件",
+    "description": "Descriptions子组件，对应单个键值对，配置标签名称和展示内容"
+  },
+  {
+    "name": "ModalHeader",
+    "cnName": "弹窗头部",
+    "category": "弹窗与交互组件",
+    "description": "Modal子组件，弹窗头部区域，用于展示弹窗标题和关闭按钮"
+  },
+  {
+    "name": "ModalContent",
+    "cnName": "弹窗内容区",
+    "category": "弹窗与交互组件",
+    "description": "Modal子组件，弹窗核心内容区域，用于承载表单、详情等核心操作内容"
+  },
+  {
+    "name": "ModalFooter",
+    "cnName": "弹窗底部",
+    "category": "弹窗与交互组件",
+    "description": "Modal子组件，弹窗底部区域，用于放置确认、取消等操作按钮"
+  },
+  {
+    "name": "Message",
+    "cnName": "全局提示",
+    "category": "弹窗与交互组件",
+    "description": "全局轻量提示组件，自动消失，用于展示操作成功、失败等简短提示信息"
+  },
+  {
+    "name": "Option",
+    "cnName": "下拉选项",
+    "category": "表单组件",
+    "description": "下拉选择框的子组件，对应单个下拉选项，配置选项名称和对应值"
+  },
+  {
+    "name": "InputPassword",
+    "cnName": "密码输入框",
+    "category": "表单组件",
+    "description": "密码专用输入框，自带密码隐藏/显示切换功能，提升密码录入的安全性和便捷性"
+  },
+  {
+    "name": "InputNumber",
+    "cnName": "数字输入框",
+    "category": "表单组件",
+    "description": "数字专用输入框，仅允许输入数字，自带增减按钮，适用于数量、金额、年龄等数字录入"
+  },
+  {
+    "name": "TimePicker",
+    "cnName": "时间选择器",
+    "category": "表单组件",
+    "description": "时间选择组件，支持选择时分秒、时间范围，适用于预约时间、打卡时间等场景"
+  },
+  {
+    "name": "Rate",
+    "cnName": "评分",
+    "category": "表单组件",
+    "description": "星级评分组件，支持自定义星级数量和评分规则，适用于满意度评分、商品评分等场景"
+  },
+  {
+    "name": "ColorPicker",
+    "cnName": "颜色选择器",
+    "category": "表单组件",
+    "description": "颜色拾取组件，用于选择自定义颜色值，适用于样式配置、主题设置等场景"
+  },
+  {
+    "name": "Collapse",
+    "cnName": "折叠面板",
+    "category": "布局容器组件",
+    "description": "折叠面板容器，支持展开/收起切换，用于节省页面空间，展示分类化内容"
+  },
+  {
+    "name": "CollapsePanel",
+    "cnName": "折叠面板项",
+    "category": "布局容器组件",
+    "description": "Collapse子组件，单个折叠面板，配置面板标题和折叠内容"
+  },
+  {
+    "name": "Drawer",
+    "cnName": "抽屉",
+    "category": "布局容器组件",
+    "description": "侧边弹出抽屉容器，比Modal更节省页面空间，适用于筛选条件、额外操作等场景"
+  },
+  {
+    "name": "SubMenu",
+    "cnName": "子菜单",
+    "category": "导航组件",
+    "description": "Menu子组件，下拉/展开式子菜单，用于构建多级导航体系，承载次级菜单项"
+  },
+  {
+    "name": "Dropdown",
+    "cnName": "下拉菜单",
+    "category": "导航组件",
+    "description": "下拉菜单组件，点击触发弹出选项列表，适用于用户中心、更多操作等场景"
+  },
+  {
+    "name": "DropdownItem",
+    "cnName": "下拉菜单项",
+    "category": "导航组件",
+    "description": "Dropdown子组件，单个下拉菜单项，配置选项名称和点击事件"
+  },
+  {
+    "name": "BarChart",
+    "cnName": "柱状图",
+    "category": "图表组件",
+    "description": "柱状图组件，用于对比不同类别数据的差异，如各产品销量、各部门业绩等场景"
+  },
+  {
+    "name": "LineChart",
+    "cnName": "折线图",
+    "category": "图表组件",
+    "description": "折线图组件，用于展示数据随时间的趋势变化，如每日销售额、用户增长趋势等场景"
+  },
+  {
+    "name": "PieChart",
+    "cnName": "饼图",
+    "category": "图表组件",
+    "description": "饼图组件，用于展示各部分数据占总体的比例，如各渠道用户占比、商品分类销量占比等场景"
+  },
+  {
+    "name": "Notification",
+    "cnName": "通知提醒",
+    "category": "弹窗与交互组件",
+    "description": "右上角通知提醒组件，支持手动关闭，用于展示非紧急通知，如消息推送、系统公告等"
+  },
+  {
+    "name": "Confirm",
+    "cnName": "确认弹窗",
+    "category": "弹窗与交互组件",
+    "description": "确认弹窗组件，带确认/取消双按钮，用于危险操作前的二次确认，如删除、注销等场景"
+  },
+  {
+    "name": "Popconfirm",
+    "cnName": "气泡确认框",
+    "category": "弹窗与交互组件",
+    "description": "气泡确认框组件，鼠标悬浮或点击触发，适用于行内操作的确认提示，如表格单行删除"
+  },
+  {
+    "name": "Tree",
+    "cnName": "树形组件",
+    "category": "数据展示组件",
+    "description": "层级数据展示组件，适用于部门树、菜单树、分类树等具有层级关系的数据展示"
+  },
+  {
+    "name": "Progress",
+    "cnName": "进度条",
+    "category": "数据展示组件",
+    "description": "进度条组件，用于展示任务完成进度、文件上传进度、加载进度等可视化提示"
+  },
+  {
+    "name": "Statistic",
+    "cnName": "统计数字",
+    "category": "数据展示组件",
+    "description": "统计数字组件，突出展示关键核心数据，如总销售额、累计用户数、实时在线人数等"
+  },
+  {
+    "name": "Timeline",
+    "cnName": "时间线",
+    "category": "数据展示组件",
+    "description": "时间线组件，按时间顺序展示事件流程，如订单状态变更、项目进度、用户操作记录等"
+  },
+  {
+    "name": "TimelineItem",
+    "cnName": "时间线项",
+    "category": "数据展示组件",
+    "description": "Timeline子组件，单个时间节点，配置时间和事件内容"
+  },
+  {
+    "name": "Empty",
+    "cnName": "空状态",
+    "category": "数据展示组件",
+    "description": "空状态占位组件，当列表、表格无数据时展示，提升页面友好度，支持自定义占位文案和图片"
+  },
+  {
+    "name": "Result",
+    "cnName": "结果页",
+    "category": "数据展示组件",
+    "description": "操作结果页组件，用于展示操作成功、失败、404、权限不足等页面状态，引导用户后续操作"
+  },
+  {
+    "name": "Calendar",
+    "cnName": "日历",
+    "category": "数据展示组件",
+    "description": "日历组件，用于展示日期和日程安排，支持日期选中、日程标记、月份切换等功能"
+  },
+  {
+    "name": "Transfer",
+    "cnName": "穿梭框",
+    "category": "表单组件",
+    "description": "穿梭框组件，左右双列表数据转移，适用于批量选择和数据迁移，如角色权限分配"
+  },
+  {
+    "name": "AutoComplete",
+    "cnName": "自动完成输入框",
+    "category": "表单组件",
+    "description": "自动完成输入框，输入时联想匹配选项，快速填充内容，适用于地址、搜索关键词等场景"
+  },
+  {
+    "name": "FormSubmit",
+    "cnName": "表单提交按钮",
+    "category": "表单组件",
+    "description": "表单专用提交按钮，已绑定表单提交事件，点击后自动触发表单校验和数据提交"
+  },
+  {
+    "name": "FormReset",
+    "cnName": "表单重置按钮",
+    "category": "表单组件",
+    "description": "表单专用重置按钮，点击后将表单所有项恢复为初始值，清除用户录入内容"
+  },
+  {
+    "name": "RingChart",
+    "cnName": "环形图",
+    "category": "图表组件",
+    "description": "环形图组件，饼图的变种样式，更美观地展示数据占比，支持自定义环宽和颜色"
+  },
+  {
+    "name": "Histogram",
+    "cnName": "直方图",
+    "category": "图表组件",
+    "description": "直方图组件，用于展示数据的分布情况，如用户年龄分布、成绩分段分布等场景"
+  },
+  {
+    "name": "ScatterChart",
+    "cnName": "散点图",
+    "category": "图表组件",
+    "description": "散点图组件，用于展示两个变量之间的相关性，如身高与体重的关系、广告投入与转化的关系"
+  },
+  {
+    "name": "RadarChart",
+    "cnName": "雷达图",
+    "category": "图表组件",
+    "description": "雷达图组件，用于多维度数据对比，如产品性能评分、用户能力评估等场景"
+  },
+  {
+    "name": "GaugeChart",
+    "cnName": "仪表盘",
+    "category": "图表组件",
+    "description": "仪表盘组件，用于展示单个指标的完成进度，如销售目标完成率、存储空间使用率等"
+  },
+  {
+    "name": "HeatmapChart",
+    "cnName": "热力图",
+    "category": "图表组件",
+    "description": "热力图组件，用于展示数据的密集程度，如用户页面点击分布、区域销量分布等场景"
+  },
+  {
+    "name": "TreeMapChart",
+    "cnName": "树状图",
+    "category": "图表组件",
+    "description": "树状图组件，用于层级数据的占比展示，如部门预算分布、商品分类销量分布等场景"
+  },
+  {
+    "name": "Editor",
+    "cnName": "富文本编辑器",
+    "category": "高级/业务组件",
+    "description": "富文本编辑器组件，支持文字格式化、图片插入、表格编辑等功能，适用于文章、公告编辑"
+  },
+  {
+    "name": "Carousel",
+    "cnName": "轮播图",
+    "category": "高级/业务组件",
+    "description": "轮播图组件，用于图片或内容的自动轮播展示，如首页Banner、产品轮播等场景"
+  },
+  {
+    "name": "CarouselItem",
+    "cnName": "轮播项",
+    "category": "高级/业务组件",
+    "description": "Carousel子组件，单个轮播项，配置轮播内容和切换时长"
+  },
+  {
+    "name": "QRCode",
+    "cnName": "二维码",
+    "category": "高级/业务组件",
+    "description": "二维码生成组件，支持自定义内容、尺寸和颜色，适用于分享链接、收款码、核销码等场景"
+  },
+  {
+    "name": "CountDown",
+    "cnName": "倒计时",
+    "category": "高级/业务组件",
+    "description": "倒计时组件，支持自定义结束时间和格式，适用于限时活动、验证码倒计时、秒杀活动等场景"
+  },
+  {
+    "name": "BackTop",
+    "cnName": "返回顶部",
+    "category": "高级/业务组件",
+    "description": "返回顶部组件，页面滚动后显示，点击快速返回页面顶部，提升长页面导航体验"
+  },
+  {
+    "name": "Watermark",
+    "cnName": "水印",
+    "category": "高级/业务组件",
+    "description": "水印组件，用于添加页面或组件水印，支持文字和图片水印，防止信息泄露和盗版"
+  },
+  {
+    "name": "Anchor",
+    "cnName": "锚点",
+    "category": "高级/业务组件",
+    "description": "锚点组件，用于页面内快速导航，点击锚点可定位到指定区域，适用于长文档、详情页"
+  },
+  {
+    "name": "AnchorLink",
+    "cnName": "锚点链接",
+    "category": "高级/业务组件",
+    "description": "Anchor子组件，单个锚点链接，配置锚点名称和目标定位区域"
+  }
+]
