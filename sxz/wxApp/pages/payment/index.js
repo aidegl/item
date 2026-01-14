@@ -3,6 +3,7 @@ const zhifu = require('../../zhifu.js');
 Page({
   data: {
     amount: '0.01',
+    description: '会员订阅',
     status: '正在发起支付...',
     loading: true
   },
@@ -12,6 +13,9 @@ Page({
     if (options.amount) {
       this.setData({ amount: options.amount });
     }
+    if (options.description) {
+      this.setData({ description: decodeURIComponent(options.description) });
+    }
     
     // 模拟支付逻辑，实际应调用 wx.requestPayment
     this.initiatePayment();
@@ -19,11 +23,12 @@ Page({
 
   initiatePayment: function () {
     const self = this;
-    const { amount } = this.data;
+    const { amount, description } = this.data;
     
     console.log('--- 准备发起支付 ---');
     console.log('商户名称:', zhifu.shmc);
     console.log('支付金额:', amount);
+    console.log('支付描述:', description);
     
     wx.showLoading({ title: '正在下单...' });
     
@@ -62,7 +67,7 @@ Page({
       data: {
         amount: amount,
         openid: openid,
-        description: '支付测试 - 0.01元'
+        description: description
       },
       success: (res) => {
         wx.hideLoading();
