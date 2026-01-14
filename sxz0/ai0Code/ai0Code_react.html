@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>无代码平台 - React组件可视化</title>
+  <!-- 引入 SortableJS 用于拖拽排序 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #e0e0e0;
+      box-sizing: border-box;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    #json-input {
+      width: 40%;
+      min-height: 80px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    #toolbar button,
+    #toolbar input[type="file"] {
+      height: 32px;
+    }
+
+    #app {
+      display: flex;
+      gap: 20px;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    #tree-container {
+      width: 320px;
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      overflow: auto;
+      height: 100%;
+    }
+
+    .tree {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+    }
+
+    .tree-node {
+      margin: 2px 0;
+    }
+
+    .tree-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .tree-row:hover {
+      background: #f5f5f5;
+    }
+
+    .tree-row.selected {
+      background: #e6f7ff;
+      outline: 1px solid #1890ff;
+    }
+
+    .toggle {
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 16px;
+      cursor: default;
+    }
+
+    .toggle img {
+      width: 16px;
+      height: 16px;
+      display: block;
+      filter: brightness(0) saturate(100%);
+      cursor: default;
+    }
+
+    .children {
+      margin-left: 16px;
+      padding-left: 8px;
+      border-left: 1px dashed #ddd;
+      list-style: none;
+    }
+
+    .tree-node.collapsed>.children {
+      display: none;
+    }
+
+    .node-label {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .node-type {
+      font-size: 12px;
+      color: #888;
+    }
+
+    /* 渲染区域样式 */
+    #canvas-container {
+      flex: 1;
+      background: #ccc;
+      padding: 20px;
+      overflow: auto;
+      border-radius: 8px;
+      height: 100%;
+      position: relative;
+    }
+
+    #right-panel {
+      width: 360px;
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+    }
+
+    #props-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    #props-header-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    #schema-status {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .props-card {
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .props-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 6px 10px;
+      font-size: 12px;
+      align-items: start;
+    }
+
+    .kv .k {
+      color: #666;
+    }
+
+    .kv .v {
+      color: #111;
+      word-break: break-all;
+    }
+
+    .props-pre {
+      margin: 0;
+      padding: 8px;
+      background: #f7f7f7;
+      border-radius: 6px;
+      font-size: 12px;
+      overflow: auto;
+      max-height: 180px;
+    }
+
+    /* 调试信息样式 */
+    #debug-info {
+      background: #fff;
+      font-size: 12px;
+      overflow: auto;
+      display: none;
+    }
+
+    /* 通用组件样式 */
+    .component-wrapper {
+      position: relative;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+
+    .component-wrapper.selected {
+      outline: 2px solid #1890ff;
+      z-index: 12;
+    }
+
+    /* 悬停效果，显示组件轮廓 */
+    .component-wrapper:hover {
+      outline: 2px dashed #1890ff;
+      z-index: 10;
+    }
+
+    .component-wrapper:hover::after {
+      content: attr(data-name) " (" attr(data-type) ")";
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: #1890ff;
+      color: white;
+      font-size: 10px;
+      padding: 2px 4px;
+      pointer-events: none;
+      z-index: 11;
+      white-space: nowrap;
+    }
+
+    /* 拖拽时的样式 */
+    .sortable-ghost {
+      opacity: 0.4;
+      background-color: #f0f0f0;
+      border: 2px dashed #999;
+    }
+
+    .sortable-drag {
+      cursor: grabbing;
+    }
+
+    /* 确保容器有最小高度以便可以拖入 */
+    .container-component {
+      min-height: 20px;
+      min-width: 50px;
+    }
+
+    /* React 组件模拟样式 */
+    .mock-card {
+      background: #fff;
+      border: 1px solid #f0f0f0;
+      border-radius: 2px;
+    }
+    .mock-card-head {
+      padding: 0 24px;
+      min-height: 48px;
+      font-weight: 500;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+    }
+    .mock-card-body {
+      padding: 24px;
+    }
+
+    .mock-input {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 4px 11px;
+      color: rgba(0, 0, 0, 0.85);
+      font-size: 14px;
+      line-height: 1.5715;
+      background-color: #fff;
+      background-image: none;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      transition: all 0.3s;
+      width: 100%;
+    }
+
+    .mock-btn {
+      line-height: 1.5715;
+      position: relative;
+      display: inline-block;
+      font-weight: 400;
+      white-space: nowrap;
+      text-align: center;
+      background-image: none;
+      border: 1px solid transparent;
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.015);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+      user-select: none;
+      touch-action: manipulation;
+      height: 32px;
+      padding: 4px 15px;
+      font-size: 14px;
+      border-radius: 2px;
+      color: rgba(0, 0, 0, 0.85);
+      background-color: #fff;
+      border-color: #d9d9d9;
+    }
+    .mock-btn-primary {
+      color: #fff;
+      background-color: #1890ff;
+      border-color: #1890ff;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.045);
+    }
+
+    .mock-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      border-radius: 2px 2px 0 0;
+    }
+    .mock-table thead th {
+      background: #fafafa;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 16px 16px;
+      font-weight: 500;
+    }
+    .mock-table tbody td {
+      border-bottom: 1px solid #f0f0f0;
+      padding: 16px 16px;
+    }
+
+    .mock-tag {
+      display: inline-block;
+      height: auto;
+      margin: 0 8px 0 0;
+      padding: 0 7px;
+      font-size: 12px;
+      line-height: 20px;
+      white-space: nowrap;
+      background: #fafafa;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      cursor: default;
+      opacity: 1;
+      transition: all 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+      color: rgba(0, 0, 0, 0.85);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="toolbar">
+    <button id="toggle-debug">显示/隐藏数据</button>
+    <input type="file" id="file-input" accept=".json,application/json">
+    <button id="export-json-btn">导出JSON</button>
+    <button id="reset-btn">加载示例</button>
+    <textarea id="json-input" placeholder="在此粘贴JSON数组后点击下方导入"></textarea>
+    <button id="import-json-btn">导入JSON</button>
+  </div>
+
+  <div id="app">
+    <div id="tree-container">
+      <ul id="layer-tree" class="tree" data-parent-id="null"></ul>
+    </div>
+    <div id="canvas-container">
+      <!-- 动态内容将渲染在这里 -->
+    </div>
+    <div id="right-panel">
+      <div id="props-header">
+        <div id="props-header-title">属性</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="load-schema-btn">加载字段JSON</button>
+          <input type="file" id="schema-file-input" accept=".json,application/json" style="display:none">
+        </div>
+      </div>
+      <div id="schema-status"></div>
+      <div id="props-panel" class="props-card"></div>
+      <div id="debug-info" class="props-card">
+        <div class="props-title">结构数据 (实时更新)</div>
+        <pre id="json-output" class="props-pre"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let defaultData = [
+      {
+        "id": "page_root",
+        "parentId": null,
+        "sort": 1,
+        "type": "Page",
+        "name": "示例页面",
+        "basicProps": {
+          "padding": "20px",
+          "backgroundColor": "#f0f2f5",
+          "height": "100%"
+        }
+      },
+      {
+        "id": "header_card",
+        "parentId": "page_root",
+        "sort": 1,
+        "type": "Card",
+        "name": "头部卡片",
+        "basicProps": {
+          "title": "工作台",
+          "marginBottom": "16px"
+        }
+      },
+      {
+        "id": "search_row",
+        "parentId": "header_card",
+        "sort": 1,
+        "type": "Row",
+        "name": "搜索行",
+        "basicProps": {
+          "gutter": 16,
+          "display": "flex",
+          "gap": "16px"
+        }
+      },
+      {
+        "id": "search_input",
+        "parentId": "search_row",
+        "sort": 1,
+        "type": "Input",
+        "name": "搜索框",
+        "basicProps": {
+          "placeholder": "请输入关键词",
+          "width": "200px"
+        }
+      },
+      {
+        "id": "search_btn",
+        "parentId": "search_row",
+        "sort": 2,
+        "type": "Button",
+        "name": "搜索按钮",
+        "basicProps": {
+          "text": "查询",
+          "type": "primary"
+        }
+      },
+      {
+        "id": "main_content",
+        "parentId": "page_root",
+        "sort": 2,
+        "type": "Row",
+        "name": "主内容区",
+        "basicProps": {
+           "display": "flex",
+           "gap": "16px"
+        }
+      },
+      {
+        "id": "left_col",
+        "parentId": "main_content",
+        "sort": 1,
+        "type": "Col",
+        "name": "左侧列表",
+        "basicProps": {
+          "flex": "1"
+        }
+      },
+      {
+        "id": "data_table",
+        "parentId": "left_col",
+        "sort": 1,
+        "type": "Table",
+        "name": "数据表格",
+        "basicProps": {
+          "columns": [
+            {"title": "姓名", "dataIndex": "name"},
+            {"title": "年龄", "dataIndex": "age"},
+            {"title": "地址", "dataIndex": "address"}
+          ]
+        }
+      },
+      {
+        "id": "right_col",
+        "parentId": "main_content",
+        "sort": 2,
+        "type": "Col",
+        "name": "右侧详情",
+        "basicProps": {
+          "width": "300px"
+        }
+      },
+      {
+        "id": "info_card",
+        "parentId": "right_col",
+        "sort": 1,
+        "type": "Card",
+        "name": "详情卡片",
+        "basicProps": {
+          "title": "详细信息"
+        }
+      },
+      {
+        "id": "user_avatar",
+        "parentId": "info_card",
+        "sort": 1,
+        "type": "Avatar",
+        "name": "用户头像",
+        "basicProps": {
+          "src": "https://api.dicebear.com/7.x/miniavs/svg?seed=1",
+          "size": 64
+        },
+        "styleProps": {
+          "display": "block",
+          "margin": "0 auto 16px"
+        }
+      },
+      {
+        "id": "user_desc",
+        "parentId": "info_card",
+        "sort": 2,
+        "type": "Descriptions",
+        "name": "描述列表",
+        "basicProps": {
+          "column": 1
+        }
+      }
+    ];
+
+    let rawData = JSON.parse(JSON.stringify(defaultData));
+    let collapsedState = {};
+    let selectedId = null;
+    let componentSchemaMap = {};
+    let schemaLoaded = false;
+
+    function buildTree(items) {
+      const rootItems = [];
+      const lookup = {};
+      items.forEach(item => {
+        lookup[item.id] = { ...item, children: [] };
+      });
+      items.forEach(item => {
+        if (item.parentId === null) {
+          rootItems.push(lookup[item.id]);
+        } else {
+          if (lookup[item.parentId]) {
+            lookup[item.parentId].children.push(lookup[item.id]);
+          }
+        }
+      });
+      const sortChildren = (node) => {
+        if (node.children && node.children.length > 0) {
+          node.children.sort((a, b) => a.sort - b.sort);
+          node.children.forEach(sortChildren);
+        }
+      };
+      rootItems.sort((a, b) => a.sort - b.sort);
+      rootItems.forEach(sortChildren);
+      return rootItems;
+    }
+
+    function styleObjToString(style) {
+      if (!style) return '';
+      return Object.entries(style).map(([k, v]) => {
+        const key = k.replace(/([A-Z])/g, '-$1').toLowerCase();
+        if (key === 'position' && v === 'fixed') {
+          return 'position: absolute';
+        }
+        return `${key}: ${v}`;
+      }).join('; ');
+    }
+
+    function renderComponent(component) {
+      const el = document.createElement('div');
+      el.id = component.id;
+      el.className = 'component-wrapper';
+      
+      const type = component.type;
+      const props = component.basicProps || {};
+      const style = component.styleProps || {};
+
+      // 容器类组件标记
+      if (['Container', 'Page', 'Card', 'Form', 'FormItem', 'Row', 'Col', 'Layout', 'Header', 'Content', 'Footer', 'Sider', 'Space', 'Tabs', 'TabPane', 'Collapse', 'CollapsePanel', 'Drawer', 'Modal', 'ModalContent'].includes(type)) {
+        el.classList.add('container-component');
+      }
+      
+      if (selectedId === component.id) {
+        el.classList.add('selected');
+      }
+      
+      el.setAttribute('data-id', component.id);
+      el.setAttribute('data-name', component.name);
+      el.setAttribute('data-type', component.type);
+      el.addEventListener('click', (e) => {
+        e.stopPropagation(); // 阻止冒泡，避免选中父级
+        selectNode(component.id);
+      }, false); // useCapture false
+
+      // 合并样式
+      let combinedStyles = { ...style };
+      
+      // 特殊样式处理
+      if (type === 'Page') {
+        combinedStyles.minHeight = '100%';
+        if (props.backgroundColor) combinedStyles.backgroundColor = props.backgroundColor;
+        if (props.padding) combinedStyles.padding = props.padding;
+      }
+      
+      if (type === 'Card') {
+        el.classList.add('mock-card');
+        if (props.title) {
+          const head = document.createElement('div');
+          head.className = 'mock-card-head';
+          head.innerText = props.title;
+          el.appendChild(head);
+        }
+        const body = document.createElement('div');
+        body.className = 'mock-card-body';
+        // 如果有 marginBottom 等外部样式，应用到 wrapper
+        if (props.marginBottom) combinedStyles.marginBottom = props.marginBottom;
+        // 实际子元素应该渲染到 body 中
+        // 为了简化，我们把 body 设为子元素容器
+        body.setAttribute('data-container-for', component.id);
+        el.appendChild(body);
+        
+        // 稍后递归渲染时，子元素需要 append 到 body
+        // 这里做一个临时标记，让下面的 children 逻辑知道 append 到哪里
+        el._containerTarget = body;
+      }
+      
+      if (type === 'Row') {
+        combinedStyles.display = props.display || 'flex';
+        combinedStyles.flexWrap = 'wrap';
+        if (props.gap) combinedStyles.gap = props.gap;
+        if (props.justify) combinedStyles.justifyContent = props.justify;
+        if (props.align) combinedStyles.alignItems = props.align;
+      }
+      
+      if (type === 'Col') {
+        if (props.span) combinedStyles.width = (props.span / 24 * 100) + '%';
+        if (props.flex) combinedStyles.flex = props.flex;
+        if (props.width) combinedStyles.width = props.width;
+      }
+
+      // 具体组件渲染
+      if (type === 'Text') {
+        const span = document.createElement('span');
+        span.innerText = props.content || 'Text';
+        if (props.fontSize) span.style.fontSize = props.fontSize;
+        if (props.color) span.style.color = props.color;
+        if (props.fontWeight) span.style.fontWeight = props.fontWeight;
+        el.appendChild(span);
+      } else if (type === 'Button') {
+        const btn = document.createElement('button');
+        btn.innerText = props.text || 'Button';
+        btn.className = 'mock-btn ' + (props.type === 'primary' ? 'mock-btn-primary' : '');
+        el.appendChild(btn);
+      } else if (['Input', 'InputPassword', 'InputNumber', 'AutoComplete'].includes(type)) {
+        const input = document.createElement('input');
+        input.className = 'mock-input';
+        input.placeholder = props.placeholder || type;
+        el.appendChild(input);
+      } else if (type === 'InputTextArea') {
+        const area = document.createElement('textarea');
+        area.className = 'mock-input';
+        area.placeholder = props.placeholder || 'TextArea';
+        area.style.height = '80px';
+        el.appendChild(area);
+      } else if (['Image', 'Avatar'].includes(type)) {
+        const img = document.createElement('img');
+        img.src = props.src || 'https://via.placeholder.com/100';
+        img.style.width = props.width || (type === 'Avatar' ? (props.size || '40') + 'px' : '100px');
+        img.style.height = props.height || (type === 'Avatar' ? (props.size || '40') + 'px' : 'auto');
+        if (type === 'Avatar') img.style.borderRadius = '50%';
+        img.style.objectFit = 'cover';
+        el.appendChild(img);
+      } else if (type === 'Table') {
+         const table = document.createElement('table');
+         table.className = 'mock-table';
+         const thead = document.createElement('thead');
+         const tr = document.createElement('tr');
+         const columns = props.columns || [{title: 'Column 1'}, {title: 'Column 2'}];
+         columns.forEach(col => {
+           const th = document.createElement('th');
+           th.innerText = col.title || '';
+           tr.appendChild(th);
+         });
+         thead.appendChild(tr);
+         table.appendChild(thead);
+         const tbody = document.createElement('tbody');
+         // 模拟几行数据
+         for(let i=0; i<2; i++) {
+            const row = document.createElement('tr');
+            columns.forEach(() => {
+              const td = document.createElement('td');
+              td.innerText = '-';
+              row.appendChild(td);
+            });
+            tbody.appendChild(row);
+         }
+         table.appendChild(tbody);
+         el.appendChild(table);
+      } else if (type === 'Descriptions') {
+         // 简单模拟
+         el.innerHTML = '<div style="font-size:14px;color:#333;">Descriptions Component (Placeholder)</div>';
+      }
+      // 对于其他组件，如果没有特殊处理且是容器，就默认渲染
+      // 如果不是容器且没有 children，显示一个占位符
+      else if (!component.children || component.children.length === 0) {
+         if (!['Container', 'Page', 'Row', 'Col', 'Space', 'Layout', 'Header', 'Content', 'Footer', 'Sider'].includes(type)) {
+            const placeholder = document.createElement('div');
+            placeholder.style.cssText = 'padding:8px;border:1px dashed #ccc;background:#f9f9f9;color:#999;font-size:12px;text-align:center;display:inline-block;min-width:60px;';
+            placeholder.innerText = type + (component.name ? ': ' + component.name : '');
+            el.appendChild(placeholder);
+         }
+      }
+
+      // 应用合并后的样式
+      el.style.cssText += styleObjToString(combinedStyles);
+
+      // 渲染子节点
+      if (component.children && component.children.length > 0) {
+        const targetContainer = el._containerTarget || el;
+        component.children.forEach(child => {
+          targetContainer.appendChild(renderComponent(child));
+        });
+      }
+
+      return el;
+    }
+
+    function handleAction(actionName) {
+      console.log('Action triggered:', actionName);
+    }
+
+    function setDebugOutput(data) {
+      const el = document.getElementById('json-output');
+      if (el) el.textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function loadSchemaFromUrl() {
+      try {
+        const res = await fetch('./ziduan.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('invalid schema');
+        componentSchemaMap = data.reduce((acc, cur) => {
+          if (cur && cur.name) acc[cur.name] = cur;
+          return acc;
+        }, {});
+        schemaLoaded = true;
+        updateSchemaStatus();
+        renderPropertiesPanel();
+      } catch (e) {
+        schemaLoaded = false;
+        updateSchemaStatus();
+      }
+    }
+
+    function updateSchemaStatus() {
+      const el = document.getElementById('schema-status');
+      if (!el) return;
+      if (schemaLoaded) {
+        el.textContent = '字段库：已加载 ziduan.json';
+      } else {
+        el.textContent = '字段库：未加载（可点击“加载字段JSON”选择文件）';
+      }
+    }
+
+    function renderPropertiesPanel() {
+      const panel = document.getElementById('props-panel');
+      if (!panel) return;
+      const item = selectedId ? rawData.find(it => it.id === selectedId) : null;
+      if (!item) {
+        panel.innerHTML = '<div class="props-title">未选中节点</div><div style="font-size:12px;color:#666;">点击左侧树或中间画布的组件以查看参数</div>';
+        return;
+      }
+      const schema = componentSchemaMap[item.type] || null;
+      const schemaHtml = schema ? `
+        <div class="props-title">组件说明</div>
+        <div class="kv">
+          <div class="k">组件</div><div class="v">${escapeHtml(schema.cnName || '')}（${escapeHtml(schema.name || '')}）</div>
+          <div class="k">分类</div><div class="v">${escapeHtml(schema.category || '')}</div>
+          <div class="k">描述</div><div class="v">${escapeHtml(schema.description || '')}</div>
+        </div>
+      ` : `
+        <div class="props-title">组件说明</div>
+        <div style="font-size:12px;color:#666;">字段库中未找到 ${escapeHtml(item.type)} 的定义</div>
+      `;
+      panel.innerHTML = `
+        <div class="props-title">${escapeHtml(item.name || item.id)}（${escapeHtml(item.type)}）</div>
+        <div class="kv" style="margin-bottom:10px;">
+          <div class="k">id</div><div class="v">${escapeHtml(item.id)}</div>
+          <div class="k">parentId</div><div class="v">${escapeHtml(item.parentId === null ? 'null' : String(item.parentId))}</div>
+          <div class="k">sort</div><div class="v">${escapeHtml(String(item.sort ?? ''))}</div>
+        </div>
+        ${schemaHtml}
+        <div class="props-title" style="margin-top:10px;">基本属性basicProps</div>
+        <pre class="props-pre">${escapeHtml(JSON.stringify(item.basicProps || {}, null, 2))}</pre>
+        <div class="props-title" style="margin-top:10px;">样式属性styleProps</div>
+        <pre class="props-pre">${escapeHtml(JSON.stringify(item.styleProps || {}, null, 2))}</pre>
+        <div class="props-title" style="margin-top:10px;">事件属性eventProps</div>
+        <pre class="props-pre">${escapeHtml(JSON.stringify(item.eventProps || {}, null, 2))}</pre>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function refreshSelectionClasses() {
+      const treeRows = document.querySelectorAll('.tree-row');
+      treeRows.forEach(r => r.classList.remove('selected'));
+      if (selectedId) {
+        const row = document.querySelector(`.tree-node[data-id="${escapeCssValue(selectedId)}"] > .tree-row`);
+        if (row) row.classList.add('selected');
+      }
+      const wrappers = document.querySelectorAll('.component-wrapper');
+      wrappers.forEach(w => w.classList.remove('selected'));
+      if (selectedId) {
+        const el = document.querySelector(`.component-wrapper[data-id="${escapeCssValue(selectedId)}"]`);
+        if (el) el.classList.add('selected');
+      }
+    }
+
+    function escapeCssValue(value) {
+      if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(String(value));
+      return String(value).replace(/["\\]/g, '\\$&');
+    }
+
+    function selectNode(id) {
+      if (!id) return;
+      selectedId = id;
+      renderPropertiesPanel();
+      refreshSelectionClasses();
+    }
+
+    function renderTree() {
+      const rootList = document.getElementById('layer-tree');
+      if (!rootList) return;
+      rootList.innerHTML = '';
+      const treeData = buildTree(rawData);
+      treeData.forEach(node => {
+        rootList.appendChild(renderTreeNode(node));
+      });
+      applySortableToTree(rootList);
+    }
+
+    function renderTreeNode(node) {
+      const li = document.createElement('li');
+      li.className = 'tree-node';
+      li.setAttribute('data-id', node.id);
+      if (collapsedState[node.id]) li.classList.add('collapsed');
+      const row = document.createElement('div');
+      row.className = 'tree-row';
+      if (selectedId === node.id) row.classList.add('selected');
+      const toggle = document.createElement('span');
+      toggle.className = 'toggle';
+      const icon = document.createElement('img');
+      icon.src = collapsedState[node.id] ? './assets/img/未展开.png' : './assets/img/展开.png';
+      icon.alt = collapsedState[node.id] ? '未展开' : '展开';
+      // 简单的 +/- 符号代替图片，如果没有图片资源的话
+      if (!icon.complete && icon.naturalHeight === 0) { 
+          icon.onerror = () => { icon.style.display='none'; toggle.innerText = collapsedState[node.id] ? '+' : '-'; }
+      }
+      toggle.appendChild(icon);
+      if (!node.children || node.children.length === 0) {
+        toggle.style.visibility = 'hidden';
+      }
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        collapsedState[node.id] = !collapsedState[node.id];
+        renderTree();
+      });
+      const label = document.createElement('span');
+      label.className = 'node-label';
+      label.textContent = node.name || node.id;
+      const type = document.createElement('span');
+      type.className = 'node-type';
+      type.textContent = node.type;
+      row.appendChild(toggle);
+      row.appendChild(label);
+      row.appendChild(type);
+      row.addEventListener('click', () => selectNode(node.id));
+      li.appendChild(row);
+      const ul = document.createElement('ul');
+      ul.className = 'children';
+      ul.setAttribute('data-parent-id', node.id);
+      if (node.children && node.children.length > 0) {
+        node.children.forEach(child => {
+          ul.appendChild(renderTreeNode(child));
+        });
+      }
+      li.appendChild(ul);
+      return li;
+    }
+
+    function applySortableToTree(rootEl) {
+      new Sortable(rootEl, {
+        group: 'tree',
+        animation: 150,
+        fallbackOnBody: true,
+        swapThreshold: 0.65,
+        filter: '.toggle',
+        preventOnFilter: true,
+        onEnd: handleTreeDragEnd
+      });
+      const lists = rootEl.querySelectorAll('ul.children');
+      lists.forEach(ul => {
+        new Sortable(ul, {
+          group: 'tree',
+          animation: 150,
+          fallbackOnBody: true,
+          swapThreshold: 0.65,
+          filter: '.toggle',
+          preventOnFilter: true,
+          onEnd: handleTreeDragEnd
+        });
+      });
+    }
+
+    function getDescendantsIds(startId) {
+      const childrenMap = {};
+      rawData.forEach(it => {
+        if (!childrenMap[it.parentId || 'null']) childrenMap[it.parentId || 'null'] = [];
+        childrenMap[it.parentId || 'null'].push(it.id);
+      });
+      const result = [];
+      const stack = [startId];
+      while (stack.length) {
+        const cur = stack.pop();
+        const kids = childrenMap[cur] || [];
+        kids.forEach(k => {
+          result.push(k);
+          stack.push(k);
+        });
+      }
+      return result;
+    }
+
+    function handleTreeDragEnd(evt) {
+      const itemNode = evt.item.closest('.tree-node');
+      if (!itemNode) return;
+      const itemId = itemNode.getAttribute('data-id');
+      const toList = evt.to;
+      const newParentAttr = toList.getAttribute('data-parent-id');
+      const newParentId = newParentAttr === 'null' ? null : newParentAttr;
+      const fromList = evt.from;
+      const descendants = getDescendantsIds(itemId);
+      if (newParentId && (newParentId === itemId || descendants.includes(newParentId))) {
+        renderTree();
+        return;
+      }
+      rawData = rawData.map(it => it.id === itemId ? { ...it, parentId: newParentId } : it);
+      const toChildren = Array.from(toList.children).filter(c => c.classList.contains('tree-node'));
+      toChildren.forEach((li, idx) => {
+        const id = li.getAttribute('data-id');
+        rawData = rawData.map(it => it.id === id ? { ...it, sort: idx + 1 } : it);
+      });
+      if (fromList !== toList) {
+        const fromChildren = Array.from(fromList.children).filter(c => c.classList.contains('tree-node'));
+        fromChildren.forEach((li, idx) => {
+          const id = li.getAttribute('data-id');
+          rawData = rawData.map(it => it.id === id ? { ...it, sort: idx + 1 } : it);
+        });
+      }
+      renderTree();
+      renderCanvas();
+      setDebugOutput(rawData);
+    }
+
+    function renderCanvas() {
+      const container = document.getElementById('canvas-container');
+      container.innerHTML = '';
+      const treeData = buildTree(rawData);
+      treeData.forEach(rootNode => {
+        const dom = renderComponent(rootNode);
+        container.appendChild(dom);
+      });
+      applySortable(container);
+      refreshSelectionClasses();
+    }
+
+    function init() {
+      renderCanvas();
+      renderTree();
+      renderPropertiesPanel();
+      setDebugOutput(rawData);
+    }
+
+    function applySortable(rootEl) {
+      new Sortable(rootEl, {
+        group: 'nested',
+        animation: 150,
+        fallbackOnBody: true,
+        swapThreshold: 0.65,
+        onEnd: handleDragEnd
+      });
+      const containers = rootEl.querySelectorAll('.container-component, .mock-card-body'); 
+      containers.forEach(el => {
+        new Sortable(el, {
+          group: 'nested',
+          animation: 150,
+          fallbackOnBody: true,
+          swapThreshold: 0.65,
+          onEnd: handleDragEnd
+        });
+      });
+    }
+
+    function handleDragEnd(evt) {
+      // 简单实现：拖拽后需要完全重新计算 parentId 和 sort
+      // 这里的逻辑需要根据 DOM 结构反向更新 rawData
+      // 这是一个复杂的操作，这里仅做示意，暂不实现完整的 Canvas 拖拽反向更新
+      // 建议主要通过左侧树进行结构调整，Canvas 仅用于预览和点击选择
+      console.log('Canvas drag ended - Data update logic needed here');
+      // updateDataFromDOM(); // 需要实现 robust 的 updateDataFromDOM
+    }
+
+    function bindToolbar() {
+      const importBtn = document.getElementById('import-json-btn');
+      const exportBtn = document.getElementById('export-json-btn');
+      const resetBtn = document.getElementById('reset-btn');
+      const toggleBtn = document.getElementById('toggle-debug');
+      const fileInput = document.getElementById('file-input');
+      const jsonInput = document.getElementById('json-input');
+      const loadSchemaBtn = document.getElementById('load-schema-btn');
+      const schemaFileInput = document.getElementById('schema-file-input');
+      importBtn.addEventListener('click', () => {
+        const val = jsonInput.value.trim();
+        if (!val) return;
+        try {
+          const parsed = JSON.parse(val);
+          if (!Array.isArray(parsed)) return;
+          rawData = parsed;
+          init();
+        } catch (e) { }
+      });
+      exportBtn.addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(rawData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'layout.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+      resetBtn.addEventListener('click', () => {
+        rawData = JSON.parse(JSON.stringify(defaultData));
+        init();
+      });
+      toggleBtn.addEventListener('click', () => {
+        const panel = document.getElementById('debug-info');
+        if (panel.style.display === 'none') {
+          panel.style.display = 'block';
+        } else {
+          panel.style.display = 'none';
+        }
+      });
+      fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        try {
+          const parsed = JSON.parse(text);
+          if (!Array.isArray(parsed)) return;
+          rawData = parsed;
+          init();
+        } catch (e) { }
+        fileInput.value = '';
+      });
+      loadSchemaBtn.addEventListener('click', () => {
+        schemaFileInput.click();
+      });
+      schemaFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        try {
+          const parsed = JSON.parse(text);
+          if (!Array.isArray(parsed)) return;
+          componentSchemaMap = parsed.reduce((acc, cur) => {
+            if (cur && cur.name) acc[cur.name] = cur;
+            return acc;
+          }, {});
+          schemaLoaded = true;
+          updateSchemaStatus();
+          renderPropertiesPanel();
+        } catch (err) {
+          schemaLoaded = false;
+          updateSchemaStatus();
+        }
+        schemaFileInput.value = '';
+      });
+    }
+
+    // 启动
+    init();
+    bindToolbar();
+    updateSchemaStatus();
+    loadSchemaFromUrl();
+
+  </script>
+</body>
+
+</html>

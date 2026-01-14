@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/webview/index",
+    "pages/payment/index",
+    "pages/login/index",
+    "pages/logout/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "沈仙子",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

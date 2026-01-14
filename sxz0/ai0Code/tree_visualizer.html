@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>无代码平台 - 树型容器可视化</title>
+  <!-- 引入 SortableJS 用于拖拽排序 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #e0e0e0;
+      box-sizing: border-box;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    #json-input {
+      width: 40%;
+      min-height: 80px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    #toolbar button,
+    #toolbar input[type="file"] {
+      height: 32px;
+    }
+
+    #app {
+      display: flex;
+      gap: 20px;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    #tree-container {
+      width: 320px;
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      overflow: auto;
+      height: 100%;
+    }
+
+    .tree {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+    }
+
+    .tree-node {
+      margin: 2px 0;
+    }
+
+    .tree-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .tree-row:hover {
+      background: #f5f5f5;
+    }
+
+    .tree-row.selected {
+      background: #e6f7ff;
+      outline: 1px solid #1890ff;
+    }
+
+    .toggle {
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 16px;
+      cursor: default;
+    }
+
+    .toggle img {
+      width: 16px;
+      height: 16px;
+      display: block;
+      filter: brightness(0) saturate(100%);
+      cursor: default;
+    }
+
+    .children {
+      margin-left: 16px;
+      padding-left: 8px;
+      border-left: 1px dashed #ddd;
+      list-style: none;
+    }
+
+    .tree-node.collapsed>.children {
+      display: none;
+    }
+
+    .node-label {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .node-type {
+      font-size: 12px;
+      color: #888;
+    }
+
+    /* 渲染区域样式 */
+    #canvas-container {
+      flex: 1;
+      background: #ccc;
+      padding: 20px;
+      overflow: auto;
+      border-radius: 8px;
+      height: 100%;
+      position: relative;
+    }
+
+    #right-panel {
+      width: 360px;
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+    }
+
+    #props-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    #props-header-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    #schema-status {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .props-card {
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .props-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 6px 10px;
+      font-size: 12px;
+      align-items: start;
+    }
+
+    .kv .k {
+      color: #666;
+    }
+
+    .kv .v {
+      color: #111;
+      word-break: break-all;
+    }
+
+    .props-pre {
+      margin: 0;
+      padding: 8px;
+      background: #f7f7f7;
+      border-radius: 6px;
+      font-size: 12px;
+      overflow: auto;
+      max-height: 180px;
+    }
+
+    /* 调试信息样式 */
+    #debug-info {
+      background: #fff;
+      font-size: 12px;
+      overflow: auto;
+      display: none;
+    }
+
+    /* 通用组件样式 */
+    .component-wrapper {
+      position: relative;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+
+    .component-wrapper.selected {
+      outline: 2px solid #1890ff;
+      z-index: 12;
+    }
+
+    /* 悬停效果，显示组件轮廓 */
+    .component-wrapper:hover {
+      outline: 2px dashed #1890ff;
+      z-index: 10;
+    }
+
+    .component-wrapper:hover::after {
+      content: attr(data-name);
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: #1890ff;
+      color: white;
+      font-size: 10px;
+      padding: 2px 4px;
+      pointer-events: none;
+      z-index: 11;
+    }
+
+    /* 拖拽时的样式 */
+    .sortable-ghost {
+      opacity: 0.4;
+      background-color: #f0f0f0;
+      border: 2px dashed #999;
+    }
+
+    .sortable-drag {
+      cursor: grabbing;
+    }
+
+    /* 确保容器有最小高度以便可以拖入 */
+    .container-component {
+      min-height: 20px;
+      min-width: 50px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="toolbar">
+    <button id="toggle-debug">显示/隐藏数据</button>
+    <input type="file" id="file-input" accept=".json,application/json">
+    <button id="export-json-btn">导出JSON</button>
+    <button id="reset-btn">加载示例</button>
+    <textarea id="json-input" placeholder="在此粘贴JSON数组后点击下方导入"></textarea>
+    <button id="import-json-btn">导入JSON</button>
+  </div>
+
+  <div id="app">
+    <div id="tree-container">
+      <ul id="layer-tree" class="tree" data-parent-id="null"></ul>
+    </div>
+    <div id="canvas-container">
+      <!-- 动态内容将渲染在这里 -->
+    </div>
+    <div id="right-panel">
+      <div id="props-header">
+        <div id="props-header-title">属性</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="load-schema-btn">加载字段JSON</button>
+          <input type="file" id="schema-file-input" accept=".json,application/json" style="display:none">
+        </div>
+      </div>
+      <div id="schema-status"></div>
+      <div id="props-panel" class="props-card"></div>
+      <div id="debug-info" class="props-card">
+        <div class="props-title">结构数据 (实时更新)</div>
+        <pre id="json-output" class="props-pre"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let defaultData = [
+      {
+        "id": "home_page_001",
+        "parentId": null,
+        "sort": 1,
+        "type": "Page",
+        "name": "首页",
+        "basicProps": {
+          "width": "100%",
+          "height": "100vh",
+          "backgroundColor": "#f5f5f5",
+          "padding": "0",
+          "margin": "0 auto"
+        }
+      },
+      {
+        "id": "header_container_001",
+        "parentId": "home_page_001",
+        "sort": 2,
+        "type": "Container",
+        "name": "聊天头部",
+        "basicProps": {
+          "width": "100%",
+          "height": "56px",
+          "backgroundColor": "#ffffff",
+          "display": "flex",
+          "justifyContent": "space-between",
+          "alignItems": "center",
+          "padding": "0 16px"
+        },
+        "styleProps": {
+          "borderBottom": "1px solid #eee"
+        }
+      },
+      {
+        "id": "header_title_001",
+        "parentId": "header_container_001",
+        "sort": 1,
+        "type": "Text",
+        "name": "智能体标题",
+        "basicProps": {
+          "content": "沈仙子智能体助手",
+          "fontSize": "16px",
+          "fontWeight": "600",
+          "color": "#1f2328"
+        }
+      },
+      {
+        "id": "version_badge_001",
+        "parentId": "header_container_001",
+        "sort": 2,
+        "type": "Text",
+        "name": "版本徽章",
+        "basicProps": {
+          "content": "v0.0.6",
+          "fontSize": "12px",
+          "color": "#0DA2E7",
+          "backgroundColor": "#ECF5FB",
+          "padding": "4px 8px",
+          "borderRadius": "12px"
+        }
+      },
+      {
+        "id": "main_container_001",
+        "parentId": "home_page_001",
+        "sort": 3,
+        "type": "Container",
+        "name": "主内容容器",
+        "basicProps": {
+          "width": "100%",
+          "height": "calc(100vh - 56px - 83px)",
+          "backgroundColor": "#f5f5f5",
+          "overflowY": "auto"
+        }
+      },
+      {
+        "id": "page_agent_001",
+        "parentId": "main_container_001",
+        "sort": 1,
+        "type": "Section",
+        "name": "智能体页面",
+        "basicProps": {
+          "active": true,
+          "padding": "0"
+        }
+      },
+      {
+        "id": "agent_message_list_001",
+        "parentId": "page_agent_001",
+        "sort": 1,
+        "type": "List",
+        "name": "对话历史",
+        "basicProps": {
+          "role": "list",
+          "itemRole": "listitem",
+          "padding": "16px",
+          "gap": "12px"
+        }
+      },
+      {
+        "id": "agent_input_area_001",
+        "parentId": "page_agent_001",
+        "sort": 2,
+        "type": "Container",
+        "name": "输入区域",
+        "basicProps": {
+          "display": "flex",
+          "gap": "8px",
+          "padding": "12px 16px",
+          "backgroundColor": "#ffffff"
+        }
+      },
+      {
+        "id": "agent_textarea_001",
+        "parentId": "agent_input_area_001",
+        "sort": 1,
+        "type": "Input",
+        "name": "消息输入框",
+        "basicProps": {
+          "placeholder": "请输入消息…",
+          "width": "100%",
+          "height": "80px"
+        }
+      },
+      {
+        "id": "agent_send_button_001",
+        "parentId": "agent_input_area_001",
+        "sort": 2,
+        "type": "Button",
+        "name": "发送按钮",
+        "basicProps": {
+          "text": "发送",
+          "type": "primary",
+          "width": "88px",
+          "height": "36px"
+        },
+        "eventProps": {
+          "onClick": "sendAgentMessage"
+        }
+      },
+      {
+        "id": "page_patient_001",
+        "parentId": "main_container_001",
+        "sort": 2,
+        "type": "Section",
+        "name": "患者库页面",
+        "basicProps": {
+          "active": false
+        }
+      },
+      {
+        "id": "patient_header_001",
+        "parentId": "page_patient_001",
+        "sort": 1,
+        "type": "Container",
+        "name": "患者库头部",
+        "basicProps": {
+          "display": "flex",
+          "alignItems": "center",
+          "justifyContent": "space-between",
+          "padding": "12px 16px",
+          "backgroundColor": "#ffffff"
+        }
+      },
+      {
+        "id": "patient_search_001",
+        "parentId": "patient_header_001",
+        "sort": 1,
+        "type": "Input",
+        "name": "搜索框",
+        "basicProps": {
+          "placeholder": "搜索患者姓名/电话",
+          "width": "100%"
+        },
+        "eventProps": {
+          "onChange": "onSearchPatient"
+        }
+      },
+      {
+        "id": "patient_create_button_001",
+        "parentId": "patient_header_001",
+        "sort": 2,
+        "type": "Button",
+        "name": "创建患者",
+        "basicProps": {
+          "text": "创建",
+          "type": "primary",
+          "width": "80px",
+          "height": "32px"
+        },
+        "eventProps": {
+          "onClick": "openCreatePatientModal"
+        }
+      },
+      {
+        "id": "patient_list_001",
+        "parentId": "page_patient_001",
+        "sort": 2,
+        "type": "List",
+        "name": "患者列表",
+        "basicProps": {
+          "role": "list",
+          "padding": "12px",
+          "gap": "12px"
+        },
+        "eventProps": {
+          "onItemClick": "openPatientDetail"
+        }
+      },
+      {
+        "id": "page_memo_001",
+        "parentId": "main_container_001",
+        "sort": 3,
+        "type": "Section",
+        "name": "备忘录页面",
+        "basicProps": {
+          "active": false
+        }
+      },
+      {
+        "id": "memo_list_001",
+        "parentId": "page_memo_001",
+        "sort": 1,
+        "type": "List",
+        "name": "备忘录列表",
+        "basicProps": {
+          "role": "list",
+          "padding": "12px",
+          "gap": "12px"
+        }
+      },
+      {
+        "id": "memo_add_button_001",
+        "parentId": "page_memo_001",
+        "sort": 2,
+        "type": "Button",
+        "name": "新增备忘录",
+        "basicProps": {
+          "text": "新增",
+          "type": "primary",
+          "width": "80px",
+          "height": "32px"
+        },
+        "eventProps": {
+          "onClick": "openMemoCreateModal"
+        }
+      },
+      {
+        "id": "page_settings_001",
+        "parentId": "main_container_001",
+        "sort": 4,
+        "type": "Section",
+        "name": "设置页面",
+        "basicProps": {
+          "active": false,
+          "padding": "16px"
+        }
+      },
+      {
+        "id": "settings_login_button_001",
+        "parentId": "page_settings_001",
+        "sort": 1,
+        "type": "Button",
+        "name": "登录按钮",
+        "basicProps": {
+          "text": "立即登录",
+          "type": "primary",
+          "width": "120px",
+          "height": "36px"
+        },
+        "eventProps": {
+          "onClick": "openLoginModal"
+        }
+      },
+      {
+        "id": "bottom_menu_001",
+        "parentId": "home_page_001",
+        "sort": 4,
+        "type": "Container",
+        "name": "底部导航",
+        "basicProps": {
+          "position": "fixed",
+          "bottom": "0",
+          "left": "0",
+          "right": "0",
+          "height": "83px",
+          "display": "grid",
+          "gridTemplateColumns": "repeat(4, 1fr)",
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderTop": "1px solid #eee",
+          "zIndex": 999
+        }
+      },
+      {
+        "id": "menu_item_agent_001",
+        "parentId": "bottom_menu_001",
+        "sort": 1,
+        "type": "Button",
+        "name": "导航-智能体",
+        "basicProps": {
+          "text": "智能体",
+          "icon": "./assets/agent1.png"
+        },
+        "eventProps": {
+          "onClick": "switchTabAgent"
+        }
+      },
+      {
+        "id": "menu_item_patient_001",
+        "parentId": "bottom_menu_001",
+        "sort": 2,
+        "type": "Button",
+        "name": "导航-患者库",
+        "basicProps": {
+          "text": "患者库",
+          "icon": "./assets/huanzheku1.png"
+        },
+        "eventProps": {
+          "onClick": "switchTabPatient"
+        }
+      },
+      {
+        "id": "menu_item_memo_001",
+        "parentId": "bottom_menu_001",
+        "sort": 3,
+        "type": "Button",
+        "name": "导航-备忘录",
+        "basicProps": {
+          "text": "备忘录",
+          "icon": "./assets/beiwanglu1.png"
+        },
+        "eventProps": {
+          "onClick": "switchTabMemo"
+        }
+      },
+      {
+        "id": "menu_item_settings_001",
+        "parentId": "bottom_menu_001",
+        "sort": 4,
+        "type": "Button",
+        "name": "导航-设置",
+        "basicProps": {
+          "text": "设置",
+          "icon": "./assets/shezhi1.png"
+        },
+        "eventProps": {
+          "onClick": "switchTabSettings"
+        }
+      },
+      {
+        "id": "modal_patient_detail_001",
+        "parentId": "home_page_001",
+        "sort": 5,
+        "type": "Modal",
+        "name": "患者详情弹窗",
+        "basicProps": {
+          "visible": false,
+          "centered": true,
+          "widthPercent": "90%",
+          "maxWidth": "400px"
+        },
+        "eventProps": {
+          "onClose": "closePatientDetailModal"
+        }
+      },
+      {
+        "id": "modal_visit_detail_001",
+        "parentId": "home_page_001",
+        "sort": 6,
+        "type": "Modal",
+        "name": "陪诊服务记录详情弹窗",
+        "basicProps": {
+          "visible": false,
+          "centered": true,
+          "widthPercent": "90%",
+          "maxWidth": "400px"
+        },
+        "eventProps": {
+          "onClose": "closeVisitRecordDetailModal"
+        }
+      },
+      {
+        "id": "modal_edit_patient_001",
+        "parentId": "home_page_001",
+        "sort": 7,
+        "type": "Modal",
+        "name": "编辑患者信息弹窗",
+        "basicProps": {
+          "visible": false,
+          "centered": true,
+          "widthPercent": "90%",
+          "maxWidth": "400px"
+        },
+        "eventProps": {
+          "onClose": "closeEditModal",
+          "onSave": "savePatientInfo"
+        }
+      },
+      {
+        "id": "modal_edit_name_001",
+        "parentId": "home_page_001",
+        "sort": 8,
+        "type": "Modal",
+        "name": "编辑姓名弹窗",
+        "basicProps": {
+          "visible": false,
+          "centered": true,
+          "widthPercent": "90%",
+          "maxWidth": "400px"
+        },
+        "eventProps": {
+          "onClose": "closeEditNameModal",
+          "onSave": "savePatientName"
+        }
+      },
+      {
+        "id": "modal_edit_history_001",
+        "parentId": "home_page_001",
+        "sort": 9,
+        "type": "Modal",
+        "name": "编辑既往病史弹窗",
+        "basicProps": {
+          "visible": false,
+          "centered": true,
+          "widthPercent": "90%",
+          "maxWidth": "400px"
+        },
+        "eventProps": {
+          "onClose": "closeEditHistoryModal",
+          "onSave": "savePatientHistory"
+        }
+      }
+    ];
+    let rawData = JSON.parse(JSON.stringify(defaultData));
+    let collapsedState = {};
+    let selectedId = null;
+    let componentSchemaMap = {};
+    let schemaLoaded = false;
+
+    /**
+     * 将扁平数组转换为树形结构
+     */
+    function buildTree(items) {
+      const rootItems = [];
+      const lookup = {};
+
+      // 初始化 lookup，并添加 children 数组
+      items.forEach(item => {
+        lookup[item.id] = { ...item, children: [] };
+      });
+
+      items.forEach(item => {
+        if (item.parentId === null) {
+          rootItems.push(lookup[item.id]);
+        } else {
+          if (lookup[item.parentId]) {
+            lookup[item.parentId].children.push(lookup[item.id]);
+          }
+        }
+      });
+
+      // 递归排序
+      const sortChildren = (node) => {
+        if (node.children && node.children.length > 0) {
+          node.children.sort((a, b) => a.sort - b.sort);
+          node.children.forEach(sortChildren);
+        }
+      };
+
+      rootItems.sort((a, b) => a.sort - b.sort);
+      rootItems.forEach(sortChildren);
+
+      return rootItems;
+    }
+
+    /**
+     * 将样式对象转换为 CSS 字符串
+     */
+    function styleObjToString(style) {
+      if (!style) return '';
+      return Object.entries(style).map(([k, v]) => {
+        // 将驼峰转为 kebab-case
+        const key = k.replace(/([A-Z])/g, '-$1').toLowerCase();
+        if (key === 'position' && v === 'fixed') {
+          return 'position: absolute';
+        }
+        return `${key}: ${v}`;
+      }).join('; ');
+    }
+
+    /**
+     * 创建 DOM 元素
+     */
+    function renderComponent(component) {
+      const el = document.createElement('div');
+      el.id = component.id;
+      el.className = 'component-wrapper';
+      if (['Container', 'Page'].includes(component.type)) {
+        el.classList.add('container-component');
+      }
+      if (selectedId === component.id) {
+        el.classList.add('selected');
+      }
+      el.setAttribute('data-id', component.id);
+      el.setAttribute('data-name', component.name);
+      el.setAttribute('data-type', component.type);
+      el.addEventListener('click', () => selectNode(component.id), true);
+
+      // 合并 basicProps 和 styleProps
+      const combinedStyles = {
+        ...component.basicProps,
+        ...component.styleProps
+      };
+
+      // 特殊处理 content 和 text
+      if (component.type === 'Text') {
+        el.innerText = component.basicProps.content || '';
+        delete combinedStyles.content;
+      } else if (component.type === 'Button') {
+        const btn = document.createElement('button');
+        btn.innerText = component.basicProps.text || 'Button';
+        // 简单模拟 Button 样式
+        btn.style.width = '100%';
+        btn.style.height = '100%';
+        btn.style.cursor = 'pointer';
+        if (component.basicProps.type === 'primary') {
+          btn.style.background = '#1890ff';
+          btn.style.color = '#fff';
+          btn.style.border = 'none';
+        }
+        // 将 button 放入 wrapper
+        el.appendChild(btn);
+        delete combinedStyles.text;
+        if (component.eventProps && component.eventProps.onClick) {
+          btn.addEventListener('click', () => handleAction(component.eventProps.onClick));
+        }
+      } else {
+        if (component.eventProps && component.eventProps.onClick) {
+          el.addEventListener('click', () => handleAction(component.eventProps.onClick));
+        }
+      }
+
+      // 应用样式
+      el.style.cssText = styleObjToString(combinedStyles);
+
+      // 渲染子节点
+      if (component.children && component.children.length > 0) {
+        component.children.forEach(child => {
+          el.appendChild(renderComponent(child));
+        });
+      }
+
+      return el;
+    }
+
+    function handleAction(actionName) {
+      if (actionName === 'openLoginModal') {
+        showModal();
+      } else if (actionName === 'jumpToHome') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function setDebugOutput(data) {
+      const el = document.getElementById('json-output');
+      if (el) el.textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function loadSchemaFromUrl() {
+      try {
+        const res = await fetch('./ziduan.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('invalid schema');
+        componentSchemaMap = data.reduce((acc, cur) => {
+          if (cur && cur.name) acc[cur.name] = cur;
+          return acc;
+        }, {});
+        schemaLoaded = true;
+        updateSchemaStatus();
+        renderPropertiesPanel();
+      } catch (e) {
+        schemaLoaded = false;
+        updateSchemaStatus();
+      }
+    }
+
+    function updateSchemaStatus() {
+      const el = document.getElementById('schema-status');
+      if (!el) return;
+      if (schemaLoaded) {
+        el.textContent = '字段库：已加载 ziduan.json';
+      } else {
+        el.textContent = '字段库：未加载（可点击“加载字段JSON”选择文件）';
+      }
+    }
+
+    function renderPropertiesPanel() {
+      const panel = document.getElementById('props-panel');
+      if (!panel) return;
+      const item = selectedId ? rawData.find(it => it.id === selectedId) : null;
+      if (!item) {
+        panel.innerHTML = '<div class="props-title">未选中节点</div><div style="font-size:12px;color:#666;">点击左侧树或中间画布的组件以查看参数</div>';
+        return;
+      }
+      const schema = componentSchemaMap[item.type] || null;
+      const schemaHtml = schema ? `
+        <div class="props-title">组件说明</div>
+        <div class="kv">
+          <div class="k">组件</div><div class="v">${escapeHtml(schema.cnName || '')}（${escapeHtml(schema.name || '')}）</div>
+          <div class="k">分类</div><div class="v">${escapeHtml(schema.category || '')}</div>
+          <div class="k">描述</div><div class="v">${escapeHtml(schema.description || '')}</div>
+        </div>
+      ` : `
+        <div class="props-title">组件说明</div>
+        <div style="font-size:12px;color:#666;">字段库中未找到 ${escapeHtml(item.type)} 的定义</div>
+      `;
+      panel.innerHTML = `
+        <div class="props-title">${escapeHtml(item.name || item.id)}（${escapeHtml(item.type)}）</div>
+        <div class="kv" style="margin-bottom:10px;">
+          <div class="k">id</div><div class="v">${escapeHtml(item.id)}</div>
+          <div class="k">parentId</div><div class="v">${escapeHtml(item.parentId === null ? 'null' : String(item.parentId))}</div>
+          <div class="k">sort</div><div class="v">${escapeHtml(String(item.sort ?? ''))}</div>
+        </div>
+        ${schemaHtml}
+        <div class="props-title" style="margin-top:10px;">基本属性basicProps</div>
+        <pre class="props-pre">${escapeHtml(JSON.stringify(item.basicProps || {}, null, 2))}</pre>
+        <div class="props-title" style="margin-top:10px;">样式属性styleProps</div>
+        <pre class="props-pre">${escapeHtml(JSON.stringify(item.styleProps || {}, null, 2))}</pre>
+        <div class="props-title" style="margin-top:10px;">事件属性eventProps</div>
+        <pre class="props-pre">${escapeHtml(JSON.stringify(item.eventProps || {}, null, 2))}</pre>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function refreshSelectionClasses() {
+      const treeRows = document.querySelectorAll('.tree-row');
+      treeRows.forEach(r => r.classList.remove('selected'));
+      if (selectedId) {
+        const row = document.querySelector(`.tree-node[data-id="${escapeCssValue(selectedId)}"] > .tree-row`);
+        if (row) row.classList.add('selected');
+      }
+      const wrappers = document.querySelectorAll('.component-wrapper');
+      wrappers.forEach(w => w.classList.remove('selected'));
+      if (selectedId) {
+        const el = document.querySelector(`.component-wrapper[data-id="${escapeCssValue(selectedId)}"]`);
+        if (el) el.classList.add('selected');
+      }
+    }
+
+    function escapeCssValue(value) {
+      if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(String(value));
+      return String(value).replace(/["\\]/g, '\\$&');
+    }
+
+    function selectNode(id) {
+      if (!id) return;
+      selectedId = id;
+      renderPropertiesPanel();
+      refreshSelectionClasses();
+    }
+
+    function renderTree() {
+      const rootList = document.getElementById('layer-tree');
+      if (!rootList) return;
+      rootList.innerHTML = '';
+      const treeData = buildTree(rawData);
+      treeData.forEach(node => {
+        rootList.appendChild(renderTreeNode(node));
+      });
+      applySortableToTree(rootList);
+    }
+
+    function renderTreeNode(node) {
+      const li = document.createElement('li');
+      li.className = 'tree-node';
+      li.setAttribute('data-id', node.id);
+      if (collapsedState[node.id]) li.classList.add('collapsed');
+      const row = document.createElement('div');
+      row.className = 'tree-row';
+      if (selectedId === node.id) row.classList.add('selected');
+      const toggle = document.createElement('span');
+      toggle.className = 'toggle';
+      const icon = document.createElement('img');
+      icon.src = collapsedState[node.id] ? './assets/img/未展开.png' : './assets/img/展开.png';
+      icon.alt = collapsedState[node.id] ? '未展开' : '展开';
+      toggle.appendChild(icon);
+      if (!node.children || node.children.length === 0) {
+        toggle.style.visibility = 'hidden';
+      }
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        collapsedState[node.id] = !collapsedState[node.id];
+        renderTree();
+      });
+      const label = document.createElement('span');
+      label.className = 'node-label';
+      label.textContent = node.name || node.id;
+      const type = document.createElement('span');
+      type.className = 'node-type';
+      type.textContent = node.type;
+      row.appendChild(toggle);
+      row.appendChild(label);
+      row.appendChild(type);
+      row.addEventListener('click', () => selectNode(node.id));
+      li.appendChild(row);
+      const ul = document.createElement('ul');
+      ul.className = 'children';
+      ul.setAttribute('data-parent-id', node.id);
+      if (node.children && node.children.length > 0) {
+        node.children.forEach(child => {
+          ul.appendChild(renderTreeNode(child));
+        });
+      }
+      li.appendChild(ul);
+      return li;
+    }
+
+    function applySortableToTree(rootEl) {
+      new Sortable(rootEl, {
+        group: 'tree',
+        animation: 150,
+        fallbackOnBody: true,
+        swapThreshold: 0.65,
+        filter: '.toggle',
+        preventOnFilter: true,
+        onEnd: handleTreeDragEnd
+      });
+      const lists = rootEl.querySelectorAll('ul.children');
+      lists.forEach(ul => {
+        new Sortable(ul, {
+          group: 'tree',
+          animation: 150,
+          fallbackOnBody: true,
+          swapThreshold: 0.65,
+          filter: '.toggle',
+          preventOnFilter: true,
+          onEnd: handleTreeDragEnd
+        });
+      });
+    }
+
+    function getDescendantsIds(startId) {
+      const childrenMap = {};
+      rawData.forEach(it => {
+        if (!childrenMap[it.parentId || 'null']) childrenMap[it.parentId || 'null'] = [];
+        childrenMap[it.parentId || 'null'].push(it.id);
+      });
+      const result = [];
+      const stack = [startId];
+      while (stack.length) {
+        const cur = stack.pop();
+        const kids = childrenMap[cur] || [];
+        kids.forEach(k => {
+          result.push(k);
+          stack.push(k);
+        });
+      }
+      return result;
+    }
+
+    function handleTreeDragEnd(evt) {
+      const itemNode = evt.item.closest('.tree-node');
+      if (!itemNode) return;
+      const itemId = itemNode.getAttribute('data-id');
+      const toList = evt.to;
+      const newParentAttr = toList.getAttribute('data-parent-id');
+      const newParentId = newParentAttr === 'null' ? null : newParentAttr;
+      const fromList = evt.from;
+      const oldParentAttr = fromList.getAttribute('data-parent-id');
+      const oldParentId = oldParentAttr === 'null' ? null : oldParentAttr;
+      const descendants = getDescendantsIds(itemId);
+      if (newParentId && (newParentId === itemId || descendants.includes(newParentId))) {
+        renderTree();
+        return;
+      }
+      rawData = rawData.map(it => it.id === itemId ? { ...it, parentId: newParentId } : it);
+      const toChildren = Array.from(toList.children).filter(c => c.classList.contains('tree-node'));
+      toChildren.forEach((li, idx) => {
+        const id = li.getAttribute('data-id');
+        rawData = rawData.map(it => it.id === id ? { ...it, sort: idx + 1 } : it);
+      });
+      if (fromList !== toList) {
+        const fromChildren = Array.from(fromList.children).filter(c => c.classList.contains('tree-node'));
+        fromChildren.forEach((li, idx) => {
+          const id = li.getAttribute('data-id');
+          rawData = rawData.map(it => it.id === id ? { ...it, sort: idx + 1 } : it);
+        });
+      }
+      renderTree();
+      renderCanvas();
+      setDebugOutput(rawData);
+    }
+
+    /**
+     * 初始化渲染
+     */
+    function renderCanvas() {
+      const container = document.getElementById('canvas-container');
+      container.innerHTML = '';
+      const treeData = buildTree(rawData);
+      treeData.forEach(rootNode => {
+        const dom = renderComponent(rootNode);
+        container.appendChild(dom);
+      });
+      applySortable(container);
+      refreshSelectionClasses();
+    }
+    function init() {
+      renderCanvas();
+      renderTree();
+      renderPropertiesPanel();
+      setDebugOutput(rawData);
+    }
+
+    /**
+     * 递归应用 SortableJS
+     */
+    function applySortable(rootEl) {
+      // 查找所有可能是容器的元素（包括根容器和组件生成的容器）
+      // 这里我们假设 Page 和 Container 类型的组件可以包含子元素
+      // 在 DOM 中，我们给它们加了 'container-component' 类，或者直接对所有 component-wrapper 尝试初始化（如果有子元素）
+
+      // 1. 根容器（canvas-container）本身就是一个容器（虽然本例只有一个 Page，但逻辑上可能有多个）
+      new Sortable(rootEl, {
+        group: 'nested', // 允许在嵌套列表中拖拽
+        animation: 150,
+        fallbackOnBody: true,
+        swapThreshold: 0.65,
+        onEnd: handleDragEnd
+      });
+
+      // 2. 查找所有已渲染的容器组件
+      const containers = rootEl.querySelectorAll('.container-component');
+      containers.forEach(el => {
+        new Sortable(el, {
+          group: 'nested',
+          animation: 150,
+          fallbackOnBody: true,
+          swapThreshold: 0.65,
+          onEnd: handleDragEnd
+        });
+      });
+    }
+
+    /**
+     * 处理拖拽结束事件，更新数据模型（简单演示）
+     */
+    function handleDragEnd(evt) {
+      console.log('Drag ended', evt);
+      // 在真实应用中，这里需要遍历 DOM 树，重新计算所有节点的 parentId 和 sort
+      // 并更新 rawData
+      updateDataFromDOM();
+    }
+
+    function updateDataFromDOM() {
+      const newRawData = [];
+      const processNode = (domNode, parentId, index) => {
+        const id = domNode.getAttribute('data-id');
+        if (!id) return; // 忽略非组件节点
+
+        // 找到原始数据中的对应项
+        const originalItem = rawData.find(item => item.id === id);
+        if (originalItem) {
+          // 更新 parentId 和 sort
+          const newItem = {
+            ...originalItem,
+            parentId: parentId,
+            sort: index + 1
+          };
+          newRawData.push(newItem);
+        }
+
+        // 处理子节点
+        // 注意：SortableJS 可能会插入一些临时元素，我们需要过滤出 component-wrapper
+        const children = Array.from(domNode.children).filter(child => child.classList.contains('component-wrapper'));
+        children.forEach((child, idx) => {
+          processNode(child, id, idx);
+        });
+      };
+
+      const rootContainer = document.getElementById('canvas-container');
+      const rootChildren = Array.from(rootContainer.children).filter(child => child.classList.contains('component-wrapper'));
+
+      rootChildren.forEach((child, idx) => {
+        processNode(child, null, idx);
+      });
+
+      // 更新全局数据（这里仅打印，实际项目中会保存）
+      console.log('Updated Data:', newRawData);
+      rawData = newRawData;
+      setDebugOutput(rawData);
+      renderTree();
+      renderPropertiesPanel();
+      refreshSelectionClasses();
+    }
+
+    function bindToolbar() {
+      const importBtn = document.getElementById('import-json-btn');
+      const exportBtn = document.getElementById('export-json-btn');
+      const resetBtn = document.getElementById('reset-btn');
+      const toggleBtn = document.getElementById('toggle-debug');
+      const fileInput = document.getElementById('file-input');
+      const jsonInput = document.getElementById('json-input');
+      const loadSchemaBtn = document.getElementById('load-schema-btn');
+      const schemaFileInput = document.getElementById('schema-file-input');
+      importBtn.addEventListener('click', () => {
+        const val = jsonInput.value.trim();
+        if (!val) return;
+        try {
+          const parsed = JSON.parse(val);
+          if (!Array.isArray(parsed)) return;
+          rawData = parsed;
+          init();
+        } catch (e) { }
+      });
+      exportBtn.addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(rawData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'layout.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+      resetBtn.addEventListener('click', () => {
+        rawData = JSON.parse(JSON.stringify(defaultData));
+        init();
+      });
+      toggleBtn.addEventListener('click', () => {
+        const panel = document.getElementById('debug-info');
+        if (panel.style.display === 'none') {
+          panel.style.display = 'block';
+        } else {
+          panel.style.display = 'none';
+        }
+      });
+      fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        try {
+          const parsed = JSON.parse(text);
+          if (!Array.isArray(parsed)) return;
+          rawData = parsed;
+          init();
+        } catch (e) { }
+        fileInput.value = '';
+      });
+      loadSchemaBtn.addEventListener('click', () => {
+        schemaFileInput.click();
+      });
+      schemaFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        try {
+          const parsed = JSON.parse(text);
+          if (!Array.isArray(parsed)) return;
+          componentSchemaMap = parsed.reduce((acc, cur) => {
+            if (cur && cur.name) acc[cur.name] = cur;
+            return acc;
+          }, {});
+          schemaLoaded = true;
+          updateSchemaStatus();
+          renderPropertiesPanel();
+        } catch (err) {
+          schemaLoaded = false;
+          updateSchemaStatus();
+        }
+        schemaFileInput.value = '';
+      });
+    }
+
+    function showModal() {
+      const modal = document.getElementById('login-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+    function hideModal() {
+      const modal = document.getElementById('login-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    // 启动
+    init();
+    bindToolbar();
+    updateSchemaStatus();
+    loadSchemaFromUrl();
+
+  </script>
+  <div id="login-modal"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;z-index:1000;">
+    <div style="background:#fff;padding:20px;border-radius:8px;width:320px;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+      <div style="font-size:18px;margin-bottom:12px;">登录</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <input placeholder="用户名" style="height:32px;padding:0 8px;border:1px solid #ddd;border-radius:4px;">
+        <input type="password" placeholder="密码"
+          style="height:32px;padding:0 8px;border:1px solid #ddd;border-radius:4px;">
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+          <button id="modal-close"
+            style="height:32px;padding:0 12px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;">关闭</button>
+          <button id="login-submit"
+            style="height:32px;padding:0 12px;border:none;background:#1890ff;color:#fff;border-radius:4px;cursor:pointer;">登录</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.getElementById('modal-close').addEventListener('click', hideModal);
+    document.getElementById('login-submit').addEventListener('click', hideModal);
+  </script>
+</body>
+
+</html>

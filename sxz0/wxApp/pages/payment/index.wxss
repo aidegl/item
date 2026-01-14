@@ -1,0 +1,670 @@
+page {
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+}
+
+.container {
+  min-height: 100vh;
+  padding-bottom: 160rpx; /* 为底部固定栏留出空间 */
+}
+
+/* 顶部沉浸式背景 */
+.premium-header {
+  height: 320rpx;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  padding-top: 60rpx;
+  position: relative;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  padding: 0 40rpx;
+}
+
+.back-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+}
+
+.header-title {
+  color: #ffffff;
+  font-size: 34rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.content-body {
+  margin-top: -120rpx;
+  padding: 0 32rpx;
+  position: relative;
+  z-index: 10;
+}
+
+/* 会员卡片预览 */
+.vip-card-preview {
+  height: 380rpx;
+  border-radius: 40rpx;
+  position: relative;
+  overflow: hidden;
+  padding: 48rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 20rpx 50rpx rgba(0, 0, 0, 0.15);
+  margin-bottom: 48rpx;
+}
+
+/* 金卡 (年卡) */
+.vip-card-preview.gold {
+  background: linear-gradient(135deg, #d4af37 0%, #f9d976 50%, #b8860b 100%);
+}
+
+/* 银卡 (季卡) */
+.vip-card-preview.silver {
+  background: linear-gradient(135deg, #9ca3af 0%, #d1d5db 50%, #4b5563 100%);
+}
+
+/* 铜卡 (月卡) */
+.vip-card-preview.bronze {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #1d4ed8 100%);
+}
+
+.card-glass {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+  z-index: 1;
+}
+
+.card-info {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vip-tag {
+  font-size: 22rpx;
+  font-weight: 800;
+  letter-spacing: 4rpx;
+  color: rgba(255, 255, 255, 0.9);
+  border: 1rpx solid rgba(255, 255, 255, 0.4);
+  padding: 4rpx 16rpx;
+  border-radius: 100rpx;
+}
+
+.card-logo-text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  font-style: italic;
+}
+
+.card-product-name {
+  color: #ffffff;
+  font-size: 44rpx;
+  font-weight: 700;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.card-price-row {
+  display: flex;
+  align-items: baseline;
+  color: #ffffff;
+}
+
+.card-currency {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-right: 4rpx;
+}
+
+.card-amount {
+  font-size: 72rpx;
+  font-weight: 800;
+}
+
+.card-expiry {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+/* 卡片装饰元素 */
+.card-decorator-1 {
+  position: absolute;
+  width: 300rpx;
+  height: 300rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  top: -100rpx;
+  right: -100rpx;
+  z-index: 2;
+}
+
+.card-decorator-2 {
+  position: absolute;
+  width: 200rpx;
+  height: 200rpx;
+  border: 40rpx solid rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  bottom: -50rpx;
+  left: -50rpx;
+  z-index: 2;
+}
+
+/* 订单详情 */
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  margin-bottom: 24rpx;
+  padding-left: 8rpx;
+  border-left: 8rpx solid #3b82f6;
+  line-height: 1;
+}
+
+.detail-card {
+  background: #ffffff;
+  border-radius: 32rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.02);
+  margin-bottom: 48rpx;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f1f5f9;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row .label {
+  font-size: 28rpx;
+  color: #64748b;
+}
+
+.detail-row .value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.value-with-icon {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.value-with-icon icon {
+  margin-right: 8rpx;
+}
+
+/* 订单状态提示 */
+.order-status {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 32rpx;
+  border-radius: 100rpx;
+  margin-bottom: 32rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.order-status icon {
+  margin-right: 12rpx;
+  animation: spin 1s linear infinite;
+}
+
+/* 会员权益网格 */
+.benefits-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24rpx;
+  margin-bottom: 48rpx;
+}
+
+.benefit-item {
+  background: #ffffff;
+  padding: 32rpx;
+  border-radius: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.benefit-item:active {
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.04);
+}
+
+.benefit-icon-box {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16rpx;
+}
+
+.benefit-icon-box.blue { background-color: rgba(59, 130, 246, 0.1); }
+.benefit-icon-box.gold { background-color: rgba(212, 175, 55, 0.1); }
+.benefit-icon-box.purple { background-color: rgba(168, 85, 247, 0.1); }
+.benefit-icon-box.green { background-color: rgba(34, 197, 94, 0.1); }
+.benefit-icon-box.orange { background-color: rgba(249, 115, 22, 0.1); }
+.benefit-icon-box.pink { background-color: rgba(236, 72, 153, 0.1); }
+
+.css-icon {
+  width: 40rpx;
+  height: 40rpx;
+  position: relative;
+}
+
+.css-icon.ai::before {
+  content: "AI";
+  font-size: 24rpx;
+  font-weight: 800;
+  color: #3b82f6;
+}
+
+.css-icon.speed::before {
+  content: "⚡";
+  font-size: 32rpx;
+}
+
+.css-icon.pro::before {
+  content: "★";
+  font-size: 32rpx;
+  color: #a855f7;
+}
+
+.css-icon.support::before {
+  content: "☎";
+  font-size: 32rpx;
+  color: #22c55e;
+}
+
+.css-icon.data::before {
+  content: "📊";
+  font-size: 32rpx;
+  color: #f97316;
+}
+
+.css-icon.access::before {
+  content: "🔑";
+  font-size: 32rpx;
+  color: #ec4899;
+}
+
+.benefit-item text {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #475569;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* 价格明细 */
+.price-details {
+  margin-bottom: 48rpx;
+}
+
+.detail-row.discount .value {
+  color: #059669;
+  font-weight: 700;
+}
+
+.detail-row.total {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin: 8rpx -24rpx -8rpx;
+  font-size: 30rpx;
+}
+
+.detail-row.total .label {
+  font-weight: 700;
+  color: #b45309;
+}
+
+.detail-row.total .value {
+  color: #dc2626;
+  font-size: 36rpx;
+  font-weight: 800;
+}
+
+/* 安全提示 */
+.security-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx;
+  margin-bottom: 32rpx;
+}
+
+.security-notice text {
+  font-size: 24rpx;
+  color: #94a3b8;
+  margin-left: 8rpx;
+  text-align: center;
+}
+
+/* 服务协议 */
+.service-agreement {
+  margin-bottom: 48rpx;
+}
+
+.agreement-text {
+  font-size: 22rpx;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.5;
+  display: block;
+}
+
+.agreement-link {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.agreement-link:active {
+  opacity: 0.8;
+}
+
+/* 状态弹窗 */
+.status-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(10rpx);
+  animation: fadeIn 0.3s ease;
+}
+
+.status-modal {
+  width: 560rpx;
+  background: #ffffff;
+  border-radius: 40rpx;
+  padding: 60rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: slideUp 0.3s ease;
+}
+
+.status-modal icon {
+  font-size: 80rpx;
+  color: #3b82f6;
+}
+
+.status-modal icon[type="success"] {
+  color: #10b981;
+}
+
+.status-modal icon[type="warn"] {
+  color: #f59e0b;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  margin: 32rpx 0 16rpx;
+  color: #1e293b;
+}
+
+.modal-desc {
+  font-size: 28rpx;
+  color: #64748b;
+  margin-bottom: 48rpx;
+  line-height: 1.4;
+}
+
+.modal-btns {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  border-radius: 100rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  height: 88rpx;
+  width: 100%;
+  box-shadow: 0 6rpx 16rpx rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #64748b;
+  border-radius: 100rpx;
+  font-size: 30rpx;
+  height: 88rpx;
+  width: 100%;
+}
+
+.btn-primary:active, .btn-secondary:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40rpx); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 底部固定栏 */
+.footer-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 140rpx;
+  background: #ffffff;
+  border-top: 1rpx solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40rpx;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.footer-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.total-label {
+  font-size: 22rpx;
+  color: #64748b;
+  margin-bottom: 4rpx;
+}
+
+.total-price {
+  display: flex;
+  align-items: baseline;
+  color: #ef4444;
+}
+
+.total-price .symbol {
+  font-size: 28rpx;
+  font-weight: 700;
+  margin-right: 4rpx;
+}
+
+.total-price .amount {
+  font-size: 48rpx;
+  font-weight: 800;
+}
+
+.footer-right {
+  width: 320rpx;
+}
+
+.pay-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  height: 100rpx;
+  border-radius: 100rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10rpx 25rpx rgba(37, 99, 235, 0.3);
+  border: none;
+}
+
+.pay-btn:active {
+  transform: scale(0.97);
+}
+
+.btn-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { left: -100%; }
+  20% { left: 100%; }
+  100% { left: 100%; }
+}
+
+.btn-loading-spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  border-top: 4rpx solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 状态弹窗 */
+.status-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(10rpx);
+}
+
+.status-modal {
+  width: 560rpx;
+  background: #ffffff;
+  border-radius: 40rpx;
+  padding: 60rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  margin: 32rpx 0 16rpx;
+  color: #1e293b;
+}
+
+.modal-desc {
+  font-size: 28rpx;
+  color: #64748b;
+  margin-bottom: 48rpx;
+}
+
+.modal-btns {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.btn-retry {
+  background: #3b82f6;
+  color: #ffffff;
+  border-radius: 100rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  height: 88rpx;
+  width: 100%;
+}
+
+.btn-cancel {
+  background: #f1f5f9;
+  color: #64748b;
+  border-radius: 100rpx;
+  font-size: 30rpx;
+  height: 88rpx;
+  width: 100%;
+}
