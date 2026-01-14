@@ -3523,7 +3523,7 @@ function renderMembershipPage() {
 
     const packages = getMembershipPackages();
     
-    // 获取当前用户的会员等级
+    // 获取当前用户的会员等级 (保留用于显示，不再限制逻辑)
     let userLevel = '免费版';
     if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
         const userInfo = window.wechatLogin.getUserInfo();
@@ -3532,17 +3532,8 @@ function renderMembershipPage() {
         }
     }
 
-    // 定义等级权重，用于比较高低
-    const levelWeights = {
-        '免费版': 1,
-        '月卡会员': 2,
-        '季卡会员': 3,
-        '年卡会员': 4
-    };
-    const currentUserWeight = levelWeights[userLevel] || 1;
-
-    // 默认选中当前等级的套餐
-    let selectedPackage = packages.find(pkg => pkg.name === userLevel) || packages[0];
+    // 默认选中第一个套餐 (非免费版)
+    let selectedPackage = packages.find(pkg => !pkg.isFree) || packages[0];
 
     // 获取全局设置中的资源剩余量
     const globalSettings = AppState.globalSettings || {};
@@ -3596,34 +3587,22 @@ function renderMembershipPage() {
                 
                 <div class="package-list" id="packageList">
                     ${packages.map(pkg => {
-                        const pkgWeight = levelWeights[pkg.name] || 0;
-                        const isCurrentLevel = pkg.name === userLevel;
-                        const isDisabled = pkgWeight < currentUserWeight;
                         const isSelected = pkg.id === selectedPackage.id;
                         
-                        let itemStyle = `border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s;`;
-                        if (isCurrentLevel) {
-                            itemStyle += `border-color: #10b981; background-color: rgba(16, 185, 129, 0.05);`;
-                        } else if (isSelected) {
+                        let itemStyle = `border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; cursor: pointer;`;
+                        if (isSelected) {
                             itemStyle += `border-color: var(--primary-color); background-color: rgba(59, 130, 246, 0.05);`;
-                        }
-                        
-                        if (isDisabled) {
-                            itemStyle += `opacity: 0.6; cursor: not-allowed; filter: grayscale(0.5);`;
-                        } else {
-                            itemStyle += `cursor: pointer;`;
                         }
 
                         return `
-                            <div class="package-item ${isSelected ? 'selected' : ''} ${isCurrentLevel ? 'current' : ''} ${isDisabled ? 'disabled' : ''}" 
-                                 ${!isDisabled ? `onclick="selectPackage(${pkg.id})"` : ''} 
+                            <div class="package-item ${isSelected ? 'selected' : ''}" 
+                                 onclick="selectPackage(${pkg.id})" 
                                  style="${itemStyle}">
                                 <div class="flex justify-between items-center mb-2">
-                                    <h4 style="font-size: 16px; font-weight: 600; margin: 0; color: ${isCurrentLevel ? '#10b981' : 'inherit'};">
+                                    <h4 style="font-size: 16px; font-weight: 600; margin: 0;">
                                         ${pkg.name}
-                                        ${isCurrentLevel ? '<span style="font-size: 12px; font-weight: 400; margin-left: 8px; padding: 2px 6px; background: #10b981; color: white; border-radius: 4px;">当前等级</span>' : ''}
                                     </h4>
-                                    <div style="font-size: 18px; font-weight: 700; color: ${isCurrentLevel ? '#10b981' : 'var(--primary-color)'};">
+                                    <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">
                                         ${pkg.isFree ? '免费' : '¥' + pkg.price}
                                     </div>
                                 </div>
@@ -3631,7 +3610,6 @@ function renderMembershipPage() {
                                 <div class="markdown-content" style="font-size: 14px; color: var(--text-secondary);">
                                     ${typeof marked !== 'undefined' ? marked.parse(pkg.description) : pkg.description.replace(/\n/g, '<br>')}
                                 </div>
-                                ${isDisabled ? '<div style="font-size: 12px; color: #ef4444; margin-top: 8px;">该套餐等级低于当前等级</div>' : ''}
                             </div>
                         `;
                     }).join('')}
@@ -3641,8 +3619,8 @@ function renderMembershipPage() {
         
         <!-- 固定底部区域 -->
         <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: var(--bg-color); border-top: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; z-index: 100;">
-            <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 10px 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); ${selectedPackage.name === userLevel ? 'background-color: #10b981; border-color: #10b981;' : ''}">
-                ${selectedPackage.name === userLevel ? (selectedPackage.name === '免费版' ? '当前等级' : '立即续费') : (levelWeights[selectedPackage.name] > currentUserWeight ? `立即升级 (¥${selectedPackage.price})` : `立即开通 (¥${selectedPackage.price})`)}
+            <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 10px 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+                ${selectedPackage.isFree ? '当前等级' : `立即开通 (¥${selectedPackage.price})`}
             </button>
         </div>
     `;
@@ -3657,55 +3635,28 @@ function selectPackage(packageId) {
 
     if (!pkg) return;
 
-    // 获取当前用户信息以确定等级权重
-    let userLevel = '免费版';
-    if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
-        const userInfo = window.wechatLogin.getUserInfo();
-        if (userInfo && userInfo.raw && userInfo.raw.dengji) {
-            userLevel = userInfo.raw.dengji;
-        }
-    }
-
-    const levelWeights = {
-        '免费版': 1,
-        '月卡会员': 2,
-        '季卡会员': 3,
-        '年卡会员': 4
-    };
-    const currentUserWeight = levelWeights[userLevel] || 1;
-    const pkgWeight = levelWeights[pkg.name] || 0;
-
     // 更新选择状态 UI
     const packageItems = packageList.querySelectorAll('.package-item');
     packageItems.forEach(item => {
         item.classList.remove('selected');
-        // 恢复默认边框和背景，除非是当前等级
-        if (!item.classList.contains('current')) {
-            item.style.borderColor = 'var(--border-color)';
-            item.style.backgroundColor = 'transparent';
-        }
+        item.style.borderColor = 'var(--border-color)';
+        item.style.backgroundColor = 'transparent';
     });
 
     const selectedItem = packageList.querySelector(`[onclick="selectPackage(${packageId})"]`);
     if (selectedItem) {
         selectedItem.classList.add('selected');
-        // 如果不是当前等级，则显示选中蓝色样式
-        if (!selectedItem.classList.contains('current')) {
-            selectedItem.style.borderColor = 'var(--primary-color)';
-            selectedItem.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
-        }
+        selectedItem.style.borderColor = 'var(--primary-color)';
+        selectedItem.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
     }
 
     // 更新按钮显示
-    if (pkg.name === userLevel) {
-        subscribeBtn.textContent = pkg.name === '免费版' ? '当前等级' : '立即续费';
-        subscribeBtn.disabled = pkg.name === '免费版';
-        subscribeBtn.style.opacity = '1';
-        subscribeBtn.style.backgroundColor = '#10b981';
-        subscribeBtn.style.borderColor = '#10b981';
+    if (pkg.isFree) {
+        subscribeBtn.textContent = '当前等级';
+        subscribeBtn.disabled = true;
+        subscribeBtn.style.opacity = '0.6';
     } else {
-        const isUpgrade = pkgWeight > currentUserWeight;
-        subscribeBtn.textContent = isUpgrade ? `立即升级 (¥${pkg.price})` : `立即开通 (¥${pkg.price})`;
+        subscribeBtn.textContent = `立即开通 (¥${pkg.price})`;
         subscribeBtn.disabled = false;
         subscribeBtn.style.opacity = '1';
         subscribeBtn.style.backgroundColor = 'var(--primary-color)';

@@ -17,7 +17,16 @@ Page({
             success: (loginRes) => {
               console.log('后端登录接口返回:', loginRes.data);
               if (loginRes.data && loginRes.data.openid) {
-                wx.setStorageSync('openid', loginRes.data.openid);
+                const openid = loginRes.data.openid;
+                wx.setStorageSync('openid', openid);
+                
+                // 更新全局数据
+                const app = getApp();
+                if (app) {
+                    app.globalData.openid = openid;
+                    app.globalData.isAnonymous = false;
+                }
+                
                 wx.hideLoading();
                 wx.showToast({ title: '登录成功', icon: 'success' });
                 setTimeout(() => wx.navigateBack(), 1500);
