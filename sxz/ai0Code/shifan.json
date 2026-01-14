@@ -1,0 +1,434 @@
+[
+  {
+    "id": "home_page_001",
+    "parentId": null,
+    "sort": 1,
+    "type": "Page",
+    "name": "首页",
+    "basicProps": {
+      "width": "100%",
+      "height": "100vh",
+      "backgroundColor": "#f5f5f5",
+      "padding": "0",
+      "margin": "0 auto"
+    }
+  },
+  {
+    "id": "header_container_001",
+    "parentId": "home_page_001",
+    "sort": 2,
+    "type": "Container",
+    "name": "聊天头部",
+    "basicProps": {
+      "width": "100%",
+      "height": "56px",
+      "backgroundColor": "#ffffff",
+      "display": "flex",
+      "justifyContent": "space-between",
+      "alignItems": "center",
+      "padding": "0 16px"
+    },
+    "styleProps": {
+      "borderBottom": "1px solid #eee"
+    }
+  },
+  {
+    "id": "header_title_001",
+    "parentId": "header_container_001",
+    "sort": 1,
+    "type": "Text",
+    "name": "智能体标题",
+    "basicProps": {
+      "content": "沈仙子智能体助手",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "color": "#1f2328"
+    }
+  },
+  {
+    "id": "version_badge_001",
+    "parentId": "header_container_001",
+    "sort": 2,
+    "type": "Text",
+    "name": "版本徽章",
+    "basicProps": {
+      "content": "v0.0.6",
+      "fontSize": "12px",
+      "color": "#0DA2E7",
+      "backgroundColor": "#ECF5FB",
+      "padding": "4px 8px",
+      "borderRadius": "12px"
+    }
+  },
+  {
+    "id": "main_container_001",
+    "parentId": "home_page_001",
+    "sort": 3,
+    "type": "Container",
+    "name": "主内容容器",
+    "basicProps": {
+      "width": "100%",
+      "height": "calc(100vh - 56px - 83px)",
+      "backgroundColor": "#f5f5f5",
+      "overflowY": "auto"
+    }
+  },
+  {
+    "id": "page_agent_001",
+    "parentId": "main_container_001",
+    "sort": 1,
+    "type": "Section",
+    "name": "智能体页面",
+    "basicProps": {
+      "active": true,
+      "padding": "0"
+    }
+  },
+  {
+    "id": "agent_message_list_001",
+    "parentId": "page_agent_001",
+    "sort": 1,
+    "type": "List",
+    "name": "对话历史",
+    "basicProps": {
+      "role": "list",
+      "itemRole": "listitem",
+      "padding": "16px",
+      "gap": "12px"
+    }
+  },
+  {
+    "id": "agent_input_area_001",
+    "parentId": "page_agent_001",
+    "sort": 2,
+    "type": "Container",
+    "name": "输入区域",
+    "basicProps": {
+      "display": "flex",
+      "gap": "8px",
+      "padding": "12px 16px",
+      "backgroundColor": "#ffffff"
+    }
+  },
+  {
+    "id": "agent_textarea_001",
+    "parentId": "agent_input_area_001",
+    "sort": 1,
+    "type": "Input",
+    "name": "消息输入框",
+    "basicProps": {
+      "placeholder": "请输入消息…",
+      "width": "100%",
+      "height": "80px"
+    }
+  },
+  {
+    "id": "agent_send_button_001",
+    "parentId": "agent_input_area_001",
+    "sort": 2,
+    "type": "Button",
+    "name": "发送按钮",
+    "basicProps": {
+      "text": "发送",
+      "type": "primary",
+      "width": "88px",
+      "height": "36px"
+    },
+    "eventProps": {
+      "onClick": "sendAgentMessage"
+    }
+  },
+  {
+    "id": "page_patient_001",
+    "parentId": "main_container_001",
+    "sort": 2,
+    "type": "Section",
+    "name": "患者库页面",
+    "basicProps": {
+      "active": false
+    }
+  },
+  {
+    "id": "patient_header_001",
+    "parentId": "page_patient_001",
+    "sort": 1,
+    "type": "Container",
+    "name": "患者库头部",
+    "basicProps": {
+      "display": "flex",
+      "alignItems": "center",
+      "justifyContent": "space-between",
+      "padding": "12px 16px",
+      "backgroundColor": "#ffffff"
+    }
+  },
+  {
+    "id": "patient_search_001",
+    "parentId": "patient_header_001",
+    "sort": 1,
+    "type": "Input",
+    "name": "搜索框",
+    "basicProps": {
+      "placeholder": "搜索患者姓名/电话",
+      "width": "100%"
+    },
+    "eventProps": {
+      "onChange": "onSearchPatient"
+    }
+  },
+  {
+    "id": "patient_create_button_001",
+    "parentId": "patient_header_001",
+    "sort": 2,
+    "type": "Button",
+    "name": "创建患者",
+    "basicProps": {
+      "text": "创建",
+      "type": "primary",
+      "width": "80px",
+      "height": "32px"
+    },
+    "eventProps": {
+      "onClick": "openCreatePatientModal"
+    }
+  },
+  {
+    "id": "patient_list_001",
+    "parentId": "page_patient_001",
+    "sort": 2,
+    "type": "List",
+    "name": "患者列表",
+    "basicProps": {
+      "role": "list",
+      "padding": "12px",
+      "gap": "12px"
+    },
+    "eventProps": {
+      "onItemClick": "openPatientDetail"
+    }
+  },
+  {
+    "id": "page_memo_001",
+    "parentId": "main_container_001",
+    "sort": 3,
+    "type": "Section",
+    "name": "备忘录页面",
+    "basicProps": {
+      "active": false
+    }
+  },
+  {
+    "id": "memo_list_001",
+    "parentId": "page_memo_001",
+    "sort": 1,
+    "type": "List",
+    "name": "备忘录列表",
+    "basicProps": {
+      "role": "list",
+      "padding": "12px",
+      "gap": "12px"
+    }
+  },
+  {
+    "id": "memo_add_button_001",
+    "parentId": "page_memo_001",
+    "sort": 2,
+    "type": "Button",
+    "name": "新增备忘录",
+    "basicProps": {
+      "text": "新增",
+      "type": "primary",
+      "width": "80px",
+      "height": "32px"
+    },
+    "eventProps": {
+      "onClick": "openMemoCreateModal"
+    }
+  },
+  {
+    "id": "page_settings_001",
+    "parentId": "main_container_001",
+    "sort": 4,
+    "type": "Section",
+    "name": "设置页面",
+    "basicProps": {
+      "active": false,
+      "padding": "16px"
+    }
+  },
+  {
+    "id": "settings_login_button_001",
+    "parentId": "page_settings_001",
+    "sort": 1,
+    "type": "Button",
+    "name": "登录按钮",
+    "basicProps": {
+      "text": "立即登录",
+      "type": "primary",
+      "width": "120px",
+      "height": "36px"
+    },
+    "eventProps": {
+      "onClick": "openLoginModal"
+    }
+  },
+  {
+    "id": "bottom_menu_001",
+    "parentId": "home_page_001",
+    "sort": 4,
+    "type": "Container",
+    "name": "底部导航",
+    "basicProps": {
+      "position": "fixed",
+      "bottom": "0",
+      "left": "0",
+      "right": "0",
+      "height": "83px",
+      "display": "grid",
+      "gridTemplateColumns": "repeat(4, 1fr)",
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderTop": "1px solid #eee",
+      "zIndex": 999
+    }
+  },
+  {
+    "id": "menu_item_agent_001",
+    "parentId": "bottom_menu_001",
+    "sort": 1,
+    "type": "Button",
+    "name": "导航-智能体",
+    "basicProps": {
+      "text": "智能体",
+      "icon": "./assets/agent1.png"
+    },
+    "eventProps": {
+      "onClick": "switchTabAgent"
+    }
+  },
+  {
+    "id": "menu_item_patient_001",
+    "parentId": "bottom_menu_001",
+    "sort": 2,
+    "type": "Button",
+    "name": "导航-患者库",
+    "basicProps": {
+      "text": "患者库",
+      "icon": "./assets/huanzheku1.png"
+    },
+    "eventProps": {
+      "onClick": "switchTabPatient"
+    }
+  },
+  {
+    "id": "menu_item_memo_001",
+    "parentId": "bottom_menu_001",
+    "sort": 3,
+    "type": "Button",
+    "name": "导航-备忘录",
+    "basicProps": {
+      "text": "备忘录",
+      "icon": "./assets/beiwanglu1.png"
+    },
+    "eventProps": {
+      "onClick": "switchTabMemo"
+    }
+  },
+  {
+    "id": "menu_item_settings_001",
+    "parentId": "bottom_menu_001",
+    "sort": 4,
+    "type": "Button",
+    "name": "导航-设置",
+    "basicProps": {
+      "text": "设置",
+      "icon": "./assets/shezhi1.png"
+    },
+    "eventProps": {
+      "onClick": "switchTabSettings"
+    }
+  },
+  {
+    "id": "modal_patient_detail_001",
+    "parentId": "home_page_001",
+    "sort": 5,
+    "type": "Modal",
+    "name": "患者详情弹窗",
+    "basicProps": {
+      "visible": false,
+      "centered": true,
+      "widthPercent": "90%",
+      "maxWidth": "400px"
+    },
+    "eventProps": {
+      "onClose": "closePatientDetailModal"
+    }
+  },
+  {
+    "id": "modal_visit_detail_001",
+    "parentId": "home_page_001",
+    "sort": 6,
+    "type": "Modal",
+    "name": "陪诊服务记录详情弹窗",
+    "basicProps": {
+      "visible": false,
+      "centered": true,
+      "widthPercent": "90%",
+      "maxWidth": "400px"
+    },
+    "eventProps": {
+      "onClose": "closeVisitRecordDetailModal"
+    }
+  },
+  {
+    "id": "modal_edit_patient_001",
+    "parentId": "home_page_001",
+    "sort": 7,
+    "type": "Modal",
+    "name": "编辑患者信息弹窗",
+    "basicProps": {
+      "visible": false,
+      "centered": true,
+      "widthPercent": "90%",
+      "maxWidth": "400px"
+    },
+    "eventProps": {
+      "onClose": "closeEditModal",
+      "onSave": "savePatientInfo"
+    }
+  },
+  {
+    "id": "modal_edit_name_001",
+    "parentId": "home_page_001",
+    "sort": 8,
+    "type": "Modal",
+    "name": "编辑姓名弹窗",
+    "basicProps": {
+      "visible": false,
+      "centered": true,
+      "widthPercent": "90%",
+      "maxWidth": "400px"
+    },
+    "eventProps": {
+      "onClose": "closeEditNameModal",
+      "onSave": "savePatientName"
+    }
+  },
+  {
+    "id": "modal_edit_history_001",
+    "parentId": "home_page_001",
+    "sort": 9,
+    "type": "Modal",
+    "name": "编辑既往病史弹窗",
+    "basicProps": {
+      "visible": false,
+      "centered": true,
+      "widthPercent": "90%",
+      "maxWidth": "400px"
+    },
+    "eventProps": {
+      "onClose": "closeEditHistoryModal",
+      "onSave": "savePatientHistory"
+    }
+  }
+]
