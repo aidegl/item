@@ -3677,10 +3677,31 @@ function subscribePackage() {
     const packages = getMembershipPackages();
     const pkg = packages.find(p => p.id === packageId);
 
-    if (pkg.isFree) return;
+    if (!pkg || pkg.isFree) return;
 
-    showToast(`即将开通${pkg.name}，价格¥${pkg.price}`);
-    // 这里可以添加实际的支付逻辑
+    // 检查登录状态
+    const isLoggedIn = window.wechatLogin && window.wechatLogin.isLoggedIn();
+    
+    if (!isLoggedIn) {
+        showToast('请先登录');
+        setTimeout(() => {
+            if (window.wx && window.wx.miniProgram) {
+                window.wx.miniProgram.navigateTo({
+                    url: '/pages/login/index'
+                });
+            }
+        }, 1000);
+        return;
+    }
+
+    // 已登录，跳转到小程序支付页面
+    if (window.wx && window.wx.miniProgram) {
+        window.wx.miniProgram.navigateTo({
+            url: `/pages/payment/index?amount=${pkg.price}&description=${encodeURIComponent('购买' + pkg.name)}`
+        });
+    } else {
+        showToast(`当前环境不支持支付：即将开通${pkg.name}，价格¥${pkg.price}`);
+    }
 }
 
 // 返回设置页面
