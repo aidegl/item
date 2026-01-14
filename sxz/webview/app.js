@@ -3513,8 +3513,14 @@ function getMembershipPackages() {
 
 // 渲染会员权益页面
 function renderMembershipPage() {
+    console.log('开始渲染会员权益页面...');
     const container = document.getElementById('main-content');
     const bottomNav = document.querySelector('.bottom-nav');
+
+    if (!container) {
+        console.error('未找到 main-content 容器');
+        return;
+    }
 
     // 隐藏底部导航栏，因为这是二级页面
     if (bottomNav) {
@@ -3540,90 +3546,108 @@ function renderMembershipPage() {
     const monthlyRemaining = globalSettings.dy_sy || '103444';
     const fixedRemaining = globalSettings.gd_sy || '109289';
 
-    container.innerHTML = `
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center;">
-                <button class="btn btn-icon btn-outline" onclick="goBackToSettings()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                        <polyline points="15 18 9 12 15 6"/>
-                    </svg>
-                </button>
-            </div>
-            <div style="font-size: 16px; font-weight: 500; text-align: center;">会员权益</div>
-            <div style="width: 72px;"></div> <!-- 占位 -->
-        </div>
-        
-        <div class="p-2" style="padding-bottom: 80px;">
-            <div class="card mb-2">
-                <!-- 资源剩余显示 -->
-                <div style="display: flex; gap: 12px; margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.03) 100%); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
-                    <div style="flex: 1;">
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
-                            当月剩余
-                        </div>
-                        <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${monthlyRemaining}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">资源</span></div>
-                    </div>
-                    <div style="width: 1px; background-color: rgba(59, 130, 246, 0.1);"></div>
-                    <div style="flex: 1; padding-left: 12px;">
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
-                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                                <path d="M2 17l10 5 10-5"></path>
-                                <path d="M2 12l10 5 10-5"></path>
-                            </svg>
-                            固定剩余
-                        </div>
-                        <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${fixedRemaining}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">资源</span></div>
-                    </div>
+    try {
+        container.innerHTML = `
+            <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center;">
+                    <button class="btn btn-icon btn-outline" onclick="goBackToSettings()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                    </button>
                 </div>
+                <div style="font-size: 16px; font-weight: 500; text-align: center;">会员权益</div>
+                <div style="width: 72px;"></div> <!-- 占位 -->
+            </div>
+            
+            <div class="p-2" style="padding-bottom: 80px;">
+                <div class="card mb-2">
+                    <!-- 资源剩余显示 -->
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.03) 100%); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
+                        <div style="flex: 1;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                当月剩余
+                            </div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${monthlyRemaining}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">资源</span></div>
+                        </div>
+                        <div style="width: 1px; background-color: rgba(59, 130, 246, 0.1);"></div>
+                        <div style="flex: 1; padding-left: 12px;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                    <path d="M2 17l10 5 10-5"></path>
+                                    <path d="M2 12l10 5 10-5"></path>
+                                </svg>
+                                固定剩余
+                            </div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${fixedRemaining}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">资源</span></div>
+                        </div>
+                    </div>
 
-                <h3 class="card-title mb-2">选择权益</h3>
-                
-                <div class="package-list" id="packageList">
-                    ${packages.map(pkg => {
-                        const isSelected = pkg.id === selectedPackage.id;
-                        
-                        let itemStyle = `border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; cursor: pointer;`;
-                        if (isSelected) {
-                            itemStyle += `border-color: var(--primary-color); background-color: rgba(59, 130, 246, 0.05);`;
-                        }
+                    <h3 class="card-title mb-2">选择权益</h3>
+                    
+                    <div class="package-list" id="packageList">
+                        ${packages.map(pkg => {
+            const isSelected = pkg.id === selectedPackage.id;
+            
+            let itemStyle = `border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; cursor: pointer;`;
+            if (isSelected) {
+                itemStyle += `border-color: var(--primary-color); background-color: rgba(59, 130, 246, 0.05);`;
+            }
 
-                        return `
-                            <div class="package-item ${isSelected ? 'selected' : ''}" 
-                                 onclick="selectPackage(${pkg.id})" 
-                                 style="${itemStyle}">
-                                <div class="flex justify-between items-center mb-2">
-                                    <h4 style="font-size: 16px; font-weight: 600; margin: 0;">
-                                        ${pkg.name}
-                                    </h4>
-                                    <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">
-                                        ${pkg.isFree ? '免费' : '¥' + pkg.price}
+            let descriptionHtml = pkg.description;
+            try {
+                if (typeof marked !== 'undefined' && marked.parse) {
+                    descriptionHtml = marked.parse(pkg.description);
+                } else {
+                    descriptionHtml = pkg.description.replace(/\n/g, '<br>');
+                }
+            } catch (e) {
+                console.warn('Markdown 解析失败:', e);
+                descriptionHtml = pkg.description.replace(/\n/g, '<br>');
+            }
+
+            return `
+                                <div class="package-item ${isSelected ? 'selected' : ''}" 
+                                     onclick="selectPackage(${pkg.id})" 
+                                     style="${itemStyle}">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h4 style="font-size: 16px; font-weight: 600; margin: 0;">
+                                            ${pkg.name}
+                                        </h4>
+                                        <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">
+                                            ${pkg.isFree ? '免费' : '¥' + pkg.price}
+                                        </div>
+                                    </div>
+                                    <!-- Markdown 描述内容 -->
+                                    <div class="markdown-content" style="font-size: 14px; color: var(--text-secondary);">
+                                        ${descriptionHtml}
                                     </div>
                                 </div>
-                                <!-- Markdown 描述内容 -->
-                                <div class="markdown-content" style="font-size: 14px; color: var(--text-secondary);">
-                                    ${typeof marked !== 'undefined' ? marked.parse(pkg.description) : pkg.description.replace(/\n/g, '<br>')}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
+                            `;
+        }).join('')}
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- 固定底部区域 -->
-        <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: var(--bg-color); border-top: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; z-index: 100;">
-            <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 10px 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
-                ${selectedPackage.isFree ? '当前等级' : `立即开通 (¥${selectedPackage.price})`}
-            </button>
-        </div>
-    `;
+            
+            <!-- 固定底部区域 -->
+            <div style="position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: var(--bg-color); border-top: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; z-index: 100;">
+                <button class="btn btn-primary w-full" id="subscribeBtn" onclick="subscribePackage()" style="padding: 10px 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+                    ${selectedPackage.isFree ? '当前等级' : `立即开通 (¥${selectedPackage.price})`}
+                </button>
+            </div>
+        `;
+        console.log('会员权益页面渲染完成');
+    } catch (error) {
+        console.error('渲染会员权益页面出错:', error);
+        showToast('页面加载失败，请重试');
+    }
 }
 
 // 选择权益
