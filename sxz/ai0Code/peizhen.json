@@ -1,0 +1,496 @@
+{
+  "project_name": "陪诊助手",
+  "project_description": "基于微信小程序和Webview的陪诊服务管理系统",
+  "version": "1.0.0",
+  "created_at": "2026-01-14",
+  "last_updated": "2026-01-14",
+  "project_structure": {
+    "root": "e:\\Project\\sxz",
+    "directories": [
+      {
+        "name": ".vscode",
+        "description": "VS Code编辑器配置",
+        "files": [
+          {
+            "name": "settings.json",
+            "description": "VS Code工作区设置"
+          }
+        ]
+      },
+      {
+        "name": "backend",
+        "description": "后端服务目录",
+        "files": [
+          {
+            "name": "package.json",
+            "description": "后端依赖配置"
+          },
+          {
+            "name": "server.js",
+            "description": "后端服务器入口文件"
+          }
+        ]
+      },
+      {
+        "name": "mingdao",
+        "description": "明道云API集成目录",
+        "files": [
+          {
+            "name": "MingdaoAdd.js",
+            "description": "明道云新增数据接口"
+          },
+          {
+            "name": "MingdaoArray.js",
+            "description": "明道云批量查询接口"
+          },
+          {
+            "name": "MingdaoQuery.js",
+            "description": "明道云单条查询接口"
+          },
+          {
+            "name": "MingdaoUpdate.js",
+            "description": "明道云更新数据接口"
+          },
+          {
+            "name": "明道云接口&数据字典文档.md",
+            "description": "明道云接口使用文档"
+          }
+        ]
+      },
+      {
+        "name": "webview",
+        "description": "Web应用主目录",
+        "subdirectories": [
+          {
+            "name": "dist",
+            "description": "构建产物目录",
+            "subdirectories": [
+              {
+                "name": "assets",
+                "description": "静态资源目录",
+                "files": [
+                  {
+                    "name": "index-Dzd3ZhUc.css",
+                    "description": "构建后的CSS样式文件"
+                  }
+                ]
+              }
+            ],
+            "files": [
+              {
+                "name": "index.html",
+                "description": "生产环境入口HTML"
+              }
+            ]
+          },
+          {
+            "name": "guidelines",
+            "description": "开发指南目录",
+            "files": [
+              {
+                "name": "Guidelines.html",
+                "description": "Figma导出React代码学习指南"
+              }
+            ]
+          },
+          {
+            "name": "js",
+            "description": "JavaScript工具目录",
+            "files": [
+              {
+                "name": "CozeWorkflow.js",
+                "description": "Coze工作流实现"
+              },
+              {
+                "name": "WechatLogin.js",
+                "description": "微信登录功能实现"
+              },
+              {
+                "name": "WechatLogin.md",
+                "description": "微信登录功能说明"
+              },
+              {
+                "name": "coze.js",
+                "description": "Coze API调用封装"
+              },
+              {
+                "name": "coze.md",
+                "description": "Coze API使用说明"
+              },
+              {
+                "name": "login-test.js",
+                "description": "登录功能测试脚本"
+              }
+            ]
+          },
+          {
+            "name": "src",
+            "description": "源代码目录",
+            "subdirectories": [
+              {
+                "name": "app",
+                "description": "应用核心代码",
+                "subdirectories": [
+                  {
+                    "name": "components",
+                    "description": "React组件目录",
+                    "subdirectories": [
+                      {
+                        "name": "figma",
+                        "description": "Figma导出组件",
+                        "files": [
+                          {
+                            "name": "ImageWithFallback.tsx",
+                            "description": "带兜底的图片组件"
+                          }
+                        ]
+                      },
+                      {
+                        "name": "pages",
+                        "description": "页面组件",
+                        "files": [
+                          {
+                            "name": "AIAssistant.tsx",
+                            "description": "AI助手页面"
+                          },
+                          {
+                            "name": "AddPatient.tsx",
+                            "description": "添加患者页面"
+                          },
+                          {
+                            "name": "ConsultationForm.tsx",
+                            "description": "陪诊表单页面"
+                          },
+                          {
+                            "name": "ConsultationRecord.tsx",
+                            "description": "陪诊记录页面"
+                          },
+                          {
+                            "name": "FinalReport.tsx",
+                            "description": "最终报告页面"
+                          },
+                          {
+                            "name": "PatientDetail.tsx",
+                            "description": "患者详情页面"
+                          },
+                          {
+                            "name": "PatientList.tsx",
+                            "description": "患者列表页面"
+                          },
+                          {
+                            "name": "PreConsultation.tsx",
+                            "description": "诊前准备页面"
+                          },
+                          {
+                            "name": "RecordDetail.tsx",
+                            "description": "记录详情页面"
+                          },
+                          {
+                            "name": "RecordsList.tsx",
+                            "description": "记录列表页面"
+                          },
+                          {
+                            "name": "Settings.tsx",
+                            "description": "设置页面"
+                          }
+                        ]
+                      },
+                      {
+                        "name": "ui",
+                        "description": "UI组件库",
+                        "files": [
+                          {
+                            "name": "accordion.tsx",
+                            "description": "手风琴组件"
+                          },
+                          {
+                            "name": "alert-dialog.tsx",
+                            "description": "告警对话框组件"
+                          },
+                          {
+                            "name": "alert.tsx",
+                            "description": "告警组件"
+                          },
+                          {
+                            "name": "aspect-ratio.tsx",
+                            "description": "宽高比组件"
+                          },
+                          {
+                            "name": "avatar.tsx",
+                            "description": "头像组件"
+                          },
+                          {
+                            "name": "badge.tsx",
+                            "description": "徽章组件"
+                          },
+                          {
+                            "name": "button.tsx",
+                            "description": "按钮组件"
+                          },
+                          {
+                            "name": "card.tsx",
+                            "description": "卡片组件"
+                          },
+                          {
+                            "name": "dialog.tsx",
+                            "description": "对话框组件"
+                          },
+                          {
+                            "name": "form.tsx",
+                            "description": "表单组件"
+                          },
+                          {
+                            "name": "input.tsx",
+                            "description": "输入框组件"
+                          },
+                          {
+                            "name": "textarea.tsx",
+                            "description": "文本域组件"
+                          }
+                        ]
+                      }
+                    ],
+                    "files": [
+                      {
+                        "name": "BottomNav.tsx",
+                        "description": "底部导航组件"
+                      },
+                      {
+                        "name": "ConsultationFlow.tsx",
+                        "description": "陪诊流程组件"
+                      },
+                      {
+                        "name": "OnboardingGuide.tsx",
+                        "description": "新手引导组件"
+                      },
+                      {
+                        "name": "Tooltip.tsx",
+                        "description": "提示框组件"
+                      }
+                    ]
+                  }
+                ],
+                "files": [
+                  {
+                    "name": "App.tsx",
+                    "description": "应用根组件"
+                  }
+                ]
+              },
+              {
+                "name": "styles",
+                "description": "样式文件目录",
+                "files": [
+                  {
+                    "name": "fonts.css",
+                    "description": "字体配置"
+                  },
+                  {
+                    "name": "index.css",
+                    "description": "样式入口文件"
+                  },
+                  {
+                    "name": "tailwind.css",
+                    "description": "Tailwind CSS配置"
+                  },
+                  {
+                    "name": "theme.css",
+                    "description": "主题变量配置"
+                  }
+                ]
+              }
+            ],
+            "files": [
+              {
+                "name": "main.tsx",
+                "description": "应用入口文件"
+              }
+            ]
+          }
+        ],
+        "files": [
+          {
+            "name": "APP_GUIDE.md",
+            "description": "应用使用指南"
+          },
+          {
+            "name": "ATTRIBUTIONS.md",
+            "description": "第三方依赖声明"
+          },
+          {
+            "name": "DEMO_FLOW.md",
+            "description": "演示流程说明"
+          },
+          {
+            "name": "README.md",
+            "description": "项目说明文档"
+          },
+          {
+            "name": "app.js",
+            "description": "旧版应用逻辑文件"
+          },
+          {
+            "name": "index.html",
+            "description": "开发环境入口HTML"
+          },
+          {
+            "name": "learn-figma.html",
+            "description": "Figma学习指南"
+          },
+          {
+            "name": "package-lock.json",
+            "description": "依赖版本锁定文件"
+          },
+          {
+            "name": "package.json",
+            "description": "前端依赖配置"
+          },
+          {
+            "name": "postcss.config.mjs",
+            "description": "PostCSS配置"
+          },
+          {
+            "name": "styles.css",
+            "description": "全局样式文件"
+          },
+          {
+            "name": "vite.config.ts",
+            "description": "Vite构建配置"
+          },
+          {
+            "name": "就诊需求书.md",
+            "description": "就诊需求说明"
+          }
+        ]
+      },
+      {
+        "name": "wxApp",
+        "description": "微信小程序目录",
+        "subdirectories": [
+          {
+            "name": "pages",
+            "description": "小程序页面目录",
+            "subdirectories": [
+              {
+                "name": "login",
+                "description": "登录页面",
+                "files": [
+                  {
+                    "name": "index.js",
+                    "description": "登录页面逻辑"
+                  },
+                  {
+                    "name": "index.wxml",
+                    "description": "登录页面结构"
+                  }
+                ]
+              },
+              {
+                "name": "logout",
+                "description": "退出登录页面",
+                "files": [
+                  {
+                    "name": "index.js",
+                    "description": "退出登录逻辑"
+                  },
+                  {
+                    "name": "index.wxml",
+                    "description": "退出登录页面结构"
+                  }
+                ]
+              },
+              {
+                "name": "payment",
+                "description": "支付页面",
+                "files": [
+                  {
+                    "name": "index.js",
+                    "description": "支付页面逻辑"
+                  },
+                  {
+                    "name": "index.json",
+                    "description": "支付页面配置"
+                  },
+                  {
+                    "name": "index.wxml",
+                    "description": "支付页面结构"
+                  },
+                  {
+                    "name": "index.wxss",
+                    "description": "支付页面样式"
+                  }
+                ]
+              },
+              {
+                "name": "webview",
+                "description": "Webview页面",
+                "files": [
+                  {
+                    "name": "index.js",
+                    "description": "Webview页面逻辑"
+                  },
+                  {
+                    "name": "index.wxml",
+                    "description": "Webview页面结构"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "files": [
+          {
+            "name": "app.js",
+            "description": "小程序入口文件"
+          },
+          {
+            "name": "app.json",
+            "description": "小程序全局配置"
+          },
+          {
+            "name": "project.config.json",
+            "description": "小程序项目配置"
+          },
+          {
+            "name": "project.private.config.json",
+            "description": "小程序项目私有配置"
+          },
+          {
+            "name": "zhifu.js",
+            "description": "支付功能实现"
+          },
+          {
+            "name": "zhifu.json",
+            "description": "支付功能配置"
+          }
+        ]
+      }
+    ]
+  },
+  "technology_stack": {
+    "frontend": {
+      "framework": "React",
+      "language": "TypeScript",
+      "build_tool": "Vite",
+      "styling": "Tailwind CSS",
+      "ui_library": "shadcn/ui"
+    },
+    "backend": {
+      "runtime": "Node.js",
+      "framework": "Express"
+    },
+    "cloud_services": {
+      "mingdao": "明道云API",
+      "wechat": "微信小程序API",
+      "coze": "Coze AI API"
+    }
+  },
+  "key_features": [
+    "AI智能助手",
+    "患者信息管理",
+    "陪诊流程记录",
+    "微信小程序集成",
+    "明道云数据同步",
+    "数据导出与管理"
+  ]
+}
