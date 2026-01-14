@@ -44,9 +44,35 @@
 
     #app {
       display: flex;
-      gap: 20px;
+      /* gap: 20px; */
       flex: 1 1 auto;
       min-height: 0;
+    }
+
+    .resizer {
+      width: 6px;
+      background: #e0e0e0;
+      cursor: col-resize;
+      flex: 0 0 auto;
+      transition: background 0.2s;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .resizer:hover, .resizer.resizing {
+      background: #1890ff;
+    }
+    
+    /* 防止拖动时选中文字 */
+    body.resizing {
+      cursor: col-resize;
+      user-select: none;
+    }
+    
+    body.resizing iframe {
+      pointer-events: none; /* 防止拖动时iframe捕获鼠标事件 */
     }
 
     #tree-container {
@@ -56,6 +82,7 @@
       border-radius: 8px;
       overflow: auto;
       height: 100%;
+      flex-shrink: 0;
     }
 
     .tree {
@@ -152,6 +179,7 @@
       flex-direction: column;
       gap: 12px;
       height: 100%;
+      flex-shrink: 0;
     }
 
     #props-header {
@@ -414,6 +442,31 @@
       height: 100%;
       border: none;
     }
+
+    .tree-action-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      margin-left: auto;
+      cursor: pointer;
+      color: #999;
+      font-weight: bold;
+      font-family: serif;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .tree-action-icon:hover {
+      background-color: rgba(0,0,0,0.05);
+      color: #666;
+    }
+    .tree-action-icon.active {
+      background-color: #faad14;
+      color: #fff;
+      border-color: #faad14;
+    }
   </style>
 </head>
 
@@ -433,9 +486,11 @@
     <div id="tree-container">
       <ul id="layer-tree" class="tree" data-parent-id="null"></ul>
     </div>
+    <div class="resizer" id="resizer-left"></div>
     <div id="canvas-container">
       <!-- 动态内容将渲染在这里 -->
     </div>
+    <div class="resizer" id="resizer-right"></div>
     <div id="right-panel">
       <div id="props-header">
         <div id="props-header-title">属性</div>
@@ -520,6 +575,7 @@
     let componentSchemaMap = {};
     let schemaLoaded = false;
     let isDevMode = false; // 全局开发模式状态
+    let actionModeId = null; // 当前处于动作编辑模式的节点ID
 
     function buildTree(items) {
       const rootItems = [];
@@ -775,7 +831,7 @@
         }, {});
         schemaLoaded = true;
         updateSchemaStatus();
-        renderPropertiesPanel();
+        renderRightPanel();
       } catch (e) {
         schemaLoaded = false;
         updateSchemaStatus();
@@ -792,7 +848,85 @@
       }
     }
 
+    function renderRightPanel() {
+      if (actionModeId) {
+        renderActionPanel();
+      } else {
+        renderPropertiesPanel();
+      }
+    }
+
+    function renderActionPanel() {
+      const headerTitle = document.getElementById('props-header-title');
+      if (headerTitle) headerTitle.textContent = '动作';
+      const schemaStatus = document.getElementById('schema-status');
+      if (schemaStatus) schemaStatus.style.display = 'none';
+
+      const panel = document.getElementById('props-panel');
+      if (!panel) return;
+      
+      const item = rawData.find(it => it.id === actionModeId);
+      panel.innerHTML = '';
+      
+      const title = document.createElement('div');
+      title.className = 'props-title';
+      title.textContent = `动作配置: ${item ? (item.name || item.id) : '未知'}`;
+      panel.appendChild(title);
+      
+      const desc = document.createElement('div');
+      desc.style.fontSize = '12px';
+      desc.style.color = '#666';
+      desc.style.marginBottom = '10px';
+      desc.innerText = '请选择目标组件或配置动作流 (页面树结构):';
+      panel.appendChild(desc);
+
+      const treeContainer = document.createElement('div');
+      const ul = document.createElement('ul');
+      ul.className = 'tree';
+      // 复用 buildTree 构建树数据
+      const treeData = buildTree(rawData);
+      treeData.forEach(node => {
+        ul.appendChild(renderSimpleTreeNode(node));
+      });
+      treeContainer.appendChild(ul);
+      panel.appendChild(treeContainer);
+    }
+
+    function renderSimpleTreeNode(node) {
+      const li = document.createElement('li');
+      li.className = 'tree-node';
+      const row = document.createElement('div');
+      row.className = 'tree-row';
+      row.style.cursor = 'default';
+      
+      const label = document.createElement('span');
+      label.className = 'node-label';
+      label.textContent = node.name || node.id;
+      row.appendChild(label);
+      
+      const type = document.createElement('span');
+      type.className = 'node-type';
+      type.textContent = node.type;
+      type.style.marginLeft = '8px';
+      row.appendChild(type);
+
+      li.appendChild(row);
+      
+      if (node.children && node.children.length > 0) {
+        const ul = document.createElement('ul');
+        ul.className = 'children';
+        node.children.forEach(child => ul.appendChild(renderSimpleTreeNode(child)));
+        li.appendChild(ul);
+      }
+      return li;
+    }
+
     function renderPropertiesPanel() {
+      const headerTitle = document.getElementById('props-header-title');
+      if (headerTitle) headerTitle.textContent = '属性';
+      const schemaStatus = document.getElementById('schema-status');
+      if (schemaStatus) schemaStatus.style.display = 'block';
+
       const panel = document.getElementById('props-panel');
       if (!panel) return;
       const item = selectedId ? rawData.find(it => it.id === selectedId) : null;
@@ -861,8 +995,19 @@
     function selectNode(id) {
       if (!id) return;
       selectedId = id;
-      renderPropertiesPanel();
+      renderRightPanel();
       refreshSelectionClasses();
+    }
+
+    function toggleActionMode(id) {
+      if (actionModeId === id) {
+        actionModeId = null;
+      } else {
+        actionModeId = id;
+        selectNode(id);
+      }
+      renderTree();
+      renderRightPanel();
     }
 
     function renderTree() {
@@ -908,9 +1053,22 @@
       const type = document.createElement('span');
       type.className = 'node-type';
       type.textContent = node.type;
+      
+      const actionIcon = document.createElement('span');
+      actionIcon.className = 'tree-action-icon';
+      if (actionModeId === node.id) actionIcon.classList.add('active');
+      actionIcon.innerText = '!';
+      actionIcon.title = '配置动作';
+      actionIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleActionMode(node.id);
+      });
+
       row.appendChild(toggle);
       row.appendChild(label);
       row.appendChild(type);
+      row.appendChild(actionIcon);
+      
       row.addEventListener('click', () => selectNode(node.id));
       li.appendChild(row);
       const ul = document.createElement('ul');
@@ -1023,7 +1181,7 @@
     function renderAll() {
       renderCanvas();
       renderTree();
-      renderPropertiesPanel();
+      renderRightPanel();
       setDebugOutput(rawData);
     }
 
@@ -1162,7 +1320,7 @@
           }, {});
           schemaLoaded = true;
           updateSchemaStatus();
-          renderPropertiesPanel();
+          renderRightPanel();
         } catch (err) {
           schemaLoaded = false;
           updateSchemaStatus();
@@ -1176,6 +1334,60 @@
     bindToolbar();
     updateSchemaStatus();
     loadSchemaFromUrl();
+    
+    // 初始化拖拽调整宽度
+    function initResizers() {
+      const resizerLeft = document.getElementById('resizer-left');
+      const resizerRight = document.getElementById('resizer-right');
+      const leftPanel = document.getElementById('tree-container');
+      const rightPanel = document.getElementById('right-panel');
+
+      function handleResize(resizer, targetPanel, isLeft) {
+        if (!resizer || !targetPanel) return;
+
+        resizer.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          
+          const startX = e.clientX;
+          const startWidth = targetPanel.getBoundingClientRect().width;
+          
+          document.body.classList.add('resizing');
+          resizer.classList.add('resizing');
+
+          function onMouseMove(e) {
+            let newWidth;
+            if (isLeft) {
+              // 左侧面板：鼠标向右移动增加宽度
+              newWidth = startWidth + (e.clientX - startX);
+            } else {
+              // 右侧面板：鼠标向左移动增加宽度
+              newWidth = startWidth - (e.clientX - startX);
+            }
+            
+            // 限制宽度范围
+            if (newWidth < 200) newWidth = 200;
+            if (newWidth > 800) newWidth = 800;
+            
+            targetPanel.style.width = newWidth + 'px';
+          }
+
+          function onMouseUp() {
+            document.body.classList.remove('resizing');
+            resizer.classList.remove('resizing');
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          }
+
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+      }
+
+      handleResize(resizerLeft, leftPanel, true);
+      handleResize(resizerRight, rightPanel, false);
+    }
+    
+    initResizers();
 
   </script>
 </body>
