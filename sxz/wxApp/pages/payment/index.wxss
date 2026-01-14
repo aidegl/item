@@ -1,1 +1,146 @@
-/* pages/payment/index.wxss */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx;
+  min-height: 100vh;
+  background-color: #f7f8fa;
+}
+
+.payment-card {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 60rpx 40rpx;
+  box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 60rpx;
+}
+
+.shop-name {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.amount-section {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin-bottom: 80rpx;
+  color: #333;
+}
+
+.currency {
+  font-size: 40rpx;
+  font-weight: 600;
+  margin-right: 8rpx;
+}
+
+.amount {
+  font-size: 80rpx;
+  font-weight: 700;
+}
+
+.info-list {
+  background-color: #f9fafb;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 60rpx;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.value.highlight {
+  color: #07c160;
+}
+
+.status {
+  color: #666;
+}
+
+.status.loading {
+  color: #007aff;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.btn-action {
+  width: 100% !important;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  background-color: #f2f2f2;
+  color: #333;
+  padding: 0;
+  border: none;
+}
+
+.btn-action.primary {
+  background-color: #07c160;
+  color: #ffffff;
+}
+
+.loading-spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #07c160;
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.safety-tips {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 40rpx;
+  gap: 10rpx;
+}
+
+.safety-tips text {
+  font-size: 24rpx;
+  color: #999;
+}
