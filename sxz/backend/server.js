@@ -10,12 +10,12 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// --- 配置开始 (请在此处填写你的信息) ---
+// --- 配置开始 (建议通过环境变量或宝塔面板配置) ---
 const CONFIG = {
-    appid: 'wx6b073663f74b0976', // 小程序 AppID
-    secret: 'YOUR_APP_SECRET', // !!! 需在微信小程序后台获取并在宝塔面板替换
-    mchid: '1737334395', // 商户号
-    apiv3Key: 'shenxianzipzaiSHENXIANZI20260105', // APIv3 密钥
+    appid: process.env.WX_APPID || 'wx6b073663f74b0976', // 小程序 AppID
+    secret: process.env.WX_APP_SECRET || 'YOUR_APP_SECRET', // 请在宝塔面板设置环境变量 WX_APP_SECRET
+    mchid: process.env.WX_MCHID || '1737334395', // 商户号
+    apiv3Key: process.env.WX_APIV3_KEY || 'shenxianzipzaiSHENXIANZI20260105', // APIv3 密钥
     // 证书和私钥内容
     privateKey: `-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC+0w6x5f4RtQ/m
