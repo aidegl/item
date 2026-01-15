@@ -1143,7 +1143,207 @@
     }
 
     function renderDataPanelContent(container, item) {
-      container.innerHTML = '<div style="padding:10px; color:#666; font-size:12px;">数据绑定配置 (待开发)</div>';
+      container.innerHTML = '';
+
+      const title = document.createElement('div');
+      title.className = 'props-title';
+      title.style.marginTop = '0';
+      title.textContent = '数据绑定: ' + (item.name || item.id);
+      container.appendChild(title);
+
+      const desc = document.createElement('div');
+      desc.style.fontSize = '12px';
+      desc.style.color = '#666';
+      desc.style.marginBottom = '10px';
+      desc.textContent = '配置当前组件与明道云数据表的增删改查行为。';
+      container.appendChild(desc);
+
+      const getCurrentDataProps = function (id) {
+        const current = rawData.find(function (n) { return n.id === id; });
+        return (current && current.dataProps) || {};
+      };
+
+      const createRow = function (parent, labelText, fieldEl) {
+        const row = document.createElement('div');
+        row.className = 'props-form-row';
+        const label = document.createElement('div');
+        label.className = 'props-form-label';
+        label.textContent = labelText;
+        row.appendChild(label);
+        row.appendChild(fieldEl);
+        parent.appendChild(row);
+      };
+
+      const aliasInput = document.createElement('input');
+      aliasInput.className = 'props-form-input';
+      aliasInput.placeholder = '请输入明道云表别名，例如 user, order';
+      aliasInput.value = (item.dataProps && item.dataProps.tableAlias) || '';
+      aliasInput.addEventListener('change', function (e) {
+        const val = e.target.value.trim();
+        const current = getCurrentDataProps(item.id);
+        const next = Object.assign({}, current, { tableAlias: val });
+        updateNodeProps(item.id, 'dataProps', next, true, 'tableAlias', val);
+      });
+      createRow(container, '表别名', aliasInput);
+
+      const actionSelect = document.createElement('select');
+      actionSelect.className = 'props-form-input';
+      var actions = [
+        { value: '', label: '请选择' },
+        { value: 'add', label: '增（新增数据）' },
+        { value: 'delete', label: '删（删除数据）' },
+        { value: 'update', label: '改（更新数据）' },
+        { value: 'getObject', label: '查对象（单条数据）' },
+        { value: 'getArray', label: '查数组（列表数据）' }
+      ];
+      actions.forEach(function (opt) {
+        const o = document.createElement('option');
+        o.value = opt.value;
+        o.textContent = opt.label;
+        actionSelect.appendChild(o);
+      });
+      actionSelect.value = (item.dataProps && item.dataProps.actionType) || '';
+      actionSelect.addEventListener('change', function (e) {
+        const val = e.target.value;
+        const current = getCurrentDataProps(item.id);
+        const next = Object.assign({}, current, { actionType: val });
+        updateNodeProps(item.id, 'dataProps', next, true, 'actionType', val);
+        renderDynamicFields();
+      });
+      createRow(container, '数据行为', actionSelect);
+
+      const dynamicWrapper = document.createElement('div');
+      container.appendChild(dynamicWrapper);
+
+      const getActionFieldConfigs = function (actionType) {
+        if (actionType === 'getObject') {
+          return [
+            { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
+            { key: 'rowid', label: 'rowid', placeholder: '行ID(rowid)' }
+          ];
+        }
+        if (actionType === 'getArray') {
+          return [
+            { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
+            { key: 'viewId', label: 'viewId', placeholder: '视图ID，可选' },
+            { key: 'sortId', label: 'sortId', placeholder: '排序字段ID，如 sortid' },
+            { key: 'ctime', label: 'ctime', placeholder: 'ctime 字段 controlId，可选' }
+          ];
+        }
+        if (actionType === 'add') {
+          return [
+            { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
+            { key: 'controlsJson', label: 'controls(新增字段 JSON 数组)', placeholder: '[{"id":"字段ID","value":"字段值"}]', textarea: true }
+          ];
+        }
+        if (actionType === 'update') {
+          return [
+            { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
+            { key: 'rowid', label: 'rowid', placeholder: '行ID(rowid)' },
+            { key: 'controlsJson', label: 'controls(更新字段 JSON 数组)', placeholder: '[{"controlId":"字段ID","value":"字段值"}]', textarea: true }
+          ];
+        }
+        if (actionType === 'delete') {
+          return [
+            { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
+            { key: 'rowid', label: 'rowid', placeholder: '行ID(rowid)' }
+          ];
+        }
+        return [];
+      };
+
+      const renderDynamicFields = function () {
+        dynamicWrapper.innerHTML = '';
+        const actionType = actionSelect.value;
+        if (!actionType) return;
+        const current = getCurrentDataProps(item.id);
+        const fields = getActionFieldConfigs(actionType);
+        fields.forEach(function (field) {
+          let input;
+          if (field.textarea) {
+            input = document.createElement('textarea');
+            input.style.height = '80px';
+            input.style.resize = 'vertical';
+          } else {
+            input = document.createElement('input');
+          }
+          input.className = 'props-form-input';
+          input.placeholder = field.placeholder || '';
+          input.value = current[field.key] || '';
+          input.addEventListener('change', function (e) {
+            const val = e.target.value.trim();
+            const latest = getCurrentDataProps(item.id);
+            const next = Object.assign({}, latest);
+            next[field.key] = val;
+            updateNodeProps(item.id, 'dataProps', next, true, field.key, val);
+          });
+          createRow(dynamicWrapper, field.label, input);
+        });
+      };
+
+      renderDynamicFields();
+
+      const filterArea = document.createElement('textarea');
+      filterArea.className = 'props-form-input';
+      filterArea.style.height = '100px';
+      filterArea.style.resize = 'vertical';
+      filterArea.placeholder = '过滤条件，JSON 数组格式，例如:\n[\n  {\"controlId\":\"openid\",\"dataType\":2,\"spliceType\":1,\"filterType\":24,\"value\":\"openid\"},\n  {\"controlId\":\"del\",\"dataType\":2,\"spliceType\":1,\"filterType\":2,\"value\":0}\n]';
+      filterArea.value = (item.dataProps && item.dataProps.filtersJson) || '';
+      filterArea.addEventListener('change', function (e) {
+        const val = e.target.value.trim();
+        const current = getCurrentDataProps(item.id);
+        const next = Object.assign({}, current, { filtersJson: val });
+        updateNodeProps(item.id, 'dataProps', next, true, 'filtersJson', val);
+      });
+      createRow(container, '过滤条件', filterArea);
+
+      const buttonRow = document.createElement('div');
+      buttonRow.style.marginTop = '10px';
+      buttonRow.style.textAlign = 'right';
+      const genBtn = document.createElement('button');
+      genBtn.className = 'mock-btn mock-btn-primary';
+      genBtn.textContent = '生成提示词在底部';
+      genBtn.addEventListener('click', function () {
+        const dataProps = getCurrentDataProps(item.id);
+        const actionType = dataProps.actionType || actionSelect.value || '';
+        const alias = dataProps.tableAlias || '';
+        const worksheetId = dataProps.worksheetId || '';
+        const rowid = dataProps.rowid || '';
+        const sortId = dataProps.sortId || dataProps.sortid || '';
+        const ctime = dataProps.ctime || '';
+        const filtersJson = dataProps.filtersJson || '';
+        const actionLabelMap = {
+          add: '增',
+          delete: '删',
+          update: '改',
+          getObject: '查对象',
+          getArray: '查数组'
+        };
+        const actionLabel = actionLabelMap[actionType] || actionType || '未选择';
+        const parts = [];
+        if (worksheetId) parts.push('worksheetId 为 ' + worksheetId);
+        if (rowid) parts.push('rowid 为 ' + rowid);
+        if (sortId) parts.push('sortId/排序字段为 ' + sortId);
+        if (ctime) parts.push('ctime 字段为 ' + ctime);
+        if (filtersJson) parts.push('filters 为 ' + filtersJson);
+        const base = '为组件「' + (item.name || item.id) + '」配置明道云数据：表别名 ' + (alias || '未填') + '，行为 ' + actionLabel;
+        const detail = parts.length ? '，' + parts.join('，') + '。' : '。';
+        const prompt = base + detail;
+        const aiInput = document.getElementById('ai-input');
+        if (aiInput) {
+          const currentText = aiInput.value || '';
+          aiInput.value = (currentText ? currentText + '\n' : '') + prompt;
+        }
+      });
+      buttonRow.appendChild(genBtn);
+      container.appendChild(buttonRow);
+
+      const tips = document.createElement('div');
+      tips.style.fontSize = '11px';
+      tips.style.color = '#999';
+      tips.style.marginTop = '6px';
+      tips.textContent = 'filters 参数格式请参考《明道云接口&数据字典文档》的示例，所有查询建议包含 del=0 条件。';
+      container.appendChild(tips);
     }
 
     function renderActionPanelContent(container, item) {
