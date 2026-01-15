@@ -2756,7 +2756,7 @@ function renderSettings(container) {
     container.innerHTML = `
         <div class="p-2">
             <div class="card mb-2 user-info-card">
-                <div class="user-avatar-wrapper" onclick="handleAvatarClick()" style="cursor: pointer;">
+                <div class="user-avatar-wrapper" onclick="handleAvatarClick()" style="cursor: pointer; position: relative;">
                     <img src="${escapeHtml(userAvatar)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
                     <div class="avatar-edit-overlay">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: white;">
@@ -2764,8 +2764,8 @@ function renderSettings(container) {
                             <circle cx="12" cy="13" r="4"/>
                         </svg>
                     </div>
+                    <input type="file" id="avatar-upload-input" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;" accept="image/*" onchange="handleAvatarUpload(this)" onclick="event.stopPropagation(); if(!window.canSelectAvatar()) { event.preventDefault(); goToLogin(); }">
                 </div>
-                <input type="file" id="avatar-upload-input" style="display: none;" accept="image/*" onchange="handleAvatarUpload(this)">
                 <div class="user-details">
                     <div class="user-nickname" onclick="handleNicknameClick('${userInfo ? 'logged' : 'notlogged'}')" style="cursor: pointer; ${userInfo ? 'text-decoration: underline;' : ''}">${escapeHtml(userNickname)}</div>
                     <div class="user-info-bottom">
@@ -3023,24 +3023,30 @@ function closeEditNicknameDialog() {
     }
 }
 
+// 检查是否可以进行头像选择
+window.canSelectAvatar = function() {
+    return window.wechatLogin && window.wechatLogin.isLoggedIn();
+};
+
 // 处理头像点击事件
-function handleAvatarClick() {
-    // 检查登录状态
-    if (window.wechatLogin && !window.wechatLogin.isLoggedIn()) {
-        goToLogin();
-        return;
-    }
-    
+window.handleAvatarClick = function() {
+    console.log('[Avatar] 容器点击触发');
+    // 注意：现在 input 已经覆盖了容器，通常直接点到 input 上了。
+    // 如果点到了容器边缘，手动触发一次
     const input = document.getElementById('avatar-upload-input');
     if (input) {
         input.click();
     }
-}
+};
 
 // 处理头像上传
-async function handleAvatarUpload(input) {
+window.handleAvatarUpload = async function(input) {
+    console.log('[Avatar] 文件选择变更', input.files);
     const file = input.files[0];
-    if (!file) return;
+    if (!file) {
+        console.log('[Avatar] 未选择文件');
+        return;
+    }
 
     // 简单校验文件类型
     if (!file.type.startsWith('image/')) {
@@ -3061,6 +3067,7 @@ async function handleAvatarUpload(input) {
         const formData = new FormData();
         formData.append('file', file);
 
+        console.log('[Avatar] 开始上传文件到 tmp.php');
         // 调用上传接口获取临时 URL
         const response = await fetch('https://100000whys.cn/api/tmp.php', {
             method: 'POST',
@@ -3068,6 +3075,7 @@ async function handleAvatarUpload(input) {
         });
 
         const data = await response.json();
+        console.log('[Avatar] 上传接口返回:', data);
         
         if (data.error) {
             throw new Error(data.error);
@@ -3078,19 +3086,19 @@ async function handleAvatarUpload(input) {
             throw new Error('未获取到图片链接');
         }
 
-        console.log('头像上传成功，URL:', fileUrl);
+        console.log('[Avatar] 头像上传成功，URL:', fileUrl);
         
         // 更新明道云头像字段
         await updateAvatar(fileUrl);
 
     } catch (error) {
-        console.error('头像上传失败:', error);
+        console.error('[Avatar] 头像上传失败:', error);
         showToast('头像上传失败: ' + error.message);
     } finally {
         // 清空 input，允许重复选择同一张图
         input.value = '';
     }
-}
+};
 
 // 更新头像到明道云
 async function updateAvatar(imageUrl) {
