@@ -147,8 +147,18 @@ class WechatLogin {
         pageSize: 1,
       });
 
+      let userData = null;
+
       if (res && res.success && res.data && Array.isArray(res.data.rows) && res.data.rows.length > 0) {
-        const userData = res.data.rows[0];
+        userData = res.data.rows[0];
+        this.log("查询到现有用户:", userData);
+      } else {
+        // 未查询到用户，执行自动注册逻辑
+        this.log("未查询到用户，开始自动注册...");
+        userData = await this.registerUser(openid);
+      }
+
+      if (userData) {
         const processedUserData = this.processUserData(userData);
 
         this.state.userInfo = processedUserData;
@@ -166,6 +176,51 @@ class WechatLogin {
     } catch (e) {
       this.error("错误: 调用过程异常", e && e.message);
       return false;
+    }
+  }
+
+  async registerUser(openid) {
+    if (!window.MingDaoYunAddAPI || !window.MingDaoYunAPI) {
+      this.error("错误: MingDaoYunAddAPI 或 MingDaoYunAPI 组件未加载");
+      return null;
+    }
+
+    // 生成随机4位数字用户名
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    const nickname = `用户${randomNum}`;
+
+    const controls = [
+      {
+        controlId: this.config.openidField,
+        value: openid,
+      },
+      {
+        controlId: "mingcheng", // 假设标题字段/用户名为 mingcheng
+        value: nickname,
+      }
+    ];
+
+    try {
+      const addApi = new window.MingDaoYunAddAPI();
+      const addRes = await addApi.getData(this.config.mingdaoWorksheetId, controls);
+
+      if (addRes && addRes.success && addRes.data) {
+        const rowid = addRes.data; // addRow 返回的是 rowid
+        this.log("用户注册成功，rowid:", rowid);
+
+        // 通过 rowid 查询完整用户数据
+        const queryApi = new window.MingDaoYunAPI();
+        const queryRes = await queryApi.getData(rowid, this.config.mingdaoWorksheetId);
+
+        if (queryRes && queryRes.success && queryRes.data) {
+          this.log("获取到新注册用户数据:", queryRes.data);
+          return queryRes.data;
+        }
+      }
+      return null;
+    } catch (e) {
+      this.error("注册用户异常:", e && e.message);
+      return null;
     }
   }
 
