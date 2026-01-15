@@ -244,8 +244,15 @@ class WechatLogin {
             const parsed = JSON.parse(trimmed);
             if (Array.isArray(parsed)) {
               avatarFromTouxiang = parsed[0] && parsed[0].large_thumbnail_full_path;
+            } else if (trimmed.startsWith('http')) {
+              // 如果解析失败但看起来像 URL
+              avatarFromTouxiang = trimmed;
             }
-          } catch (e) {}
+          } catch (e) {
+            if (trimmed.startsWith('http')) {
+              avatarFromTouxiang = trimmed;
+            }
+          }
         }
       }
     }
