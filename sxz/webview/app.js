@@ -2756,9 +2756,16 @@ function renderSettings(container) {
     container.innerHTML = `
         <div class="p-2">
             <div class="card mb-2 user-info-card">
-                <div class="user-avatar-wrapper">
+                <div class="user-avatar-wrapper" onclick="handleAvatarClick()" style="cursor: pointer;">
                     <img src="${escapeHtml(userAvatar)}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23ccc%22><circle cx=%2212%22 cy=%228%22 r=%224%22/><path d=%22M12 14c-4.4 0-8 2-8 5v1h16v-1c0-3-3.6-5-8-5z%22/></svg>'" alt="头像">
+                    <div class="avatar-edit-overlay">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: white;">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                    </div>
                 </div>
+                <input type="file" id="avatar-upload-input" style="display: none;" accept="image/*" onchange="handleAvatarUpload(this)">
                 <div class="user-details">
                     <div class="user-nickname" onclick="handleNicknameClick('${userInfo ? 'logged' : 'notlogged'}')" style="cursor: pointer; ${userInfo ? 'text-decoration: underline;' : ''}">${escapeHtml(userNickname)}</div>
                     <div class="user-info-bottom">
@@ -3013,6 +3020,121 @@ function closeEditNicknameDialog() {
     const dialog = document.getElementById('edit-nickname-dialog');
     if (dialog) {
         dialog.remove();
+    }
+}
+
+// 处理头像点击事件
+function handleAvatarClick() {
+    // 检查登录状态
+    if (window.wechatLogin && !window.wechatLogin.isLoggedIn()) {
+        goToLogin();
+        return;
+    }
+    
+    const input = document.getElementById('avatar-upload-input');
+    if (input) {
+        input.click();
+    }
+}
+
+// 处理头像上传
+async function handleAvatarUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    // 简单校验文件类型
+    if (!file.type.startsWith('image/')) {
+        showToast('请选择图片文件');
+        return;
+    }
+
+    // 简单校验文件大小 (例如 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('图片大小不能超过 5MB');
+        return;
+    }
+
+    showToast('正在上传头像...');
+
+    try {
+        // 构造 FormData
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // 调用上传接口获取临时 URL
+        const response = await fetch('https://100000whys.cn/api/tmp.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        const fileUrl = data.url || data.link;
+        if (!fileUrl) {
+            throw new Error('未获取到图片链接');
+        }
+
+        console.log('头像上传成功，URL:', fileUrl);
+        
+        // 更新明道云头像字段
+        await updateAvatar(fileUrl);
+
+    } catch (error) {
+        console.error('头像上传失败:', error);
+        showToast('头像上传失败: ' + error.message);
+    } finally {
+        // 清空 input，允许重复选择同一张图
+        input.value = '';
+    }
+}
+
+// 更新头像到明道云
+async function updateAvatar(imageUrl) {
+    try {
+        const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function'
+            ? window.wechatLogin.getUserInfo()
+            : null;
+
+        if (!userInfo || !userInfo.id) {
+            showToast('获取用户信息失败');
+            return;
+        }
+
+        const rowid = userInfo.id;
+        const worksheetId = 'yonghu'; // 用户表的工作表ID
+
+        // 构造更新字段 (touxiang 是图片/链接字段)
+        const controls = [
+            {
+                "controlId": "touxiang", 
+                "value": imageUrl
+            }
+        ];
+
+        console.log('更新头像请求参数:', { rowid, worksheetId, controls });
+
+        // 调用明道云更新API
+        const api = new window.MingDaoYunUpdateAPI();
+        const result = await api.getData(rowid, worksheetId, controls);
+
+        if (result.success) {
+            showToast('头像更新成功');
+            // 刷新用户信息并重绘页面
+            if (window.wechatLogin && typeof window.wechatLogin.refreshUserInfo === 'function') {
+                await window.wechatLogin.refreshUserInfo();
+                const container = document.getElementById('main-content');
+                if (container) renderSettings(container);
+            }
+        } else {
+            showToast(result.error_msg || '头像更新失败');
+        }
+    } catch (error) {
+        console.error('更新头像异常:', error);
+        showToast('头像更新失败，请重试');
     }
 }
 
