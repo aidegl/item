@@ -586,6 +586,12 @@
       background-color: rgba(0,0,0,0.05);
       color: #666;
     }
+    .tree-action-icon.active {
+      background-color: #fff7e6;
+      color: #fa8c16;
+      border-color: #ffd591;
+      box-shadow: 0 0 0 1px rgba(250, 140, 22, 0.25);
+    }
     .props-form-row {
       display: flex;
       align-items: center;
@@ -711,13 +717,12 @@
         <ul id="layer-tree" class="tree" data-parent-id="null"></ul>
       </div>
       <div id="tab-global" class="tab-content" style="padding: 10px;">
-        <div style="font-size:12px;color:#666;">全局设置内容（待开发）</div>
       </div>
       <div id="tab-data" class="tab-content" style="padding: 10px;">
         <div style="font-size:12px;color:#666;">数据模型内容（待开发）</div>
       </div>
       <div id="tab-actions" class="tab-content" style="padding: 10px;">
-        <div style="font-size:12px;color:#666;">动作组内容（待开发）</div>
+        <div id="actions-logic-container"></div>
       </div>
     </div>
     <div class="resizer" id="resizer-left"></div>
@@ -816,6 +821,7 @@
     let schemaLoaded = false;
     let isDevMode = false; // 全局开发模式状态
     let actionModeId = null; // 当前处于动作编辑模式的节点ID
+    let actionsLogicCache = null;
 
     function buildTree(items) {
       const rootItems = [];
@@ -1141,6 +1147,8 @@
     }
 
     function renderActionPanelContent(container, item) {
+      container.innerHTML = '';
+
       const title = document.createElement('div');
       title.className = 'props-title';
       title.style.marginTop = '0';
@@ -1151,19 +1159,61 @@
       desc.style.fontSize = '12px';
       desc.style.color = '#666';
       desc.style.marginBottom = '10px';
-      desc.innerText = '请选择目标组件或配置动作流 (页面树结构):';
+      desc.innerText = '当前组件的动作逻辑:';
       container.appendChild(desc);
 
-      const treeContainer = document.createElement('div');
-      const ul = document.createElement('ul');
-      ul.className = 'tree';
-      // 复用 buildTree 构建树数据
-      const treeData = buildTree(rawData);
-      treeData.forEach(node => {
-        ul.appendChild(renderSimpleTreeNode(node));
+      const logicBox = document.createElement('div');
+      logicBox.style.marginBottom = '12px';
+      container.appendChild(logicBox);
+
+      loadActionsLogic().then(data => {
+        renderActionLogicForItem(logicBox, item, data || []);
       });
-      treeContainer.appendChild(ul);
-      container.appendChild(treeContainer);
+    }
+
+    function eventAffectsItem(eventNode, itemId) {
+      const stack = [eventNode];
+      while (stack.length) {
+        const n = stack.pop();
+        const p = n && n.props ? n.props : {};
+        if (p.triggerComponent === itemId || p.target === itemId) {
+          return true;
+        }
+        if (n && n.children && n.children.length) {
+          n.children.forEach(child => stack.push(child));
+        }
+      }
+      return false;
+    }
+
+    function renderActionLogicForItem(container, item, data) {
+      container.innerHTML = '';
+      if (!data || !data.length) {
+        container.innerHTML = '<div style="font-size:12px;color:#999;">暂无动作逻辑配置</div>';
+        return;
+      }
+
+      const tree = buildLogicTree(data);
+      const events = [];
+      const collectEvents = nodes => {
+        nodes.forEach(n => {
+          if (n.type === 'Event') events.push(n);
+          if (n.children && n.children.length) collectEvents(n.children);
+        });
+      };
+      collectEvents(tree);
+
+      const related = events.filter(ev => eventAffectsItem(ev, item.id));
+
+      if (!related.length) {
+        container.innerHTML = '<div style="font-size:12px;color:#999;">当前组件未绑定动作逻辑，可在 actions_logic.json 中配置。</div>';
+        return;
+      }
+
+      related.forEach(ev => {
+        const root = tree.find(n => n.id === ev.id) || ev;
+        container.appendChild(renderEventCard(root));
+      });
     }
 
     function renderSimpleTreeNode(node) {
@@ -1443,7 +1493,6 @@
       
       const actionIcon = document.createElement('span');
       actionIcon.className = 'tree-action-icon';
-      if (actionModeId === node.id) actionIcon.classList.add('active');
       actionIcon.innerText = '!';
       actionIcon.title = '配置动作';
       actionIcon.addEventListener('click', (e) => {
@@ -1846,6 +1895,162 @@
     // ---------------------------------------------------------
     // Left Panel Tabs
     // ---------------------------------------------------------
+    async function loadActionsLogic() {
+      try {
+        if (actionsLogicCache) return actionsLogicCache;
+        const response = await fetch('./actions_logic.json');
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (!Array.isArray(data)) return null;
+        actionsLogicCache = data;
+        return data;
+      } catch (e) {
+        console.error('加载 actions_logic.json 失败:', e);
+        return null;
+      }
+    }
+
+    function buildLogicTree(nodes) {
+      const root = [];
+      const map = {};
+      nodes.forEach(n => {
+        map[n.id] = { ...n, children: [] };
+      });
+      nodes.forEach(n => {
+        const node = map[n.id];
+        if (!n.parentId) {
+          root.push(node);
+        } else if (map[n.parentId]) {
+          map[n.parentId].children.push(node);
+        }
+      });
+      const sortRecursive = list => {
+        list.sort((a, b) => (a.sort || 0) - (b.sort || 0));
+        list.forEach(n => {
+          if (n.children && n.children.length) sortRecursive(n.children);
+        });
+      };
+      sortRecursive(root);
+      return root;
+    }
+
+    function renderActionsLogicView(data) {
+      const container = document.getElementById('actions-logic-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!data || !data.length) {
+        container.innerHTML = '<div style="font-size:12px;color:#666;">暂无动作逻辑配置</div>';
+        return;
+      }
+
+      const tree = buildLogicTree(data);
+      tree.forEach(node => {
+        if (node.type === 'Event') {
+          container.appendChild(renderEventCard(node));
+        }
+      });
+    }
+
+    function renderEventCard(eventNode) {
+      const card = document.createElement('div');
+      card.className = 'global-section';
+
+      const title = document.createElement('div');
+      title.className = 'global-section-title';
+      const icon = eventNode.styleProps && eventNode.styleProps.icon ? eventNode.styleProps.icon : '⚡';
+      title.innerHTML = icon + ' ' + (eventNode.name || eventNode.id);
+      card.appendChild(title);
+
+      const metaRow = document.createElement('div');
+      metaRow.className = 'global-row';
+      const label = document.createElement('span');
+      label.className = 'global-label';
+      label.textContent = '触发';
+      const value = document.createElement('span');
+      value.className = 'global-value';
+      const t = eventNode.props || {};
+      value.textContent = (t.triggerComponent || '') + ' · ' + (t.eventType || '');
+      metaRow.appendChild(label);
+      metaRow.appendChild(value);
+      card.appendChild(metaRow);
+
+      if (t.description) {
+        const descRow = document.createElement('div');
+        descRow.className = 'global-row';
+        const dl = document.createElement('span');
+        dl.className = 'global-label';
+        dl.textContent = '说明';
+        const dv = document.createElement('span');
+        dv.className = 'global-value';
+        dv.style.fontSize = '10px';
+        dv.style.color = '#999';
+        dv.textContent = t.description;
+        descRow.appendChild(dl);
+        descRow.appendChild(dv);
+        card.appendChild(descRow);
+      }
+
+      if (eventNode.children && eventNode.children.length) {
+        const flow = document.createElement('div');
+        flow.style.marginTop = '8px';
+        flow.style.fontSize = '12px';
+        eventNode.children.forEach(child => {
+          flow.appendChild(renderActionFlowNode(child, 0));
+        });
+        card.appendChild(flow);
+      }
+
+      return card;
+    }
+
+    function renderActionFlowNode(node, level) {
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.alignItems = 'flex-start';
+      row.style.marginBottom = '4px';
+
+      const indent = document.createElement('div');
+      indent.style.width = (level * 12) + 'px';
+      row.appendChild(indent);
+
+      const bullet = document.createElement('div');
+      bullet.style.width = '6px';
+      bullet.style.height = '6px';
+      bullet.style.borderRadius = '50%';
+      bullet.style.marginTop = '6px';
+      bullet.style.marginRight = '6px';
+      bullet.style.backgroundColor = node.type === 'Action' ? '#2f54eb' : '#999';
+      row.appendChild(bullet);
+
+      const content = document.createElement('div');
+      const name = document.createElement('div');
+      name.style.fontWeight = '500';
+      name.style.color = '#111';
+      name.textContent = node.name || node.id;
+      const meta = document.createElement('div');
+      meta.style.fontSize = '11px';
+      meta.style.color = '#666';
+      const p = node.props || {};
+      const typeLabel = node.type === 'Action' ? (p.actionType || node.category || '') : (node.type || '');
+      const targetLabel = p.target ? ` · 目标: ${p.target}` : '';
+      meta.textContent = typeLabel + targetLabel;
+      content.appendChild(name);
+      content.appendChild(meta);
+      row.appendChild(content);
+
+      const wrapper = document.createElement('div');
+      wrapper.appendChild(row);
+
+      if (node.children && node.children.length) {
+        node.children.forEach(child => {
+          wrapper.appendChild(renderActionFlowNode(child, level + 1));
+        });
+      }
+
+      return wrapper;
+    }
+
     function initLeftPanelTabs() {
       const tabs = document.querySelectorAll('#tree-container .panel-tab');
       const contents = document.querySelectorAll('.tab-content');
@@ -1871,6 +2076,10 @@
           
           if (tabId === 'global') {
             renderGlobalSettings();
+          } else if (tabId === 'actions') {
+            loadActionsLogic().then(data => {
+              renderActionsLogicView(data || []);
+            });
           }
         });
       });
