@@ -17,22 +17,32 @@ Page({
     const separator = rawBaseUrl.includes('?') ? '&' : '?';
     const baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}`;
 
-    this.setData({ baseUrl: baseUrlWithVersion });
-
-    // 初始化完整URL
-    this.updateWebviewUrl();
+    console.log('[Webview] onLoad, baseUrl:', baseUrlWithVersion);
+    this.setData({ baseUrl: baseUrlWithVersion }, () => {
+      // 确保 baseUrl 设置后再更新 URL
+      this.updateWebviewUrl();
+    });
   },
 
   onShow() {
+    console.log('[Webview] onShow');
     this.updateWebviewUrl();
   },
 
   updateWebviewUrl() {
-    const openid = wx.getStorageSync('openid');
+    const app = getApp();
+    // 优先从全局变量取，其次从缓存取
+    const openid = (app && app.globalData && app.globalData.openid) || wx.getStorageSync('openid');
+    
+    console.log('[Webview] 尝试获取 openid:', openid);
+
     // 使用 onLoad 中生成的固定基础 URL
     const baseUrl = this.data.baseUrl;
 
-    if (!baseUrl) return; // 防止异常
+    if (!baseUrl) {
+      console.log('[Webview] baseUrl 尚未初始化');
+      return;
+    }
 
     if (openid) {
       // 登录状态：添加 Hash 参数（Hash 变化不会导致页面刷新，只会触发 hashchange）
@@ -43,7 +53,7 @@ Page({
       // 只有当 URL 真正变化时才更新（避免重复 setData）
       if (this.data.url !== finalUrl) {
         this.setData({ url: finalUrl });
-        console.log('[Webview] 更新 Hash (无刷新):', finalUrl);
+        console.log('[Webview] 更新 URL (含OpenID):', finalUrl);
       }
     } else {
       // 未登录或匿名：传递空 openid 标识
@@ -51,7 +61,7 @@ Page({
       const emptyUrl = `${baseUrl}#openid=&t=${t}`;
       if (this.data.url !== emptyUrl) {
         this.setData({ url: emptyUrl });
-        console.log('[Webview] 未登录/匿名，更新 Hash:', emptyUrl);
+        console.log('[Webview] 更新 URL (无OpenID):', emptyUrl);
       }
     }
   },

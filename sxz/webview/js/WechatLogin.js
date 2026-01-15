@@ -205,18 +205,25 @@ class WechatLogin {
 
   async handleAuthLogic() {
     const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
+    console.log("[WechatLogin] 收到 Hash 变更:", hash);
     const params = new URLSearchParams(hash);
     const openid = params.get("openid");
 
     if (openid) {
+      console.log("[WechatLogin] 发现 OpenID:", openid);
       if (!this.state.isLoggedIn || this.state.openid !== openid) {
-        await this.loginWithOpenid(openid);
+        console.log("[WechatLogin] 尝试执行登录逻辑...");
+        const success = await this.loginWithOpenid(openid);
+        console.log("[WechatLogin] 登录结果:", success);
+      } else {
+        console.log("[WechatLogin] 已处于登录状态且 OpenID 未变");
       }
       return;
     }
 
     // 检查是否有openid参数但值为空（表示退出登录）
     if (params.has("openid")) {
+      console.log("[WechatLogin] 收到退出登录指令 (openid为空)");
       // 清除本地存储
       localStorage.removeItem("openid");
       localStorage.removeItem("userInfo");
@@ -235,6 +242,7 @@ class WechatLogin {
     const storedUserInfo = localStorage.getItem("userInfo");
 
     if (stored && storedUserInfo) {
+      console.log("[WechatLogin] 从本地存储恢复登录:", stored);
       if (!this.state.isLoggedIn || this.state.openid !== stored) {
         this.state.openid = stored;
         try {
@@ -248,6 +256,7 @@ class WechatLogin {
       return;
     }
 
+    console.log("[WechatLogin] 未登录状态");
     if (this.state.isLoggedIn) {
       this.state.isLoggedIn = false;
       this.state.userInfo = null;

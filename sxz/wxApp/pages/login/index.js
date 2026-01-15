@@ -18,6 +18,7 @@ Page({
               console.log('后端登录接口返回:', loginRes.data);
               if (loginRes.data && loginRes.data.openid) {
                 const openid = loginRes.data.openid;
+                console.log('[Login] 登录成功，设置 openid:', openid);
                 wx.setStorageSync('openid', openid);
                 
                 // 更新全局数据
@@ -25,6 +26,7 @@ Page({
                 if (app) {
                     app.globalData.openid = openid;
                     app.globalData.isAnonymous = false;
+                    console.log('[Login] 全局数据已更新:', app.globalData);
                 }
                 
                 wx.hideLoading();
