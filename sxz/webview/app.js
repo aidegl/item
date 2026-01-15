@@ -3031,7 +3031,7 @@ async function updateNickname(newNickname) {
         }
 
         const rawUser = userInfo.raw;
-        const rowid = rawUser.rowId || rawUser.id;
+        const rowid = userInfo.id || (rawUser && (rawUser.rowid || rawUser.rowId || rawUser.id));
         const worksheetId = 'yonghu'; // 用户表的工作表ID
 
         if (!rowid) {

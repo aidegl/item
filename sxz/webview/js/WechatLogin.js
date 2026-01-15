@@ -197,6 +197,10 @@ class WechatLogin {
       {
         controlId: "mingcheng", // 假设标题字段/用户名为 mingcheng
         value: nickname,
+      },
+      {
+        controlId: "dengji",
+        value: "免费版",
       }
     ];
 
@@ -247,6 +251,7 @@ class WechatLogin {
     }
 
     return {
+      id: userData.rowid, // 确保包含 rowid 用于后续修改
       name,
       avatar:
         avatarFromTouxiang ||
@@ -335,6 +340,12 @@ class WechatLogin {
 
   getUserInfo() {
     return this.state.isLoggedIn ? this.state.userInfo : null;
+  }
+
+  async refreshUserInfo() {
+    if (!this.state.isLoggedIn || !this.state.openid) return;
+    this.log("正在刷新用户信息...");
+    await this.loginWithOpenid(this.state.openid);
   }
 
   getOpenid() {
