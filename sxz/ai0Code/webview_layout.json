@@ -1,7 +1,25 @@
 [
   {
-    "id": "root",
+    "id": "app_frontend",
     "parentId": null,
+    "sort": 1,
+    "type": "System",
+    "name": "前台",
+    "basicProps": {},
+    "styleProps": {}
+  },
+  {
+    "id": "app_backend",
+    "parentId": null,
+    "sort": 2,
+    "type": "System",
+    "name": "后台",
+    "basicProps": {},
+    "styleProps": {}
+  },
+  {
+    "id": "root",
+    "parentId": "app_frontend",
     "sort": 1,
     "type": "Page",
     "name": "陪诊助手首页",
