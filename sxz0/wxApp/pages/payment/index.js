@@ -176,12 +176,21 @@ Page({
     this.setData({
       showModal: false
     });
+    // 如果是成功状态，点击关闭或返回按钮也应该跳转
+    if (this.data.modalType === 'success') {
+      this.goBack();
+    }
   },
 
   // 跳转到我的页面
   goToMyPage: function() {
-    wx.navigateTo({
-      url: '/pages/my/my'
+    // 成功后跳转，通常跳转到个人中心或会员中心
+    wx.switchTab({
+      url: '/pages/my/index' // 假设个人中心是 tab 页
+    }).catch(() => {
+      wx.navigateTo({
+        url: '/pages/my/index'
+      });
     });
   },
 
@@ -213,6 +222,13 @@ Page({
   },
 
   goBack: function () {
-    wx.navigateBack();
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack();
+    } else {
+      wx.reLaunch({
+        url: '/pages/index/index'
+      });
+    }
   }
 });

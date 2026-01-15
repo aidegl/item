@@ -15,9 +15,9 @@
 
     body {
       margin: 0;
-      padding: 20px;
+      padding: 10px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #e0e0e0;
+      background-color: #f5f5f7;
       box-sizing: border-box;
       overflow: hidden;
       display: flex;
@@ -25,10 +25,16 @@
     }
 
     #toolbar {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-      margin-bottom: 10px;
+      display: none;
+    }
+
+    /* Position the dev mode button absolutely */
+    #toggle-dev-mode {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     #json-input {
@@ -44,9 +50,35 @@
 
     #app {
       display: flex;
-      gap: 20px;
+      /* gap: 20px; */
       flex: 1 1 auto;
       min-height: 0;
+    }
+
+    .resizer {
+      width: 6px;
+      background: #e0e0e0;
+      cursor: col-resize;
+      flex: 0 0 auto;
+      transition: background 0.2s;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .resizer:hover, .resizer.resizing {
+      background: #1890ff;
+    }
+    
+    /* 防止拖动时选中文字 */
+    body.resizing {
+      cursor: col-resize;
+      user-select: none;
+    }
+    
+    body.resizing iframe {
+      pointer-events: none; /* 防止拖动时iframe捕获鼠标事件 */
     }
 
     #tree-container {
@@ -56,6 +88,7 @@
       border-radius: 8px;
       overflow: auto;
       height: 100%;
+      flex-shrink: 0;
     }
 
     .tree {
@@ -131,24 +164,146 @@
     /* 渲染区域样式 */
     #canvas-container {
       flex: 1;
-      background: #ccc;
-      padding: 20px;
+      background: #f0f2f5;
+      padding: 0;
       overflow: auto;
       border-radius: 8px;
       height: 100%;
-      position: relative;
+      position: relative; /* Ensure absolute positioning works inside */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #ai-input-container {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70%;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+    #ai-input {
+      flex: 1;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px 12px;
+      outline: none;
+      font-size: 14px;
+      resize: none;
+      height: 60px;
+      font-family: inherit;
+    }
+    #ai-send-btn {
+      background: #1890ff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0 16px;
+      cursor: pointer;
+      font-weight: 500;
+      height: auto; /* Allow button to stretch or center if needed, or fixed height */
+      align-self: flex-end; /* Align to bottom of textarea */
+      height: 32px;
+      margin-bottom: 2px;
+    }
+
+    /* Global Settings Panel Styles */
+    .global-section {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+    .global-section:last-child {
+      border-bottom: none;
+    }
+    .global-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .global-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .global-label {
+      color: #666;
+    }
+    .global-value {
+      color: #111;
+      font-weight: 500;
+    }
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .color-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .color-preview {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .color-name {
+      font-size: 10px;
+      color: #888;
+      text-align: center;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .route-tag {
+      display: inline-block;
+      padding: 2px 6px;
+      background: #f0f5ff;
+      color: #2f54eb;
+      border: 1px solid #adc6ff;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-right: 6px;
+      margin-bottom: 6px;
     }
 
     #right-panel {
       width: 360px;
       background: #fff;
-      padding: 12px;
+      padding: 0; /* Remove padding to allow full-width tabs */
       border-radius: 8px;
-      overflow: auto;
+      overflow: hidden; /* Prevent scroll on panel itself, use inner scroll */
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 0; /* Manage gap internally */
       height: 100%;
+      flex-shrink: 0;
+    }
+
+    #props-panel-content {
+      padding: 12px;
+      overflow: auto;
+      flex: 1;
     }
 
     #props-header {
@@ -198,13 +353,13 @@
     }
 
     .props-pre {
-      margin: 0;
+      background: #f8f8f8;
       padding: 8px;
-      background: #f7f7f7;
-      border-radius: 6px;
-      font-size: 12px;
-      overflow: auto;
-      max-height: 180px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
 
     /* 调试信息样式 */
@@ -360,12 +515,179 @@
       transition: all 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
       color: rgba(0, 0, 0, 0.85);
     }
+
+    /* 手机预览容器 */
+    .phone-preview-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: transparent;
+      padding: 40px 0;
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 667px;
+      background: #000;
+      border-radius: 40px;
+      padding: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      position: relative;
+      border: 4px solid #333;
+    }
+
+    /* 手机听筒 */
+    .phone-frame::before {
+      content: '';
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 5px;
+      background: #222;
+      border-radius: 10px;
+      z-index: 2;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 30px;
+      overflow: hidden;
+      border: none;
+    }
+
+    .phone-screen iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .tree-action-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      margin-left: auto;
+      cursor: pointer;
+      color: #999;
+      font-weight: bold;
+      font-family: serif;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .tree-action-icon:hover {
+      background-color: rgba(0,0,0,0.05);
+      color: #666;
+    }
+    .props-form-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .props-form-label {
+      width: 100px;
+      color: #666;
+      flex-shrink: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-right: 8px;
+    }
+    .props-form-input {
+      flex: 1;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+      transition: all 0.3s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .props-form-input:focus {
+      border-color: #40a9ff;
+      outline: 0;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+    .props-input-group {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .props-color-picker {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      background: none;
+      flex-shrink: 0;
+    }
+    .props-color-picker::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    .props-color-picker::-webkit-color-swatch {
+      border: none;
+      border-radius: 3px;
+    }
+    .panel-tabs {
+      display: flex;
+      background: #f0f0f0;
+      border-bottom: 1px solid #ddd;
+    }
+    .panel-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 4px;
+      font-size: 12px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: #666;
+      transition: all 0.2s;
+      box-sizing: border-box;
+    }
+    .panel-tab:hover {
+      background: #e6e6e6;
+    }
+    .panel-tab.active {
+      color: #1890ff;
+      border-bottom-color: #1890ff;
+      background: #fff;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+      flex: 1;
+      overflow: auto;
+      height: 100%;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    #tree-container {
+      display: flex;
+      flex-direction: column;
+      padding: 0; /* Override previous padding */
+    }
   </style>
 </head>
 
 <body>
 
   <div id="toolbar">
+    <!-- Items hidden via CSS, but we move the dev mode button out -->
     <button id="toggle-debug">显示/隐藏数据</button>
     <input type="file" id="file-input" accept=".json,application/json">
     <button id="export-json-btn">导出JSON</button>
@@ -374,24 +696,51 @@
     <button id="import-json-btn">导入JSON</button>
   </div>
 
+  <!-- Moved out of toolbar to be positioned absolutely -->
+  <!-- Removed from here, moved into canvas-container -->
+
   <div id="app">
     <div id="tree-container">
-      <ul id="layer-tree" class="tree" data-parent-id="null"></ul>
+      <div class="panel-tabs">
+        <div class="panel-tab active" data-tab="page">页面</div>
+        <div class="panel-tab" data-tab="global">全局设置</div>
+        <div class="panel-tab" data-tab="data">数据</div>
+        <div class="panel-tab" data-tab="actions">动作组</div>
+      </div>
+      <div id="tab-page" class="tab-content active" style="padding: 10px;">
+        <ul id="layer-tree" class="tree" data-parent-id="null"></ul>
+      </div>
+      <div id="tab-global" class="tab-content" style="padding: 10px;">
+        <div style="font-size:12px;color:#666;">全局设置内容（待开发）</div>
+      </div>
+      <div id="tab-data" class="tab-content" style="padding: 10px;">
+        <div style="font-size:12px;color:#666;">数据模型内容（待开发）</div>
+      </div>
+      <div id="tab-actions" class="tab-content" style="padding: 10px;">
+        <div style="font-size:12px;color:#666;">动作组内容（待开发）</div>
+      </div>
     </div>
+    <div class="resizer" id="resizer-left"></div>
     <div id="canvas-container">
+      <button id="toggle-dev-mode" style="padding: 4px 12px; border: none; border-radius: 4px; color: #fff; font-weight: bold; cursor: pointer; transition: all 0.3s; min-width: 120px;">加载中...</button>
+      
+      <div id="ai-input-container">
+        <textarea id="ai-input" placeholder="输入指令或自动生成..."></textarea>
+        <button id="ai-send-btn">复制</button>
+      </div>
       <!-- 动态内容将渲染在这里 -->
     </div>
+    <div class="resizer" id="resizer-right"></div>
     <div id="right-panel">
-      <div id="props-header">
-        <div id="props-header-title">属性</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <button id="load-schema-btn">加载字段JSON</button>
-          <input type="file" id="schema-file-input" accept=".json,application/json" style="display:none">
-        </div>
+      <div class="panel-tabs" id="right-panel-tabs">
+        <div class="panel-tab active" data-tab="design">设计</div>
+        <div class="panel-tab" data-tab="data">数据</div>
+        <div class="panel-tab" data-tab="action">动作</div>
       </div>
-      <div id="schema-status"></div>
-      <div id="props-panel" class="props-card"></div>
-      <div id="debug-info" class="props-card">
+      <div id="props-panel-content">
+        <!-- Dynamic content goes here -->
+      </div>
+      <div id="debug-info" class="props-card" style="margin: 12px;">
         <div class="props-title">结构数据 (实时更新)</div>
         <pre id="json-output" class="props-pre"></pre>
       </div>
@@ -405,145 +754,68 @@
         "parentId": null,
         "sort": 1,
         "type": "Page",
-        "name": "示例页面",
+        "name": "页面根节点",
         "basicProps": {
-          "padding": "20px",
-          "backgroundColor": "#f0f2f5",
-          "height": "100%"
-        }
-      },
-      {
-        "id": "header_card",
-        "parentId": "page_root",
-        "sort": 1,
-        "type": "Card",
-        "name": "头部卡片",
-        "basicProps": {
-          "title": "工作台",
-          "marginBottom": "16px"
-        }
-      },
-      {
-        "id": "search_row",
-        "parentId": "header_card",
-        "sort": 1,
-        "type": "Row",
-        "name": "搜索行",
-        "basicProps": {
-          "gutter": 16,
+          "padding": "0",
+          "backgroundColor": "transparent",
+          "height": "100%",
           "display": "flex",
-          "gap": "16px"
+          "justifyContent": "center",
+          "alignItems": "center"
         }
       },
       {
-        "id": "search_input",
-        "parentId": "search_row",
+        "id": "mobile_preview",
+        "parentId": "page_root",
         "sort": 1,
-        "type": "Input",
-        "name": "搜索框",
+        "type": "PhonePreview",
+        "name": "手机实时预览 (HTML)",
         "basicProps": {
-          "placeholder": "请输入关键词",
-          "width": "200px"
+          "url": "http://localhost:5500/webview/index.html?dev=1"
         }
       },
       {
-        "id": "search_btn",
-        "parentId": "search_row",
-        "sort": 2,
-        "type": "Button",
-        "name": "搜索按钮",
-        "basicProps": {
-          "text": "查询",
-          "type": "primary"
-        }
-      },
-      {
-        "id": "main_content",
+        "id": "mock_header",
         "parentId": "page_root",
         "sort": 2,
-        "type": "Row",
-        "name": "主内容区",
-        "basicProps": {
-           "display": "flex",
-           "gap": "16px"
-        }
+        "type": "Header",
+        "name": "顶部导航栏",
+        "basicProps": { "height": "60px", "backgroundColor": "#fff" }
       },
       {
-        "id": "left_col",
-        "parentId": "main_content",
-        "sort": 1,
-        "type": "Col",
-        "name": "左侧列表",
-        "basicProps": {
-          "flex": "1"
-        }
+        "id": "mock_content",
+        "parentId": "page_root",
+        "sort": 3,
+        "type": "Content",
+        "name": "内容区",
+        "basicProps": { "padding": "20px" }
       },
       {
-        "id": "data_table",
-        "parentId": "left_col",
+        "id": "mock_table",
+        "parentId": "mock_content",
         "sort": 1,
         "type": "Table",
         "name": "数据表格",
-        "basicProps": {
-          "columns": [
-            {"title": "姓名", "dataIndex": "name"},
-            {"title": "年龄", "dataIndex": "age"},
-            {"title": "地址", "dataIndex": "address"}
-          ]
-        }
+        "basicProps": { "columns": 5, "rows": 10 }
       },
       {
-        "id": "right_col",
-        "parentId": "main_content",
-        "sort": 2,
-        "type": "Col",
-        "name": "右侧详情",
-        "basicProps": {
-          "width": "300px"
-        }
-      },
-      {
-        "id": "info_card",
-        "parentId": "right_col",
-        "sort": 1,
-        "type": "Card",
-        "name": "详情卡片",
-        "basicProps": {
-          "title": "详细信息"
-        }
-      },
-      {
-        "id": "user_avatar",
-        "parentId": "info_card",
-        "sort": 1,
-        "type": "Avatar",
-        "name": "用户头像",
-        "basicProps": {
-          "src": "https://api.dicebear.com/7.x/miniavs/svg?seed=1",
-          "size": 64
-        },
-        "styleProps": {
-          "display": "block",
-          "margin": "0 auto 16px"
-        }
-      },
-      {
-        "id": "user_desc",
-        "parentId": "info_card",
-        "sort": 2,
-        "type": "Descriptions",
-        "name": "描述列表",
-        "basicProps": {
-          "column": 1
-        }
+        "id": "mock_footer",
+        "parentId": "page_root",
+        "sort": 4,
+        "type": "Footer",
+        "name": "底部版权信息",
+        "basicProps": { "height": "40px", "textAlign": "center" }
       }
     ];
 
     let rawData = JSON.parse(JSON.stringify(defaultData));
     let collapsedState = {};
     let selectedId = null;
+    let currentRightTab = 'design'; // 'design', 'data', 'action'
     let componentSchemaMap = {};
     let schemaLoaded = false;
+    let isDevMode = false; // 全局开发模式状态
+    let actionModeId = null; // 当前处于动作编辑模式的节点ID
 
     function buildTree(items) {
       const rootItems = [];
@@ -715,6 +987,43 @@
       } else if (type === 'Descriptions') {
          // 简单模拟
          el.innerHTML = '<div style="font-size:14px;color:#333;">Descriptions Component (Placeholder)</div>';
+      } else if (type === 'PhonePreview') {
+        // 渲染手机预览
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'phone-preview-container';
+        
+        const frame = document.createElement('div');
+        frame.className = 'phone-frame';
+        
+        const screen = document.createElement('div');
+        screen.className = 'phone-screen';
+        
+        const iframe = document.createElement('iframe');
+        // 默认加载 webview/index.html 并开启开发模式
+        iframe.src = props.url || 'http://localhost:5500/webview/index.html?dev=1';
+        iframe.id = 'preview-iframe';
+        
+        screen.appendChild(iframe);
+        frame.appendChild(screen);
+        previewContainer.appendChild(frame);
+        el.appendChild(previewContainer);
+        
+        // 监听 iframe 消息
+        window.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'dev-class-selected') {
+            console.log('从 Iframe 收到选中类名:', event.data.className);
+          }
+        });
+
+        // 当 iframe 加载完成后，同步当前的开发模式状态
+        iframe.addEventListener('load', () => {
+          if (iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+              type: 'toggle-dev-mode',
+              active: isDevMode
+            }, '*');
+          }
+        });
       }
       // 对于其他组件，如果没有特殊处理且是容器，就默认渲染
       // 如果不是容器且没有 children，显示一个占位符
@@ -761,59 +1070,282 @@
           return acc;
         }, {});
         schemaLoaded = true;
-        updateSchemaStatus();
-        renderPropertiesPanel();
+        // updateSchemaStatus(); // 状态栏已移除，不再调用
+        renderRightPanel();
       } catch (e) {
         schemaLoaded = false;
-        updateSchemaStatus();
+        // updateSchemaStatus(); // 状态栏已移除，不再调用
       }
     }
 
     function updateSchemaStatus() {
-      const el = document.getElementById('schema-status');
-      if (!el) return;
-      if (schemaLoaded) {
-        el.textContent = '字段库：已加载 ziduan.json';
-      } else {
-        el.textContent = '字段库：未加载（可点击“加载字段JSON”选择文件）';
+      // 状态栏已移除，函数置空
+    }
+
+    function renderRightPanel() {
+      const container = document.getElementById('props-panel-content');
+      if (!container) return;
+      
+      // Sync tab UI (because currentRightTab might be changed programmatically)
+      const tabs = document.querySelectorAll('#right-panel-tabs .panel-tab');
+      tabs.forEach(tab => {
+        if (tab.getAttribute('data-tab') === currentRightTab) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+
+      const item = selectedId ? rawData.find(it => it.id === selectedId) : null;
+      
+      // Clear panel
+      container.innerHTML = '';
+
+      if (!item) {
+        container.innerHTML = '<div style="padding:10px; font-size:12px; color:#666;">请先选择一个组件以查看其配置。</div>';
+        return;
+      }
+
+      if (currentRightTab === 'design') {
+        renderPropertiesPanelContent(container, item);
+      } else if (currentRightTab === 'data') {
+        renderDataPanelContent(container, item);
+      } else if (currentRightTab === 'action') {
+        renderActionPanelContent(container, item);
       }
     }
 
-    function renderPropertiesPanel() {
-      const panel = document.getElementById('props-panel');
-      if (!panel) return;
-      const item = selectedId ? rawData.find(it => it.id === selectedId) : null;
-      if (!item) {
-        panel.innerHTML = '<div class="props-title">未选中节点</div><div style="font-size:12px;color:#666;">点击左侧树或中间画布的组件以查看参数</div>';
+    function initRightPanelTabs() {
+      const tabs = document.querySelectorAll('#right-panel-tabs .panel-tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabId = tab.getAttribute('data-tab');
+          if (currentRightTab === tabId) return;
+
+          currentRightTab = tabId;
+          // Sync with actionModeId
+          if (currentRightTab === 'action' && selectedId) {
+            actionModeId = selectedId;
+          } else {
+            actionModeId = null;
+          }
+          
+          renderTree(); // Update icons (exclamation mark state)
+          renderRightPanel(); // Update panel content
+        });
+      });
+    }
+
+    function renderDataPanelContent(container, item) {
+      container.innerHTML = '<div style="padding:10px; color:#666; font-size:12px;">数据绑定配置 (待开发)</div>';
+    }
+
+    function renderActionPanelContent(container, item) {
+      const title = document.createElement('div');
+      title.className = 'props-title';
+      title.style.marginTop = '0';
+      title.textContent = `动作配置: ${item.name || item.id}`;
+      container.appendChild(title);
+      
+      const desc = document.createElement('div');
+      desc.style.fontSize = '12px';
+      desc.style.color = '#666';
+      desc.style.marginBottom = '10px';
+      desc.innerText = '请选择目标组件或配置动作流 (页面树结构):';
+      container.appendChild(desc);
+
+      const treeContainer = document.createElement('div');
+      const ul = document.createElement('ul');
+      ul.className = 'tree';
+      // 复用 buildTree 构建树数据
+      const treeData = buildTree(rawData);
+      treeData.forEach(node => {
+        ul.appendChild(renderSimpleTreeNode(node));
+      });
+      treeContainer.appendChild(ul);
+      container.appendChild(treeContainer);
+    }
+
+    function renderSimpleTreeNode(node) {
+      const li = document.createElement('li');
+      li.className = 'tree-node';
+      const row = document.createElement('div');
+      row.className = 'tree-row';
+      row.style.cursor = 'default';
+      
+      const label = document.createElement('span');
+      label.className = 'node-label';
+      label.textContent = node.name || node.id;
+      row.appendChild(label);
+      
+      const type = document.createElement('span');
+      type.className = 'node-type';
+      type.textContent = node.type;
+      type.style.marginLeft = '8px';
+      row.appendChild(type);
+
+      li.appendChild(row);
+      
+      if (node.children && node.children.length > 0) {
+        const ul = document.createElement('ul');
+        ul.className = 'children';
+        node.children.forEach(child => ul.appendChild(renderSimpleTreeNode(child)));
+        li.appendChild(ul);
+      }
+      return li;
+    }
+
+    const COMMON_STYLE_PROPS = [
+      'width', 'height', 'padding', 'margin', 
+      'display', 'flexDirection', 'justifyContent', 'alignItems', 
+      'backgroundColor', 'color', 'fontSize', 'fontWeight', 
+      'border', 'borderRadius', 'textAlign'
+    ];
+
+    function renderPropertiesPanelContent(container, item) {
+      container.innerHTML = `
+        <div class="props-title" style="margin-top:0;">基本属性 basicProps</div>
+        <div id="basic-props-form"></div>
+        <div class="props-title" style="margin-top:10px;">样式属性 styleProps</div>
+        <div id="style-props-form"></div>
+      `;
+
+      // 渲染基本属性表单
+      renderPropsForm(
+        container.querySelector('#basic-props-form'), 
+        item.basicProps || {}, 
+        (newProps, skipRefresh, key, val) => updateNodeProps(item.id, 'basicProps', newProps, skipRefresh, key, val)
+      );
+
+      // 渲染样式属性表单
+      renderPropsForm(
+        container.querySelector('#style-props-form'), 
+        item.styleProps || {}, 
+        (newProps, skipRefresh, key, val) => updateNodeProps(item.id, 'styleProps', newProps, skipRefresh, key, val),
+        COMMON_STYLE_PROPS
+      );
+    }
+
+    function renderPropsForm(container, currentProps, onUpdate, commonKeys = []) {
+      const existingKeys = Object.keys(currentProps);
+      const allKeys = Array.from(new Set([...existingKeys, ...commonKeys]));
+      
+      if (allKeys.length === 0) {
+        container.innerHTML = '<div style="font-size:12px;color:#999;padding:4px;">无属性</div>';
         return;
       }
-      const schema = componentSchemaMap[item.type] || null;
-      const schemaHtml = schema ? `
-        <div class="props-title">组件说明</div>
-        <div class="kv">
-          <div class="k">组件</div><div class="v">${escapeHtml(schema.cnName || '')}（${escapeHtml(schema.name || '')}）</div>
-          <div class="k">分类</div><div class="v">${escapeHtml(schema.category || '')}</div>
-          <div class="k">描述</div><div class="v">${escapeHtml(schema.description || '')}</div>
-        </div>
-      ` : `
-        <div class="props-title">组件说明</div>
-        <div style="font-size:12px;color:#666;">字段库中未找到 ${escapeHtml(item.type)} 的定义</div>
-      `;
-      panel.innerHTML = `
-        <div class="props-title">${escapeHtml(item.name || item.id)}（${escapeHtml(item.type)}）</div>
-        <div class="kv" style="margin-bottom:10px;">
-          <div class="k">id</div><div class="v">${escapeHtml(item.id)}</div>
-          <div class="k">parentId</div><div class="v">${escapeHtml(item.parentId === null ? 'null' : String(item.parentId))}</div>
-          <div class="k">sort</div><div class="v">${escapeHtml(String(item.sort ?? ''))}</div>
-        </div>
-        ${schemaHtml}
-        <div class="props-title" style="margin-top:10px;">基本属性basicProps</div>
-        <pre class="props-pre">${escapeHtml(JSON.stringify(item.basicProps || {}, null, 2))}</pre>
-        <div class="props-title" style="margin-top:10px;">样式属性styleProps</div>
-        <pre class="props-pre">${escapeHtml(JSON.stringify(item.styleProps || {}, null, 2))}</pre>
-        <div class="props-title" style="margin-top:10px;">事件属性eventProps</div>
-        <pre class="props-pre">${escapeHtml(JSON.stringify(item.eventProps || {}, null, 2))}</pre>
-      `;
+
+      const colorKeywords = ['color', 'background', 'fill', 'stroke'];
+
+      allKeys.forEach(key => {
+        const row = document.createElement('div');
+        row.className = 'props-form-row';
+        
+        const label = document.createElement('div');
+        label.className = 'props-form-label';
+        label.title = key;
+        label.textContent = key;
+        row.appendChild(label);
+        
+        const input = document.createElement('input');
+        input.className = 'props-form-input';
+        input.value = currentProps[key] || '';
+        input.placeholder = '空';
+        
+        const handleUpdate = (val, skipRefresh = false) => {
+          const newProps = { ...currentProps };
+          if (val === '') {
+            delete newProps[key];
+          } else {
+            newProps[key] = val;
+          }
+          onUpdate(newProps, skipRefresh, key, val);
+        };
+
+        input.addEventListener('change', (e) => handleUpdate(e.target.value.trim()));
+
+        // Check if it's a color property
+        const isColor = colorKeywords.some(k => key.toLowerCase().includes(k));
+
+        if (isColor) {
+          const group = document.createElement('div');
+          group.className = 'props-input-group';
+          
+          const picker = document.createElement('input');
+          picker.type = 'color';
+          picker.className = 'props-color-picker';
+          
+          // Initial value for picker
+          let initialColor = '#000000';
+          const val = currentProps[key];
+          if (val && val.startsWith('#') && (val.length === 7)) {
+            initialColor = val;
+          }
+          picker.value = initialColor;
+
+          // Picker updates input and triggers update
+          picker.addEventListener('input', (e) => {
+            input.value = e.target.value;
+            // Real-time update for better UX, skip panel refresh to prevent losing focus
+            handleUpdate(e.target.value, true);
+          });
+          picker.addEventListener('change', (e) => {
+            input.value = e.target.value;
+            handleUpdate(e.target.value, false);
+          });
+          
+          // Input updates picker
+          input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (val.startsWith('#') && val.length === 7) {
+              picker.value = val;
+            }
+          });
+
+          group.appendChild(input);
+          group.appendChild(picker);
+          row.appendChild(group);
+        } else {
+          row.appendChild(input);
+        }
+
+        container.appendChild(row);
+      });
+    }
+
+    function updateNodeProps(nodeId, propType, newProps, skipRefresh = false, changedKey = null, changedValue = null) {
+      rawData = rawData.map(node => {
+        if (node.id === nodeId) {
+          return { ...node, [propType]: newProps };
+        }
+        return node;
+      });
+
+      // Auto-generate AI prompt
+      if (changedKey !== null && !skipRefresh) {
+        const node = rawData.find(n => n.id === nodeId);
+        if (node) {
+            const prompt = `将${node.name || node.id}的${changedKey}改为${changedValue}`;
+            const aiInput = document.getElementById('ai-input');
+            if (aiInput) {
+                const currentVal = aiInput.value;
+                aiInput.value = (currentVal ? currentVal + '\n' : '') + prompt + '；';
+            }
+        }
+      }
+
+      // 重新渲染画布和属性面板（保持焦点）
+      renderCanvas();
+      // 这里不重新渲染整个属性面板，避免输入框失去焦点，但需要更新数据
+      // 实际应用中可能需要更精细的更新策略，这里简化处理，只更新画布
+      // 如果需要实时反馈，可以考虑 input 事件而不是 change
+      // 为了保持简单，暂时不重绘属性面板，因为输入框的值已经是最新的了
+      // 但是如果删除了属性，可能需要重绘？
+      // 现在的逻辑是 change 触发，已经失焦或回车了，所以重绘是可以的
+      if (!skipRefresh) {
+        renderPropertiesPanel();
+      }
+      setDebugOutput(rawData);
     }
 
     function escapeHtml(str) {
@@ -848,8 +1380,21 @@
     function selectNode(id) {
       if (!id) return;
       selectedId = id;
-      renderPropertiesPanel();
+      renderRightPanel();
       refreshSelectionClasses();
+    }
+
+    function toggleActionMode(id) {
+      if (actionModeId === id) {
+        actionModeId = null;
+        currentRightTab = 'design';
+      } else {
+        actionModeId = id;
+        selectNode(id); // 确保选中
+        currentRightTab = 'action';
+      }
+      renderTree();
+      renderRightPanel();
     }
 
     function renderTree() {
@@ -895,9 +1440,22 @@
       const type = document.createElement('span');
       type.className = 'node-type';
       type.textContent = node.type;
+      
+      const actionIcon = document.createElement('span');
+      actionIcon.className = 'tree-action-icon';
+      if (actionModeId === node.id) actionIcon.classList.add('active');
+      actionIcon.innerText = '!';
+      actionIcon.title = '配置动作';
+      actionIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleActionMode(node.id);
+      });
+
       row.appendChild(toggle);
       row.appendChild(label);
       row.appendChild(type);
+      row.appendChild(actionIcon);
+      
       row.addEventListener('click', () => selectNode(node.id));
       li.appendChild(row);
       const ul = document.createElement('ul');
@@ -965,7 +1523,7 @@
       const fromList = evt.from;
       const descendants = getDescendantsIds(itemId);
       if (newParentId && (newParentId === itemId || descendants.includes(newParentId))) {
-        renderTree();
+        renderAll();
         return;
       }
       rawData = rawData.map(it => it.id === itemId ? { ...it, parentId: newParentId } : it);
@@ -981,28 +1539,65 @@
           rawData = rawData.map(it => it.id === id ? { ...it, sort: idx + 1 } : it);
         });
       }
-      renderTree();
-      renderCanvas();
-      setDebugOutput(rawData);
+      renderAll();
     }
 
     function renderCanvas() {
       const container = document.getElementById('canvas-container');
+      // Preserve the dev mode button if it exists
+      const devModeBtn = document.getElementById('toggle-dev-mode');
+      const aiInputContainer = document.getElementById('ai-input-container');
+      
       container.innerHTML = '';
-      const treeData = buildTree(rawData);
-      treeData.forEach(rootNode => {
-        const dom = renderComponent(rootNode);
-        container.appendChild(dom);
-      });
-      applySortable(container);
+      
+      if (devModeBtn) {
+        container.appendChild(devModeBtn);
+      }
+      if (aiInputContainer) {
+        container.appendChild(aiInputContainer);
+      }
+      
+      // 始终渲染手机预览组件，实现结构树与预览的完全分离
+      // 这里的配置是固定的，不受 webview_layout.json 变化的影响
+      const phonePreviewNode = {
+        "id": "mobile_preview",
+        "parentId": null,
+        "sort": 1,
+        "type": "PhonePreview",
+        "name": "手机实时预览 (HTML)",
+        "basicProps": {
+          "url": "http://localhost:5500/webview/index.html?dev=1"
+        }
+      };
+
+      const dom = renderComponent({ ...phonePreviewNode, children: [] });
+      container.appendChild(dom);
+      
       refreshSelectionClasses();
     }
 
-    function init() {
+    function renderAll() {
       renderCanvas();
       renderTree();
-      renderPropertiesPanel();
+      renderRightPanel();
       setDebugOutput(rawData);
+    }
+
+    async function init() {
+      try {
+        const response = await fetch('./webview_layout.json');
+        if (response.ok) {
+          rawData = await response.json();
+          // Set default selection to "前台" (app_frontend)
+          const frontendNode = rawData.find(item => item.name === '前台' || item.id === 'app_frontend');
+          if (frontendNode) {
+            selectedId = frontendNode.id;
+          }
+        }
+      } catch (e) {
+        console.error('加载 webview_layout.json 失败:', e);
+      }
+      renderAll();
     }
 
     function applySortable(rootEl) {
@@ -1041,8 +1636,8 @@
       const toggleBtn = document.getElementById('toggle-debug');
       const fileInput = document.getElementById('file-input');
       const jsonInput = document.getElementById('json-input');
-      const loadSchemaBtn = document.getElementById('load-schema-btn');
-      const schemaFileInput = document.getElementById('schema-file-input');
+      // 头部和状态栏已移除，不再绑定 loadSchemaBtn 等事件
+      
       importBtn.addEventListener('click', () => {
         const val = jsonInput.value.trim();
         if (!val) return;
@@ -1050,7 +1645,7 @@
           const parsed = JSON.parse(val);
           if (!Array.isArray(parsed)) return;
           rawData = parsed;
-          init();
+          renderAll();
         } catch (e) { }
       });
       exportBtn.addEventListener('click', () => {
@@ -1065,9 +1660,33 @@
         URL.revokeObjectURL(url);
       });
       resetBtn.addEventListener('click', () => {
-        rawData = JSON.parse(JSON.stringify(defaultData));
-        init();
+        init(); // 重置按钮重新从 webview_layout.json 加载
       });
+      
+      const devModeBtn = document.getElementById('toggle-dev-mode');
+      if (devModeBtn) {
+        // 初始化按钮样式
+        const updateBtnStyle = () => {
+          devModeBtn.innerText = `当前状态: ${isDevMode ? '编辑中' : '预览中'}`;
+          devModeBtn.style.backgroundColor = isDevMode ? '#ff4d4f' : '#52c41a';
+          devModeBtn.style.color = isDevMode ? '#fff' : '#333';
+        };
+        updateBtnStyle();
+
+        devModeBtn.addEventListener('click', () => {
+          isDevMode = !isDevMode;
+          updateBtnStyle();
+          
+          const iframe = document.getElementById('preview-iframe');
+          if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+              type: 'toggle-dev-mode',
+              active: isDevMode
+            }, '*');
+          }
+        });
+      }
+
       toggleBtn.addEventListener('click', () => {
         const panel = document.getElementById('debug-info');
         if (panel.style.display === 'none') {
@@ -1084,10 +1703,11 @@
           const parsed = JSON.parse(text);
           if (!Array.isArray(parsed)) return;
           rawData = parsed;
-          init();
+          renderAll();
         } catch (e) { }
         fileInput.value = '';
       });
+      /* 移除 schema 加载相关事件绑定
       loadSchemaBtn.addEventListener('click', () => {
         schemaFileInput.click();
       });
@@ -1104,20 +1724,239 @@
           }, {});
           schemaLoaded = true;
           updateSchemaStatus();
-          renderPropertiesPanel();
+          renderRightPanel();
         } catch (err) {
           schemaLoaded = false;
           updateSchemaStatus();
         }
         schemaFileInput.value = '';
       });
+      */
     }
 
     // 启动
     init();
     bindToolbar();
-    updateSchemaStatus();
+    // updateSchemaStatus(); // 状态栏已移除，不再调用
     loadSchemaFromUrl();
+    
+    // ---------------------------------------------------------
+    // Global Settings (Webview Config)
+    // ---------------------------------------------------------
+    let webviewConfig = {};
+
+    async function loadWebviewConfig() {
+      try {
+        const response = await fetch('./webview_config.json');
+        if (!response.ok) {
+           // Fallback default config if file load fails
+           webviewConfig = {
+              "project": { "name": "Default Project", "version": "0.0.0", "description": "No config found" },
+              "theme": { "colors": {}, "typography": {}, "layout": {} },
+              "routes": []
+           };
+           return;
+        }
+        webviewConfig = await response.json();
+      } catch (error) {
+        console.error('Failed to load webview_config.json:', error);
+      }
+    }
+
+    // Call this before init
+    loadWebviewConfig().then(() => {
+        // Initial render if tab is already active (unlikely on load but good for reload)
+        const globalTab = document.getElementById('tab-global');
+        if (globalTab && globalTab.classList.contains('active')) {
+            renderGlobalSettings();
+        }
+    });
+
+    function renderGlobalSettings() {
+      const container = document.getElementById('tab-global');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      
+      // Project Info
+      const projectDiv = document.createElement('div');
+      projectDiv.className = 'global-section';
+      projectDiv.innerHTML = `
+        <div class="global-section-title">📦 项目信息</div>
+        <div class="global-row"><span class="global-label">名称</span><span class="global-value">${webviewConfig.project.name}</span></div>
+        <div class="global-row"><span class="global-label">版本</span><span class="global-value">${webviewConfig.project.version}</span></div>
+        <div class="global-row"><span class="global-label">描述</span><span class="global-value" style="font-size:10px;color:#999">${webviewConfig.project.description}</span></div>
+      `;
+      container.appendChild(projectDiv);
+
+      // Theme Colors
+      const themeDiv = document.createElement('div');
+      themeDiv.className = 'global-section';
+      themeDiv.innerHTML = `<div class="global-section-title">🎨 主题颜色</div>`;
+      
+      const grid = document.createElement('div');
+      grid.className = 'color-grid';
+      
+      Object.entries(webviewConfig.theme.colors).forEach(([key, val]) => {
+        const item = document.createElement('div');
+        item.className = 'color-item';
+        item.title = `${key}: ${val}`;
+        item.innerHTML = `
+          <div class="color-preview" style="background-color: ${val}"></div>
+          <div class="color-name">${key}</div>
+        `;
+        // Simple interactivity: click to copy
+        item.addEventListener('click', () => {
+             navigator.clipboard.writeText(val);
+             const originalText = item.querySelector('.color-name').innerText;
+             item.querySelector('.color-name').innerText = 'Copied';
+             setTimeout(() => item.querySelector('.color-name').innerText = originalText, 1000);
+        });
+        grid.appendChild(item);
+      });
+      themeDiv.appendChild(grid);
+      container.appendChild(themeDiv);
+
+      // Layout & Typo
+      const layoutDiv = document.createElement('div');
+      layoutDiv.className = 'global-section';
+      layoutDiv.innerHTML = `
+        <div class="global-section-title">📐 布局与排版</div>
+        <div class="global-row"><span class="global-label">圆角 (Radius)</span><span class="global-value">${webviewConfig.theme.layout.radius}</span></div>
+        <div class="global-row"><span class="global-label">容器宽度</span><span class="global-value">${webviewConfig.theme.layout.containerWidth}</span></div>
+        <div class="global-row"><span class="global-label">基准字号</span><span class="global-value">${webviewConfig.theme.typography.baseSize}</span></div>
+      `;
+      container.appendChild(layoutDiv);
+      
+      // Routes
+      const routeDiv = document.createElement('div');
+      routeDiv.className = 'global-section';
+      routeDiv.innerHTML = `<div class="global-section-title">🛣️ 页面路由</div>`;
+      const routesContainer = document.createElement('div');
+      webviewConfig.routes.forEach(r => {
+          const tag = document.createElement('span');
+          tag.className = 'route-tag';
+          tag.innerText = `${r.name} (${r.path})`;
+          routesContainer.appendChild(tag);
+      });
+      routeDiv.appendChild(routesContainer);
+      container.appendChild(routeDiv);
+    }
+
+    // ---------------------------------------------------------
+    // Left Panel Tabs
+    // ---------------------------------------------------------
+    function initLeftPanelTabs() {
+      const tabs = document.querySelectorAll('#tree-container .panel-tab');
+      const contents = document.querySelectorAll('.tab-content');
+
+      // Initial Render if global is default (it's not, but good practice)
+      // renderGlobalSettings(); 
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs and contents
+          tabs.forEach(t => t.classList.remove('active'));
+          contents.forEach(c => c.classList.remove('active'));
+
+          // Add active class to clicked tab
+          tab.classList.add('active');
+
+          // Show corresponding content
+          const tabId = tab.getAttribute('data-tab');
+          const content = document.getElementById(`tab-${tabId}`);
+          if (content) {
+            content.classList.add('active');
+          }
+          
+          if (tabId === 'global') {
+            renderGlobalSettings();
+          }
+        });
+      });
+    }
+
+    // ---------------------------------------------------------
+    // Resizers
+    // ---------------------------------------------------------
+    function initResizers() {
+      const resizerLeft = document.getElementById('resizer-left');
+      const resizerRight = document.getElementById('resizer-right');
+      const leftPanel = document.getElementById('tree-container');
+      const rightPanel = document.getElementById('right-panel');
+
+      function handleResize(resizer, targetPanel, isLeft) {
+        if (!resizer || !targetPanel) return;
+
+        resizer.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          
+          const startX = e.clientX;
+          const startWidth = targetPanel.getBoundingClientRect().width;
+          
+          document.body.classList.add('resizing');
+          resizer.classList.add('resizing');
+
+          function onMouseMove(e) {
+            let newWidth;
+            if (isLeft) {
+              // 左侧面板：鼠标向右移动增加宽度
+              newWidth = startWidth + (e.clientX - startX);
+            } else {
+              // 右侧面板：鼠标向左移动增加宽度
+              newWidth = startWidth - (e.clientX - startX);
+            }
+            
+            // 限制宽度范围
+            if (newWidth < 200) newWidth = 200;
+            if (newWidth > 800) newWidth = 800;
+            
+            targetPanel.style.width = newWidth + 'px';
+          }
+
+          function onMouseUp() {
+            document.body.classList.remove('resizing');
+            resizer.classList.remove('resizing');
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          }
+
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+      }
+
+      handleResize(resizerLeft, leftPanel, true);
+      handleResize(resizerRight, rightPanel, false);
+    }
+
+    // AI Prompt Copy Functionality
+    const aiCopyBtn = document.getElementById('ai-send-btn');
+    const aiInput = document.getElementById('ai-input');
+    
+    if (aiCopyBtn && aiInput) {
+      aiCopyBtn.addEventListener('click', () => {
+        const text = aiInput.value;
+        if (!text) return;
+        
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = aiCopyBtn.innerText;
+          aiCopyBtn.innerText = '已复制';
+          aiCopyBtn.style.background = '#52c41a';
+          setTimeout(() => {
+            aiCopyBtn.innerText = originalText;
+            aiCopyBtn.style.background = '#1890ff'; // Reset to original blue
+          }, 2000);
+        }).catch(err => {
+          console.error('Failed to copy:', err);
+          alert('复制失败，请手动复制');
+        });
+      });
+    }
+    
+    initResizers();
+    initLeftPanelTabs();
+    initRightPanelTabs();
 
   </script>
 </body>

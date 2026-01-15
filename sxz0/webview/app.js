@@ -43,6 +43,7 @@ const AppState = {
         this.chatMessages = [];
         this.saveToStorage();
         this.checkOnboarding();
+        initDevMode(); // 初始化开发模式
     },
 
     loadFromStorage() {
@@ -4168,6 +4169,10 @@ function initApp() {
     setTimeout(() => {
         console.log('执行初始渲染');
         renderCurrentPage();
+        // 初始化开发模式
+        if (typeof initDevMode === 'function') {
+            initDevMode();
+        }
     }, 0);
 }
 
@@ -4175,4 +4180,175 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {
     initApp();
+}
+
+// ==================== 开发模式管理 ====================
+let devModeActive = false; // 默认关闭，由父窗口控制
+
+function initDevMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDev = urlParams.get('dev') === '1';
+    
+    if (isDev) {
+        console.log('--- 开发模式已就绪 (等待激活) ---');
+        // 添加全局样式
+        const style = document.createElement('style');
+        style.textContent = `
+            /* 开发模式激活时的全局提示 */
+            .dev-mode-active::before {
+                content: '开发编辑模式已开启 - 点击元素选择类名';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: rgba(59, 130, 246, 0.9);
+                color: white;
+                text-align: center;
+                font-size: 12px;
+                padding: 4px 0;
+                z-index: 20000;
+                pointer-events: none;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .dev-mode-active {
+                cursor: crosshair !important;
+            }
+            .dev-mode-active * {
+                cursor: crosshair !important;
+            }
+            /* 选中效果 */
+            .dev-mode-active .dev-mode-selected {
+                outline: 2px solid #3b82f6 !important;
+                outline-offset: -2px !important;
+                position: relative;
+                transition: outline 0.2s;
+            }
+            .dev-mode-active .dev-mode-selected::after {
+                content: attr(data-dev-class);
+                position: absolute;
+                top: 0;
+                right: 0;
+                background: #3b82f6;
+                color: white;
+                font-size: 10px;
+                padding: 2px 4px;
+                z-index: 10000;
+                pointer-events: none;
+                border-bottom-left-radius: 4px;
+                line-height: 1;
+                font-weight: bold;
+                box-shadow: -1px 1px 4px rgba(0,0,0,0.2);
+            }
+            /* 隐藏滚动条，模拟手机体验 */
+            ::-webkit-scrollbar {
+                display: none;
+            }
+            * {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE/Edge */
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 监听来自父窗口的状态切换消息
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'toggle-dev-mode') {
+                devModeActive = event.data.active;
+                console.log(`[DevMode] 状态切换: ${devModeActive ? '开启' : '关闭'}`);
+                if (devModeActive) {
+                    document.body.classList.add('dev-mode-active');
+                } else {
+                    document.body.classList.remove('dev-mode-active');
+                    // 关闭时清除选中样式
+                    document.querySelectorAll('.dev-mode-selected').forEach(el => {
+                        el.classList.remove('dev-mode-selected');
+                        el.removeAttribute('data-dev-class');
+                    });
+                }
+            }
+        });
+
+        // 初始检查 URL 或 Hash 中的 class
+        const checkInitialClass = () => {
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const targetClass = hashParams.get('class');
+            
+            if (targetClass) {
+                const element = document.querySelector(`.${targetClass}`);
+                if (element) {
+                    element.classList.add('dev-mode-selected');
+                    element.setAttribute('data-dev-class', targetClass);
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        };
+
+        setTimeout(checkInitialClass, 500);
+
+        window.addEventListener('hashchange', () => {
+            if (!devModeActive) return;
+            document.querySelectorAll('.dev-mode-selected').forEach(el => {
+                el.classList.remove('dev-mode-selected');
+                el.removeAttribute('data-dev-class');
+            });
+            checkInitialClass();
+        });
+        
+        // 监听全局点击事件 (使用捕获阶段以优先处理)
+        document.addEventListener('click', (e) => {
+            // 如果不是开发模式，不拦截点击，允许正常交互
+            if (!devModeActive) return;
+
+            let target = e.target;
+            while (target && target !== document.body) {
+                if (target.className && typeof target.className === 'string') {
+                    const classes = target.className.split(/\s+/).filter(c => 
+                        c && 
+                        c !== 'dev-mode-selected' && 
+                        c !== 'selected' && 
+                        c !== 'active' && 
+                        c !== 'hidden'
+                    );
+                    
+                    if (classes.length > 0) {
+                        const className = classes[0];
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        updateUrlClass(className);
+                        
+                        document.querySelectorAll('.dev-mode-selected').forEach(el => {
+                            el.classList.remove('dev-mode-selected');
+                            el.removeAttribute('data-dev-class');
+                        });
+                        target.classList.add('dev-mode-selected');
+                        target.setAttribute('data-dev-class', className);
+                        
+                        break;
+                    }
+                }
+                target = target.parentElement;
+            }
+        }, true);
+    }
+}
+
+function updateUrlClass(className) {
+    // 根据用户要求：如果 class 值变化会导致页面刷新就用 hash 值
+    // 我们直接更新 hash，这样既能保存状态又不会导致 iframe 重新加载
+    const hash = window.location.hash;
+    const newHash = `#class=${className}`;
+    
+    if (hash !== newHash) {
+        window.location.hash = newHash;
+        
+        // 通知父窗口 (如果是 iframe 嵌入)
+        if (window.parent !== window) {
+            window.parent.postMessage({
+                type: 'dev-class-selected',
+                className: className,
+                hash: newHash
+            }, '*');
+        }
+    }
 }
