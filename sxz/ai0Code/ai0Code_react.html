@@ -1297,9 +1297,41 @@
       });
       createRow(container, '过滤条件', filterArea);
 
+      const requestBodyArea = document.createElement('textarea');
+      requestBodyArea.className = 'props-form-input';
+      requestBodyArea.style.height = '120px';
+      requestBodyArea.style.resize = 'vertical';
+      requestBodyArea.placeholder = '请求体 JSON，例如 {"worksheetId":"xxx","rowid":"xxx"}';
+      requestBodyArea.value = (item.dataProps && item.dataProps.requestBodyJson) || '';
+      requestBodyArea.addEventListener('change', function (e) {
+        const val = e.target.value.trim();
+        const current = getCurrentDataProps(item.id);
+        const next = Object.assign({}, current, { requestBodyJson: val });
+        updateNodeProps(item.id, 'dataProps', next, true, 'requestBodyJson', val);
+      });
+      createRow(container, '请求体', requestBodyArea);
+
       const buttonRow = document.createElement('div');
       buttonRow.style.marginTop = '10px';
       buttonRow.style.textAlign = 'right';
+      const copyBodyBtn = document.createElement('button');
+      copyBodyBtn.className = 'mock-btn';
+      copyBodyBtn.textContent = '复制请求体';
+      copyBodyBtn.style.marginRight = '8px';
+      copyBodyBtn.addEventListener('click', function () {
+        const text = requestBodyArea.value || '';
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(function () {
+          const originalText = copyBodyBtn.textContent;
+          copyBodyBtn.textContent = '已复制';
+          setTimeout(function () {
+            copyBodyBtn.textContent = originalText;
+          }, 1500);
+        }).catch(function (err) {
+          console.error('复制请求体失败:', err);
+          alert('复制失败，请手动复制请求体');
+        });
+      });
       const genBtn = document.createElement('button');
       genBtn.className = 'mock-btn mock-btn-primary';
       genBtn.textContent = '生成提示词在底部';
@@ -1335,6 +1367,7 @@
           aiInput.value = (currentText ? currentText + '\n' : '') + prompt;
         }
       });
+      buttonRow.appendChild(copyBodyBtn);
       buttonRow.appendChild(genBtn);
       container.appendChild(buttonRow);
 
