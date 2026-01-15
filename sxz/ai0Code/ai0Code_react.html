@@ -599,7 +599,7 @@
       font-size: 12px;
     }
     .props-form-label {
-      width: 100px;
+      width: 80px;
       color: #666;
       flex-shrink: 0;
       white-space: nowrap;
@@ -686,6 +686,97 @@
       display: flex;
       flex-direction: column;
       padding: 0; /* Override previous padding */
+    }
+
+    /* Filter Builder Styles */
+    .filter-builder {
+      border: 1px solid #e8e8e8;
+      border-radius: 4px;
+      padding: 10px;
+      background: #fafafa;
+      margin-top: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .filter-group {
+      border: 1px dashed #d9d9d9;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #fff;
+      border-radius: 4px;
+      position: relative;
+    }
+    .filter-item {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+      margin-bottom: 6px;
+      padding: 6px;
+      background: #f9f9f9;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+    .filter-group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: 6px;
+    }
+    .filter-select {
+      height: 24px;
+      padding: 0 2px;
+      font-size: 11px;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      background: #fff;
+    }
+    .filter-input {
+      height: 24px;
+      padding: 0 4px;
+      font-size: 11px;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      flex: 1;
+      min-width: 60px;
+    }
+    .filter-btn-sm {
+      height: 22px;
+      padding: 0 6px;
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      border-radius: 2px;
+      line-height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .filter-btn-sm:hover {
+      color: #1890ff;
+      border-color: #1890ff;
+    }
+    .filter-btn-danger {
+      color: #ff4d4f;
+    }
+    .filter-btn-danger:hover {
+      background: #fff1f0;
+      border-color: #ffccc7;
+    }
+    .filter-splice-toggle {
+      background: #e6f7ff;
+      color: #1890ff;
+      border-color: #91d5ff;
+      font-weight: bold;
+      min-width: 40px;
+    }
+    .filter-group-actions {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
     }
   </style>
 </head>
@@ -1174,6 +1265,96 @@
         parent.appendChild(row);
       };
 
+      const requestBodyArea = document.createElement('textarea');
+      requestBodyArea.className = 'props-form-input';
+      requestBodyArea.placeholder = '请求体 JSON（自动根据上方配置生成，可直接复制调用 Mingdao 接口）';
+      requestBodyArea.style.height = '240px';
+      requestBodyArea.style.resize = 'vertical';
+
+      function refreshRequestBody() {
+        if (!requestBodyArea) return;
+        const dataProps = getCurrentDataProps(item.id);
+        const actionType = dataProps.actionType || actionSelect.value || '';
+        if (!actionType) return;
+        let body = null;
+        if (actionType === 'getObject') {
+          body = {
+            rowid: dataProps.rowid || '',
+            worksheetId: dataProps.worksheetId || ''
+          };
+        } else if (actionType === 'add') {
+          let controls = [];
+          if (dataProps.controlsJson) {
+            try {
+              controls = JSON.parse(dataProps.controlsJson);
+            } catch (e) {
+              controls = dataProps.controlsJson;
+            }
+          }
+          body = {
+            worksheetId: dataProps.worksheetId || '',
+            controls: controls
+          };
+        } else if (actionType === 'update') {
+          let controlsUpdate = [];
+          if (dataProps.controlsJson) {
+            try {
+              controlsUpdate = JSON.parse(dataProps.controlsJson);
+            } catch (e) {
+              controlsUpdate = dataProps.controlsJson;
+            }
+          }
+          body = {
+            rowid: dataProps.rowid || '',
+            worksheetId: dataProps.worksheetId || '',
+            controls: controlsUpdate
+          };
+        } else if (actionType === 'getArray') {
+          let filters = [];
+          if (dataProps.filtersJson) {
+            try {
+              filters = JSON.parse(dataProps.filtersJson);
+            } catch (e) {
+              filters = dataProps.filtersJson;
+            }
+          }
+          body = {
+            worksheetId: dataProps.worksheetId || '',
+            viewId: dataProps.viewId || '',
+            pageSize: 50,
+            pageIndex: 1,
+            filters: filters,
+            sortId: dataProps.sortId || '',
+            isAsc: dataProps.isAsc === 'true' || dataProps.isAsc === true,
+            notGetTotal: 'false',
+            useControlId: 'false',
+            getSystemControl: 'false'
+          };
+        } else if (actionType === 'delete') {
+          body = {
+            rowid: dataProps.rowid || '',
+            worksheetId: dataProps.worksheetId || '',
+            controls: [
+              {
+                controlId: 'del',
+                value: 1
+              }
+            ]
+          };
+        }
+        if (!body) return;
+        let json = '';
+        try {
+          json = JSON.stringify(body, null, 2);
+        } catch (e) {
+          return;
+        }
+        requestBodyArea.value = json;
+        const latest = getCurrentDataProps(item.id);
+        const next = Object.assign({}, latest, { requestBodyJson: json });
+        updateNodeProps(item.id, 'dataProps', next, true, 'requestBodyJson', json);
+      }
+
       const aliasInput = document.createElement('input');
       aliasInput.className = 'props-form-input';
       aliasInput.placeholder = '请输入明道云表别名，例如 user, order';
@@ -1209,6 +1390,7 @@
         const next = Object.assign({}, current, { actionType: val });
         updateNodeProps(item.id, 'dataProps', next, true, 'actionType', val);
         renderDynamicFields();
+        refreshRequestBody();
       });
       createRow(container, '数据行为', actionSelect);
 
@@ -1227,7 +1409,7 @@
             { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
             { key: 'viewId', label: 'viewId', placeholder: '视图ID，可选' },
             { key: 'sortId', label: 'sortId', placeholder: '排序字段ID，如 sortid' },
-            { key: 'ctime', label: 'ctime', placeholder: 'ctime 字段 controlId，可选' }
+            { key: 'isAsc', label: 'isAsc', placeholder: '是否升序 (true/false)' }
           ];
         }
         if (actionType === 'add') {
@@ -1270,12 +1452,13 @@
           input.className = 'props-form-input';
           input.placeholder = field.placeholder || '';
           input.value = current[field.key] || '';
-          input.addEventListener('change', function (e) {
+          input.addEventListener('input', function (e) {
             const val = e.target.value.trim();
             const latest = getCurrentDataProps(item.id);
             const next = Object.assign({}, latest);
             next[field.key] = val;
             updateNodeProps(item.id, 'dataProps', next, true, field.key, val);
+            refreshRequestBody();
           });
           createRow(dynamicWrapper, field.label, input);
         });
@@ -1283,25 +1466,318 @@
 
       renderDynamicFields();
 
+      const DataTypeEnum = [
+        { value: 2, label: '文本' },
+        { value: 3, label: '电话 (手机)' },
+        { value: 4, label: '电话 (座机)' },
+        { value: 5, label: '邮箱' },
+        { value: 6, label: '数值' },
+        { value: 7, label: '证件' },
+        { value: 8, label: '金额' },
+        { value: 9, label: '单选 (平铺)' },
+        { value: 10, label: '多选' },
+        { value: 11, label: '单选 (下拉)' },
+        { value: 14, label: '附件' },
+        { value: 15, label: '日期' },
+        { value: 16, label: '日期时间' },
+        { value: 21, label: '自由连接' },
+        { value: 22, label: '分段' },
+        { value: 24, label: '地区' },
+        { value: 25, label: '大写金额' },
+        { value: 26, label: '成员' },
+        { value: 27, label: '部门' },
+        { value: 28, label: '等级' },
+        { value: 29, label: '关联记录' },
+        { value: 30, label: '他表字段' },
+        { value: 31, label: '公式 (数字)' },
+        { value: 32, label: '文本组合' },
+        { value: 33, label: '自动编号' },
+        { value: 34, label: '子表' },
+        { value: 35, label: '级联选择' },
+        { value: 36, label: '检查框' },
+        { value: 37, label: '汇总' },
+        { value: 38, label: '公式 (日期)' },
+        { value: 40, label: '定位' },
+        { value: 41, label: '富文本' },
+        { value: 42, label: '签名' },
+        { value: 45, label: '嵌入' },
+        { value: 46, label: '时间' },
+        { value: 47, label: '条码' },
+        { value: 48, label: '组织角色' },
+        { value: 49, label: 'API 查询' },
+        { value: 50, label: 'API 查询 (多结果)' },
+        { value: 51, label: '查询记录' },
+        { value: 10010, label: '备注' }
+      ];
+
+      const FilterTypeEnum = [
+        { value: 0, label: '默认筛选' },
+        { value: 1, label: '包含' },
+        { value: 2, label: '等于' },
+        { value: 3, label: '开头为' },
+        { value: 4, label: '结尾为' },
+        { value: 5, label: '不包含' },
+        { value: 6, label: '不等于' },
+        { value: 7, label: '为空' },
+        { value: 8, label: '不为空' },
+        { value: 11, label: '在范围内' },
+        { value: 12, label: '不在范围内' },
+        { value: 13, label: '大于' },
+        { value: 14, label: '大于等于' },
+        { value: 15, label: '小于' },
+        { value: 16, label: '小于等于' },
+        { value: 17, label: '日期是' },
+        { value: 18, label: '日期不是' },
+        { value: 21, label: '我拥有的' },
+        { value: 22, label: '未读' },
+        { value: 23, label: '下属' },
+        { value: 24, label: '关联控件是' },
+        { value: 25, label: '关联控件不是' },
+        { value: 26, label: '数组等于' },
+        { value: 27, label: '数组不等于' },
+        { value: 31, label: '在范围内 (日期)' },
+        { value: 32, label: '不在范围内 (日期)' },
+        { value: 33, label: '大于 (日期)' },
+        { value: 34, label: '大于等于 (日期)' },
+        { value: 35, label: '小于 (日期)' },
+        { value: 36, label: '小于等于 (日期)' },
+        { value: 41, label: '常规用户' },
+        { value: 42, label: '外部门户用户' }
+      ];
+
+      function renderFilterBuilder(filters, onChange) {
+        const builder = document.createElement('div');
+        builder.className = 'filter-builder';
+
+        function draw(parent, list, isRoot = false) {
+          parent.innerHTML = '';
+          list.forEach((item, index) => {
+            if (item.isGroup) {
+              const group = document.createElement('div');
+              group.className = 'filter-group';
+              
+              const head = document.createElement('div');
+              head.className = 'filter-group-header';
+              
+              const splice = document.createElement('button');
+              splice.className = 'filter-btn-sm filter-splice-toggle';
+              splice.textContent = item.spliceType === 2 ? '或' : '且';
+              splice.onclick = () => {
+                item.spliceType = item.spliceType === 2 ? 1 : 2;
+                onChange();
+                draw(parent, list, isRoot);
+              };
+              head.appendChild(splice);
+              
+              const label = document.createElement('span');
+              label.style.fontSize = '11px';
+              label.style.color = '#999';
+              label.textContent = item.spliceType === 2 ? '符合以下任一条件' : '符合以下所有条件';
+              head.appendChild(label);
+
+              const delGroup = document.createElement('button');
+              delGroup.className = 'filter-btn-sm filter-btn-danger';
+              delGroup.style.marginLeft = 'auto';
+              delGroup.textContent = '删除组';
+              delGroup.onclick = () => {
+                list.splice(index, 1);
+                onChange();
+                draw(parent, list, isRoot);
+              };
+              head.appendChild(delGroup);
+              group.appendChild(head);
+              
+              const sub = document.createElement('div');
+              draw(sub, item.groupFilters || []);
+              group.appendChild(sub);
+              
+              const acts = document.createElement('div');
+              acts.className = 'filter-group-actions';
+              
+              const addC = document.createElement('button');
+              addC.className = 'filter-btn-sm';
+              addC.textContent = '+ 条件';
+              addC.onclick = () => {
+                item.groupFilters = item.groupFilters || [];
+                item.groupFilters.push({ controlId: '', dataType: 2, spliceType: 1, filterType: 2, value: '' });
+                onChange();
+                draw(sub, item.groupFilters);
+              };
+              acts.appendChild(addC);
+              
+              const addG = document.createElement('button');
+              addG.className = 'filter-btn-sm';
+              addG.textContent = '+ 组';
+              addG.onclick = () => {
+                item.groupFilters = item.groupFilters || [];
+                item.groupFilters.push({ isGroup: true, spliceType: 1, groupFilters: [] });
+                onChange();
+                draw(sub, item.groupFilters);
+              };
+              acts.appendChild(addG);
+              group.appendChild(acts);
+              parent.appendChild(group);
+            } else {
+               const row = document.createElement('div');
+               row.className = 'filter-item';
+               
+               const prefix = document.createElement('span');
+               prefix.textContent = '当';
+               prefix.style.fontSize = '11px';
+               prefix.style.color = '#999';
+               prefix.style.marginRight = '2px';
+               row.appendChild(prefix);
+
+               const cid = document.createElement('input');
+               cid.className = 'filter-input';
+               cid.placeholder = '字段ID';
+               cid.value = item.controlId || '';
+               cid.oninput = (e) => { item.controlId = e.target.value; onChange(); };
+               row.appendChild(cid);
+               
+               const dt = document.createElement('select');
+               dt.className = 'filter-select';
+               dt.style.width = '70px';
+               DataTypeEnum.forEach(o => {
+                 const opt = document.createElement('option');
+                 opt.value = o.value;
+                 opt.textContent = o.label;
+                 if (item.dataType == o.value) opt.selected = true;
+                 dt.appendChild(opt);
+               });
+               dt.onchange = (e) => { item.dataType = parseInt(e.target.value); onChange(); };
+               row.appendChild(dt);
+               
+               const ft = document.createElement('select');
+               ft.className = 'filter-select';
+               ft.style.width = '80px';
+               FilterTypeEnum.forEach(o => {
+                 const opt = document.createElement('option');
+                 opt.value = o.value;
+                 opt.textContent = o.label;
+                 if (item.filterType == o.value) opt.selected = true;
+                 ft.appendChild(opt);
+               });
+               ft.onchange = (e) => { item.filterType = parseInt(e.target.value); onChange(); };
+               row.appendChild(ft);
+               
+               const val = document.createElement('input');
+               val.className = 'filter-input';
+               val.placeholder = '值';
+               val.value = item.value || '';
+               val.oninput = (e) => { item.value = e.target.value; onChange(); };
+               row.appendChild(val);
+               
+               const del = document.createElement('button');
+               del.className = 'filter-btn-sm filter-btn-danger';
+               del.textContent = '×';
+               del.onclick = () => {
+                 list.splice(index, 1);
+                 onChange();
+                 draw(parent, list, isRoot);
+               };
+               row.appendChild(del);
+               parent.appendChild(row);
+             }
+          });
+
+          if (isRoot) {
+            const rootActs = document.createElement('div');
+            rootActs.className = 'filter-group-actions';
+            rootActs.style.marginTop = '8px';
+            
+            const addC = document.createElement('button');
+            addC.className = 'filter-btn-sm';
+            addC.textContent = '+ 添加条件';
+            addC.onclick = () => {
+              list.push({ controlId: '', dataType: 2, spliceType: 1, filterType: 2, value: '' });
+              onChange();
+              draw(parent, list, true);
+            };
+            rootActs.appendChild(addC);
+            
+            const addG = document.createElement('button');
+             addG.className = 'filter-btn-sm';
+             addG.textContent = '+ 添加组';
+             addG.onclick = () => {
+               list.push({ isGroup: true, spliceType: 1, groupFilters: [] });
+               onChange();
+               draw(parent, list, true);
+             };
+             rootActs.appendChild(addG);
+            parent.appendChild(rootActs);
+          }
+        }
+
+        draw(builder, filters, true);
+        return builder;
+      }
+
       const filterArea = document.createElement('textarea');
       filterArea.className = 'props-form-input';
       filterArea.style.height = '100px';
       filterArea.style.resize = 'vertical';
-      filterArea.placeholder = '过滤条件，JSON 数组格式，例如:\n[\n  {\"controlId\":\"openid\",\"dataType\":2,\"spliceType\":1,\"filterType\":24,\"value\":\"openid\"},\n  {\"controlId\":\"del\",\"dataType\":2,\"spliceType\":1,\"filterType\":2,\"value\":0}\n]';
+      filterArea.style.display = 'none'; // Hide the raw textarea by default
+      filterArea.placeholder = '过滤条件，JSON 数组格式';
       filterArea.value = (item.dataProps && item.dataProps.filtersJson) || '';
-      filterArea.addEventListener('change', function (e) {
-        const val = e.target.value.trim();
-        const current = getCurrentDataProps(item.id);
-        const next = Object.assign({}, current, { filtersJson: val });
-        updateNodeProps(item.id, 'dataProps', next, true, 'filtersJson', val);
-      });
-      createRow(container, '过滤条件', filterArea);
 
-      const requestBodyArea = document.createElement('textarea');
-      requestBodyArea.className = 'props-form-input';
-      requestBodyArea.style.height = '120px';
-      requestBodyArea.style.resize = 'vertical';
-      requestBodyArea.placeholder = '请求体 JSON，例如 {"worksheetId":"xxx","rowid":"xxx"}';
+      let currentFilters = [];
+      try {
+        currentFilters = JSON.parse(filterArea.value || '[]');
+        if (!Array.isArray(currentFilters)) currentFilters = [];
+      } catch (e) {
+        currentFilters = [];
+      }
+
+      const onFiltersChange = () => {
+        const json = JSON.stringify(currentFilters);
+        filterArea.value = json;
+        const current = getCurrentDataProps(item.id);
+        const next = Object.assign({}, current, { filtersJson: json });
+        updateNodeProps(item.id, 'dataProps', next, true, 'filtersJson', json);
+        refreshRequestBody();
+      };
+
+      let builderEl = renderFilterBuilder(currentFilters, onFiltersChange);
+
+      const filterContainer = document.createElement('div');
+      filterContainer.appendChild(builderEl);
+      filterContainer.appendChild(filterArea);
+
+      // Add a toggle for raw mode
+      const toggleRaw = document.createElement('div');
+      toggleRaw.style.textAlign = 'right';
+      toggleRaw.style.marginTop = '4px';
+      const toggleBtn = document.createElement('span');
+      toggleBtn.style.fontSize = '10px';
+      toggleBtn.style.color = '#1890ff';
+      toggleBtn.style.cursor = 'pointer';
+      toggleBtn.textContent = '编辑 JSON';
+      toggleBtn.onclick = () => {
+        if (filterArea.style.display === 'none') {
+          filterArea.style.display = 'block';
+          builderEl.style.display = 'none';
+          toggleBtn.textContent = '返回可视化';
+        } else {
+          filterArea.style.display = 'none';
+          builderEl.style.display = 'block';
+          toggleBtn.textContent = '编辑 JSON';
+          try {
+            const newFilters = JSON.parse(filterArea.value || '[]');
+            currentFilters.length = 0;
+            newFilters.forEach(f => currentFilters.push(f));
+            // Re-render builder with new data
+            const newBuilder = renderFilterBuilder(currentFilters, onFiltersChange);
+            filterContainer.replaceChild(newBuilder, builderEl);
+            builderEl = newBuilder;
+          } catch (e) {}
+        }
+      };
+      toggleRaw.appendChild(toggleBtn);
+      filterContainer.appendChild(toggleRaw);
+
+      createRow(container, '过滤条件', filterContainer);
+
       requestBodyArea.value = (item.dataProps && item.dataProps.requestBodyJson) || '';
       requestBodyArea.addEventListener('change', function (e) {
         const val = e.target.value.trim();
@@ -1319,6 +1795,7 @@
       copyBodyBtn.textContent = '复制请求体';
       copyBodyBtn.style.marginRight = '8px';
       copyBodyBtn.addEventListener('click', function () {
+        refreshRequestBody();
         const text = requestBodyArea.value || '';
         if (!text) return;
         navigator.clipboard.writeText(text).then(function () {
@@ -1342,7 +1819,7 @@
         const worksheetId = dataProps.worksheetId || '';
         const rowid = dataProps.rowid || '';
         const sortId = dataProps.sortId || dataProps.sortid || '';
-        const ctime = dataProps.ctime || '';
+        const isAsc = dataProps.isAsc || '';
         const filtersJson = dataProps.filtersJson || '';
         const actionLabelMap = {
           add: '增',
@@ -1356,7 +1833,7 @@
         if (worksheetId) parts.push('worksheetId 为 ' + worksheetId);
         if (rowid) parts.push('rowid 为 ' + rowid);
         if (sortId) parts.push('sortId/排序字段为 ' + sortId);
-        if (ctime) parts.push('ctime 字段为 ' + ctime);
+        if (isAsc) parts.push('isAsc 为 ' + isAsc);
         if (filtersJson) parts.push('filters 为 ' + filtersJson);
         const base = '为组件「' + (item.name || item.id) + '」配置明道云数据：表别名 ' + (alias || '未填') + '，行为 ' + actionLabel;
         const detail = parts.length ? '，' + parts.join('，') + '。' : '。';
