@@ -41,6 +41,48 @@ Page({
     if (!this.data.isRecording) {
       this.updateWebviewUrl(false);
     }
+
+    // 检查录音权限
+    this.checkRecordPermission();
+  },
+
+  // 检查录音权限
+  checkRecordPermission() {
+    console.log('[Webview] 检查录音权限');
+    wx.getSetting({
+      success: (res) => {
+        console.log('[Webview] 当前权限设置:', res.authSetting);
+        if (!res.authSetting['scope.record']) {
+          console.log('[Webview] 未授权录音权限，请求授权');
+          wx.authorize({
+            scope: 'scope.record',
+            success: () => {
+              console.log('[Webview] 录音权限授权成功');
+            },
+            fail: () => {
+              console.error('[Webview] 录音权限授权失败');
+              wx.showToast({
+                title: '需要录音权限',
+                icon: 'none'
+              });
+              // 打开设置页面
+              setTimeout(() => {
+                wx.openSetting({
+                  success: (res) => {
+                    console.log('[Webview] 设置页面返回:', res.authSetting);
+                  }
+                });
+              }, 1500);
+            }
+          });
+        } else {
+          console.log('[Webview] 已授权录音权限');
+        }
+      },
+      fail: (err) => {
+        console.error('[Webview] 获取权限设置失败:', err);
+      }
+    });
   },
 
   updateWebviewUrl(isInitial = false) {
@@ -70,14 +112,18 @@ Page({
   },
 
   onMessage(e) {
-    console.log('[Webview] 收到消息:', e.detail);
+    console.log('[Webview] 收到消息:', JSON.stringify(e.detail, null, 2));
     const data = e.detail.data;
     if (data && data.length > 0) {
       const lastMsg = data[data.length - 1];
+      console.log('[Webview] 处理消息:', JSON.stringify(lastMsg, null, 2));
       // 处理来自Webview的消息
       if (lastMsg.type === 'STT_ACTION') {
+        console.log('[Webview] 调用handleSTTAction:', lastMsg.action);
         this.handleSTTAction(lastMsg.action);
       }
+    } else {
+      console.log('[Webview] 未收到有效消息数据');
     }
   },
 
@@ -103,11 +149,27 @@ Page({
   },
 
   handleSTTAction(action) {
+    console.log('[Webview] handleSTTAction 开始执行:', action);
     if (action === 'start') {
+      console.log('[Webview] 开始录音');
       this.setData({ isRecording: true });
-      manager.start({ duration: 30000, lang: 'zh_CN' });
+      try {
+        manager.start({ duration: 30000, lang: 'zh_CN' });
+        console.log('[Webview] manager.start 调用成功');
+        wx.showToast({ title: '开始录音', icon: 'success' });
+      } catch (error) {
+        console.error('[Webview] manager.start 调用失败:', error);
+        wx.showToast({ title: '录音失败', icon: 'none' });
+        this.setData({ isRecording: false });
+      }
     } else if (action === 'stop') {
-      manager.stop();
+      console.log('[Webview] 停止录音');
+      try {
+        manager.stop();
+        console.log('[Webview] manager.stop 调用成功');
+      } catch (error) {
+        console.error('[Webview] manager.stop 调用失败:', error);
+      }
     }
   },
 
@@ -119,11 +181,11 @@ Page({
     const baseUrl = this.data.baseUrl;
     const app = getApp();
     const openid = (app && app.globalData && app.globalData.openid) || wx.getStorageSync('openid');
-    
+
     // 仅通过 hash 传参，避免基础路径变化导致刷新
     const hashStr = `#openid=${openid || ''}&stt_result=${encodeURIComponent(text)}&t=${Date.now()}`;
     const finalUrl = baseUrl + hashStr;
-    
+
     console.log('[Webview] 发送识别结果 (Hash):', hashStr);
     this.setData({ url: finalUrl });
   }
