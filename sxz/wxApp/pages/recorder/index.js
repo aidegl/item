@@ -14,11 +14,14 @@ Page({
 
     onLoad() {
         this._timer = null;
+        this.isUserStop = false; // 是否为用户手动停止
+        this.fullText = ''; // 累积的识别文本
         this.addLog('页面加载');
         this.initManager();
     },
 
     onUnload() {
+        this.isUserStop = true; // 页面卸载时视为停止
         this.stopTimer();
         try {
             manager.stop();
@@ -27,75 +30,106 @@ Page({
 
     initManager() {
         manager.onRecognize = (res) => {
-            const text = res.result || '';
-            if (text) {
-                this.setData({ resultText: text });
-                this.addLog('识别中: ' + text);
-            }
+            const currentText = res.result || '';
+            // 显示累积文本 + 当前正在识别的文本
+            this.setData({ 
+                resultText: this.fullText + currentText 
+            });
         };
 
         manager.onStop = (res) => {
-            const text = res.result || '';
-            this.setData({
-                isRecording: false,
-                statusText: '录音已结束',
-                recordButtonText: '开始录音'
-            });
-            this.stopTimer();
-            if (text) {
-                this.setData({ resultText: text });
-                this.addLog('识别完成: ' + text);
+            const currentText = res.result || '';
+            if (currentText) {
+                this.fullText += currentText; // 录音段落结束，将结果累加到全文
+                this.setData({ resultText: this.fullText });
+            }
+            
+            this.addLog('录音段落结束' + (this.isUserStop ? ' (用户停止)' : ' (自动续录)'));
+
+            if (!this.isUserStop) {
+                // 如果不是用户手动停止（如 60 秒超时），则自动开启下一段录音
+                this.addLog('正在自动续录...');
+                this.startRecord(true); 
             } else {
-                this.addLog('识别结束，未获取到文本结果');
+                this.setData({
+                    isRecording: false,
+                    statusText: '录音已结束',
+                    recordButtonText: '开始录音'
+                });
+                this.stopTimer();
             }
         };
 
         manager.onError = (res) => {
+            const msg = res && res.msg ? res.msg : '未知错误';
+            this.addLog('错误: ' + msg);
+
+            // 如果是某些特定的错误（如超时或环境干扰），且用户没点停止，尝试自动恢复
+            if (!this.isUserStop) {
+                this.addLog('尝试自动恢复录音...');
+                setTimeout(() => {
+                    this.startRecord(true);
+                }, 500);
+                return;
+            }
+
             this.setData({
                 isRecording: false,
                 statusText: '录音出错',
                 recordButtonText: '开始录音'
             });
             this.stopTimer();
-            const msg = res && res.msg ? res.msg : '未知错误';
-            this.addLog('错误: ' + msg);
             wx.showToast({ title: '识别出错', icon: 'none' });
         };
     },
 
     onToggleRecord() {
         if (this.data.isRecording) {
+            this.isUserStop = true;
             this.stopRecord();
         } else {
-            this.startRecord();
+            this.isUserStop = false;
+            this.startRecord(false);
         }
     },
 
-    startRecord() {
+    startRecord(isContinuation = false) {
+        if (!isContinuation) {
+            // 全新开始录音
+            this.fullText = '';
+            this.setData({
+                seconds: 0,
+                timerDisplay: '00:00',
+                resultText: ''
+            });
+            this.startTimer();
+            this.addLog('开始新录音');
+        } else {
+            this.addLog('开始续录段落');
+        }
+
         this.setData({
             isRecording: true,
-            seconds: 0,
-            timerDisplay: '00:00',
             statusText: '正在录音',
-            recordButtonText: '停止录音',
-            resultText: ''
+            recordButtonText: '停止录音'
         });
-        this.addLog('开始录音');
-        this.startTimer();
+
         try {
             manager.start({
-                duration: 30000,
+                duration: 60000, // 设置最大时长 60 秒
                 lang: 'zh_CN'
             });
         } catch (e) {
-            this.setData({
-                isRecording: false,
-                statusText: '启动录音失败',
-                recordButtonText: '开始录音'
-            });
-            this.stopTimer();
             this.addLog('启动录音异常: ' + e.message);
-            wx.showToast({ title: '录音失败', icon: 'none' });
+            if (!isContinuation) {
+                this.setData({
+                    isRecording: false,
+                    statusText: '启动失败',
+                    recordButtonText: '开始录音'
+                });
+                this.stopTimer();
+                wx.showToast({ title: '录音失败', icon: 'none' });
+            }
         }
     },
 
