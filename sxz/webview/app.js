@@ -2752,6 +2752,8 @@ function renderSettings(container) {
         ? (rawUser && rawUser.escortCode ? rawUser.escortCode : '-')
         : '-';
     const userLevel = userInfo && rawUser && rawUser.dengji ? rawUser.dengji : '免费版';
+    const expiryDate = userInfo && rawUser && rawUser.hydqsj ? rawUser.hydqsj : '';
+    const isVip = userLevel === '会员';
 
     container.innerHTML = `
         <div class="p-2">
@@ -2776,6 +2778,7 @@ function renderSettings(container) {
                 ${userInfo ? `
                 <div class="user-membership">
                     <span class="membership-badge">${escapeHtml(userLevel)}</span>
+                    ${isVip && expiryDate ? `<div style="font-size: 11px; color: #f59e0b; margin-top: 4px; font-weight: 500;">有效期至 ${expiryDate}</div>` : ''}
                 </div>
                 ` : ''}
             </div>
@@ -3662,12 +3665,15 @@ function renderMembershipPage() {
     
     // 获取当前用户的会员等级 (保留用于显示，不再限制逻辑)
     let userLevel = '免费版';
+    let expiryDate = '';
     if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
         const userInfo = window.wechatLogin.getUserInfo();
-        if (userInfo && userInfo.raw && userInfo.raw.dengji) {
-            userLevel = userInfo.raw.dengji;
+        if (userInfo && userInfo.raw) {
+            userLevel = userInfo.raw.dengji || '免费版';
+            expiryDate = userInfo.raw.hydqsj || '';
         }
     }
+    const isVip = userLevel === '会员';
 
     // 默认选中第一个套餐 (非免费版)
     let selectedPackage = packages.find(pkg => !pkg.isFree) || packages[0];
@@ -3720,6 +3726,17 @@ function renderMembershipPage() {
                             <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${fixedRemaining}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">资源</span></div>
                         </div>
                     </div>
+
+                    ${isVip && expiryDate ? `
+                    <div style="margin-top: -12px; margin-bottom: 20px; padding: 12px; background: rgba(245, 158, 11, 0.05); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.1); display: flex; align-items: center; gap: 8px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; color: #f59e0b;">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                        </svg>
+                        <div style="font-size: 13px; color: #92400e;">
+                            会员有效期至：<span style="font-weight: 600;">${expiryDate}</span>
+                        </div>
+                    </div>
+                    ` : ''}
 
                     <h3 class="card-title mb-2">选择权益</h3>
                     
