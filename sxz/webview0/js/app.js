@@ -40,7 +40,31 @@ window.testSpeechToText = function () {
         return;
     }
 
-    // 检查是否已经在录音
+    // 优先尝试在小程序环境中直接跳转到原生录音页面
+    try {
+        const wx = window.wx;
+        if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+            const targetUrl = '/pages/recorder/index?from=webview&timestamp=' + Date.now();
+            console.log('检测到小程序环境，准备跳转到原生录音页:', targetUrl);
+            wx.miniProgram.navigateTo({
+                url: targetUrl,
+                success: function () {
+                    console.log('录音页跳转指令发送成功');
+                },
+                fail: function (err) {
+                    console.error('录音页跳转失败:', err);
+                }
+            });
+            // 已经交给小程序原生页面处理，这里不再在 WebView 内部启动录音 UI
+            return;
+        } else {
+            console.log('未检测到小程序环境或 navigateTo 不可用，使用 WebView 内部录音 UI');
+        }
+    } catch (e) {
+        console.error('调用小程序录音页跳转时发生异常:', e);
+    }
+
+    // 检查是否已经在录音（仅用于 WebView 内部模拟录音 UI）
     if (window.isRecordingSTT) {
         console.log('已经在录音，停止录音');
         stopRecordingUI();
