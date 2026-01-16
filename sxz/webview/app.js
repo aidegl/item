@@ -2753,7 +2753,8 @@ function renderSettings(container) {
         : '-';
     const userLevel = userInfo && rawUser && rawUser.dengji ? rawUser.dengji : '免费版';
     const expiryDate = userInfo && rawUser && rawUser.hydqsj ? rawUser.hydqsj : '';
-    const isVip = userLevel === '会员';
+    const isVip = userLevel === '会员' || userLevel.includes('会员');
+    console.log('设置页用户信息:', { userLevel, expiryDate, isVip });
 
     container.innerHTML = `
         <div class="p-2">
@@ -3671,9 +3672,10 @@ function renderMembershipPage() {
         if (userInfo && userInfo.raw) {
             userLevel = userInfo.raw.dengji || '免费版';
             expiryDate = userInfo.raw.hydqsj || '';
+            console.log('会员权益页用户信息:', { userLevel, expiryDate });
         }
     }
-    const isVip = userLevel === '会员';
+    const isVip = userLevel === '会员' || userLevel.includes('会员');
 
     // 默认选中第一个套餐 (非免费版)
     let selectedPackage = packages.find(pkg => !pkg.isFree) || packages[0];
@@ -3727,13 +3729,16 @@ function renderMembershipPage() {
                         </div>
                     </div>
 
-                    ${isVip && expiryDate ? `
-                    <div style="margin-top: -12px; margin-bottom: 20px; padding: 12px; background: rgba(245, 158, 11, 0.05); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.1); display: flex; align-items: center; gap: 8px;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; color: #f59e0b;">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                        </svg>
-                        <div style="font-size: 13px; color: #92400e;">
-                            会员有效期至：<span style="font-weight: 600;">${expiryDate}</span>
+                    ${(isVip && expiryDate) ? `
+                    <div style="margin-top: -12px; margin-bottom: 20px; padding: 12px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2); display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.05);">
+                        <div style="background: #f59e0b; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="width: 18px; height: 18px;">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 11px; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">尊享会员有效期</div>
+                            <div style="font-size: 15px; color: #78350f; font-weight: 700;">${expiryDate}</div>
                         </div>
                     </div>
                     ` : ''}
