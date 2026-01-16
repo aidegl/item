@@ -11,18 +11,6 @@
         </view>
     </view>
 
-    <view class="log-section">
-        <view class="log-title">识别过程日志</view>
-        <scroll-view class="log-list" scroll-y="true">
-            <block wx:for="{{logs}}" wx:key="index">
-                <view class="log-item">
-                    <text class="log-time">{{item.time}}</text>
-                    <text class="log-message">{{item.message}}</text>
-                </view>
-            </block>
-        </scroll-view>
-    </view>
-
     <view class="footer">
         <button class="record-btn {{isRecording ? 'recording' : ''}}" bindtap="onToggleRecord">
             {{recordButtonText}}

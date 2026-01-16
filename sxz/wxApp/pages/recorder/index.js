@@ -8,15 +8,14 @@ Page({
         timerDisplay: '00:00',
         resultText: '',
         statusText: '未开始录音',
-        recordButtonText: '开始录音',
-        logs: []
+        recordButtonText: '开始录音'
     },
 
     onLoad() {
         this._timer = null;
         this.isUserStop = false; // 是否为用户手动停止
         this.fullText = ''; // 累积的识别文本
-        this.addLog('页面加载');
+        console.log('--- 录音页面加载 ---');
         this.initManager();
     },
 
@@ -44,12 +43,15 @@ Page({
                 this.setData({ resultText: this.fullText });
             }
             
-            this.addLog('录音段落结束' + (this.isUserStop ? ' (用户停止)' : ' (自动续录)'));
+            console.log('录音段落结束' + (this.isUserStop ? ' (用户停止)' : ' (自动续录)'));
 
             if (!this.isUserStop) {
                 // 如果不是用户手动停止（如 60 秒超时），则自动开启下一段录音
-                this.addLog('正在自动续录...');
-                this.startRecord(true); 
+                console.log('正在自动续录...');
+                // 延迟 300ms 重启，防止接口调用过快导致失败
+                setTimeout(() => {
+                    this.startRecord(true); 
+                }, 300);
             } else {
                 this.setData({
                     isRecording: false,
@@ -62,14 +64,14 @@ Page({
 
         manager.onError = (res) => {
             const msg = res && res.msg ? res.msg : '未知错误';
-            this.addLog('错误: ' + msg);
+            console.error('录音错误:', msg);
 
             // 如果是某些特定的错误（如超时或环境干扰），且用户没点停止，尝试自动恢复
             if (!this.isUserStop) {
-                this.addLog('尝试自动恢复录音...');
+                console.log('检测到非人为停止错误，尝试自动恢复录音...');
                 setTimeout(() => {
                     this.startRecord(true);
-                }, 500);
+                }, 1000);
                 return;
             }
 
@@ -103,9 +105,9 @@ Page({
                 resultText: ''
             });
             this.startTimer();
-            this.addLog('开始新录音');
+            console.log('开始新录音');
         } else {
-            this.addLog('开始续录段落');
+            console.log('开始续录段落');
         }
 
         this.setData({
@@ -120,7 +122,7 @@ Page({
                 lang: 'zh_CN'
             });
         } catch (e) {
-            this.addLog('启动录音异常: ' + e.message);
+            console.error('启动录音异常:', e.message);
             if (!isContinuation) {
                 this.setData({
                     isRecording: false,
@@ -129,16 +131,19 @@ Page({
                 });
                 this.stopTimer();
                 wx.showToast({ title: '录音失败', icon: 'none' });
+            } else {
+                // 如果续录失败，尝试再次启动
+                setTimeout(() => this.startRecord(true), 1000);
             }
         }
     },
 
     stopRecord() {
-        this.addLog('停止录音');
+        console.log('停止录音操作');
         try {
             manager.stop();
         } catch (e) {
-            this.addLog('停止录音异常: ' + e.message);
+            console.error('停止录音异常:', e.message);
         }
     },
 
@@ -166,17 +171,6 @@ Page({
         const mm = m < 10 ? '0' + m : '' + m;
         const ss = s < 10 ? '0' + s : '' + s;
         return mm + ':' + ss;
-    },
-
-    addLog(message) {
-        const now = new Date();
-        const h = now.getHours().toString().padStart(2, '0');
-        const m = now.getMinutes().toString().padStart(2, '0');
-        const s = now.getSeconds().toString().padStart(2, '0');
-        const time = h + ':' + m + ':' + s;
-        const logs = this.data.logs.slice();
-        logs.unshift({ time, message });
-        this.setData({ logs });
     }
 });
 

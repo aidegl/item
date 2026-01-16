@@ -53,43 +53,6 @@ page {
   color: #111827;
 }
 
-.log-section {
-  flex: 1;
-  min-height: 200rpx;
-  margin-bottom: 32rpx;
-}
-
-.log-title {
-  font-size: 28rpx;
-  font-weight: 500;
-  color: #111827;
-  margin-bottom: 16rpx;
-}
-
-.log-list {
-  max-height: 520rpx;
-  border-radius: 16rpx;
-  border: 1rpx solid #e5e7eb;
-  background-color: #ffffff;
-  padding: 16rpx 20rpx;
-  box-sizing: border-box;
-}
-
-.log-item {
-  margin-bottom: 12rpx;
-}
-
-.log-time {
-  font-size: 24rpx;
-  color: #9ca3af;
-  margin-right: 8rpx;
-}
-
-.log-message {
-  font-size: 26rpx;
-  color: #111827;
-}
-
 .footer {
   padding-top: 8rpx;
   padding-bottom: 16rpx;
