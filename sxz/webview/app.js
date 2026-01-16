@@ -1081,7 +1081,7 @@ async function loadConsultations(patientId) {
                     return 0;
                 })(row.shouzhen),
                 firstRecordId: row.firstRecordId,
-                status: (row.specialNote && row.specialNote !== '未记录') ? 'completed' : 'pending',
+                status: (row.specialNote && row.specialNote !== '未记录' && row.specialNote !== '') ? 'completed' : 'pending',
                 createdAt: row.ctime
             };
         });
@@ -1510,7 +1510,9 @@ function renderPatientDetail(container) {
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <div style="width: 4px; height: 46px; border-radius: 3px; background-color: ${c.status === 'completed' ? 'var(--success-color)' : 'var(--warning-color)'}; flex-shrink: 0;"></div>
                                 <div>
-                                    <div style="font-weight: 500;">${c.hospital} - ${c.department}</div>
+                                    <div style="font-weight: 500;">
+                                        ${c.hospital}${c.department ? ` - ${c.department}` : ''}${c.doctor ? ` - ${c.doctor}` : ''}
+                                    </div>
                                     <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
                                         ${formatDate(c.date)}
                                     </div>
@@ -1763,7 +1765,7 @@ function renderConsultationFlow(container) {
             .filter(c => c.patientId === AppState.currentPatientId && (c.shouzhen == 1 || c.shouzhen == '1') && c.id !== (isEditMode ? consultation.id : ''))
             .map(c => `
                                         <option value="${c.id}" ${isEditMode && consultation.firstRecordId === c.id ? 'selected' : ''}>
-                                            ${formatDate(c.date)} - ${c.hospital} - ${c.doctor || '未记录'}
+                                            ${formatDate(c.date)} - ${c.hospital}${c.department ? ` - ${c.department}` : ''}${c.doctor ? ` - ${c.doctor}` : ''}
                                         </option>
                                     `).join('')}
                             </select>
@@ -2099,25 +2101,25 @@ async function handleConsultationSubmit(event) {
     const apiControls = [
         { "controlId": "appointmentTime", "value": formData.get('date') },
         { "controlId": "medicalOrgName", "value": formData.get('hospital') },
-        { "controlId": "departmentName", "value": formData.get('department') || '未记录' },
-        { "controlId": "doctorName", "value": formData.get('doctor') || '未记录' },
+        { "controlId": "departmentName", "value": formData.get('department') || '' },
+        { "controlId": "doctorName", "value": formData.get('doctor') || '' },
         { "controlId": "serviceTitle", "value": formData.get('coreAppeal') },
         { "controlId": "actualStartDate", "value": formData.get('onsetDate') },
         { "controlId": "cxfzsj_pl", "value": formData.get('duration') },
-        { "controlId": "bszz", "value": formData.get('associatedSymptoms') || '未记录' },
+        { "controlId": "bszz", "value": formData.get('associatedSymptoms') || '' },
         { "controlId": "wentiyi", "value": patientQuestions[0] || '' },
         { "controlId": "wentier", "value": patientQuestions[1] || '' },
         { "controlId": "wentisan", "value": patientQuestions[2] || '' },
-        { "controlId": "specialNote", "value": formData.get('diagnosis') || '未记录' },
-        { "controlId": "zhjy", "value": formData.get('examSummary') || '未记录' },
-        { "controlId": "nextAction", "value": formData.get('advice') || '未记录' },
+        { "controlId": "specialNote", "value": formData.get('diagnosis') || '' },
+        { "controlId": "zhjy", "value": formData.get('examSummary') || '' },
+        { "controlId": "nextAction", "value": formData.get('advice') || '' },
         { "controlId": "yyzd", "value": JSON.stringify(medicationList) },
-        { "controlId": "zjbz", "value": formData.get('lifestyleAdvice') || '未记录' },
-        { "controlId": "hxfcap", "value": formData.get('followupDate') || '未记录' },
+        { "controlId": "zjbz", "value": formData.get('lifestyleAdvice') || '' },
+        { "controlId": "hxfcap", "value": formData.get('followupDate') || '' },
         { "controlId": "wtyjd", "value": doctorAnswers[0] || '' },
         { "controlId": "wtejd", "value": doctorAnswers[1] || '' },
         { "controlId": "wtsjd", "value": doctorAnswers[2] || '' },
-        { "controlId": "pzszhtx", "value": formData.get('nurseReminder') || '未记录' },
+        { "controlId": "pzszhtx", "value": formData.get('nurseReminder') || '' },
         { "controlId": "shouzhen", "value": shouzhen === '1' ? 1 : 0 },
         { "controlId": "firstRecordId", "value": firstRecordId || '' },
         { "controlId": "patientId", "value": AppState.currentPatientId }, // 关联患者ID
@@ -2150,24 +2152,24 @@ async function handleConsultationSubmit(event) {
                 patientId: AppState.currentPatientId,
                 date: formData.get('date'),
                 hospital: formData.get('hospital'),
-                department: formData.get('department') || '未记录',
-                doctor: formData.get('doctor') || '未记录',
+                department: formData.get('department') || '',
+                doctor: formData.get('doctor') || '',
                 coreAppeal: formData.get('coreAppeal'),
                 onsetDate: formData.get('onsetDate'),
                 duration: formData.get('duration'),
-                associatedSymptoms: formData.get('associatedSymptoms') || '未记录',
+                associatedSymptoms: formData.get('associatedSymptoms') || '',
                 patientQuestions: patientQuestions,
                 doctorAnswers: doctorAnswers,
-                diagnosis: formData.get('diagnosis') || '未记录',
-                examSummary: formData.get('examSummary') || '未记录',
-                lifestyleAdvice: formData.get('lifestyleAdvice') || '未记录',
-                followupDate: formData.get('followupDate') || '未记录',
-                nurseReminder: formData.get('nurseReminder') || '未记录',
+                diagnosis: formData.get('diagnosis') || '',
+                examSummary: formData.get('examSummary') || '',
+                lifestyleAdvice: formData.get('lifestyleAdvice') || '',
+                followupDate: formData.get('followupDate') || '',
+                nurseReminder: formData.get('nurseReminder') || '',
                 medication: JSON.stringify(medicationList),
-                advice: formData.get('advice') || '未记录',
+                advice: formData.get('advice') || '',
                 shouzhen: parseInt(shouzhen),
                 firstRecordId: firstRecordId,
-                status: (formData.get('diagnosis') && formData.get('diagnosis') !== '未记录') ? 'completed' : 'pending',
+                status: (formData.get('diagnosis') && formData.get('diagnosis') !== '') ? 'completed' : 'pending',
                 createdAt: new Date().toISOString()
             };
 
