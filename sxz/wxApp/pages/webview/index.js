@@ -112,15 +112,20 @@ Page({
   },
 
   onMessage(e) {
-    console.log('[Webview] 收到消息:', JSON.stringify(e.detail, null, 2));
+    console.log('[Webview] 收到来自Webview的消息:', JSON.stringify(e.detail, null, 2));
     const data = e.detail.data;
     if (data && data.length > 0) {
       const lastMsg = data[data.length - 1];
-      console.log('[Webview] 处理消息:', JSON.stringify(lastMsg, null, 2));
+      console.log('[Webview] 处理最后一条消息:', JSON.stringify(lastMsg, null, 2));
+
       // 处理来自Webview的消息
       if (lastMsg.type === 'STT_ACTION') {
         console.log('[Webview] 调用handleSTTAction:', lastMsg.action);
         this.handleSTTAction(lastMsg.action);
+      }
+      // 处理其他类型的消息
+      else {
+        console.log('[Webview] 收到未处理类型的消息:', lastMsg.type);
       }
     } else {
       console.log('[Webview] 未收到有效消息数据');
@@ -178,15 +183,21 @@ Page({
   },
 
   sendTextToWebview(text) {
-    const baseUrl = this.data.baseUrl;
-    const app = getApp();
-    const openid = (app && app.globalData && app.globalData.openid) || wx.getStorageSync('openid');
+    console.log('[Webview] 调用sendTextToWebview:', text);
 
-    // 仅通过 hash 传参，避免基础路径变化导致刷新
-    const hashStr = `#openid=${openid || ''}&stt_result=${encodeURIComponent(text)}&t=${Date.now()}`;
-    const finalUrl = baseUrl + hashStr;
+    // 使用postMessage直接向webview发送识别结果
+    const pages = getCurrentPages();
+    const currentPage = pages[pages.length - 1];
+    const webviewContext = wx.createWebViewContext('webview');
 
-    console.log('[Webview] 发送识别结果 (Hash):', hashStr);
-    this.setData({ url: finalUrl });
+    webviewContext.postMessage({
+      data: {
+        type: 'STT_RESULT',
+        text: text,
+        timestamp: Date.now()
+      }
+    });
+
+    console.log('[Webview] 识别结果已通过postMessage发送:', text);
   }
 })

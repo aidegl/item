@@ -51,6 +51,60 @@ window.testSpeechToText = function () {
     startRecordingUI();
 };
 
+// 接收小程序发送的消息
+window.handleMiniProgramMessage = function (event) {
+    console.log('收到小程序消息:', event);
+    if (event && event.data && Array.isArray(event.data)) {
+        const lastMsg = event.data[event.data.length - 1];
+        if (lastMsg && lastMsg.type === 'STT_RESULT') {
+            const resultText = lastMsg.text;
+            console.log('收到语音识别结果:', resultText);
+
+            // 关闭录音 UI 并显示结果
+            stopRecordingUI();
+
+            // 如果在聊天界面，可以自动填充
+            if (AppState.currentTab === 'ai') {
+                const textarea = document.getElementById('chat-input');
+                if (textarea) {
+                    textarea.value = resultText;
+                    textarea.dispatchEvent(new Event('input'));
+                }
+            }
+
+            // 在设置页面的 Hash ID 下面显示语音识别结果
+            const hashIdElements = document.querySelectorAll('p');
+            let hashIdElement = null;
+            for (let i = 0; i < hashIdElements.length; i++) {
+                if (hashIdElements[i].textContent.includes('Hash ID')) {
+                    hashIdElement = hashIdElements[i];
+                    break;
+                }
+            }
+
+            if (hashIdElement) {
+                // 移除之前的识别结果
+                const existingResult = hashIdElement.parentNode.querySelector('.stt-result');
+                if (existingResult) {
+                    existingResult.remove();
+                }
+
+                // 创建新的结果元素
+                const resultElement = document.createElement('p');
+                resultElement.className = 'stt-result';
+                resultElement.style.cssText = 'margin-top: 12px; font-size: 14px; color: #6b7280; background: #f3f4f6; padding: 12px; border-radius: 8px;';
+                resultElement.innerHTML = `语音识别结果：<span style="font-weight: 500; color: #1f2937;">${resultText}</span>`;
+
+                // 插入到 Hash ID 元素后面
+                hashIdElement.parentNode.insertBefore(resultElement, hashIdElement.nextSibling);
+            }
+
+            // 显示识别结果提示
+            showToast('识别成功：' + resultText);
+        }
+    }
+};
+
 // --- 语音识别 UI 相关 ---
 window.isRecordingSTT = false;
 let recordingOverlay = null;
