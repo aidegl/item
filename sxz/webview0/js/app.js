@@ -4548,11 +4548,7 @@ function initApp() {
     }, 0);
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
+initApp();
 
 // ==================== 开发模式管理 ====================
 let devModeActive = false; // 默认关闭，由父窗口控制
