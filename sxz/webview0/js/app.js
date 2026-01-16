@@ -26,7 +26,6 @@ window.testPayment = function () {
 
 // 语音转文字测试函数
 window.testSpeechToText = function () {
-    alert('语音转文字测试函数被调用');
     console.log('--- 语音转文字测试开始 ---');
     console.log('当前window.wechatLogin:', window.wechatLogin);
     console.log('当前window.isRecordingSTT:', window.isRecordingSTT);
@@ -147,10 +146,10 @@ function callMiniProgramSTT(action) {
         console.warn('当前环境不支持小程序 STT 接口');
         if (action === 'start') {
             setTimeout(() => {
-                showToast('模拟识别中...');
+                console.log('模拟识别中...');
                 setTimeout(() => {
                     stopRecordingUI();
-                    showToast('识别结果：这是一段模拟的语音转文字内容');
+                    console.log('识别结果：这是一段模拟的语音转文字内容');
                 }, 2000);
             }, 1000);
         }
@@ -203,8 +202,6 @@ const AppState = {
                             textarea.dispatchEvent(new Event('input'));
                         }
                     }
-
-                    showToast('识别成功：' + resultText);
                 }
             }
         });
