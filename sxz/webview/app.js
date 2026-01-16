@@ -44,55 +44,62 @@ let recordingOverlay = null;
 function startRecordingUI() {
     window.isRecordingSTT = true;
     
-    // 创建或获取遮罩层
-    if (!recordingOverlay) {
-        recordingOverlay = document.createElement('div');
-        recordingOverlay.id = 'recording-overlay';
-        recordingOverlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            backdrop-filter: blur(4px);
-            transition: all 0.3s ease;
-        `;
-        
-        recordingOverlay.innerHTML = `
-            <div style="background: white; padding: 30px; border-radius: 24px; display: flex; flex-direction: column; align-items: center; width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-                <div class="audio-waves" style="display: flex; align-items: center; gap: 4px; height: 60px; margin-bottom: 20px;">
-                    <div class="wave-bar" style="width: 4px; height: 20px; background: #8b5cf6; border-radius: 2px; animation: wave 1s ease-in-out infinite;"></div>
-                    <div class="wave-bar" style="width: 4px; height: 40px; background: #a78bfa; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.1s;"></div>
-                    <div class="wave-bar" style="width: 4px; height: 30px; background: #c4b5fd; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.2s;"></div>
-                    <div class="wave-bar" style="width: 4px; height: 50px; background: #8b5cf6; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.3s;"></div>
-                    <div class="wave-bar" style="width: 4px; height: 25px; background: #a78bfa; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.4s;"></div>
-                    <div class="wave-bar" style="width: 4px; height: 45px; background: #c4b5fd; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.5s;"></div>
+    // 移除之前的 WebView 模拟 UI，改用小程序原生 UI 触发
+    // 但为了开发环境兼容性，如果不在小程序环境，保留模拟 UI
+    const wx = window.wx;
+    const isMiniProgram = wx && wx.miniProgram;
+
+    if (!isMiniProgram) {
+        // 非小程序环境，保留模拟 UI
+        if (!recordingOverlay) {
+            recordingOverlay = document.createElement('div');
+            recordingOverlay.id = 'recording-overlay';
+            recordingOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.6);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(4px);
+                transition: all 0.3s ease;
+            `;
+            
+            recordingOverlay.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 24px; display: flex; flex-direction: column; align-items: center; width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                    <div class="audio-waves" style="display: flex; align-items: center; gap: 4px; height: 60px; margin-bottom: 20px;">
+                        <div class="wave-bar" style="width: 4px; height: 20px; background: #8b5cf6; border-radius: 2px; animation: wave 1s ease-in-out infinite;"></div>
+                        <div class="wave-bar" style="width: 4px; height: 40px; background: #a78bfa; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.1s;"></div>
+                        <div class="wave-bar" style="width: 4px; height: 30px; background: #c4b5fd; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.2s;"></div>
+                        <div class="wave-bar" style="width: 4px; height: 50px; background: #8b5cf6; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.3s;"></div>
+                        <div class="wave-bar" style="width: 4px; height: 25px; background: #a78bfa; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.4s;"></div>
+                        <div class="wave-bar" style="width: 4px; height: 45px; background: #c4b5fd; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.5s;"></div>
+                    </div>
+                    <div style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 8px;">正在录音...</div>
+                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 24px;">请说出您想转换的文字</div>
+                    <button onclick="stopRecordingUI()" style="background: #ef4444; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;">
+                            <rect x="6" y="6" width="12" height="12"></rect>
+                        </svg>
+                        停止录音
+                    </button>
                 </div>
-                <div style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 8px;">正在录音...</div>
-                <div style="font-size: 14px; color: #6b7280; margin-bottom: 24px;">请说出您想转换的文字</div>
-                <button onclick="stopRecordingUI()" style="background: #ef4444; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;">
-                        <rect x="6" y="6" width="12" height="12"></rect>
-                    </svg>
-                    停止录音
-                </button>
-            </div>
-            <style>
-                @keyframes wave {
-                    0%, 100% { height: 20px; opacity: 0.5; }
-                    50% { height: 50px; opacity: 1; }
-                }
-            </style>
-        `;
-        document.body.appendChild(recordingOverlay);
-    } else {
-        recordingOverlay.style.display = 'flex';
+                <style>
+                    @keyframes wave {
+                        0%, 100% { height: 20px; opacity: 0.5; }
+                        50% { height: 50px; opacity: 1; }
+                    }
+                </style>
+            `;
+            document.body.appendChild(recordingOverlay);
+        } else {
+            recordingOverlay.style.display = 'flex';
+        }
     }
 
     // 调用小程序录音逻辑
@@ -112,6 +119,11 @@ function stopRecordingUI() {
 function callMiniProgramSTT(action) {
     const wx = window.wx;
     if (wx && wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
+        // 使用 navigateTo 跳转到当前页带参数，不会刷新当前 WebView 实例
+        // 微信小程序中跳转到当前正在显示的页面，如果参数不同，会触发 onLoad/onShow 但不会销毁当前 WebView
+        const targetUrl = `/pages/webview/index?action=stt&command=${action}&t=${Date.now()}`;
+        
+        // 优先尝试 postMessage
         wx.miniProgram.postMessage({
             data: {
                 type: 'STT_ACTION',
@@ -119,11 +131,9 @@ function callMiniProgramSTT(action) {
                 timestamp: Date.now()
             }
         });
-        
-        // 由于 postMessage 可能需要触发特定页面事件或通过 navigateTo 传参更实时
-        // 这里采用跳转到一个透明/处理页面的方式来触发小程序逻辑（如果 postMessage 响应不够快）
-        const targetUrl = `/pages/webview/index?action=stt&command=${action}&t=${Date.now()}`;
-        wx.miniProgram.redirectTo({
+
+        // 关键：使用 navigateTo 传参触发逻辑，而不是 redirectTo
+        wx.miniProgram.navigateTo({
             url: targetUrl
         });
     } else {
