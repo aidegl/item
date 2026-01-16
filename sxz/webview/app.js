@@ -26,7 +26,6 @@ window.testPayment = function () {
 
 // 语音转文字测试函数
 window.testSpeechToText = function () {
-    alert('语音转文字测试函数被调用');
     console.log('--- 语音转文字测试开始 ---');
     console.log('当前window.wechatLogin:', window.wechatLogin);
     console.log('当前window.isRecordingSTT:', window.isRecordingSTT);
@@ -59,17 +58,11 @@ let recordingOverlay = null;
 function startRecordingUI() {
     window.isRecordingSTT = true;
 
-    // 移除之前的 WebView 模拟 UI，改用小程序原生 UI 触发
-    // 但为了开发环境兼容性，如果不在小程序环境，保留模拟 UI
-    const wx = window.wx;
-    const isMiniProgram = wx && wx.miniProgram;
-
-    if (!isMiniProgram) {
-        // 非小程序环境，保留模拟 UI
-        if (!recordingOverlay) {
-            recordingOverlay = document.createElement('div');
-            recordingOverlay.id = 'recording-overlay';
-            recordingOverlay.style.cssText = `
+    // 无论是否在小程序环境，都显示录音提示 UI
+    if (!recordingOverlay) {
+        recordingOverlay = document.createElement('div');
+        recordingOverlay.id = 'recording-overlay';
+        recordingOverlay.style.cssText = `
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -85,7 +78,7 @@ function startRecordingUI() {
                 transition: all 0.3s ease;
             `;
 
-            recordingOverlay.innerHTML = `
+        recordingOverlay.innerHTML = `
                 <div style="background: white; padding: 30px; border-radius: 24px; display: flex; flex-direction: column; align-items: center; width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
                     <div class="audio-waves" style="display: flex; align-items: center; gap: 4px; height: 60px; margin-bottom: 20px;">
                         <div class="wave-bar" style="width: 4px; height: 20px; background: #8b5cf6; border-radius: 2px; animation: wave 1s ease-in-out infinite;"></div>
@@ -97,7 +90,7 @@ function startRecordingUI() {
                     </div>
                     <div style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 8px;">正在录音...</div>
                     <div style="font-size: 14px; color: #6b7280; margin-bottom: 24px;">请说出您想转换的文字</div>
-                    <button onclick="stopRecordingUI()" style="background: #ef4444; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                    <button type="button" onclick="stopRecordingUI()" style="background: #ef4444; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;">
                             <rect x="6" y="6" width="12" height="12"></rect>
                         </svg>
@@ -111,10 +104,9 @@ function startRecordingUI() {
                     }
                 </style>
             `;
-            document.body.appendChild(recordingOverlay);
-        } else {
-            recordingOverlay.style.display = 'flex';
-        }
+        document.body.appendChild(recordingOverlay);
+    } else {
+        recordingOverlay.style.display = 'flex';
     }
 
     // 调用小程序录音逻辑
