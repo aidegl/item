@@ -4,17 +4,13 @@ const manager = plugin.getRecordRecognitionManager();
 Page({
   data: {
     baseUrl: '', // 存储带版本号的基础URL
-    url: ''
+    url: '',
+    isRecording: false
   },
 
   onLoad(options) {
     // 初始化录音识别
     this.initRecord();
-
-    // 检查是否有 STT 指令
-    if (options.action === 'stt') {
-      this.handleSTTAction(options.command);
-    }
 
     // 1. 在页面加载时初始化基础URL（只生成一次版本号，防止onShow时刷新）
     const IS_DEBUG = false; // true为本地调试，false为线上
@@ -30,50 +26,46 @@ Page({
 
     console.log('[Webview] onLoad, baseUrl:', baseUrlWithVersion);
     this.setData({ baseUrl: baseUrlWithVersion }, () => {
-      // 确保 baseUrl 设置后再更新 URL
-      this.updateWebviewUrl();
+      // 检查是否有 STT 指令
+      if (options.action === 'stt') {
+        this.handleSTTAction(options.command);
+      }
+      // 初始加载 URL
+      this.updateWebviewUrl(true);
     });
   },
 
   onShow() {
     console.log('[Webview] onShow');
-    this.updateWebviewUrl();
+    // 仅在非录音状态下尝试同步 openid，且不强制刷新
+    if (!this.data.isRecording) {
+      this.updateWebviewUrl(false);
+    }
   },
 
-  updateWebviewUrl() {
+  updateWebviewUrl(isInitial = false) {
     const app = getApp();
-    // 优先从全局变量取，其次从缓存取
     const openid = (app && app.globalData && app.globalData.openid) || wx.getStorageSync('openid');
-    
-    console.log('[Webview] 尝试获取 openid:', openid);
-
-    // 使用 onLoad 中生成的固定基础 URL
     const baseUrl = this.data.baseUrl;
 
-    if (!baseUrl) {
-      console.log('[Webview] baseUrl 尚未初始化');
-      return;
+    if (!baseUrl) return;
+
+    // 构建目标 URL
+    let finalUrl = baseUrl;
+    if (openid) {
+      finalUrl += `#openid=${openid}`;
+    } else {
+      finalUrl += `#openid=`;
     }
 
-    if (openid) {
-      // 登录状态：添加 Hash 参数（Hash 变化不会导致页面刷新，只会触发 hashchange）
-      // 添加时间戳确保每次 onShow 都能触发 Hash 变化（通知 Webview 同步状态）
-      const t = new Date().getTime();
-      const finalUrl = `${baseUrl}#openid=${openid}&t=${t}`;
+    // 如果是初始加载，或者 URL 真的变了（不计较 hash 后面的时间戳）才 setData
+    const currentUrl = this.data.url;
+    const currentUrlNoHash = currentUrl.split('#')[0];
+    const finalUrlNoHash = finalUrl.split('#')[0];
 
-      // 只有当 URL 真正变化时才更新（避免重复 setData）
-      if (this.data.url !== finalUrl) {
-        this.setData({ url: finalUrl });
-        console.log('[Webview] 更新 URL (含OpenID):', finalUrl);
-      }
-    } else {
-      // 未登录或匿名：传递空 openid 标识
-      const t = new Date().getTime();
-      const emptyUrl = `${baseUrl}#openid=&t=${t}`;
-      if (this.data.url !== emptyUrl) {
-        this.setData({ url: emptyUrl });
-        console.log('[Webview] 更新 URL (无OpenID):', emptyUrl);
-      }
+    if (isInitial || currentUrlNoHash !== finalUrlNoHash) {
+      // 只有在基础 URL 变化时才更新，避免 hash 变化引起刷新
+      this.setData({ url: finalUrl });
     }
   },
 
@@ -96,8 +88,8 @@ Page({
     manager.onStop = (res) => {
       console.log('识别结束', res.result);
       const text = res.result;
+      this.setData({ isRecording: false });
       if (text) {
-        // 将结果通过 URL Hash 传回 WebView
         this.sendTextToWebview(text);
       } else {
         wx.showToast({ title: '未能识别语音', icon: 'none' });
@@ -105,25 +97,34 @@ Page({
     };
     manager.onError = (res) => {
       console.error('识别错误', res);
+      this.setData({ isRecording: false });
       wx.showToast({ title: '识别出错', icon: 'none' });
     };
   },
 
   handleSTTAction(action) {
     if (action === 'start') {
+      this.setData({ isRecording: true });
       manager.start({ duration: 30000, lang: 'zh_CN' });
-      wx.showToast({ title: '开始录音', icon: 'none' });
     } else if (action === 'stop') {
       manager.stop();
-      wx.showToast({ title: '停止录音', icon: 'none' });
     }
+  },
+
+  handleStopRecording() {
+    this.handleSTTAction('stop');
   },
 
   sendTextToWebview(text) {
     const baseUrl = this.data.baseUrl;
-    const t = new Date().getTime();
-    // 使用 encodeURIComponent 编码文字
-    const finalUrl = `${baseUrl}#stt_result=${encodeURIComponent(text)}&t=${t}`;
+    const app = getApp();
+    const openid = (app && app.globalData && app.globalData.openid) || wx.getStorageSync('openid');
+    
+    // 仅通过 hash 传参，避免基础路径变化导致刷新
+    const hashStr = `#openid=${openid || ''}&stt_result=${encodeURIComponent(text)}&t=${Date.now()}`;
+    const finalUrl = baseUrl + hashStr;
+    
+    console.log('[Webview] 发送识别结果 (Hash):', hashStr);
     this.setData({ url: finalUrl });
   }
 })
