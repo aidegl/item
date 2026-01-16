@@ -129,10 +129,30 @@
   <script src="../mingdao/MingdaoAdd.js"></script>
   <script src="../mingdao/MingdaoUpdate.js"></script>
   <script src="../mingdao/MingdaoArray.js"></script>
-  <script src="./js/WechatLogin.js"></script>
-  <script src="./js/coze.js"></script>
-  <script src="./js/CozeWorkflow.js"></script>
-  <script src="./js/app-core.js"></script>
+  <script>
+    (function () {
+      // 获取 URL 参数中的 v 作为版本号
+      var v = '';
+      try {
+        var params = new URLSearchParams(window.location.search);
+        v = params.get('v');
+      } catch (e) {}
+      if (!v) v = new Date().getTime();
+
+      // 定义需要加载的脚本列表
+      var scripts = [
+        './js/WechatLogin.js',
+        './js/coze.js',
+        './js/CozeWorkflow.js',
+        './js/app-core.js'
+      ];
+
+      // 动态加载脚本
+      scripts.forEach(function(src) {
+        document.write('<script src="' + src + '?v=' + encodeURIComponent(v) + '"><\/script>');
+      });
+    })();
+  </script>
 </body>
 
 </html>
