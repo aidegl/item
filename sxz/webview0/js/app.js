@@ -1258,16 +1258,19 @@ async function handleAddPatient(event) {
 
     console.log('当前登录用户rowid:', userRowId);
 
-    // 构造明道云API请求体
+    const ownerId = 'ae75cf2e-0f73-4137-9e99-116d92c45a47';
+
     const apiControls = [
-        { "controlId": "姓名", "value": patientData.name },
-        { "controlId": "年龄", "value": String(patientData.age) },
-        { "controlId": "性别", "value": patientData.gender },
-        { "controlId": "电话", "value": patientData.phone },
-        { "controlId": "pastMedicalHistory", "value": patientData.medicalHistory },
-        { "controlId": "allergy_history", "value": patientData.allergies },
-        { "controlId": "del", "value": "0" }, // 设置为未删除状态
-        { "controlId": "yonghu", "value": userRowId } // 关联当前登录用户
+        { controlId: 'name', value: patientData.name },
+        { controlId: 'gender', value: patientData.gender, valueType: '' },
+        { controlId: 'phone', value: patientData.phone },
+        { controlId: 'pastMedicalHistory', value: patientData.medicalHistory },
+        { controlId: 'escortRecords', value: '' },
+        { controlId: 'age', value: String(patientData.age) },
+        { controlId: 'yonghu', value: userRowId },
+        { controlId: 'del', value: '0' },
+        { controlId: 'allergy_history', value: patientData.allergies },
+        { controlId: '_owner', value: ownerId }
     ];
 
     // 打印请求体
