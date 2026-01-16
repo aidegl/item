@@ -28,6 +28,11 @@ window.testPayment = function () {
 window.testSpeechToText = function () {
     console.log('--- 语音转文字测试开始 ---');
 
+    // 检查是否已经登录
+    if (!checkLoginAndProceed()) {
+        return;
+    }
+
     // 检查是否已经在录音
     if (window.isRecordingSTT) {
         stopRecordingUI();
@@ -1714,7 +1719,7 @@ function renderConsultationFlow(container) {
                 <div class="card mb-2">
                     <h3 class="card-title mb-2">语音记录</h3>
                     <div class="upload-voice-section" style="padding: 16px;">
-                        <button class="upload-btn" onclick="uploadVoice('pre')" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-size: 14px; font-weight: 400; width: 100%;">
+                        <button class="upload-btn" onclick="testSpeechToText()" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-size: 14px; font-weight: 400; width: 100%;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
                                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
@@ -1879,7 +1884,7 @@ function renderConsultationFlow(container) {
                     <div class="card mb-2">
                         <h3 class="card-title mb-2">辅助功能</h3>
                         <div class="upload-buttons-section" style="padding: 8px 0; display: flex; gap: 8px;">
-                            <button class="upload-btn" onclick="uploadVoice('post')" style="display: flex; align-items: center; padding: 8px 16px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; flex: 1; font-size: 14px; font-weight: 400; gap: 0;">
+                            <button class="upload-btn" onclick="testSpeechToText()" style="display: flex; align-items: center; padding: 8px 16px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; flex: 1; font-size: 14px; font-weight: 400; gap: 0;">
                                 <div style="width: 30%; display: flex; justify-content: center;">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                                         <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
