@@ -3503,7 +3503,6 @@ function renderMyOrdersPage() {
                     <div class="card mb-2">
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;">
                             <div style="font-size: 12px; color: var(--text-secondary);">订单号: ${order.id}</div>
-                            <div class="badge badge-${order.statusClass}">${order.status}</div>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                             <div>
@@ -3532,7 +3531,6 @@ function renderMyOrdersPage() {
                     <div class="card mb-2">
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;">
                             <div style="font-size: 12px; color: var(--text-secondary);">订单号: ${order.id}</div>
-                            <div class="badge badge-${order.statusClass}">${order.status}</div>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                             <div>
@@ -3556,7 +3554,6 @@ function renderMyOrdersPage() {
                     <div class="card mb-2">
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px;">
                             <div style="font-size: 12px; color: var(--text-secondary);">订单号: ${order.id}</div>
-                            <div class="badge badge-${order.statusClass}">${order.status}</div>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                             <div>
@@ -3676,11 +3673,16 @@ function renderMembershipPage() {
     let userLevel = '免费版';
     let expiryDate = '';
     let daysLeft = 0;
+    let syzyd = '0'; // 剩余资源点
+    let ljxhzyd = '0'; // 累计消耗资源点
+
     if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
         const userInfo = window.wechatLogin.getUserInfo();
         if (userInfo && userInfo.raw) {
             userLevel = userInfo.raw.dengji || '免费版';
             expiryDate = userInfo.raw.hydqsj || '';
+            syzyd = userInfo.raw.syzyd || '0';
+            ljxhzyd = userInfo.raw.ljxhzyd || '0';
             
             if (expiryDate) {
                 const today = new Date();
@@ -3691,7 +3693,7 @@ function renderMembershipPage() {
                 daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             }
             
-            console.log('会员权益页用户信息:', { userLevel, expiryDate, daysLeft });
+            console.log('会员权益页用户信息:', { userLevel, expiryDate, daysLeft, syzyd, ljxhzyd });
         }
     }
     const isVip = userLevel === '会员' || userLevel.includes('会员');
@@ -3725,26 +3727,24 @@ function renderMembershipPage() {
                         <div style="flex: 1;">
                             <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                    <path d="M2 17l10 5 10-5"></path>
+                                    <path d="M2 12l10 5 10-5"></path>
                                 </svg>
-                                当月剩余
+                                剩余资源点
                             </div>
-                            <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${monthlyRemaining}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">资源</span></div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${syzyd}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">点</span></div>
                         </div>
                         <div style="width: 1px; background-color: rgba(59, 130, 246, 0.1);"></div>
                         <div style="flex: 1; padding-left: 12px;">
                             <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
-                                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                                    <path d="M2 17l10 5 10-5"></path>
-                                    <path d="M2 12l10 5 10-5"></path>
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
                                 </svg>
-                                固定剩余
+                                累计消耗
                             </div>
-                            <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${fixedRemaining}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">资源</span></div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--primary-color);">${ljxhzyd}<span style="font-size: 12px; font-weight: 400; margin-left: 2px; color: var(--text-secondary);">点</span></div>
                         </div>
                     </div>
 
