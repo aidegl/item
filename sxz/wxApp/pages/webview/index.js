@@ -15,7 +15,7 @@ Page({
     // 1. 在页面加载时初始化基础URL（只生成一次版本号，防止onShow时刷新）
     const IS_DEBUG = false; // true为本地调试，false为线上
     const LOCAL_URL = 'http://127.0.0.1:5500/webview/dist/index.html';
-    const PROD_URL = 'https://100000whys.cn/project/sxz/webview/index.html';
+    const PROD_URL = 'https://100000whys.cn/project/sxz/webview0/index.html';
 
     let rawBaseUrl = IS_DEBUG ? LOCAL_URL : PROD_URL;
 
