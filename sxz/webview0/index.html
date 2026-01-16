@@ -13,10 +13,9 @@
 
   <script>
     (function () {
+      // 强制刷新功能：始终使用当前时间戳作为版本号，确保每次加载最新样式
       try {
-        var search = window.location.search || '';
-        var params = new URLSearchParams(search);
-        var v = params.get('v') || Date.now();
+        var v = new Date().getTime();
         document.write('<link rel="stylesheet" href="./styles.css?v=' + encodeURIComponent(v) + '">');
       } catch (e) {
         document.write('<link rel="stylesheet" href="./styles.css?v=' + new Date().getTime() + '">');
