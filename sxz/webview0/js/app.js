@@ -26,17 +26,10 @@ window.testPayment = function () {
 
 // 语音转文字测试函数
 window.testSpeechToText = function () {
-    console.log('--- 语音转文字测试开始 ---');
-    console.log('当前window.wechatLogin:', window.wechatLogin);
-    console.log('当前window.isRecordingSTT:', window.isRecordingSTT);
-
     // 检查是否已经登录
-    console.log('检查登录状态...');
     const loginResult = checkLoginAndProceed();
-    console.log('登录检查结果:', loginResult);
 
     if (!loginResult) {
-        console.log('未登录，返回');
         return;
     }
 
@@ -45,33 +38,22 @@ window.testSpeechToText = function () {
         const wx = window.wx;
         if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
             const targetUrl = '/pages/recorder/index?from=webview&timestamp=' + Date.now();
-            console.log('检测到小程序环境，准备跳转到原生录音页:', targetUrl);
             wx.miniProgram.navigateTo({
-                url: targetUrl,
-                success: function () {
-                    console.log('录音页跳转指令发送成功');
-                },
-                fail: function (err) {
-                    console.error('录音页跳转失败:', err);
-                }
+                url: targetUrl
             });
             // 已经交给小程序原生页面处理，这里不再在 WebView 内部启动录音 UI
             return;
-        } else {
-            console.log('未检测到小程序环境或 navigateTo 不可用，使用 WebView 内部录音 UI');
         }
     } catch (e) {
-        console.error('调用小程序录音页跳转时发生异常:', e);
+        // 发生异常时不显示任何提示
     }
 
     // 检查是否已经在录音（仅用于 WebView 内部模拟录音 UI）
     if (window.isRecordingSTT) {
-        console.log('已经在录音，停止录音');
         stopRecordingUI();
         return;
     }
 
-    console.log('调用startRecordingUI()');
     startRecordingUI();
 };
 
@@ -4369,11 +4351,7 @@ function validatePhoneNumber(phone) {
  * @returns {boolean} 是否已登录
  */
 function checkLoginAndProceed(callback) {
-    console.log('checkLoginAndProceed 函数被调用');
-    console.log('当前window.wechatLogin:', window.wechatLogin);
-
     // 临时绕过登录检查，直接返回true，用于测试语音识别功能
-    console.log('临时绕过登录检查，返回true');
     if (callback) callback();
     return true;
 
