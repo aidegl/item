@@ -51,14 +51,21 @@ window.testSpeechToText = function () {
     startRecordingUI();
 };
 
+// 监听来自小程序的消息事件
+window.addEventListener('message', function (event) {
+    window.handleMiniProgramMessage(event);
+});
+
 // 接收小程序发送的消息
 window.handleMiniProgramMessage = function (event) {
+    alert('已收到小程序消息！');
     console.log('收到小程序消息:', event);
     if (event && event.data && Array.isArray(event.data)) {
         const lastMsg = event.data[event.data.length - 1];
         if (lastMsg && lastMsg.type === 'STT_RESULT') {
             const resultText = lastMsg.text;
             console.log('收到语音识别结果:', resultText);
+            alert('语音识别结果：' + resultText);
 
             // 关闭录音 UI 并显示结果
             stopRecordingUI();
@@ -69,6 +76,7 @@ window.handleMiniProgramMessage = function (event) {
                 if (textarea) {
                     textarea.value = resultText;
                     textarea.dispatchEvent(new Event('input'));
+                    alert('已将识别结果填入聊天输入框');
                 }
             }
 
@@ -97,6 +105,9 @@ window.handleMiniProgramMessage = function (event) {
 
                 // 插入到 Hash ID 元素后面
                 hashIdElement.parentNode.insertBefore(resultElement, hashIdElement.nextSibling);
+                alert('识别结果已显示在页面上');
+            } else {
+                alert('未找到Hash ID元素，无法在页面上显示结果');
             }
 
             // 显示识别结果提示
