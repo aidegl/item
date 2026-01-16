@@ -2,12 +2,12 @@
 console.log('app.js 正在加载...');
 
 // 全局暴露跳转函数
-window.testPayment = function() {
+window.testPayment = function () {
     console.log('--- 支付测试开始 (Global) ---');
     try {
         const wx = window.wx;
         const targetUrl = '/pages/payment/index?type=test_payment&amount=0.01&timestamp=' + Date.now();
-        
+
         if (typeof showToast === 'function') showToast('跳转中...');
 
         if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
@@ -25,9 +25,9 @@ window.testPayment = function() {
 };
 
 // 语音转文字测试函数
-window.testSpeechToText = function() {
+window.testSpeechToText = function () {
     console.log('--- 语音转文字测试开始 ---');
-    
+
     // 检查是否已经在录音
     if (window.isRecordingSTT) {
         stopRecordingUI();
@@ -43,7 +43,7 @@ let recordingOverlay = null;
 
 function startRecordingUI() {
     window.isRecordingSTT = true;
-    
+
     // 移除之前的 WebView 模拟 UI，改用小程序原生 UI 触发
     // 但为了开发环境兼容性，如果不在小程序环境，保留模拟 UI
     const wx = window.wx;
@@ -69,7 +69,7 @@ function startRecordingUI() {
                 backdrop-filter: blur(4px);
                 transition: all 0.3s ease;
             `;
-            
+
             recordingOverlay.innerHTML = `
                 <div style="background: white; padding: 30px; border-radius: 24px; display: flex; flex-direction: column; align-items: center; width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
                     <div class="audio-waves" style="display: flex; align-items: center; gap: 4px; height: 60px; margin-bottom: 20px;">
@@ -111,7 +111,7 @@ function stopRecordingUI() {
     if (recordingOverlay) {
         recordingOverlay.style.display = 'none';
     }
-    
+
     // 调用小程序停止录音逻辑
     callMiniProgramSTT('stop');
 }
@@ -119,11 +119,7 @@ function stopRecordingUI() {
 function callMiniProgramSTT(action) {
     const wx = window.wx;
     if (wx && wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
-        // 使用 navigateTo 跳转到当前页带参数，不会刷新当前 WebView 实例
-        // 微信小程序中跳转到当前正在显示的页面，如果参数不同，会触发 onLoad/onShow 但不会销毁当前 WebView
-        const targetUrl = `/pages/webview/index?action=stt&command=${action}&t=${Date.now()}`;
-        
-        // 优先尝试 postMessage
+        // 仅使用 postMessage 发送指令，不跳转页面，避免 WebView 重新加载
         wx.miniProgram.postMessage({
             data: {
                 type: 'STT_ACTION',
@@ -131,11 +127,7 @@ function callMiniProgramSTT(action) {
                 timestamp: Date.now()
             }
         });
-
-        // 关键：使用 navigateTo 传参触发逻辑，而不是 redirectTo
-        wx.miniProgram.navigateTo({
-            url: targetUrl
-        });
+        console.log('STT 指令通过 postMessage 发送成功:', action);
     } else {
         console.warn('当前环境不支持小程序 STT 接口');
         if (action === 'start') {
@@ -177,17 +169,17 @@ const AppState = {
         window.addEventListener('hashchange', () => {
             const hash = window.location.hash;
             console.log('WebView Hash 变化:', hash);
-            
+
             // 处理 STT 结果
             if (hash.includes('stt_result=')) {
                 const match = hash.match(/stt_result=([^&]*)/);
                 if (match && match[1]) {
                     const resultText = decodeURIComponent(match[1]);
                     console.log('收到识别结果:', resultText);
-                    
+
                     // 关闭录音 UI 并显示结果
                     stopRecordingUI();
-                    
+
                     // 如果在聊天界面，可以自动填充
                     if (AppState.currentTab === 'ai') {
                         const textarea = document.getElementById('chat-input');
@@ -196,7 +188,7 @@ const AppState = {
                             textarea.dispatchEvent(new Event('input'));
                         }
                     }
-                    
+
                     showToast('识别成功：' + resultText);
                 }
             }
@@ -1082,7 +1074,7 @@ async function loadConsultations(patientId) {
                 nurseReminder: row.pzszhtx,
                 medication: row.yyzd,
                 advice: row.nextAction,
-                shouzhen: (function(val) {
+                shouzhen: (function (val) {
                     if (val == '1' || val == 1) return 1;
                     if (Array.isArray(val) && val[0] == '1') return 1;
                     if (typeof val === 'string' && val.includes('1')) return 1; // 处理可能出现的 "[\"1\"]" 格式
@@ -1768,8 +1760,8 @@ function renderConsultationFlow(container) {
                             <select name="firstRecordId" class="input" style="height: 38px; margin-top: 6px; font-size: 13px; background-color: white;">
                                 <option value="">-- 请选择记录 --</option>
                                 ${AppState.consultations
-                                    .filter(c => c.patientId === AppState.currentPatientId && (c.shouzhen == 1 || c.shouzhen == '1') && c.id !== (isEditMode ? consultation.id : ''))
-                                    .map(c => `
+            .filter(c => c.patientId === AppState.currentPatientId && (c.shouzhen == 1 || c.shouzhen == '1') && c.id !== (isEditMode ? consultation.id : ''))
+            .map(c => `
                                         <option value="${c.id}" ${isEditMode && consultation.firstRecordId === c.id ? 'selected' : ''}>
                                             ${formatDate(c.date)} - ${c.hospital} - ${c.doctor || '未记录'}
                                         </option>
@@ -2243,7 +2235,7 @@ async function handleConsultationDelete(consultationId) {
 function handleShouzhenChange(radio) {
     const followupSection = document.getElementById('followup-section');
     const dateInput = document.querySelector('input[name="date"]');
-    
+
     if (radio.value === '1') {
         followupSection.style.display = 'none';
         // 清重置复诊相关的选择
@@ -2252,7 +2244,7 @@ function handleShouzhenChange(radio) {
         document.getElementById('first-record-selector').style.display = 'none';
         const select = document.querySelector('select[name="firstRecordId"]');
         if (select) select.value = '';
-        
+
         // 初诊逻辑：自动设置为当天
         const today = new Date().toISOString().split('T')[0];
         if (dateInput) {
@@ -2381,9 +2373,9 @@ function hideConfirmDialog(fromConfirm = false) {
 function handleConfirm() {
     // 保存回调，防止在 hideConfirmDialog 中被清理
     const onConfirm = window.confirmCallbacks?.onConfirm;
-    
+
     hideConfirmDialog(true);
-    
+
     // 调用确认回调
     if (onConfirm) {
         onConfirm();
@@ -3194,12 +3186,12 @@ function closeEditNicknameDialog() {
 }
 
 // 检查是否可以进行头像选择
-window.canSelectAvatar = function() {
+window.canSelectAvatar = function () {
     return window.wechatLogin && window.wechatLogin.isLoggedIn();
 };
 
 // 处理头像点击事件
-window.handleAvatarClick = function() {
+window.handleAvatarClick = function () {
     console.log('[Avatar] 容器点击触发');
     // 注意：现在 input 已经覆盖了容器，通常直接点到 input 上了。
     // 如果点到了容器边缘，手动触发一次
@@ -3210,7 +3202,7 @@ window.handleAvatarClick = function() {
 };
 
 // 处理头像上传
-window.handleAvatarUpload = async function(input) {
+window.handleAvatarUpload = async function (input) {
     console.log('[Avatar] 文件选择变更', input.files);
     const file = input.files[0];
     if (!file) {
@@ -3246,7 +3238,7 @@ window.handleAvatarUpload = async function(input) {
 
         const data = await response.json();
         console.log('[Avatar] 上传接口返回:', data);
-        
+
         if (data.error) {
             throw new Error(data.error);
         }
@@ -3257,7 +3249,7 @@ window.handleAvatarUpload = async function(input) {
         }
 
         console.log('[Avatar] 头像上传成功，URL:', fileUrl);
-        
+
         // 更新明道云头像字段
         await updateAvatar(fileUrl);
 
@@ -3288,7 +3280,7 @@ async function updateAvatar(imageUrl) {
         // 构造更新字段 (touxiang 是图片/链接字段)
         const controls = [
             {
-                "controlId": "touxiang", 
+                "controlId": "touxiang",
                 "value": imageUrl
             }
         ];
@@ -3826,7 +3818,7 @@ function renderMembershipPage() {
     }
 
     const packages = getMembershipPackages();
-    
+
     // 获取当前用户的会员等级 (保留用于显示，不再限制逻辑)
     let userLevel = '免费版';
     let expiryDate = '';
@@ -3841,7 +3833,7 @@ function renderMembershipPage() {
             expiryDate = userInfo.raw.hydqsj || '';
             syzyd = userInfo.raw.syzyd || '0';
             ljxhzyd = userInfo.raw.ljxhzyd || '0';
-            
+
             if (expiryDate) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
@@ -3850,7 +3842,7 @@ function renderMembershipPage() {
                 const diffTime = expiry - today;
                 daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             }
-            
+
             console.log('会员权益页用户信息:', { userLevel, expiryDate, daysLeft, syzyd, ljxhzyd });
         }
     }
@@ -3931,7 +3923,7 @@ function renderMembershipPage() {
                     <div class="package-list" id="packageList">
                         ${packages.map(pkg => {
             const isSelected = pkg.id === selectedPackage.id;
-            
+
             let itemStyle = `border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; cursor: pointer;`;
             if (isSelected) {
                 itemStyle += `border-color: var(--primary-color); background-color: rgba(59, 130, 246, 0.05);`;
@@ -4041,7 +4033,7 @@ function subscribePackage() {
 
     // 检查登录状态
     const isLoggedIn = window.wechatLogin && window.wechatLogin.isLoggedIn();
-    
+
     if (!isLoggedIn) {
         showToast('请先登录');
         setTimeout(() => {
@@ -4438,7 +4430,7 @@ async function loadGlobalSettings() {
         const api = new window.MingDaoYunAPI();
         const worksheetId = 'qjsz';
         const rowId = '9e5a5ed8-258b-4f20-a5c0-a1d9b9a97c2f';
-        
+
         const result = await api.getData(rowId, worksheetId);
         if (result && result.success) {
             console.log('全局设置加载成功:', result.data);
@@ -4523,7 +4515,7 @@ let devModeActive = false; // 默认关闭，由父窗口控制
 function initDevMode() {
     const urlParams = new URLSearchParams(window.location.search);
     const isDev = urlParams.get('dev') === '1';
-    
+
     if (isDev) {
         console.log('--- 开发模式已就绪 (等待激活) ---');
         // 添加全局样式
@@ -4584,7 +4576,7 @@ function initDevMode() {
             }
         `;
         document.head.appendChild(style);
-        
+
         // 监听来自父窗口的状态切换消息
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'toggle-dev-mode') {
@@ -4607,7 +4599,7 @@ function initDevMode() {
         const checkInitialClass = () => {
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
             const targetClass = hashParams.get('class');
-            
+
             if (targetClass) {
                 const element = document.querySelector(`.${targetClass}`);
                 if (element) {
@@ -4628,7 +4620,7 @@ function initDevMode() {
             });
             checkInitialClass();
         });
-        
+
         // 监听全局点击事件 (使用捕获阶段以优先处理)
         document.addEventListener('click', (e) => {
             // 如果不是开发模式，不拦截点击，允许正常交互
@@ -4637,28 +4629,28 @@ function initDevMode() {
             let target = e.target;
             while (target && target !== document.body) {
                 if (target.className && typeof target.className === 'string') {
-                    const classes = target.className.split(/\s+/).filter(c => 
-                        c && 
-                        c !== 'dev-mode-selected' && 
-                        c !== 'selected' && 
-                        c !== 'active' && 
+                    const classes = target.className.split(/\s+/).filter(c =>
+                        c &&
+                        c !== 'dev-mode-selected' &&
+                        c !== 'selected' &&
+                        c !== 'active' &&
                         c !== 'hidden'
                     );
-                    
+
                     if (classes.length > 0) {
                         const className = classes[0];
                         e.preventDefault();
                         e.stopPropagation();
-                        
+
                         updateUrlClass(className);
-                        
+
                         document.querySelectorAll('.dev-mode-selected').forEach(el => {
                             el.classList.remove('dev-mode-selected');
                             el.removeAttribute('data-dev-class');
                         });
                         target.classList.add('dev-mode-selected');
                         target.setAttribute('data-dev-class', className);
-                        
+
                         break;
                     }
                 }
@@ -4673,10 +4665,10 @@ function updateUrlClass(className) {
     // 我们直接更新 hash，这样既能保存状态又不会导致 iframe 重新加载
     const hash = window.location.hash;
     const newHash = `#class=${className}`;
-    
+
     if (hash !== newHash) {
         window.location.hash = newHash;
-        
+
         // 通知父窗口 (如果是 iframe 嵌入)
         if (window.parent !== window) {
             window.parent.postMessage({
