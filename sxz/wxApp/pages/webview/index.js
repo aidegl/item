@@ -1,10 +1,21 @@
+const plugin = requirePlugin('WechatSI');
+const manager = plugin.getRecordRecognitionManager();
+
 Page({
   data: {
     baseUrl: '', // 存储带版本号的基础URL
     url: ''
   },
 
-  onLoad() {
+  onLoad(options) {
+    // 初始化录音识别
+    this.initRecord();
+
+    // 检查是否有 STT 指令
+    if (options.action === 'stt') {
+      this.handleSTTAction(options.command);
+    }
+
     // 1. 在页面加载时初始化基础URL（只生成一次版本号，防止onShow时刷新）
     const IS_DEBUG = false; // true为本地调试，false为线上
     const LOCAL_URL = 'http://127.0.0.1:5500/webview/dist/index.html';
@@ -72,6 +83,47 @@ Page({
     if (data && data.length > 0) {
       const lastMsg = data[data.length - 1];
       // 处理来自Webview的消息
+      if (lastMsg.type === 'STT_ACTION') {
+        this.handleSTTAction(lastMsg.action);
+      }
     }
+  },
+
+  initRecord() {
+    manager.onRecognize = (res) => {
+      console.log('识别中...', res.result);
+    };
+    manager.onStop = (res) => {
+      console.log('识别结束', res.result);
+      const text = res.result;
+      if (text) {
+        // 将结果通过 URL Hash 传回 WebView
+        this.sendTextToWebview(text);
+      } else {
+        wx.showToast({ title: '未能识别语音', icon: 'none' });
+      }
+    };
+    manager.onError = (res) => {
+      console.error('识别错误', res);
+      wx.showToast({ title: '识别出错', icon: 'none' });
+    };
+  },
+
+  handleSTTAction(action) {
+    if (action === 'start') {
+      manager.start({ duration: 30000, lang: 'zh_CN' });
+      wx.showToast({ title: '开始录音', icon: 'none' });
+    } else if (action === 'stop') {
+      manager.stop();
+      wx.showToast({ title: '停止录音', icon: 'none' });
+    }
+  },
+
+  sendTextToWebview(text) {
+    const baseUrl = this.data.baseUrl;
+    const t = new Date().getTime();
+    // 使用 encodeURIComponent 编码文字
+    const finalUrl = `${baseUrl}#stt_result=${encodeURIComponent(text)}&t=${t}`;
+    this.setData({ url: finalUrl });
   }
 })
