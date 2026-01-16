@@ -21,19 +21,9 @@
 
         appScriptLoading = true;
 
-        // 强制刷新功能：优先使用 URL 参数中的 v，否则使用当前时间戳
-        var version = '';
-        try {
-            var params = new URLSearchParams(window.location.search);
-            version = params.get('v');
-        } catch (e) {}
-
-        if (!version) {
-            version = new Date().getTime();
-        }
-
+        var v = new URLSearchParams(window.location.search).get('v') || Date.now();
         var script = document.createElement('script');
-        script.src = './js/app.js?v=' + encodeURIComponent(version);
+        script.src = './js/app.js?v=' + v;
         script.onload = function () {
             appScriptLoaded = true;
             appScriptLoading = false;
