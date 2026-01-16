@@ -3,7 +3,8 @@
     "pages/webview/index",
     "pages/payment/index",
     "pages/login/index",
-    "pages/logout/index"
+    "pages/logout/index",
+    "pages/recorder/index"
   ],
   "window": {
     "navigationBarTitleText": "沈仙子",

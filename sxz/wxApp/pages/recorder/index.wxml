@@ -1,0 +1,32 @@
+<view class="page">
+    <view class="result-section">
+        <view class="status-label">
+            <text>{{statusText}}</text>
+        </view>
+        <view class="input-row">
+            <textarea class="result-input" disabled value="{{resultText}}" placeholder="这里显示语音识别结果"></textarea>
+            <view class="timer">
+                <text>{{timerDisplay}}</text>
+            </view>
+        </view>
+    </view>
+
+    <view class="log-section">
+        <view class="log-title">识别过程日志</view>
+        <scroll-view class="log-list" scroll-y="true">
+            <block wx:for="{{logs}}" wx:key="index">
+                <view class="log-item">
+                    <text class="log-time">{{item.time}}</text>
+                    <text class="log-message">{{item.message}}</text>
+                </view>
+            </block>
+        </scroll-view>
+    </view>
+
+    <view class="footer">
+        <button class="record-btn {{isRecording ? 'recording' : ''}}" bindtap="onToggleRecord">
+            {{recordButtonText}}
+        </button>
+    </view>
+</view>
+
