@@ -2753,8 +2753,17 @@ function renderSettings(container) {
         : '-';
     const userLevel = userInfo && rawUser && rawUser.dengji ? rawUser.dengji : '免费版';
     const expiryDate = userInfo && rawUser && rawUser.hydqsj ? rawUser.hydqsj : '';
+    let daysLeft = 0;
+    if (expiryDate) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const expiry = new Date(expiryDate);
+        expiry.setHours(0, 0, 0, 0);
+        const diffTime = expiry - today;
+        daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
     const isVip = userLevel === '会员' || userLevel.includes('会员');
-    console.log('设置页用户信息:', { userLevel, expiryDate, isVip });
+    console.log('设置页用户信息:', { userLevel, expiryDate, isVip, daysLeft });
 
     container.innerHTML = `
         <div class="p-2">
@@ -2779,7 +2788,6 @@ function renderSettings(container) {
                 ${userInfo ? `
                 <div class="user-membership">
                     <span class="membership-badge">${escapeHtml(userLevel)}</span>
-                    ${isVip && expiryDate ? `<div style="font-size: 11px; color: #f59e0b; margin-top: 4px; font-weight: 500;">有效期至 ${expiryDate}</div>` : ''}
                 </div>
                 ` : ''}
             </div>
@@ -3667,12 +3675,23 @@ function renderMembershipPage() {
     // 获取当前用户的会员等级 (保留用于显示，不再限制逻辑)
     let userLevel = '免费版';
     let expiryDate = '';
+    let daysLeft = 0;
     if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
         const userInfo = window.wechatLogin.getUserInfo();
         if (userInfo && userInfo.raw) {
             userLevel = userInfo.raw.dengji || '免费版';
             expiryDate = userInfo.raw.hydqsj || '';
-            console.log('会员权益页用户信息:', { userLevel, expiryDate });
+            
+            if (expiryDate) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const expiry = new Date(expiryDate);
+                expiry.setHours(0, 0, 0, 0);
+                const diffTime = expiry - today;
+                daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            }
+            
+            console.log('会员权益页用户信息:', { userLevel, expiryDate, daysLeft });
         }
     }
     const isVip = userLevel === '会员' || userLevel.includes('会员');
@@ -3739,6 +3758,12 @@ function renderMembershipPage() {
                         <div style="flex: 1;">
                             <div style="font-size: 11px; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">尊享会员有效期</div>
                             <div style="font-size: 15px; color: #78350f; font-weight: 700;">${expiryDate}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 11px; color: #92400e; margin-bottom: 2px;">剩余天数</div>
+                            <div style="font-size: 15px; color: #f59e0b; font-weight: 700;">
+                                ${daysLeft > 0 ? `${daysLeft}<span style="font-size: 12px; font-weight: 500; margin-left: 2px;">天</span>` : (daysLeft === 0 ? '今天到期' : '已过期')}
+                            </div>
                         </div>
                     </div>
                     ` : ''}
