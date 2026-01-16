@@ -22,7 +22,7 @@
         appScriptLoading = true;
 
         var script = document.createElement('script');
-        script.src = './js/app.js?v=0.0.2';
+        script.src = './js/app.js?v=0.0.3';
         script.onload = function () {
             appScriptLoaded = true;
             appScriptLoading = false;
