@@ -197,6 +197,33 @@ const AppState = {
                     }
 
                     showToast('识别成功：' + resultText);
+
+                    // 在设置页面的 Hash ID 下面显示语音识别结果
+                    const hashIdElements = document.querySelectorAll('p');
+                    let hashIdElement = null;
+                    for (let i = 0; i < hashIdElements.length; i++) {
+                        if (hashIdElements[i].textContent.includes('Hash ID')) {
+                            hashIdElement = hashIdElements[i];
+                            break;
+                        }
+                    }
+
+                    if (hashIdElement) {
+                        // 移除之前的识别结果
+                        const existingResult = hashIdElement.parentNode.querySelector('.stt-result');
+                        if (existingResult) {
+                            existingResult.remove();
+                        }
+
+                        // 创建新的结果元素
+                        const resultElement = document.createElement('p');
+                        resultElement.className = 'stt-result';
+                        resultElement.style.cssText = 'margin-top: 12px; font-size: 14px; color: #6b7280; background: #f3f4f6; padding: 12px; border-radius: 8px;';
+                        resultElement.innerHTML = `语音识别结果：<span style="font-weight: 500; color: #1f2937;">${resultText}</span>`;
+
+                        // 插入到 Hash ID 元素后面
+                        hashIdElement.parentNode.insertBefore(resultElement, hashIdElement.nextSibling);
+                    }
                 }
             }
         });
