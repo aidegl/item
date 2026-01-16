@@ -21,8 +21,18 @@
 
         appScriptLoading = true;
 
+        var version = (function () {
+            try {
+                var search = window.location.search || '';
+                var params = new URLSearchParams(search);
+                return params.get('v') || (new Date().getTime());
+            } catch (e) {
+                return new Date().getTime();
+            }
+        })();
+
         var script = document.createElement('script');
-        script.src = './js/app.js?v=0.0.3';
+        script.src = './js/app.js?v=' + encodeURIComponent(version);
         script.onload = function () {
             appScriptLoaded = true;
             appScriptLoading = false;
