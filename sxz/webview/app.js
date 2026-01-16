@@ -24,6 +24,122 @@ window.testPayment = function() {
     }
 };
 
+// 语音转文字测试函数
+window.testSpeechToText = function() {
+    console.log('--- 语音转文字测试开始 ---');
+    
+    // 检查是否已经在录音
+    if (window.isRecordingSTT) {
+        stopRecordingUI();
+        return;
+    }
+
+    startRecordingUI();
+};
+
+// --- 语音识别 UI 相关 ---
+window.isRecordingSTT = false;
+let recordingOverlay = null;
+
+function startRecordingUI() {
+    window.isRecordingSTT = true;
+    
+    // 创建或获取遮罩层
+    if (!recordingOverlay) {
+        recordingOverlay = document.createElement('div');
+        recordingOverlay.id = 'recording-overlay';
+        recordingOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+        `;
+        
+        recordingOverlay.innerHTML = `
+            <div style="background: white; padding: 30px; border-radius: 24px; display: flex; flex-direction: column; align-items: center; width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                <div class="audio-waves" style="display: flex; align-items: center; gap: 4px; height: 60px; margin-bottom: 20px;">
+                    <div class="wave-bar" style="width: 4px; height: 20px; background: #8b5cf6; border-radius: 2px; animation: wave 1s ease-in-out infinite;"></div>
+                    <div class="wave-bar" style="width: 4px; height: 40px; background: #a78bfa; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.1s;"></div>
+                    <div class="wave-bar" style="width: 4px; height: 30px; background: #c4b5fd; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.2s;"></div>
+                    <div class="wave-bar" style="width: 4px; height: 50px; background: #8b5cf6; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.3s;"></div>
+                    <div class="wave-bar" style="width: 4px; height: 25px; background: #a78bfa; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.4s;"></div>
+                    <div class="wave-bar" style="width: 4px; height: 45px; background: #c4b5fd; border-radius: 2px; animation: wave 1s ease-in-out infinite 0.5s;"></div>
+                </div>
+                <div style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 8px;">正在录音...</div>
+                <div style="font-size: 14px; color: #6b7280; margin-bottom: 24px;">请说出您想转换的文字</div>
+                <button onclick="stopRecordingUI()" style="background: #ef4444; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 18px; height: 18px;">
+                        <rect x="6" y="6" width="12" height="12"></rect>
+                    </svg>
+                    停止录音
+                </button>
+            </div>
+            <style>
+                @keyframes wave {
+                    0%, 100% { height: 20px; opacity: 0.5; }
+                    50% { height: 50px; opacity: 1; }
+                }
+            </style>
+        `;
+        document.body.appendChild(recordingOverlay);
+    } else {
+        recordingOverlay.style.display = 'flex';
+    }
+
+    // 调用小程序录音逻辑
+    callMiniProgramSTT('start');
+}
+
+function stopRecordingUI() {
+    window.isRecordingSTT = false;
+    if (recordingOverlay) {
+        recordingOverlay.style.display = 'none';
+    }
+    
+    // 调用小程序停止录音逻辑
+    callMiniProgramSTT('stop');
+}
+
+function callMiniProgramSTT(action) {
+    const wx = window.wx;
+    if (wx && wx.miniProgram && typeof wx.miniProgram.postMessage === 'function') {
+        wx.miniProgram.postMessage({
+            data: {
+                type: 'STT_ACTION',
+                action: action,
+                timestamp: Date.now()
+            }
+        });
+        
+        // 由于 postMessage 可能需要触发特定页面事件或通过 navigateTo 传参更实时
+        // 这里采用跳转到一个透明/处理页面的方式来触发小程序逻辑（如果 postMessage 响应不够快）
+        const targetUrl = `/pages/webview/index?action=stt&command=${action}&t=${Date.now()}`;
+        wx.miniProgram.redirectTo({
+            url: targetUrl
+        });
+    } else {
+        console.warn('当前环境不支持小程序 STT 接口');
+        if (action === 'start') {
+            setTimeout(() => {
+                showToast('模拟识别中...');
+                setTimeout(() => {
+                    stopRecordingUI();
+                    showToast('识别结果：这是一段模拟的语音转文字内容');
+                }, 2000);
+            }, 1000);
+        }
+    }
+}
+
 const AppState = {
     currentTab: 'ai',
     currentView: 'main',
@@ -44,6 +160,37 @@ const AppState = {
         this.saveToStorage();
         this.checkOnboarding();
         initDevMode(); // 初始化开发模式
+        this.initHashChangeListener(); // 初始化 Hash 监听
+    },
+
+    initHashChangeListener() {
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash;
+            console.log('WebView Hash 变化:', hash);
+            
+            // 处理 STT 结果
+            if (hash.includes('stt_result=')) {
+                const match = hash.match(/stt_result=([^&]*)/);
+                if (match && match[1]) {
+                    const resultText = decodeURIComponent(match[1]);
+                    console.log('收到识别结果:', resultText);
+                    
+                    // 关闭录音 UI 并显示结果
+                    stopRecordingUI();
+                    
+                    // 如果在聊天界面，可以自动填充
+                    if (AppState.currentTab === 'ai') {
+                        const textarea = document.getElementById('chat-input');
+                        if (textarea) {
+                            textarea.value = resultText;
+                            textarea.dispatchEvent(new Event('input'));
+                        }
+                    }
+                    
+                    showToast('识别成功：' + resultText);
+                }
+            }
+        });
     },
 
     loadFromStorage() {
@@ -2861,6 +3008,7 @@ function renderSettings(container) {
             `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()" style="display: flex; align-items: center; justify-content: center;">立即登录</button>`
         }
                 <button class="btn btn-outline btn-lg w-full mt-2" onclick="console.log('支付测试按钮被点击'); testPayment()" style="display: flex; align-items: center; justify-content: center; border-color: var(--primary-color); color: var(--primary-color);">支付测试</button>
+                <button class="btn btn-outline btn-lg w-full mt-2" onclick="testSpeechToText()" style="display: flex; align-items: center; justify-content: center; border-color: #8b5cf6; color: #8b5cf6;">语音转文字测试</button>
             </div>
             
             <div class="card">
