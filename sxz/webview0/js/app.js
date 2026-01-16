@@ -26,8 +26,11 @@ window.testPayment = function () {
 
 // 语音转文字测试函数
 window.testSpeechToText = function () {
+    console.log('--- 语音转文字测试 (v1.0.16) ---');
+    
     // 检查是否已经登录
     const loginResult = checkLoginAndProceed();
+    console.log('登录检查结果:', loginResult);
 
     if (!loginResult) {
         return;
@@ -36,16 +39,29 @@ window.testSpeechToText = function () {
     // 优先尝试在小程序环境中直接跳转到原生录音页面
     try {
         const wx = window.wx;
+        console.log('检测微信 SDK:', !!wx, !!(wx && wx.miniProgram));
+        
         if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
             const targetUrl = '/pages/recorder/index?from=webview&timestamp=' + Date.now();
+            console.log('准备跳转小程序原生页面:', targetUrl);
+            
             wx.miniProgram.navigateTo({
-                url: targetUrl
+                url: targetUrl,
+                success: function() {
+                    console.log('小程序跳转指令发送成功');
+                },
+                fail: function(err) {
+                    console.error('小程序跳转失败:', err);
+                    if (typeof showToast === 'function') showToast('跳转失败，请重试');
+                }
             });
             // 已经交给小程序原生页面处理，这里不再在 WebView 内部启动录音 UI
             return;
+        } else {
+            console.log('当前环境不是小程序或 SDK 未就绪');
         }
     } catch (e) {
-        // 发生异常时不显示任何提示
+        console.error('跳转过程发生异常:', e);
     }
 
     // 检查是否已经在录音（仅用于 WebView 内部模拟录音 UI）
@@ -3039,7 +3055,7 @@ function renderSettings(container) {
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
-                    <p>版本：1.0.15 (强制刷新已启用)</p>
+                    <p>版本：1.0.16 (全链路刷新已启用)</p>
                     <p style="margin-top: 12px; font-size: 12px;">Hash ID: ${getHashId()}</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
