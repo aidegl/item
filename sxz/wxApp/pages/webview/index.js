@@ -87,12 +87,13 @@ Page({
 
   updateWebviewUrl(isInitial = false) {
     const app = getApp();
-    const openid = (app && app.globalData && app.globalData.openid) || wx.getStorageSync('openid');
+    const globalOpenid = (app && app.globalData && app.globalData.openid) || '';
+    const storedOpenid = wx.getStorageSync('openid') || '';
+    const openid = globalOpenid || storedOpenid;
     const baseUrl = this.data.baseUrl;
 
     if (!baseUrl) return;
 
-    // 构建目标 URL
     let finalUrl = baseUrl;
     if (openid) {
       finalUrl += `#openid=${openid}`;
@@ -100,13 +101,29 @@ Page({
       finalUrl += `#openid=`;
     }
 
-    // 如果是初始加载，或者 URL 真的变了（不计较 hash 后面的时间戳）才 setData
     const currentUrl = this.data.url;
-    const currentUrlNoHash = currentUrl.split('#')[0];
-    const finalUrlNoHash = finalUrl.split('#')[0];
+    if (isInitial || !currentUrl) {
+      this.setData({ url: finalUrl });
+      return;
+    }
 
-    if (isInitial || currentUrlNoHash !== finalUrlNoHash) {
-      // 只有在基础 URL 变化时才更新，避免 hash 变化引起刷新
+    let currentOpenid = '';
+    const hashIndex = currentUrl.indexOf('#');
+    if (hashIndex >= 0) {
+      const hash = currentUrl.slice(hashIndex + 1);
+      const pairs = hash.split('&');
+      for (let i = 0; i < pairs.length; i++) {
+        const pair = pairs[i];
+        if (pair.indexOf('openid=') === 0) {
+          currentOpenid = decodeURIComponent(pair.split('=')[1] || '');
+          break;
+        }
+      }
+    }
+
+    const nextOpenid = openid || '';
+    if (currentOpenid !== nextOpenid) {
+      console.log('[Webview] 登录状态变化，刷新 WebView，openid:', nextOpenid || '(空)');
       this.setData({ url: finalUrl });
     }
   },
