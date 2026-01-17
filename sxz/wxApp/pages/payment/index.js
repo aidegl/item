@@ -23,6 +23,28 @@ Page({
 
   onLoad: function (options) {
     console.log('支付页面加载，参数:', options);
+    
+    // 获取小程序实例
+    const app = getApp();
+    // 尝试获取全局设置数据
+    const globalSettings = app.globalData.globalSettings;
+    console.log('[支付页面] 从全局数据获取的设置:', globalSettings);
+    
+    // 如果全局设置已加载，可以直接使用
+    if (globalSettings) {
+      console.log('[支付页面] 全局设置已加载，使用缓存数据');
+      // 这里可以根据需要使用全局设置数据
+      // 例如：this.setData({ someSetting: globalSettings.someField });
+    } else {
+      console.log('[支付页面] 全局设置尚未加载，监听全局数据变化');
+      // 如果全局设置尚未加载，可以尝试重新加载或监听变化
+      // 重新加载全局设置
+      app.loadGlobalSettings().then(() => {
+        const newSettings = app.globalData.globalSettings;
+        console.log('[支付页面] 重新加载后的全局设置:', newSettings);
+        // 这里可以根据需要使用重新加载后的全局设置数据
+      });
+    }
     const amount = options.amount || '0.01';
     const description = options.description ? decodeURIComponent(options.description) : '会员订阅';
     

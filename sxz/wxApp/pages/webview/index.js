@@ -12,34 +12,66 @@ Page({
     // 初始化录音识别
     this.initRecord();
 
-    // 1. 在页面加载时初始化基础URL（只生成一次版本号，防止onShow时刷新）
-    const IS_DEBUG = false; // true为本地调试，false为线上
-    const LOCAL_URL = 'http://127.0.0.1:5500/webview/dist/index.html';
-    const PROD_URL = 'https://100000whys.cn/project/sxz/webview0/index.html';
+    // 获取小程序实例
+    const app = getApp();
 
-    let rawBaseUrl = IS_DEBUG ? LOCAL_URL : PROD_URL;
+    // 处理页面加载逻辑
+    const loadWebviewPage = () => {
+      // 获取全局设置
+      const globalSettings = app.globalData.globalSettings;
 
-    // 添加防缓存参数（仅在小程序冷启动时生成一次）
-    const timestamp = new Date().getTime();
-    const separator = rawBaseUrl.includes('?') ? '&' : '?';
-    const baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}`;
+      // 检查全局设置中的dmsh值，决定加载哪个页面
+      const dmsh = globalSettings?.dmsh;
+      console.log('[Webview] 全局设置中的dmsh值:', dmsh);
 
-    console.log('[Webview] onLoad, baseUrl:', baseUrlWithVersion);
-    this.setData({ baseUrl: baseUrlWithVersion }, () => {
-      // 检查是否有 STT 指令
-      if (options.action === 'stt') {
-        this.handleSTTAction(options.command);
-      }
-      // 初始加载 URL
-      this.updateWebviewUrl(true);
-    });
+      // 1. 在页面加载时初始化基础URL（只生成一次版本号，防止onShow时刷新）
+      const IS_DEBUG = false; // true为本地调试，false为线上
+      const LOCAL_URL = dmsh === "1" ? 'http://127.0.0.1:5500/webview0/websh.html' : 'http://127.0.0.1:5500/webview0/index.html';
+      const PROD_URL = dmsh === "1" ? 'https://100000whys.cn/project/sxz/webview0/websh.html' : 'https://100000whys.cn/project/sxz/webview0/index.html';
+
+      let rawBaseUrl = IS_DEBUG ? LOCAL_URL : PROD_URL;
+
+      // 添加防缓存参数（仅在小程序冷启动时生成一次）
+      const timestamp = new Date().getTime();
+      const separator = rawBaseUrl.includes('?') ? '&' : '?';
+      const baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}`;
+
+      console.log('[Webview] onLoad, baseUrl:', baseUrlWithVersion);
+      this.setData({ baseUrl: baseUrlWithVersion }, () => {
+        // 检查是否有 STT 指令
+        if (options.action === 'stt') {
+          this.handleSTTAction(options.command);
+        }
+        // 初始加载 URL
+        this.updateWebviewUrl(true);
+      });
+    };
+
+    // 检查全局设置是否已加载
+    const globalSettings = app.globalData.globalSettings;
+    if (globalSettings) {
+      // 如果全局设置已加载，直接处理
+      loadWebviewPage();
+    } else {
+      // 如果全局设置尚未加载，等待加载完成或重新加载
+      console.log('[Webview] 全局设置尚未加载，等待加载完成...');
+      // 尝试重新加载全局设置
+      app.loadGlobalSettings().then(() => {
+        console.log('[Webview] 全局设置加载完成，继续处理页面');
+        loadWebviewPage();
+      }).catch((error) => {
+        console.error('[Webview] 重新加载全局设置失败:', error);
+        // 即使加载失败，也要继续加载默认页面
+        loadWebviewPage();
+      });
+    }
   },
 
   onShow() {
     console.log('--- [步骤5] Webview 容器 onShow ---');
     console.log('当前 Webview URL:', this.data.url);
     console.log('当前 aiContent 数据状态:', this.data.aiContent ? '有数据(长度' + this.data.aiContent.length + ')' : '无数据');
-    
+
     // 检查是否有来自原生页面的识别结果
     if (this.data.aiContent) {
       const content = this.data.aiContent;
@@ -72,20 +104,20 @@ Page({
     // 移除旧的同名 hash 参数
     let baseUrl = currentUrl.split('#')[0];
     let hash = currentUrl.split('#')[1] || '';
-    
+
     // 增加一个随机数或时间戳，强制让 URL 发生变化，确保 web-view 组件触发更新
     const forceUpdateToken = `_t=${Date.now()}`;
-    
+
     let hashParams = hash.split('&').filter(p => p && !p.startsWith(`${key}=`) && !p.startsWith('_t='));
     hashParams.push(`${key}=${encodeURIComponent(value)}`);
     hashParams.push(forceUpdateToken);
-    
+
     const newUrl = `${baseUrl}#${hashParams.join('&')}`;
-    
+
     console.log('--- [原生小程序核心日志] 准备向 WebView 赋值 Hash ---');
     console.log('识别数据内容:', value);
     console.log('最终生成的新 URL:', newUrl);
-    
+
     this.setData({ url: newUrl }, () => {
       console.log('[步骤9] Webview URL setData 完成');
     });
