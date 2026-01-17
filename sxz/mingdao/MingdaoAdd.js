@@ -37,7 +37,6 @@ class MingDaoYunAddAPI {
           const headers = {
             "Content-Type": "application/json"
           };
-          console.log("[组件日志] 准备发起请求，请求头：", headers);
           
           const response = await fetch(this.baseUrl, {
             method: "POST",

@@ -1042,9 +1042,20 @@ async function loadConsultations(patientId) {
         }
 
         const queryParams = {
-            worksheetId: '677699195b0577a7995f32a4',
+            appKey: '59c7bdc2cdf74e5e',
+            sign: 'YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==',
+            worksheetId: 'pzfwjl',
+            viewId: '',
             pageSize: 50,
             pageIndex: 1,
+            keyWords: '',
+            listType: 0,
+            controls: [],
+            sortId: 'ctime',
+            isAsc: 'false',
+            notGetTotal: 'false',
+            useControlId: 'false',
+            getSystemControl: 'true',
             filters: [
                 {
                     "controlId": "patientId",
@@ -1062,7 +1073,7 @@ async function loadConsultations(patientId) {
                 }
             ]
         };
-        console.log('明道云查询请求参数 (677699195b0577a7995f32a4):', JSON.stringify(queryParams, null, 2));
+        console.log('明道云查询请求参数 (pzfwjl):', JSON.stringify(queryParams, null, 2));
 
         const api = new window.MingDaoYunArrayAPI();
         const result = await api.getData(queryParams);
@@ -1156,36 +1167,54 @@ async function loadAllUserConsultations() {
         }
 
         // 获取当前用户ID
-        let userRowId = null;
+        // 获取当前登录用户关联的患者列表
+        let patientIds = [];
         const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function' ? window.wechatLogin.getUserInfo() : null;
-        if (userInfo) {
-            const rawUser = userInfo.raw || userInfo;
-            userRowId = rawUser.rowid || rawUser.rowId || userInfo.id;
+        if (userInfo && userInfo.raw && userInfo.raw.relatedPatient) {
+            try {
+                // 如果 relatedPatient 是字符串，先解析
+                const related = typeof userInfo.raw.relatedPatient === 'string' 
+                    ? JSON.parse(userInfo.raw.relatedPatient) 
+                    : userInfo.raw.relatedPatient;
+                
+                if (Array.isArray(related)) {
+                    patientIds = related.map(p => p.sid).filter(sid => sid);
+                }
+            } catch (e) {
+                console.error('解析关联患者数据失败:', e);
+            }
         }
 
-        if (!userRowId) {
-            userRowId = localStorage.getItem('openid');
-        }
+        console.log('加载备忘录数据, 关联患者ID列表:', patientIds);
 
-        console.log('加载备忘录数据, 当前用户RowID:', userRowId);
-
-        if (!userRowId) {
-            console.warn('未获取到用户RowID，无法加载备忘录数据');
+        if (patientIds.length === 0) {
+            console.warn('未获取到关联患者列表，无法加载备忘录数据');
             AppState.allUserConsultations = [];
             return;
         }
 
         const queryParams = {
-            worksheetId: '677699195b0577a7995f32a4',
+            appKey: '59c7bdc2cdf74e5e',
+            sign: 'YTkzMjE4NGE3YThmYTE1Nzc4ODE5YTYxYzg3ZGM0YTZhZGMxZWJkMDU4ZTA0MzIwOWE5NDMzOTQ2MTRhNTk2Ng==',
+            worksheetId: 'pzfwjl',
+            viewId: '',
             pageSize: 100,
             pageIndex: 1,
+            keyWords: '',
+            listType: 0,
+            controls: [],
+            sortId: 'ctime',
+            isAsc: 'false',
+            notGetTotal: 'false',
+            useControlId: 'false',
+            getSystemControl: 'true',
             filters: [
                 {
-                    "controlId": "yonghu", // 注意这里改为按用户过滤，而不是按患者
-                    "dataType": 29, // 关联记录类型
+                    "controlId": "patientId",
+                    "dataType": 2,
                     "spliceType": 1,
                     "filterType": 24,
-                    "value": userRowId
+                    "values": patientIds // 使用 values 进行多选查询
                 },
                 {
                     "controlId": "del",
@@ -1197,7 +1226,7 @@ async function loadAllUserConsultations() {
             ]
         };
 
-        console.log('加载备忘录请求体 (677699195b0577a7995f32a4):', JSON.stringify(queryParams, null, 2));
+        console.log('加载备忘录请求体 (pzfwjl):', JSON.stringify(queryParams, null, 2));
 
         const api = new window.MingDaoYunArrayAPI();
         const result = await api.getData(queryParams);
@@ -2341,7 +2370,7 @@ async function handleConsultationSubmit(event) {
 
     try {
         let result;
-        const worksheetId = '677699195b0577a7995f32a4';
+        const worksheetId = 'pzfwjl';
 
         if (isEditMode) {
             if (typeof window.MingDaoYunUpdateAPI === 'undefined') {
@@ -2434,7 +2463,7 @@ async function handleConsultationDelete(consultationId) {
         }
 
         const api = new window.MingDaoYunUpdateAPI();
-        const result = await api.getData(consultationId, '677699195b0577a7995f32a4', [
+        const result = await api.getData(consultationId, 'pzfwjl', [
             { "controlId": "del", "value": "1" }
         ]);
 
@@ -3131,26 +3160,29 @@ async function renderRecordsList(container) {
                     ` : upcomingReminders.map(r => `
                         <div class="list-item" style="padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="viewConsultation('${r.consultationId}')">
                             <div class="flex items-center gap-3">
-                                <div style="width: 4px; height: 40px; border-radius: 2px; background-color: ${r.status === 'reminded' ? 'var(--primary-color)' : 'var(--warning-color)'}; flex-shrink: 0;"></div>
-                                <div class="flex-1">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                        <div style="font-weight: 600; font-size: 15px; color: var(--text-primary);">${r.title}</div>
-                                        <span class="badge ${r.status === 'reminded' ? 'badge-primary' : 'badge-warning'}">
-                                            ${r.status === 'reminded' ? '已提醒' : '待提醒'}
-                                        </span>
+                                <div style="width: 4px; height: 48px; border-radius: 2px; background-color: ${r.zhuangtai === '已提醒' ? 'var(--primary-color)' : 'var(--warning-color)'}; flex-shrink: 0;"></div>
+                                <div class="flex-1 flex justify-between items-center">
+                                    <div class="flex-1 min-w-0">
+                                        <div style="font-weight: 600; font-size: 15px; color: var(--text-primary); display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.title}</div>
+                                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            ${r.content}
+                                        </div>
+                                        <div style="font-size: 12px; color: var(--primary-color); margin-top: 2px; font-weight: 500;">
+                                            📅 ${formatDate(r.date)}
+                                        </div>
                                     </div>
-                                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
-                                        ${r.content}
-                                    </div>
-                                    <div style="font-size: 12px; color: var(--primary-color); margin-top: 4px; font-weight: 500;">
-                                        📅 ${formatDate(r.date)}
+                                    
+                                    <div style="margin-left: 12px; flex-shrink: 0; align-self: stretch; display: flex; align-items: center;" onclick="event.stopPropagation()">
+                                        <select 
+                                            class="badge ${r.zhuangtai === '已提醒' ? 'badge-primary' : 'badge-warning'}"
+                                            onchange="updateMemoStatus('${r.consultationId}', this.value)"
+                                            style="appearance: none; -webkit-appearance: none; padding: 4px 24px 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; font-weight: 500; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 8px center; background-size: 10px auto;"
+                                        >
+                                            <option value="待提醒" ${r.zhuangtai === '待提醒' ? 'selected' : ''}>待提醒</option>
+                                            <option value="已提醒" ${r.zhuangtai === '已提醒' ? 'selected' : ''}>已提醒</option>
+                                        </select>
                                     </div>
                                 </div>
-                                ${r.status !== 'reminded' ? `
-                                <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); markAsReminded('${r.consultationId}')" style="font-size: 12px; padding: 4px 8px; border-radius: 6px;">
-                                    设为已提醒
-                                </button>
-                                ` : ''}
                             </div>
                         </div>
                     `).join('')}
@@ -3163,17 +3195,19 @@ async function renderRecordsList(container) {
                     ${completedReminders.map(r => `
                         <div class="list-item" style="padding: 12px; border-bottom: 1px solid var(--border-color); opacity: 0.7; cursor: pointer;" onclick="viewConsultation('${r.consultationId}')">
                             <div class="flex items-center gap-3">
-                                <div style="width: 4px; height: 40px; border-radius: 2px; background-color: var(--success-color); flex-shrink: 0;"></div>
-                                <div class="flex-1">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                        <div style="font-weight: 500; font-size: 15px; color: var(--text-secondary); text-decoration: line-through;">${r.title}</div>
+                                <div style="width: 4px; height: 48px; border-radius: 2px; background-color: var(--success-color); flex-shrink: 0;"></div>
+                                <div class="flex-1 flex justify-between items-center">
+                                    <div class="flex-1 min-w-0">
+                                        <div style="font-weight: 500; font-size: 15px; color: var(--text-secondary); text-decoration: line-through; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.title}</div>
+                                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            ${r.content}
+                                        </div>
+                                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                                            📅 ${formatDate(r.date)}
+                                        </div>
+                                    </div>
+                                    <div style="margin-left: 12px; flex-shrink: 0; align-self: stretch; display: flex; align-items: center;">
                                         <span class="badge badge-success">已完成</span>
-                                    </div>
-                                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
-                                        ${r.content}
-                                    </div>
-                                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                                        📅 ${formatDate(r.date)}
                                     </div>
                                 </div>
                             </div>
@@ -3200,7 +3234,7 @@ async function refreshMemoData() {
     renderCurrentPage();
 }
 
-async function markAsReminded(consultationId) {
+async function updateMemoStatus(consultationId, newStatus) {
     try {
         if (typeof window.MingDaoYunUpdateAPI === 'undefined') {
             showToast('API组件未加载');
@@ -3208,29 +3242,27 @@ async function markAsReminded(consultationId) {
         }
 
         const api = new window.MingDaoYunUpdateAPI();
-        const result = await api.getData(consultationId, '677699195b0577a7995f32a4', [
-            { controlId: 'zhuangtai', value: '已提醒' }
+        const result = await api.getData(consultationId, 'pzfwjl', [
+            { controlId: 'zhuangtai', value: newStatus }
         ]);
 
         if (result.success) {
-            showToast('已设为已提醒');
+            showToast(`已设为${newStatus}`);
             // 更新本地数据
-            const consultation = AppState.allUserConsultations.find(c => c.id === consultationId);
-            if (consultation) {
-                consultation.zhuangtai = '已提醒';
-                // 重新判定 status
-                if (!(consultation.specialNote && consultation.specialNote !== '未记录' && consultation.specialNote !== '')) {
-                    consultation.status = 'reminded';
+            const updateLocal = (list) => {
+                if (!list) return;
+                const item = list.find(c => c.id === consultationId);
+                if (item) {
+                    item.zhuangtai = newStatus;
+                    // 只有当不是“已完成”时才根据 zhuangtai 更新 status
+                    if (!(item.specialNote && item.specialNote !== '未记录' && item.specialNote !== '')) {
+                        item.status = newStatus === '已提醒' ? 'reminded' : 'upcoming';
+                    }
                 }
-            }
-            // 同时也更新 AppState.consultations (如果当前在详情页或列表页有引用)
-            const c2 = AppState.consultations.find(c => c.id === consultationId);
-            if (c2) {
-                c2.zhuangtai = '已提醒';
-                if (!(c2.specialNote && c2.specialNote !== '未记录' && c2.specialNote !== '')) {
-                    c2.status = 'reminded';
-                }
-            }
+            };
+            
+            updateLocal(AppState.allUserConsultations);
+            updateLocal(AppState.consultations);
             
             renderCurrentPage();
         } else {
