@@ -197,57 +197,74 @@ const AppState = {
     patientSearchTerm: '',
 
     init() {
+        console.log('WebView 初始化, 当前 URL:', window.location.href);
+        console.log('当前 Hash:', window.location.hash);
         this.loadFromStorage();
         this.chatMessages = [];
         this.saveToStorage();
         this.checkOnboarding();
         initDevMode(); // 初始化开发模式
         this.initHashChangeListener(); // 初始化 Hash 监听
+        
+        // 初始加载也检查一次 Hash (防止 redirectTo 时 hashchange 不触发)
+        this.handleHashData(window.location.hash);
     },
 
     initHashChangeListener() {
         window.addEventListener('hashchange', () => {
             const hash = window.location.hash;
-            console.log('WebView Hash 变化:', hash);
+            console.log('WebView Hash 变化事件触发, 新 Hash:', hash);
+            this.handleHashData(hash);
+        });
+    },
 
-            // 处理 STT 结果
-            if (hash.includes('stt_result=')) {
-                const match = hash.match(/stt_result=([^&]*)/);
-                if (match && match[1]) {
-                    const resultText = decodeURIComponent(match[1]);
-                    console.log('收到识别结果:', resultText);
+    handleHashData(hash) {
+        if (!hash) return;
+        console.log('正在处理 Hash 数据:', hash);
 
-                    // 关闭录音 UI 并显示结果
-                    stopRecordingUI();
+        // 处理 STT 结果
+        if (hash.includes('stt_result=')) {
+            const match = hash.match(/stt_result=([^&]*)/);
+            if (match && match[1]) {
+                const resultText = decodeURIComponent(match[1]);
+                console.log('解析到识别结果文本:', resultText);
 
-                    // 调用 Coze 工作流处理识别结果
-                    if (window.cozeWorkflow) {
-                        showToast('AI 正在提取信息...', 5000);
-                        window.cozeWorkflow.runSTT(resultText).then((response) => {
-                            if (response.success && response.data && response.data.data) {
-                                // 显示核对弹窗
-                                showVerificationPopup(response.data.data, resultText);
-                            } else {
-                                console.error('Coze 工作流调用失败:', response);
-                                showToast('AI 提取失败，请手动填写');
-                            }
-                        }).catch(err => {
-                            console.error('Coze 工作流异常:', err);
-                            showToast('AI 提取异常');
-                        });
-                    }
+                // 关闭录音 UI 并显示结果
+                stopRecordingUI();
 
-                    // 如果在聊天界面，可以自动填充
-                    if (AppState.currentTab === 'ai') {
-                        const textarea = document.getElementById('chat-input');
-                        if (textarea) {
-                            textarea.value = resultText;
-                            textarea.dispatchEvent(new Event('input'));
+                // 调用 Coze 工作流处理识别结果
+                if (window.cozeWorkflow) {
+                    showToast('AI 正在提取信息...', 5000);
+                    window.cozeWorkflow.runSTT(resultText).then((response) => {
+                        console.log('Coze STT 处理返回:', response);
+                        if (response.success && response.data && response.data.data) {
+                            // 显示核对弹窗
+                            showVerificationPopup(response.data.data, resultText);
+                        } else {
+                            console.error('Coze 工作流调用失败:', response);
+                            showToast('AI 提取失败，请手动填写');
                         }
+                    }).catch(err => {
+                        console.error('Coze 工作流异常:', err);
+                        showToast('AI 提取异常');
+                    });
+                } else {
+                    console.warn('window.cozeWorkflow 未初始化');
+                }
+
+                // 如果在聊天界面，可以自动填充
+                if (AppState.currentTab === 'ai') {
+                    const textarea = document.getElementById('chat-input');
+                    if (textarea) {
+                        textarea.value = resultText;
+                        textarea.dispatchEvent(new Event('input'));
                     }
                 }
+                
+                // 处理完后清理 hash，防止刷新页面重复触发 (可选)
+                // window.history.replaceState(null, null, window.location.pathname + window.location.search);
             }
-        });
+        }
     },
 
     loadFromStorage() {
