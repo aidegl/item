@@ -34,7 +34,13 @@ Page({
       // 添加防缓存参数（仅在小程序冷启动时生成一次）
       const timestamp = new Date().getTime();
       const separator = rawBaseUrl.includes('?') ? '&' : '?';
-      const baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}`;
+      // 对于websh.html，始终添加版本参数和强制刷新标记，确保每次都加载最新版本
+      let baseUrlWithVersion;
+      if (rawBaseUrl.includes('websh.html')) {
+        baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}&force_refresh=1`;
+      } else {
+        baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}`;
+      }
 
       console.log('[Webview] onLoad, baseUrl:', baseUrlWithVersion);
       this.setData({ baseUrl: baseUrlWithVersion }, () => {
