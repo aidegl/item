@@ -2800,9 +2800,7 @@ function showVerificationPopup(aiData, originalText) {
         { label: '陪诊师诊后提醒', key: 'nurseReminder', type: 'textarea' }
     ];
 
-    // 填充数据 (支持多种可能的 key 格式)
-    console.log('--- [弹窗数据填充调试] ---');
-    console.log('AI 返回的原始 Data 对象:', data);
+    const inputElements = {};
 
     fields.forEach(field => {
         const group = document.createElement('div');
@@ -2824,37 +2822,9 @@ function showVerificationPopup(aiData, originalText) {
             input.style.cssText = 'padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);';
         }
 
-        // 增强版数据匹配逻辑
-        let val = '';
-        
-        // 1. 尝试直接通过 key 匹配 (如 hospital)
-        if (data[field.key] !== undefined) {
-            val = data[field.key];
-        } 
-        // 2. 尝试通过 label 匹配 (如 "就诊医院")
-        else if (data[field.label] !== undefined) {
-            val = data[field.label];
-        }
-        // 3. 尝试模糊匹配 (不区分大小写，去掉空格)
-        else {
-            const normalizedFieldKey = field.key.toLowerCase().replace(/\s/g, '');
-            const foundKey = Object.keys(data).find(k => {
-                const normalizedK = k.toLowerCase().replace(/\s/g, '');
-                return normalizedK === normalizedFieldKey || normalizedK.includes(normalizedFieldKey);
-            });
-            if (foundKey) {
-                val = data[foundKey];
-            }
-        }
-
-        // 4. 处理数组或对象（将其转为字符串）
-        if (typeof val === 'object' && val !== null) {
-            val = JSON.stringify(val);
-        }
-
-        console.log(`字段 [${field.label}](${field.key}) 匹配结果:`, val);
-        
-        input.value = val || '';
+        // 填充数据 (支持多种可能的 key 格式)
+        const val = data[field.key] || data[field.label] || '';
+        input.value = val;
         inputElements[field.key] = input;
 
         group.appendChild(input);
