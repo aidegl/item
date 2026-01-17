@@ -36,7 +36,19 @@ Page({
   },
 
   onShow() {
-    console.log('[Webview] onShow');
+    console.log('[Webview] onShow, 当前 URL:', this.data.url);
+    
+    // 检查是否有来自原生页面的识别结果
+    if (this.data.aiContent) {
+      console.log('[Webview] 收到原生页面传回的 aiContent:', this.data.aiContent);
+      const content = this.data.aiContent;
+      // 清除 aiContent，防止重复处理
+      this.setData({ aiContent: '' }, () => {
+        this.sendDataToWebviewByHash('stt_result', content);
+      });
+      return;
+    }
+
     // 仅在非录音状态下尝试同步 openid，且不强制刷新
     if (!this.data.isRecording) {
       this.updateWebviewUrl(false);
@@ -44,6 +56,24 @@ Page({
 
     // 检查录音权限
     this.checkRecordPermission();
+  },
+
+  // 通过 Hash 向 WebView 发送数据
+  sendDataToWebviewByHash(key, value) {
+    const currentUrl = this.data.url;
+    if (!currentUrl) return;
+
+    // 移除旧的同名 hash 参数
+    let baseUrl = currentUrl.split('#')[0];
+    let hash = currentUrl.split('#')[1] || '';
+    
+    let hashParams = hash.split('&').filter(p => p && !p.startsWith(`${key}=`));
+    hashParams.push(`${key}=${encodeURIComponent(value)}`);
+    
+    const newUrl = `${baseUrl}#${hashParams.join('&')}`;
+    
+    console.log('[Webview] 更新 URL 以发送数据:', newUrl);
+    this.setData({ url: newUrl });
   },
 
   // 检查录音权限
