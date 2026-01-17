@@ -38,7 +38,7 @@ class MingDaoYunArrayAPI {
         "pageIndex": pageIndex,
         "keyWords": keyWords,
         "listType": listType,
-        "controls": Array.isArray(controls) ? controls : (typeof controls === "string" && controls.startsWith('[') ? JSON.parse(controls) : []),
+        "controls": Array.isArray(controls) ? controls : (typeof controls === "string" && (controls.startsWith('[') || controls === "") ? (controls === "" ? [] : JSON.parse(controls)) : []),
         "filters": JSON.parse(filtersJson),
         "sortId": sortId,
         "isAsc": isAsc,
