@@ -198,32 +198,37 @@ Page({
     onAIIdentify() {
         console.log('--- [步骤1] 准备传回识别数据 ---');
         const content = this.data.resultText;
-        console.log('识别文本长度:', content ? content.length : 0);
         
-        const pages = getCurrentPages();
-        console.log('当前页面栈层数:', pages.length);
-        const prevPage = pages[pages.length - 2];
-        
-        if (prevPage) {
-            console.log('[步骤2] 找到上一页:', prevPage.route);
-            // 设置上一页面的data
-            prevPage.setData({
-                aiContent: content
-            });
-            console.log('[步骤3] setData 到上一页完成');
-            
-            // 返回上一页面
-            wx.navigateBack({
-                delta: 1,
-                success: () => console.log('[步骤4] navigateBack 调用成功'),
-                fail: (err) => console.error('[步骤4] navigateBack 调用失败:', err)
-            });
-        } else {
-            console.error('[步骤2] 未找到上一页，无法回传数据');
-            wx.navigateBack({
-                delta: 1
-            });
+        if (!content) {
+            wx.showToast({ title: '没有识别到内容', icon: 'none' });
+            return;
         }
+
+        // [用户要求] 点击智能识别时给个提示，显示识别结果
+        wx.showModal({
+            title: '识别结果',
+            content: content,
+            confirmText: '确认传回',
+            success: (res) => {
+                if (res.confirm) {
+                    console.log('用户确认传回数据');
+                    const pages = getCurrentPages();
+                    const prevPage = pages[pages.length - 2];
+                    
+                    if (prevPage) {
+                        console.log('[步骤2] 找到上一页，设置 aiContent');
+                        prevPage.setData({
+                            aiContent: content
+                        });
+                        
+                        wx.navigateBack({
+                            delta: 1,
+                            success: () => console.log('[步骤4] 返回成功')
+                        });
+                    }
+                }
+            }
+        });
     }
 });
 

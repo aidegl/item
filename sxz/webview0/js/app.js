@@ -240,6 +240,7 @@ const AppState = {
             const match = hash.match(/stt_result=([^&]*)/);
             if (match && match[1]) {
                 const resultText = decodeURIComponent(match[1]);
+                console.log('✅ [WebView 核心日志] 收到来自小程序的识别结果:', resultText);
                 console.log('[步骤13] WebView 内部：成功解析识别文本, 长度:', resultText.length);
 
                 // 关闭录音 UI 并显示结果
