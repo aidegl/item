@@ -211,58 +211,64 @@ const AppState = {
     },
 
     initHashChangeListener() {
+        console.log('[步骤10] WebView 内部：启动 Hash 监听');
         window.addEventListener('hashchange', () => {
             const hash = window.location.hash;
-            console.log('WebView Hash 变化事件触发, 新 Hash:', hash);
+            console.log('[步骤11] WebView 内部：监听到 Hash 变化, 新 Hash:', hash);
             this.handleHashData(hash);
         });
+        
+        // 兼容性处理：每 500ms 检查一次 hash，防止某些环境 hashchange 不触发
+        setInterval(() => {
+            const currentHash = window.location.hash;
+            if (currentHash && currentHash.includes('stt_result=')) {
+                if (!this._lastProcessedHash || this._lastProcessedHash !== currentHash) {
+                    console.log('[步骤11-心跳] WebView 内部：主动检测到 Hash 数据');
+                    this.handleHashData(currentHash);
+                    this._lastProcessedHash = currentHash;
+                }
+            }
+        }, 500);
     },
 
     handleHashData(hash) {
         if (!hash) return;
-        console.log('正在处理 Hash 数据:', hash);
+        console.log('[步骤12] WebView 内部：开始解析数据, Hash:', hash.substring(0, 50) + '...');
 
         // 处理 STT 结果
         if (hash.includes('stt_result=')) {
             const match = hash.match(/stt_result=([^&]*)/);
             if (match && match[1]) {
                 const resultText = decodeURIComponent(match[1]);
-                console.log('解析到识别结果文本:', resultText);
+                console.log('[步骤13] WebView 内部：成功解析识别文本, 长度:', resultText.length);
 
                 // 关闭录音 UI 并显示结果
                 stopRecordingUI();
 
                 // 调用 Coze 工作流处理识别结果
                 if (window.cozeWorkflow) {
+                    console.log('[步骤14] WebView 内部：准备调用 Coze STT 工作流');
                     showToast('AI 正在提取信息...', 5000);
                     window.cozeWorkflow.runSTT(resultText).then((response) => {
-                        console.log('Coze STT 处理返回:', response);
+                        console.log('[步骤15] WebView 内部：Coze STT 处理返回成功');
                         if (response.success && response.data && response.data.data) {
-                            // 显示核对弹窗
                             showVerificationPopup(response.data.data, resultText);
                         } else {
-                            console.error('Coze 工作流调用失败:', response);
+                            console.error('Coze 提取失败:', response);
                             showToast('AI 提取失败，请手动填写');
                         }
                     }).catch(err => {
-                        console.error('Coze 工作流异常:', err);
+                        console.error('[步骤15] WebView 内部：Coze 调用异常', err);
                         showToast('AI 提取异常');
                     });
                 } else {
-                    console.warn('window.cozeWorkflow 未初始化');
+                    console.error('[步骤14] 失败：window.cozeWorkflow 未初始化');
                 }
 
-                // 如果在聊天界面，可以自动填充
-                if (AppState.currentTab === 'ai') {
-                    const textarea = document.getElementById('chat-input');
-                    if (textarea) {
-                        textarea.value = resultText;
-                        textarea.dispatchEvent(new Event('input'));
-                    }
-                }
-                
-                // 处理完后清理 hash，防止刷新页面重复触发 (可选)
-                // window.history.replaceState(null, null, window.location.pathname + window.location.search);
+                // 清理 Hash，防止心跳重复触发
+                this._lastProcessedHash = hash;
+                window.history.replaceState(null, null, window.location.pathname + window.location.search);
+                console.log('[步骤16] WebView 内部：Hash 已清理');
             }
         }
     },

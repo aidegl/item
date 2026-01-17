@@ -196,24 +196,30 @@ Page({
     },
 
     onAIIdentify() {
-        // 准备要传递的数据
+        console.log('--- [步骤1] 准备传回识别数据 ---');
         const content = this.data.resultText;
-        // 获取当前页面栈
+        console.log('识别文本长度:', content ? content.length : 0);
+        
         const pages = getCurrentPages();
-        // 获取上一页面实例
+        console.log('当前页面栈层数:', pages.length);
         const prevPage = pages[pages.length - 2];
         
         if (prevPage) {
+            console.log('[步骤2] 找到上一页:', prevPage.route);
             // 设置上一页面的data
             prevPage.setData({
                 aiContent: content
             });
+            console.log('[步骤3] setData 到上一页完成');
+            
             // 返回上一页面
             wx.navigateBack({
-                delta: 1
+                delta: 1,
+                success: () => console.log('[步骤4] navigateBack 调用成功'),
+                fail: (err) => console.error('[步骤4] navigateBack 调用失败:', err)
             });
         } else {
-            // 如果没有上一页面，直接返回
+            console.error('[步骤2] 未找到上一页，无法回传数据');
             wx.navigateBack({
                 delta: 1
             });
