@@ -2,7 +2,8 @@
 class CozeWorkflow {
     constructor() {
         this.apiUrl = 'https://api.coze.cn/v1/workflow/run';
-        this.workflowId = '7593545627851014196';
+        this.ocrWorkflowId = '7593545627851014196'; // OCR工作流ID
+        this.sttWorkflowId = '7596225551557001225'; // 语音识别工作流ID
         this.bearerToken = 'pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb'; // Coze API密钥
     }
 
@@ -11,21 +12,25 @@ class CozeWorkflow {
         this.bearerToken = apiKey;
     }
 
-    // 设置工作流ID
-    setWorkflowId(workflowId) {
-        this.workflowId = workflowId;
+    // 调用OCR工作流
+    async runOCR(imageUrl) {
+        return this.executeWorkflow(this.ocrWorkflowId, imageUrl, 'OCR提取');
     }
 
-    // 调用Coze工作流API
-    async runWorkflow(imageUrl) {
-        try {
-            this.log('开始调用API', { imageUrl });
+    // 调用语音识别提取工作流
+    async runSTT(inputText) {
+        return this.executeWorkflow(this.sttWorkflowId, inputText, '语音提取');
+    }
 
-            // 先打印请求体，即使API密钥未设置
+    // 通用执行方法
+    async executeWorkflow(workflowId, input, typeName) {
+        try {
+            this.log(`开始调用${typeName}工作流`, { input: typeof input === 'string' ? input.substring(0, 50) + '...' : '[Object]' });
+
             const requestBody = {
-                workflow_id: this.workflowId,
+                workflow_id: workflowId,
                 parameters: {
-                    input: imageUrl
+                    input: input
                 }
             };
             this.log('API请求体', requestBody);
@@ -63,32 +68,36 @@ class CozeWorkflow {
                     this.error('数据解析失败', e);
                 }
 
-                // 只打印需要的字段
                 const outputData = {
                     token_count: tokenCount,
                     data: parsedData
                 };
 
-                this.log('调用成功 - 输出数据', outputData);
+                this.log(`${typeName}调用成功 - 输出数据`, outputData);
 
                 return {
                     success: true,
                     data: outputData
                 };
             } else {
-                this.error('调用失败', result);
+                this.error(`${typeName}调用失败`, result);
                 return {
                     success: false,
                     error: result
                 };
             }
         } catch (e) {
-            this.error('API调用异常', e);
+            this.error(`${typeName}API调用异常`, e);
             return {
                 success: false,
                 error: e.message
             };
         }
+    }
+
+    // 为了兼容性保留 runWorkflow，默认指向语音识别
+    async runWorkflow(inputText) {
+        return this.runSTT(inputText);
     }
 
     // 日志记录（简化版本，确保能显示）

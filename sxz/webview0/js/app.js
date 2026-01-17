@@ -1,3 +1,6 @@
+// 全局实例
+window.cozeWorkflow = new CozeWorkflow();
+
 // ==================== 应用状态管理 ====================
 console.log('app.js 正在加载...');
 
@@ -216,6 +219,23 @@ const AppState = {
 
                     // 关闭录音 UI 并显示结果
                     stopRecordingUI();
+
+                    // 调用 Coze 工作流处理识别结果
+                    if (window.cozeWorkflow) {
+                        showToast('AI 正在提取信息...', 5000);
+                        window.cozeWorkflow.runSTT(resultText).then((response) => {
+                            if (response.success && response.data && response.data.data) {
+                                // 显示核对弹窗
+                                showVerificationPopup(response.data.data, resultText);
+                            } else {
+                                console.error('Coze 工作流调用失败:', response);
+                                showToast('AI 提取失败，请手动填写');
+                            }
+                        }).catch(err => {
+                            console.error('Coze 工作流异常:', err);
+                            showToast('AI 提取异常');
+                        });
+                    }
 
                     // 如果在聊天界面，可以自动填充
                     if (AppState.currentTab === 'ai') {
@@ -662,7 +682,7 @@ function handleImageUpload(input) {
             setTimeout(async () => {
                 if (window.cozeWorkflow) {
                     // 将图片链接发送给 Coze 工作流 API
-                    const result = await window.cozeWorkflow.runWorkflow(fileUrl);
+                    const result = await window.cozeWorkflow.runOCR(fileUrl);
                     // API 会自动打印请求体和返回结果到控制台和页面日志
                 } else {
                     AppState.chatMessages.push({
@@ -1707,20 +1727,28 @@ function renderPatientDetail(container) {
                         暂无陪诊记录
                     </p>
                 ` : patientConsultations.map(c => `
-                    <div class="list-item" onclick="viewConsultation('${c.id}')">
-                        <div class="flex justify-between items-center">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 4px; height: 46px; border-radius: 3px; background-color: ${c.status === 'completed' ? 'var(--success-color)' : (c.status === 'reminded' ? 'var(--primary-color)' : 'var(--warning-color)')}; flex-shrink: 0;"></div>
-                                <div>
-                                    <div style="font-weight: 500;">
-                                        ${c.hospital}${c.department ? ` - ${c.department}` : ''}${c.doctor ? ` - ${c.doctor}` : ''}
-                                    </div>
-                                    <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
-                                        ${formatDate(c.date)}
-                                    </div>
+                    <div class="list-item" onclick="viewConsultation('${c.id}')" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
+                            <div style="width: 4px; height: 46px; border-radius: 3px; background-color: ${c.status === 'completed' ? 'var(--success-color)' : (c.status === 'reminded' ? 'var(--primary-color)' : 'var(--warning-color)')}; flex-shrink: 0;"></div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    ${c.hospital}${c.department ? ` - ${c.department}` : ''}${c.doctor ? ` - ${c.doctor}` : ''}
+                                </div>
+                                <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
+                                    ${formatDate(c.date)}
                                 </div>
                             </div>
-                            <span class="badge ${c.status === 'completed' ? 'badge-success' : (c.status === 'reminded' ? 'badge-primary' : 'badge-warning')}">
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; margin-left: 12px;">
+                            <select class="status-select" 
+                                onchange="updateMemoStatus('${c.id}', this.value)" 
+                                onclick="event.stopPropagation()"
+                                style="font-size: 12px; padding: 2px 20px 2px 8px; border-radius: 4px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-primary); cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 4px center; background-size: 12px; height: 24px; min-width: 70px;">
+                                <option value="待提醒" ${c.zhuangtai === '待提醒' || (!c.zhuangtai && c.status === 'pending') ? 'selected' : ''}>待提醒</option>
+                                <option value="已提醒" ${c.zhuangtai === '已提醒' || (!c.zhuangtai && c.status === 'reminded') ? 'selected' : ''}>已提醒</option>
+                                <option value="已完成" ${c.zhuangtai === '已完成' || (!c.zhuangtai && c.status === 'completed') ? 'selected' : ''}>已完成</option>
+                            </select>
+                            <span class="badge ${c.status === 'completed' ? 'badge-success' : (c.status === 'reminded' ? 'badge-primary' : 'badge-warning')}" style="font-size: 10px; padding: 1px 6px;">
                                 ${c.status === 'completed' ? '已完成' : (c.status === 'reminded' ? '已提醒' : '待提醒')}
                             </span>
                         </div>
@@ -1859,19 +1887,49 @@ function ocrRecognition() {
     // 创建隐藏的文件输入
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = 'image/*,application/pdf';
+    fileInput.accept = 'image/*';
     fileInput.style.display = 'none';
 
     // 添加文件选择事件处理
     fileInput.addEventListener('change', function (e) {
         const file = e.target.files[0];
-        if (file) {
-            showToast('正在进行OCR识别...');
-            // 这里可以添加实际的OCR识别逻辑
-            setTimeout(() => {
-                showToast(`OCR识别完成：${file.name}`);
-            }, 1500);
-        }
+        if (!file) return;
+
+        showToast('正在上传并识别图片...');
+
+        // 构造 FormData
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // 上传到临时存储
+        fetch('https://100000whys.cn/api/tmp.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                const fileUrl = data.url || data.link;
+                if (!fileUrl) throw new Error('上传失败');
+
+                if (window.cozeWorkflow) {
+                    showToast('AI 正在提取信息...', 5000);
+                    return window.cozeWorkflow.runOCR(fileUrl);
+                } else {
+                    throw new Error('OCR服务未就绪');
+                }
+            })
+            .then(response => {
+                if (response && response.success && response.data && response.data.data) {
+                    // 显示核对弹窗
+                    showVerificationPopup(response.data.data, 'OCR识别结果');
+                } else if (response) {
+                    showToast('AI 提取失败，请手动填写');
+                }
+            })
+            .catch(error => {
+                console.error('OCR failed:', error);
+                showToast('识别失败: ' + error.message);
+            });
     });
 
     // 触发文件选择
@@ -1880,7 +1938,9 @@ function ocrRecognition() {
 
     // 清理
     setTimeout(() => {
-        document.body.removeChild(fileInput);
+        if (fileInput.parentNode) {
+            document.body.removeChild(fileInput);
+        }
     }, 1000);
 }
 
@@ -2636,6 +2696,221 @@ function handleConfirm() {
     // 调用确认回调
     if (onConfirm) {
         onConfirm();
+    }
+}
+
+// ==================== AI 提取结果核对弹窗 ====================
+function showVerificationPopup(aiData, originalText) {
+    // 如果 aiData 是字符串，尝试解析（防御性处理）
+    let data = aiData;
+    if (typeof aiData === 'string') {
+        try {
+            data = JSON.parse(aiData);
+        } catch (e) {
+            console.error('解析 AI 数据失败:', e);
+            showToast('数据解析失败，请手动填写');
+            return;
+        }
+    }
+
+    // 创建弹窗容器
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 20px;
+    `;
+
+    const content = document.createElement('div');
+    content.className = 'modal-content';
+    content.style.cssText = `
+        background: var(--card-bg);
+        border-radius: 16px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    `;
+
+    // 标题
+    const title = document.createElement('h2');
+    title.textContent = 'AI 信息提取核对';
+    title.style.cssText = 'margin-bottom: 8px; font-size: 18px; font-weight: 600; color: var(--text-primary);';
+    content.appendChild(title);
+
+    const subTitle = document.createElement('p');
+    subTitle.textContent = '请核对并修改 AI 提取的信息，确认无误后点击“信息填入”';
+    subTitle.style.cssText = 'margin-bottom: 20px; font-size: 13px; color: var(--text-secondary);';
+    content.appendChild(subTitle);
+
+    // 表单区域
+    const form = document.createElement('div');
+    form.style.cssText = 'display: flex; flex-direction: column; gap: 16px;';
+
+    // 字段定义 (根据 pzfwjl 表单字段名)
+    const fields = [
+        { label: '就诊医院', key: 'hospital', type: 'text' },
+        { label: '就诊科室', key: 'department', type: 'text' },
+        { label: '接诊医生', key: 'doctor', type: 'text' },
+        { label: '就诊日期', key: 'date', type: 'date' },
+        { label: '就诊核心诉求', key: 'coreAppeal', type: 'textarea' },
+        { label: '起病时间', key: 'onsetDate', type: 'date' },
+        { label: '持续时间/频率', key: 'duration', type: 'textarea' },
+        { label: '伴随症状', key: 'associatedSymptoms', type: 'textarea' },
+        { label: '医生诊断', key: 'diagnosis', type: 'textarea' },
+        { label: '检查结果摘要', key: 'examSummary', type: 'textarea' },
+        { label: '医嘱检查项目', key: 'advice', type: 'textarea' },
+        { label: '生活方式调整', key: 'lifestyleAdvice', type: 'textarea' },
+        { label: '后续复查安排', key: 'followupDate', type: 'date' },
+        { label: '陪诊师诊后提醒', key: 'nurseReminder', type: 'textarea' }
+    ];
+
+    const inputElements = {};
+
+    fields.forEach(field => {
+        const group = document.createElement('div');
+        group.style.cssText = 'display: flex; flex-direction: column; gap: 6px;';
+
+        const label = document.createElement('label');
+        label.textContent = field.label;
+        label.style.cssText = 'font-size: 13px; font-weight: 500; color: var(--text-secondary);';
+        group.appendChild(label);
+
+        let input;
+        if (field.type === 'textarea') {
+            input = document.createElement('textarea');
+            input.rows = 2;
+            input.style.cssText = 'padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; resize: vertical; background: var(--input-bg); color: var(--text-primary);';
+        } else {
+            input = document.createElement('input');
+            input.type = field.type;
+            input.style.cssText = 'padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);';
+        }
+
+        // 填充数据 (支持多种可能的 key 格式)
+        const val = data[field.key] || data[field.label] || '';
+        input.value = val;
+        inputElements[field.key] = input;
+
+        group.appendChild(input);
+        form.appendChild(group);
+    });
+
+    // 特殊处理患者疑问
+    const questionsVal = data.patientQuestions || data.questions || [];
+    if (Array.isArray(questionsVal) && questionsVal.length > 0) {
+        const group = document.createElement('div');
+        group.style.cssText = 'display: flex; flex-direction: column; gap: 6px;';
+        const label = document.createElement('label');
+        label.textContent = '患者核心疑问';
+        label.style.cssText = 'font-size: 13px; font-weight: 500; color: var(--text-secondary);';
+        group.appendChild(label);
+
+        const questionsTextarea = document.createElement('textarea');
+        questionsTextarea.rows = 3;
+        questionsTextarea.placeholder = '每行一个问题';
+        questionsTextarea.style.cssText = 'padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);';
+        questionsTextarea.value = questionsVal.join('\n');
+        inputElements['patientQuestions'] = questionsTextarea;
+
+        group.appendChild(questionsTextarea);
+        form.appendChild(group);
+    }
+
+    content.appendChild(form);
+
+    // 底部按钮
+    const footer = document.createElement('div');
+    footer.style.cssText = 'margin-top: 24px; display: flex; gap: 12px;';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '取消';
+    cancelBtn.className = 'btn btn-outline';
+    cancelBtn.style.flex = '1';
+    cancelBtn.onclick = () => document.body.removeChild(modal);
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = '信息填入';
+    confirmBtn.className = 'btn btn-primary';
+    confirmBtn.style.flex = '1';
+    confirmBtn.onclick = () => {
+        const verifiedData = {};
+        for (const key in inputElements) {
+            if (key === 'patientQuestions') {
+                verifiedData[key] = inputElements[key].value.split('\n').filter(q => q.trim() !== '');
+            } else {
+                verifiedData[key] = inputElements[key].value;
+            }
+        }
+        fillConsultationForm(verifiedData);
+        document.body.removeChild(modal);
+        showToast('信息已填入表单');
+    };
+
+    footer.appendChild(cancelBtn);
+    footer.appendChild(confirmBtn);
+    content.appendChild(footer);
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+}
+
+function fillConsultationForm(data) {
+    // 确保有表单存在
+    const form = document.getElementById('consultationForm');
+    if (!form) {
+        showToast('未找到陪诊记录表单');
+        return;
+    }
+
+    // 填充基本字段
+    for (const key in data) {
+        if (key === 'patientQuestions') continue;
+        
+        const input = form.querySelector(`[name="${key}"]`);
+        if (input && data[key]) {
+            input.value = data[key];
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+
+    // 特殊处理问题
+    if (data.patientQuestions && Array.isArray(data.patientQuestions)) {
+        const questionsContainer = document.getElementById('questions-container');
+        if (questionsContainer) {
+            // 先清空现有问题（只保留第一个）
+            const items = questionsContainer.querySelectorAll('.question-item');
+            for (let i = 1; i < items.length; i++) {
+                items[i].remove();
+            }
+
+            data.patientQuestions.forEach((q, index) => {
+                if (index === 0) {
+                    const firstTa = questionsContainer.querySelector('textarea[name="patientQuestions[]"]');
+                    if (firstTa) firstTa.value = q;
+                } else if (index < 3) { // 最多3个
+                    addQuestion();
+                    const tas = questionsContainer.querySelectorAll('textarea[name="patientQuestions[]"]');
+                    if (tas[index]) tas[index].value = q;
+                }
+            });
+
+            // 同步到诊后
+            if (typeof syncQuestionsToAnswers === 'function') {
+                syncQuestionsToAnswers();
+            }
+        }
     }
 }
 
