@@ -2462,7 +2462,7 @@ async function handleConsultationSubmit(event) {
                 return;
             }
             const api = new window.MingDaoYunUpdateAPI();
-            // 更新接口使用 controlId
+            // 更新和新增接口均统一使用 controlId
             const updateControls = baseControls.map(c => ({ controlId: c.controlId, value: c.value }));
             result = await api.getData(AppState.currentConsultationId, worksheetId, updateControls);
         } else {
@@ -2471,8 +2471,8 @@ async function handleConsultationSubmit(event) {
                 return;
             }
             const api = new window.MingDaoYunAddAPI();
-            // 新增接口使用 id
-            const addControls = baseControls.map(c => ({ id: c.id, value: c.value }));
+            // 更新和新增接口均统一使用 controlId
+            const addControls = baseControls.map(c => ({ controlId: c.controlId, value: c.value }));
             result = await api.getData(worksheetId, addControls);
         }
 
