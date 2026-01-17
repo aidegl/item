@@ -10,7 +10,7 @@ class MingDaoYunAddAPI {
   /**
    * 核心方法：新增数据到工作表
    * @param {String} worksheetId - 工作表ID
-   * @param {Array} controls - 新增字段数组，每个对象包含id和value
+   * @param {Array} controls - 新增字段数组，每个对象包含controlId和value
    * @returns {Object} 组件出参 {success: Boolean, data: Object, error_msg: String, error_code: Number}
    */
   async getData(worksheetId, controls) {
