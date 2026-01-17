@@ -2838,15 +2838,19 @@ function showVerificationPopup(aiData, originalText) {
             input.style.cssText = 'padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);';
         }
 
-        // 填充数据 (支持多种可能的 key 格式)
-        // 1. 直接匹配 field.key (如 'hospital')
-        // 2. 匹配 field.label (如 '就诊医院')
-        // 3. 匹配下划线格式 (如 'hospital_name' 或 'visit_hospital')
-        // 4. 匹配拼音或简写
-        let val = data[field.key] || data[field.label] || '';
+        // 填充数据逻辑优化
+        let val = '';
         
-        if (!val) {
-            // 尝试一些常见的变体
+        // 优先级 1: 直接匹配 key
+        if (data[field.key]) {
+            val = data[field.key];
+        } 
+        // 优先级 2: 匹配 label
+        else if (data[field.label]) {
+            val = data[field.label];
+        }
+        // 优先级 3: 匹配变体
+        else {
             const variants = {
                 'hospital': ['medicalOrgName', 'hospital_name', 'visit_hospital', '医院'],
                 'department': ['departmentName', 'department_name', 'visit_department', '科室'],
@@ -2866,13 +2870,15 @@ function showVerificationPopup(aiData, originalText) {
             
             const possibleKeys = variants[field.key] || [];
             for (const k of possibleKeys) {
-                if (data[k]) {
+                if (data[k] !== undefined && data[k] !== null && data[k] !== '') {
                     val = data[k];
+                    console.log(`[匹配成功] 字段 ${field.label} 使用了变体键名 ${k}: ${val}`);
                     break;
                 }
             }
         }
 
+        console.log(`[数据填充] 字段: ${field.label}, 最终值: "${val}"`);
         input.value = val;
         inputElements[field.key] = input;
 
