@@ -2838,47 +2838,67 @@ function showVerificationPopup(aiData, originalText) {
             input.style.cssText = 'padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);';
         }
 
-        // 填充数据逻辑优化
+        // --- 核心填充逻辑重新实现 ---
         let val = '';
+        const dataKeys = Object.keys(data);
         
-        // 优先级 1: 直接匹配 key
-        if (data[field.key]) {
+        // 1. 尝试直接匹配
+        if (data[field.key] !== undefined && data[field.key] !== null && data[field.key] !== '') {
             val = data[field.key];
         } 
-        // 优先级 2: 匹配 label
-        else if (data[field.label]) {
+        // 2. 尝试标签匹配
+        else if (data[field.label] !== undefined && data[field.label] !== null && data[field.label] !== '') {
             val = data[field.label];
         }
-        // 优先级 3: 匹配变体
+        // 3. 变体模糊匹配
         else {
             const variants = {
-                'hospital': ['medicalOrgName', 'hospital_name', 'visit_hospital', '医院'],
+                'hospital': ['medicalOrgName', 'hospital_name', 'visit_hospital', '医院', 'medicalOrg'],
                 'department': ['departmentName', 'department_name', 'visit_department', '科室'],
                 'doctor': ['doctorName', 'doctor_name', 'attending_doctor', '医生'],
-                'date': ['appointmentTime', 'visit_date', '日期'],
-                'coreAppeal': ['serviceTitle', 'appeal', 'main_complaint', '诉求'],
-                'onsetDate': ['actualStartDate', 'onset_time', 'start_date'],
-                'duration': ['cxfzsj_pl', 'frequency', 'duration_time'],
-                'associatedSymptoms': ['bszz', 'symptoms', 'other_symptoms'],
-                'diagnosis': ['zhjy', 'doctor_diagnosis', 'result'],
-                'examSummary': ['zjbz', 'exam_results', 'lab_results'],
-                'advice': ['yyzysx', 'doctor_advice', 'medication'],
-                'lifestyleAdvice': ['lifestyle', 'notes'],
-                'followupDate': ['hxfcap', 'recheck_date', 'next_visit'],
-                'nurseReminder': ['pzszhtx', 'reminder', 'tips']
+                'date': ['appointmentTime', 'visit_date', 'visitDate', '日期'],
+                'coreAppeal': ['serviceTitle', 'appeal', 'main_complaint', '诉求', 'complaint'],
+                'onsetDate': ['actualStartDate', 'onset_time', 'start_date', 'onsetTime'],
+                'duration': ['cxfzsj_pl', 'frequency', 'duration_time', 'duration'],
+                'associatedSymptoms': ['bszz', 'symptoms', 'other_symptoms', 'accompanying_symptoms'],
+                'diagnosis': ['zhjy', 'doctor_diagnosis', 'result', 'diagnosis'],
+                'examSummary': ['zjbz', 'exam_results', 'lab_results', 'summary'],
+                'advice': ['yyzysx', 'doctor_advice', 'medication', 'advice'],
+                'lifestyleAdvice': ['lifestyle', 'notes', 'lifestyle_advice'],
+                'followupDate': ['hxfcap', 'recheck_date', 'next_visit', 'followup'],
+                'nurseReminder': ['pzszhtx', 'reminder', 'tips', 'nurse_reminder']
             };
             
             const possibleKeys = variants[field.key] || [];
+            
+            // 严格匹配变体列表
             for (const k of possibleKeys) {
                 if (data[k] !== undefined && data[k] !== null && data[k] !== '') {
                     val = data[k];
-                    console.log(`[匹配成功] 字段 ${field.label} 使用了变体键名 ${k}: ${val}`);
                     break;
+                }
+            }
+            
+            // 如果还没找到，尝试不区分大小写的包含匹配
+            if (!val) {
+                const searchKey = field.key.toLowerCase();
+                const searchLabel = field.label.toLowerCase();
+                
+                for (const actualKey of dataKeys) {
+                    const lowerActualKey = actualKey.toLowerCase();
+                    if (lowerActualKey.includes(searchKey) || 
+                        lowerActualKey.includes(searchLabel) || 
+                        searchKey.includes(lowerActualKey)) {
+                        if (data[actualKey] && typeof data[actualKey] === 'string') {
+                            val = data[actualKey];
+                            break;
+                        }
+                    }
                 }
             }
         }
 
-        console.log(`[数据填充] 字段: ${field.label}, 最终值: "${val}"`);
+        console.log(`[填充验证] 字段: ${field.label} | 键: ${field.key} | 匹配到的值: "${val}"`);
         input.value = val;
         inputElements[field.key] = input;
 
