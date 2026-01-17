@@ -36,14 +36,17 @@ Page({
   },
 
   onShow() {
-    console.log('[Webview] onShow, 当前 URL:', this.data.url);
+    console.log('--- [步骤5] Webview 容器 onShow ---');
+    console.log('当前 Webview URL:', this.data.url);
+    console.log('当前 aiContent 数据状态:', this.data.aiContent ? '有数据(长度' + this.data.aiContent.length + ')' : '无数据');
     
     // 检查是否有来自原生页面的识别结果
     if (this.data.aiContent) {
-      console.log('[Webview] 收到原生页面传回的 aiContent:', this.data.aiContent);
       const content = this.data.aiContent;
+      console.log('[步骤6] 准备将数据同步到 Webview Hash');
       // 清除 aiContent，防止重复处理
       this.setData({ aiContent: '' }, () => {
+        console.log('[步骤7] aiContent 已清空，开始执行 sendDataToWebviewByHash');
         this.sendDataToWebviewByHash('stt_result', content);
       });
       return;
@@ -61,7 +64,10 @@ Page({
   // 通过 Hash 向 WebView 发送数据
   sendDataToWebviewByHash(key, value) {
     const currentUrl = this.data.url;
-    if (!currentUrl) return;
+    if (!currentUrl) {
+      console.error('[步骤8] 失败：currentUrl 为空');
+      return;
+    }
 
     // 移除旧的同名 hash 参数
     let baseUrl = currentUrl.split('#')[0];
@@ -72,8 +78,10 @@ Page({
     
     const newUrl = `${baseUrl}#${hashParams.join('&')}`;
     
-    console.log('[Webview] 更新 URL 以发送数据:', newUrl);
-    this.setData({ url: newUrl });
+    console.log('[步骤8] 更新 URL 以发送数据，新 URL:', newUrl);
+    this.setData({ url: newUrl }, () => {
+      console.log('[步骤9] Webview URL setData 完成，等待 WebView 内部监听');
+    });
   },
 
   // 检查录音权限
