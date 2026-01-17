@@ -186,6 +186,7 @@ const AppState = {
     onboardingStep: 1,
     patients: [],
     consultations: [],
+    allUserConsultations: null, // 所有用户的陪诊记录（用于备忘录），初始为 null 表示未加载
     reminders: [],
     chatMessages: [],
     globalSettings: null,
@@ -885,7 +886,9 @@ function renderPatientList(container) {
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <div>
                     <div style="font-size: 20px; font-weight: 600;">患者库</div>
-                    ${isLoggedIn ? `<div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">共 ${AppState.patients.length} 位患者</div>` : ''}
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
+                        ${isLoggedIn ? `共 ${AppState.patients.length} 位患者` : '请先登录'}
+                    </div>
                 </div>
                 ${isLoggedIn ? `
                 <button class="btn btn-primary" onclick="goToAddPatient()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;">
@@ -1039,7 +1042,7 @@ async function loadConsultations(patientId) {
         }
 
         const queryParams = {
-            worksheetId: 'pzfwjl',
+            worksheetId: '677699195b0577a7995f32a4',
             pageSize: 50,
             pageIndex: 1,
             filters: [
@@ -1059,8 +1062,7 @@ async function loadConsultations(patientId) {
                 }
             ]
         };
-
-        console.log('明道云查询请求参数 (pzfwjl):', JSON.stringify(queryParams, null, 2));
+        console.log('明道云查询请求参数 (677699195b0577a7995f32a4):', JSON.stringify(queryParams, null, 2));
 
         const api = new window.MingDaoYunArrayAPI();
         const result = await api.getData(queryParams);
@@ -1114,8 +1116,20 @@ async function loadConsultations(patientId) {
                     if (typeof val === 'string' && val.includes('1')) return 1; // 处理可能出现的 "[\"1\"]" 格式
                     return 0;
                 })(row.shouzhen),
-                firstRecordId: row.firstRecordId,
-                status: (row.specialNote && row.specialNote !== '未记录' && row.specialNote !== '') ? 'completed' : 'pending',
+                fuid: row.fuid,
+                zhuangtai: row.zhuangtai, // 增加状态字段
+                status: (function () {
+                    // 1. 如果信息完整，自动判定为已完成
+                    if (row.specialNote && row.specialNote !== '未记录' && row.specialNote !== '') {
+                        return 'completed';
+                    }
+                    // 2. 如果手动设置了已提醒，返回已提醒
+                    if (row.zhuangtai === '已提醒') {
+                        return 'reminded';
+                    }
+                    // 3. 默认为待提醒（或原有的 pending）
+                    return 'pending';
+                })(),
                 createdAt: row.ctime
             };
         });
@@ -1123,6 +1137,128 @@ async function loadConsultations(patientId) {
         console.log('映射后的陪诊记录:', AppState.consultations);
     } catch (error) {
         console.error('加载陪诊记录失败:', error);
+    }
+}
+
+async function loadAllUserConsultations() {
+    const isLoggedIn = window.wechatLogin && window.wechatLogin.isLoggedIn();
+    if (!isLoggedIn) {
+        console.log('用户未登录，不加载备忘录数据');
+        AppState.allUserConsultations = [];
+        return;
+    }
+
+    console.log('开始加载所有用户陪诊记录 (用于备忘录)');
+    try {
+        if (typeof window.MingDaoYunArrayAPI === 'undefined') {
+            console.error('MingDaoYunArrayAPI未加载');
+            return;
+        }
+
+        // 获取当前用户ID
+        let userRowId = null;
+        const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function' ? window.wechatLogin.getUserInfo() : null;
+        if (userInfo) {
+            const rawUser = userInfo.raw || userInfo;
+            userRowId = rawUser.rowid || rawUser.rowId || userInfo.id;
+        }
+
+        if (!userRowId) {
+            userRowId = localStorage.getItem('openid');
+        }
+
+        console.log('加载备忘录数据, 当前用户RowID:', userRowId);
+
+        if (!userRowId) {
+            console.warn('未获取到用户RowID，无法加载备忘录数据');
+            AppState.allUserConsultations = [];
+            return;
+        }
+
+        const queryParams = {
+            worksheetId: '677699195b0577a7995f32a4',
+            pageSize: 100,
+            pageIndex: 1,
+            filters: [
+                {
+                    "controlId": "yonghu", // 注意这里改为按用户过滤，而不是按患者
+                    "dataType": 29, // 关联记录类型
+                    "spliceType": 1,
+                    "filterType": 24,
+                    "value": userRowId
+                },
+                {
+                    "controlId": "del",
+                    "dataType": 2,
+                    "spliceType": 1,
+                    "filterType": 2,
+                    "value": 0
+                }
+            ]
+        };
+
+        console.log('加载备忘录请求体 (677699195b0577a7995f32a4):', JSON.stringify(queryParams, null, 2));
+
+        const api = new window.MingDaoYunArrayAPI();
+        const result = await api.getData(queryParams);
+
+        if (result.success && result.data && Array.isArray(result.data.rows)) {
+            console.log(`成功加载 ${result.data.rows.length} 条记录`);
+            AppState.allUserConsultations = result.data.rows.map(row => {
+                // 同样需要处理关联字段
+                let pId = row.patientId;
+                if (typeof pId === 'string' && pId.startsWith('[')) {
+                    try {
+                        const parsed = JSON.parse(pId);
+                        pId = parsed[0]?.sid || pId;
+                    } catch (e) { }
+                } else if (Array.isArray(pId)) {
+                    pId = pId[0]?.sid || pId;
+                }
+
+                // 获取患者名称
+                let pName = '未知患者';
+                if (row.patientId_name) {
+                    pName = row.patientId_name;
+                } else if (typeof row.patientId === 'string' && row.patientId.startsWith('[')) {
+                    try {
+                        const parsed = JSON.parse(row.patientId);
+                        pName = parsed[0]?.name || '未知患者';
+                    } catch (e) { }
+                } else if (Array.isArray(row.patientId)) {
+                    pName = row.patientId[0]?.name || '未知患者';
+                }
+
+                return {
+                    id: row.rowid || row.rowId,
+                    patientId: pId,
+                    patientName: pName,
+                    date: row.appointmentTime,
+                    hospital: row.medicalOrgName,
+                    department: row.departmentName,
+                    doctor: row.doctorName,
+                    followupDate: row.hxfcap,
+                    zhuangtai: row.zhuangtai,
+                    specialNote: row.specialNote,
+                    status: (function () {
+                        if (row.zhuangtai === '已完成' || (row.specialNote && row.specialNote !== '未记录' && row.specialNote !== '')) {
+                            return 'completed';
+                        }
+                        if (row.zhuangtai === '已提醒') {
+                            return 'reminded';
+                        }
+                        return 'pending';
+                    })()
+                };
+            });
+            console.log('加载到备忘录数据成功:', AppState.allUserConsultations.length, '条');
+        } else {
+            console.warn('加载备忘录数据未返回预期格式:', result);
+            AppState.allUserConsultations = []; // 即使失败也设为空数组，避免循环调用
+        }
+    } catch (error) {
+        console.error('加载备忘录数据异常:', error);
+        AppState.allUserConsultations = []; // 异常也设为空数组
     }
 }
 
@@ -1272,7 +1408,7 @@ async function handleAddPatient(event) {
     const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function' ? window.wechatLogin.getUserInfo() : null;
     if (userInfo) {
         const rawUser = userInfo.raw || userInfo;
-        userRowId = rawUser.rowid || rawUser.rowId;
+        userRowId = rawUser.rowid || rawUser.rowId || userInfo.id;
     }
 
     console.log('当前登录用户rowid:', userRowId);
@@ -1545,7 +1681,7 @@ function renderPatientDetail(container) {
                     <div class="list-item" onclick="viewConsultation('${c.id}')">
                         <div class="flex justify-between items-center">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 4px; height: 46px; border-radius: 3px; background-color: ${c.status === 'completed' ? 'var(--success-color)' : 'var(--warning-color)'}; flex-shrink: 0;"></div>
+                                <div style="width: 4px; height: 46px; border-radius: 3px; background-color: ${c.status === 'completed' ? 'var(--success-color)' : (c.status === 'reminded' ? 'var(--primary-color)' : 'var(--warning-color)')}; flex-shrink: 0;"></div>
                                 <div>
                                     <div style="font-weight: 500;">
                                         ${c.hospital}${c.department ? ` - ${c.department}` : ''}${c.doctor ? ` - ${c.doctor}` : ''}
@@ -1555,8 +1691,8 @@ function renderPatientDetail(container) {
                                     </div>
                                 </div>
                             </div>
-                            <span class="badge ${c.status === 'completed' ? 'badge-success' : 'badge-warning'}">
-                                ${c.status === 'completed' ? '已完成' : '进行中'}
+                            <span class="badge ${c.status === 'completed' ? 'badge-success' : (c.status === 'reminded' ? 'badge-primary' : 'badge-warning')}">
+                                ${c.status === 'completed' ? '已完成' : (c.status === 'reminded' ? '已提醒' : '待提醒')}
                             </span>
                         </div>
                     </div>
@@ -1582,7 +1718,17 @@ function editPatient(patientId) {
 }
 
 function viewConsultation(consultationId) {
-    const consultation = AppState.consultations.find(c => c.id === consultationId);
+    let consultation = AppState.consultations.find(c => c.id === consultationId);
+    
+    // 如果在当前患者记录中没找到，在所有记录中找（针对从备忘录进入的情况）
+    if (!consultation) {
+        consultation = AppState.allUserConsultations.find(c => c.id === consultationId);
+        if (consultation) {
+            // 将其加入到当前记录列表中，以便详情页可以访问
+            AppState.consultations = [consultation];
+        }
+    }
+
     if (consultation) {
         AppState.currentPatientId = consultation.patientId;
         AppState.currentConsultationId = consultationId;
@@ -1784,24 +1930,24 @@ function renderConsultationFlow(container) {
                             <label class="form-label" style="font-size: 13px; color: var(--text-secondary);">系统是否记录了该复诊的首次陪诊记录？</label>
                             <div class="radio-group" style="display: flex; gap: 24px; margin-top: 8px;">
                                 <label class="radio-item" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                    <input type="radio" name="hasFirstRecord" value="1" ${isEditMode && consultation.firstRecordId ? 'checked' : ''} onchange="handleHasFirstRecordChange(this)" style="width: 14px; height: 14px;">
+                                    <input type="radio" name="hasFirstRecord" value="1" ${isEditMode && consultation.fuid ? 'checked' : ''} onchange="handleHasFirstRecordChange(this)" style="width: 14px; height: 14px;">
                                     <span style="font-size: 13px; color: var(--text-primary);">是</span>
                                 </label>
                                 <label class="radio-item" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                    <input type="radio" name="hasFirstRecord" value="0" ${isEditMode && !consultation.firstRecordId ? 'checked' : ''} onchange="handleHasFirstRecordChange(this)" style="width: 14px; height: 14px;">
+                                    <input type="radio" name="hasFirstRecord" value="0" ${isEditMode && !consultation.fuid ? 'checked' : ''} onchange="handleHasFirstRecordChange(this)" style="width: 14px; height: 14px;">
                                     <span style="font-size: 13px; color: var(--text-primary);">否</span>
                                 </label>
                             </div>
                         </div>
 
-                        <div id="first-record-selector" style="display: ${isEditMode && consultation.firstRecordId ? 'block' : 'none'}; margin-top: 16px; border-top: 1px solid rgba(59, 130, 246, 0.1); pt-12;">
+                        <div id="first-record-selector" style="display: ${isEditMode && consultation.fuid ? 'block' : 'none'}; margin-top: 16px; border-top: 1px solid rgba(59, 130, 246, 0.1); pt-12;">
                             <label class="form-label" style="font-size: 13px; color: var(--text-secondary); margin-top: 12px;">请选择该复诊的首次陪诊记录 *</label>
-                            <select name="firstRecordId" class="input" style="height: 38px; margin-top: 6px; font-size: 13px; background-color: white;">
+                            <select name="fuid" class="input" style="height: 38px; margin-top: 6px; font-size: 13px; background-color: white;">
                                 <option value="">-- 请选择记录 --</option>
                                 ${AppState.consultations
             .filter(c => c.patientId === AppState.currentPatientId && (c.shouzhen == 1 || c.shouzhen == '1') && c.id !== (isEditMode ? consultation.id : ''))
             .map(c => `
-                                        <option value="${c.id}" ${isEditMode && consultation.firstRecordId === c.id ? 'selected' : ''}>
+                                        <option value="${c.id}" ${isEditMode && consultation.fuid === c.id ? 'selected' : ''}>
                                             ${formatDate(c.date)} - ${c.hospital}${c.department ? ` - ${c.department}` : ''}${c.doctor ? ` - ${c.doctor}` : ''}
                                         </option>
                                     `).join('')}
@@ -1812,6 +1958,16 @@ function renderConsultationFlow(container) {
                     <div class="form-group">
                         <label class="form-label">就诊日期 *</label>
                         <input type="date" name="date" class="input" style="height: 40px; resize: none;" value="${isEditMode ? formatDateForInput(consultation.date) : new Date().toISOString().split('T')[0]}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">陪诊状态</label>
+                        <select name="zhuangtai" class="input" style="height: 40px;">
+                            <option value="待提醒" ${(!isEditMode || (consultation.zhuangtai !== '已提醒' && consultation.zhuangtai !== '已完成')) ? 'selected' : ''}>待提醒</option>
+                            <option value="已提醒" ${isEditMode && consultation.zhuangtai === '已提醒' ? 'selected' : ''}>已提醒</option>
+                            <option value="已完成" ${isEditMode && consultation.zhuangtai === '已完成' ? 'selected' : ''}>已完成</option>
+                        </select>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">注：填写诊后“诊断建议”后将自动设为“已完成”</p>
                     </div>
                     
                     <div class="form-group">
@@ -2083,7 +2239,7 @@ async function handleConsultationSubmit(event) {
         }
     }
 
-    let firstRecordId = null;
+    let fuid = null;
     if (shouzhen === '0') {
         const hasFirstRecord = formData.get('hasFirstRecord');
         if (!hasFirstRecord) {
@@ -2091,8 +2247,8 @@ async function handleConsultationSubmit(event) {
             return;
         }
         if (hasFirstRecord === '1') {
-            firstRecordId = formData.get('firstRecordId');
-            if (!firstRecordId) {
+            fuid = formData.get('fuid');
+            if (!fuid) {
                 showConfirmDialog('请选择首次陪诊记录！', null, null, '去选择', '');
                 return;
             }
@@ -2134,51 +2290,77 @@ async function handleConsultationSubmit(event) {
         }
     });
 
-    // 构造明道云API请求体
-    const apiControls = [
-        { "controlId": "appointmentTime", "value": formData.get('date') },
-        { "controlId": "medicalOrgName", "value": formData.get('hospital') },
-        { "controlId": "departmentName", "value": formData.get('department') || '' },
-        { "controlId": "doctorName", "value": formData.get('doctor') || '' },
-        { "controlId": "serviceTitle", "value": formData.get('coreAppeal') },
-        { "controlId": "actualStartDate", "value": formData.get('onsetDate') },
-        { "controlId": "cxfzsj_pl", "value": formData.get('duration') },
-        { "controlId": "bszz", "value": formData.get('associatedSymptoms') || '' },
-        { "controlId": "wentiyi", "value": patientQuestions[0] || '' },
-        { "controlId": "wentier", "value": patientQuestions[1] || '' },
-        { "controlId": "wentisan", "value": patientQuestions[2] || '' },
-        { "controlId": "specialNote", "value": formData.get('diagnosis') || '' },
-        { "controlId": "zhjy", "value": formData.get('examSummary') || '' },
-        { "controlId": "nextAction", "value": formData.get('advice') || '' },
-        { "controlId": "yyzd", "value": JSON.stringify(medicationList) },
-        { "controlId": "zjbz", "value": formData.get('lifestyleAdvice') || '' },
-        { "controlId": "hxfcap", "value": formData.get('followupDate') || '' },
-        { "controlId": "wtyjd", "value": doctorAnswers[0] || '' },
-        { "controlId": "wtejd", "value": doctorAnswers[1] || '' },
-        { "controlId": "wtsjd", "value": doctorAnswers[2] || '' },
-        { "controlId": "pzszhtx", "value": formData.get('nurseReminder') || '' },
-        { "controlId": "shouzhen", "value": shouzhen === '1' ? 1 : 0 },
-        { "controlId": "firstRecordId", "value": firstRecordId || '' },
-        { "controlId": "patientId", "value": AppState.currentPatientId }, // 关联患者ID
-        { "controlId": "del", "value": "0" } // 逻辑删除标识
+    // 获取当前登录用户的rowid
+    let userRowId = null;
+    const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function' ? window.wechatLogin.getUserInfo() : null;
+    if (userInfo) {
+        const rawUser = userInfo.raw || userInfo;
+        userRowId = rawUser.rowid || rawUser.rowId || userInfo.id;
+    }
+    if (!userRowId) {
+        userRowId = localStorage.getItem('openid') || 'ae75cf2e-0f73-4137-9e99-116d92c45a47';
+    }
+
+    // 确定陪诊状态 (zhuangtai)
+    let zhuangtai = formData.get('zhuangtai') || '待提醒';
+    const diagnosis = formData.get('diagnosis');
+    if (diagnosis && diagnosis.trim() !== '' && diagnosis !== '未记录') {
+        zhuangtai = '已完成';
+    }
+
+    // 构造基础字段数据
+    const baseControls = [
+        { "id": "appointmentTime", "controlId": "appointmentTime", "value": formData.get('date') },
+        { "id": "medicalOrgName", "controlId": "medicalOrgName", "value": formData.get('hospital') },
+        { "id": "departmentName", "controlId": "departmentName", "value": formData.get('department') || '' },
+        { "id": "doctorName", "controlId": "doctorName", "value": formData.get('doctor') || '' },
+        { "id": "serviceTitle", "controlId": "serviceTitle", "value": formData.get('coreAppeal') },
+        { "id": "actualStartDate", "controlId": "actualStartDate", "value": formData.get('onsetDate') },
+        { "id": "cxfzsj_pl", "controlId": "cxfzsj_pl", "value": formData.get('duration') },
+        { "id": "bszz", "controlId": "bszz", "value": formData.get('associatedSymptoms') || '' },
+        { "id": "wentiyi", "controlId": "wentiyi", "value": patientQuestions[0] || '' },
+        { "id": "wentier", "controlId": "wentier", "value": patientQuestions[1] || '' },
+        { "id": "wentisan", "controlId": "wentisan", "value": patientQuestions[2] || '' },
+        { "id": "specialNote", "controlId": "specialNote", "value": formData.get('diagnosis') || '' },
+        { "id": "zhjy", "controlId": "zhjy", "value": formData.get('examSummary') || '' },
+        { "id": "nextAction", "controlId": "nextAction", "value": formData.get('advice') || '' },
+        { "id": "yyzd", "controlId": "yyzd", "value": JSON.stringify(medicationList) },
+        { "id": "zjbz", "controlId": "zjbz", "value": formData.get('lifestyleAdvice') || '' },
+        { "id": "hxfcap", "controlId": "hxfcap", "value": formData.get('followupDate') || '' },
+        { "id": "wtyjd", "controlId": "wtyjd", "value": doctorAnswers[0] || '' },
+        { "id": "wtejd", "controlId": "wtejd", "value": doctorAnswers[1] || '' },
+        { "id": "wtsjd", "controlId": "wtsjd", "value": doctorAnswers[2] || '' },
+        { "id": "pzszhtx", "controlId": "pzszhtx", "value": formData.get('nurseReminder') || '' },
+        { "id": "shouzhen", "controlId": "shouzhen", "value": shouzhen === '1' ? 1 : 0 },
+        { "id": "fuid", "controlId": "fuid", "value": fuid || '' },
+        { "id": "patientId", "controlId": "patientId", "value": AppState.currentPatientId },
+        { "id": "yonghu", "controlId": "yonghu", "value": userRowId },
+        { "id": "zhuangtai", "controlId": "zhuangtai", "value": zhuangtai },
+        { "id": "del", "controlId": "del", "value": "0" }
     ];
 
     try {
         let result;
+        const worksheetId = '677699195b0577a7995f32a4';
+
         if (isEditMode) {
             if (typeof window.MingDaoYunUpdateAPI === 'undefined') {
                 showToast('更新API组件未加载，请刷新页面');
                 return;
             }
             const api = new window.MingDaoYunUpdateAPI();
-            result = await api.getData(AppState.currentConsultationId, 'pzfwjl', apiControls);
+            // 更新接口使用 controlId
+            const updateControls = baseControls.map(c => ({ controlId: c.controlId, value: c.value }));
+            result = await api.getData(AppState.currentConsultationId, worksheetId, updateControls);
         } else {
             if (typeof window.MingDaoYunAddAPI === 'undefined') {
                 showToast('新增API组件未加载，请刷新页面');
                 return;
             }
             const api = new window.MingDaoYunAddAPI();
-            result = await api.getData('pzfwjl', apiControls);
+            // 新增接口使用 id
+            const addControls = baseControls.map(c => ({ id: c.id, value: c.value }));
+            result = await api.getData(worksheetId, addControls);
         }
 
         if (result.success) {
@@ -2205,7 +2387,7 @@ async function handleConsultationSubmit(event) {
                 medication: JSON.stringify(medicationList),
                 advice: formData.get('advice') || '',
                 shouzhen: parseInt(shouzhen),
-                firstRecordId: firstRecordId,
+                fuid: fuid,
                 status: (formData.get('diagnosis') && formData.get('diagnosis') !== '') ? 'completed' : 'pending',
                 createdAt: new Date().toISOString()
             };
@@ -2222,6 +2404,9 @@ async function handleConsultationSubmit(event) {
             AppState.saveToStorage();
 
             showToast(isEditMode ? '陪诊记录已更新' : '陪诊记录已保存');
+
+            // 刷新备忘录数据
+            loadAllUserConsultations();
 
             setTimeout(() => {
                 goToPatientDetail(AppState.currentPatientId);
@@ -2249,7 +2434,7 @@ async function handleConsultationDelete(consultationId) {
         }
 
         const api = new window.MingDaoYunUpdateAPI();
-        const result = await api.getData(consultationId, 'pzfwjl', [
+        const result = await api.getData(consultationId, '677699195b0577a7995f32a4', [
             { "controlId": "del", "value": "1" }
         ]);
 
@@ -2257,6 +2442,10 @@ async function handleConsultationDelete(consultationId) {
             AppState.consultations = AppState.consultations.filter(c => c.id !== consultationId);
             AppState.saveToStorage();
             showToast('陪诊记录已删除');
+            
+            // 刷新备忘录数据
+            loadAllUserConsultations();
+
             setTimeout(() => {
                 goToPatientDetail(AppState.currentPatientId);
             }, 1000);
@@ -2281,7 +2470,7 @@ function handleShouzhenChange(radio) {
         const hasFirstRecordRadios = document.getElementsByName('hasFirstRecord');
         hasFirstRecordRadios.forEach(r => r.checked = false);
         document.getElementById('first-record-selector').style.display = 'none';
-        const select = document.querySelector('select[name="firstRecordId"]');
+        const select = document.querySelector('select[name="fuid"]');
         if (select) select.value = '';
 
         // 初诊逻辑：自动设置为当天
@@ -2307,7 +2496,7 @@ function handleHasFirstRecordChange(radio) {
         selector.style.display = 'block';
     } else {
         selector.style.display = 'none';
-        const select = document.querySelector('select[name="firstRecordId"]');
+        const select = document.querySelector('select[name="fuid"]');
         if (select) select.value = '';
     }
 }
@@ -2841,86 +3030,215 @@ function deleteMedicationRow(button) {
 }
 
 // ==================== 备忘录页面 ====================
-function renderRecordsList(container) {
+let isFetchingMemoData = false;
+
+async function renderRecordsList(container) {
+    console.log('渲染备忘录列表, isLoggedIn:', window.wechatLogin && window.wechatLogin.isLoggedIn());
+    const isLoggedIn = window.wechatLogin && window.wechatLogin.isLoggedIn();
+
+    if (isLoggedIn && !isFetchingMemoData && AppState.allUserConsultations === null) {
+        container.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; color: var(--text-secondary);">
+                <div class="loading-spinner mb-3"></div>
+                <div>正在加载备忘录数据...</div>
+            </div>
+        `;
+        isFetchingMemoData = true;
+        await loadAllUserConsultations();
+        isFetchingMemoData = false;
+        // 加载完成后再次调用自身进行渲染
+        return renderRecordsList(container);
+    }
+
+    // 将陪诊记录转换为提醒事项
+    const allReminders = [];
+    const consultations = AppState.allUserConsultations || [];
+    consultations.forEach(c => {
+        // 1. 就诊日期提醒
+        if (c.date) {
+            allReminders.push({
+                id: c.id + '_apt',
+                consultationId: c.id,
+                title: `陪诊: ${c.patientName}`,
+                content: `${c.hospital}${c.department ? ' - ' + c.department : ''}`,
+                date: c.date,
+                type: 'appointment',
+                status: c.status,
+                zhuangtai: c.zhuangtai
+            });
+        }
+        // 2. 后续复查提醒
+        if (c.followupDate) {
+            allReminders.push({
+                id: c.id + '_fup',
+                consultationId: c.id,
+                title: `复查提醒: ${c.patientName}`,
+                content: `建议复查日期`,
+                date: c.followupDate,
+                type: 'followup',
+                status: c.status,
+                zhuangtai: c.zhuangtai
+            });
+        }
+    });
+
+    // 排序：按日期升序
+    allReminders.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA - dateB;
+    });
+
+    console.log('转换后提醒事项总数:', allReminders.length);
+
     const today = new Date();
-    const upcomingReminders = AppState.reminders
-        .filter(r => !r.completed && new Date(r.date) >= today)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+    today.setHours(0, 0, 0, 0);
+
+    const upcomingReminders = allReminders.filter(r => r.status !== 'completed');
+    const completedReminders = allReminders.filter(r => r.status === 'completed');
+
+    console.log('待处理:', upcomingReminders.length, '已完成:', completedReminders.length);
 
     container.innerHTML = `
         <!-- 固定顶部标题 -->
-        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px;">
-            <div>
-                <div style="font-size: 20px; font-weight: 600;">备忘录</div>
-                <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">${upcomingReminders.length} 个待办事项</div>
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div>
+                    <div style="font-size: 20px; font-weight: 600;">备忘录</div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
+                        ${isLoggedIn ? `${upcomingReminders.length} 个待办事项` : '请先登录'}
+                    </div>
+                </div>
+                ${isLoggedIn ? `
+                <button class="btn btn-icon btn-outline" onclick="refreshMemoData()" title="刷新">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                </button>
+                ` : ''}
             </div>
         </div>
         
         <div class="p-2">
-            <!-- 即将到来的提醒 -->
-            <div class="card mb-2">
-                <h3 class="card-title mb-2">即将到来</h3>
-                ${upcomingReminders.length === 0 ? `
-                    <p style="color: var(--text-secondary); text-align: center; padding: 20px;">
-                        暂无待办事项
-                    </p>
-                ` : upcomingReminders.map(r => `
-                    <div class="list-item">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" onchange="toggleReminder('${r.id}')" ${r.completed ? 'checked' : ''}>
-                            <div class="flex-1">
-                                <div style="font-weight: 500;">${r.title}</div>
-                                <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
-                                    ${formatDate(r.date)} ${r.time}
+            ${isLoggedIn ? `
+                <!-- 待处理提醒 -->
+                <div class="card mb-2">
+                    <h3 class="card-title mb-2">待处理</h3>
+                    ${upcomingReminders.length === 0 ? `
+                        <p style="color: var(--text-secondary); text-align: center; padding: 20px;">
+                            暂无待办事项
+                        </p>
+                    ` : upcomingReminders.map(r => `
+                        <div class="list-item" style="padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="viewConsultation('${r.consultationId}')">
+                            <div class="flex items-center gap-3">
+                                <div style="width: 4px; height: 40px; border-radius: 2px; background-color: ${r.status === 'reminded' ? 'var(--primary-color)' : 'var(--warning-color)'}; flex-shrink: 0;"></div>
+                                <div class="flex-1">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div style="font-weight: 600; font-size: 15px; color: var(--text-primary);">${r.title}</div>
+                                        <span class="badge ${r.status === 'reminded' ? 'badge-primary' : 'badge-warning'}">
+                                            ${r.status === 'reminded' ? '已提醒' : '待提醒'}
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                                        ${r.content}
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--primary-color); margin-top: 4px; font-weight: 500;">
+                                        📅 ${formatDate(r.date)}
+                                    </div>
+                                </div>
+                                ${r.status !== 'reminded' ? `
+                                <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); markAsReminded('${r.consultationId}')" style="font-size: 12px; padding: 4px 8px; border-radius: 6px;">
+                                    设为已提醒
+                                </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- 已完成 -->
+                ${completedReminders.length > 0 ? `
+                <div class="card">
+                    <h3 class="card-title mb-2">已完成 (${completedReminders.length})</h3>
+                    ${completedReminders.map(r => `
+                        <div class="list-item" style="padding: 12px; border-bottom: 1px solid var(--border-color); opacity: 0.7; cursor: pointer;" onclick="viewConsultation('${r.consultationId}')">
+                            <div class="flex items-center gap-3">
+                                <div style="width: 4px; height: 40px; border-radius: 2px; background-color: var(--success-color); flex-shrink: 0;"></div>
+                                <div class="flex-1">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div style="font-weight: 500; font-size: 15px; color: var(--text-secondary); text-decoration: line-through;">${r.title}</div>
+                                        <span class="badge badge-success">已完成</span>
+                                    </div>
+                                    <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                                        ${r.content}
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                                        📅 ${formatDate(r.date)}
+                                    </div>
                                 </div>
                             </div>
-                            <span class="badge ${r.type === 'appointment' ? 'badge-primary' : 'badge-warning'}">
-                                ${r.type === 'appointment' ? '陪诊' : '任务'}
-                            </span>
                         </div>
-                    </div>
-                `).join('')}
-            </div>
-            
-            <!-- 已完成 -->
-            ${renderCompletedReminders()}
-        </div>
-    `;
-}
-
-function renderCompletedReminders() {
-    const completed = AppState.reminders.filter(r => r.completed);
-
-    if (completed.length === 0) return '';
-
-    return `
-        <div class="card">
-            <h3 class="card-title mb-2">已完成 (${completed.length})</h3>
-            ${completed.map(r => `
-                <div class="list-item" style="opacity: 0.6;">
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" checked onchange="toggleReminder('${r.id}')">
-                        <div class="flex-1">
-                            <div style="font-weight: 500; text-decoration: line-through;">${r.title}</div>
-                            <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
-                                ${formatDate(r.date)} ${r.time}
-                            </div>
-                        </div>
-                    </div>
+                    `).join('')}
                 </div>
-            `).join('')}
+                ` : ''}
+            ` : `
+                <div class="empty-state" style="padding: 40px 20px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🔒</div>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">请先登录以查看备忘录数据</p>
+                    <button class="btn btn-primary" onclick="window.wechatLogin.toWxLogin()" style="width: 120px; display: inline-flex; align-items: center; justify-content: center;">前往登录</button>
+                </div>
+            `}
         </div>
     `;
 }
 
+async function refreshMemoData() {
+    isFetchingMemoData = true;
+    showToast('正在刷新...');
+    await loadAllUserConsultations();
+    isFetchingMemoData = false;
+    renderCurrentPage();
+}
 
+async function markAsReminded(consultationId) {
+    try {
+        if (typeof window.MingDaoYunUpdateAPI === 'undefined') {
+            showToast('API组件未加载');
+            return;
+        }
 
-function toggleReminder(id) {
-    const reminder = AppState.reminders.find(r => r.id === id);
-    if (reminder) {
-        reminder.completed = !reminder.completed;
-        AppState.saveToStorage();
-        renderCurrentPage();
+        const api = new window.MingDaoYunUpdateAPI();
+        const result = await api.getData(consultationId, '677699195b0577a7995f32a4', [
+            { controlId: 'zhuangtai', value: '已提醒' }
+        ]);
+
+        if (result.success) {
+            showToast('已设为已提醒');
+            // 更新本地数据
+            const consultation = AppState.allUserConsultations.find(c => c.id === consultationId);
+            if (consultation) {
+                consultation.zhuangtai = '已提醒';
+                // 重新判定 status
+                if (!(consultation.specialNote && consultation.specialNote !== '未记录' && consultation.specialNote !== '')) {
+                    consultation.status = 'reminded';
+                }
+            }
+            // 同时也更新 AppState.consultations (如果当前在详情页或列表页有引用)
+            const c2 = AppState.consultations.find(c => c.id === consultationId);
+            if (c2) {
+                c2.zhuangtai = '已提醒';
+                if (!(c2.specialNote && c2.specialNote !== '未记录' && c2.specialNote !== '')) {
+                    c2.status = 'reminded';
+                }
+            }
+            
+            renderCurrentPage();
+        } else {
+            showToast('更新失败: ' + result.error_msg);
+        }
+    } catch (error) {
+        console.error('更新状态异常:', error);
+        showToast('网络异常');
     }
 }
 
