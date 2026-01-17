@@ -2805,21 +2805,32 @@ function showVerificationPopup(aiData, originalText) {
         width: 100%;
         max-width: 500px;
         max-height: 90vh;
-        overflow-y: auto;
-        padding: 24px;
+        display: flex;
+        flex-direction: column;
         box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        overflow: hidden;
     `;
+
+    // 头部区域 (固定)
+    const header = document.createElement('div');
+    header.style.cssText = 'padding: 24px 24px 16px 24px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;';
 
     // 标题
     const title = document.createElement('h2');
     title.textContent = 'AI 信息提取核对';
     title.style.cssText = 'margin-bottom: 8px; font-size: 18px; font-weight: 600; color: var(--text-primary);';
-    content.appendChild(title);
+    header.appendChild(title);
 
     const subTitle = document.createElement('p');
     subTitle.textContent = '请核对并修改 AI 提取的信息，确认无误后点击“信息填入”';
-    subTitle.style.cssText = 'margin-bottom: 20px; font-size: 13px; color: var(--text-secondary);';
-    content.appendChild(subTitle);
+    subTitle.style.cssText = 'margin-bottom: 0; font-size: 13px; color: var(--text-secondary);';
+    header.appendChild(subTitle);
+    
+    content.appendChild(header);
+
+    // 中间滚动区域
+    const scrollBody = document.createElement('div');
+    scrollBody.style.cssText = 'flex: 1; overflow-y: auto; padding: 24px;';
 
     // 表单区域
     const form = document.createElement('div');
@@ -2967,11 +2978,12 @@ function showVerificationPopup(aiData, originalText) {
         form.appendChild(group);
     }
 
-    content.appendChild(form);
+    scrollBody.appendChild(form);
+    content.appendChild(scrollBody);
 
-    // 底部按钮
+    // 底部按钮 (固定)
     const footer = document.createElement('div');
-    footer.style.cssText = 'margin-top: 24px; display: flex; gap: 12px;';
+    footer.style.cssText = 'padding: 16px 24px 24px 24px; border-top: 1px solid var(--border-color); display: flex; gap: 12px; flex-shrink: 0; background: var(--card-bg);';
 
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = '取消';
