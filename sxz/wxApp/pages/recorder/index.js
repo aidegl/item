@@ -13,14 +13,17 @@ Page({
 
     onLoad() {
         this._timer = null;
-        this.isUserStop = false; // 是否为用户手动停止
-        this.fullText = ''; // 累积的识别文本
+        this.isUserStop = false; 
+        this.allSegments = []; // 物理存储：所有已完成段落的文字数组
+        this.currentSegmentText = ''; // 物理存储：当前正在识别段落的文字
+        this.isSegmentActive = false; // 标志：当前段落是否活跃
         console.log('--- 录音页面加载 ---');
         this.initManager();
     },
 
     onUnload() {
-        this.isUserStop = true; // 页面卸载时视为停止
+        this.isUserStop = true; 
+        this.isSegmentActive = false;
         this.stopTimer();
         try {
             manager.stop();
@@ -28,29 +31,51 @@ Page({
     },
 
     initManager() {
+        manager.onStart = (res) => {
+            this.isSegmentActive = true;
+            console.log('[录音开始] 段落启动');
+        };
+
         manager.onRecognize = (res) => {
-            const currentText = res.result || '';
-            // 显示累积文本 + 当前正在识别的文本
+            if (!this.isSegmentActive) return;
+            const text = res.result || '';
+            this.currentSegmentText = text; 
+            const fullContent = this.allSegments.join('') + text;
+            
+            // 打印日志，监控字数，排查是否被截断
+            console.log(`[识别中] 当前总字数: ${fullContent.length}`);
+            
             this.setData({ 
-                resultText: this.fullText + currentText 
+                resultText: fullContent
             });
         };
 
         manager.onStop = (res) => {
-            const currentText = res.result || '';
-            if (currentText) {
-                this.fullText += currentText; // 录音段落结束，将结果累加到全文
-                this.setData({ resultText: this.fullText });
+            if (!this.isSegmentActive) return;
+            this.isSegmentActive = false;
+            
+            console.log('[录音停止] 收到结果');
+            const finalShot = res.result || this.currentSegmentText || '';
+            
+            if (finalShot) {
+                this.allSegments.push(finalShot);
             }
             
-            console.log('录音段落结束' + (this.isUserStop ? ' (用户停止)' : ' (自动续录)'));
+            this.currentSegmentText = '';
+            
+            // 4. 同步到 UI
+            const finalFullText = this.allSegments.join('');
+            console.log(`[段落结束] 当前累计总字数: ${finalFullText.length}`);
+            
+            this.setData({
+                resultText: finalFullText
+            });
 
             if (!this.isUserStop) {
-                // 如果不是用户手动停止（如 60 秒超时），则自动开启下一段录音
-                console.log('正在自动续录...');
-                // 延迟 300ms 重启，防止接口调用过快导致失败
                 setTimeout(() => {
-                    this.startRecord(true); 
+                    if (!this.isUserStop) {
+                        this.startRecord(true); 
+                    }
                 }, 300);
             } else {
                 this.setData({
@@ -63,25 +88,29 @@ Page({
         };
 
         manager.onError = (res) => {
-            const msg = res && res.msg ? res.msg : '未知错误';
-            console.error('录音错误:', msg);
-
-            // 如果是某些特定的错误（如超时或环境干扰），且用户没点停止，尝试自动恢复
-            if (!this.isUserStop) {
-                console.log('检测到非人为停止错误，尝试自动恢复录音...');
-                setTimeout(() => {
-                    this.startRecord(true);
-                }, 1000);
-                return;
+            this.isSegmentActive = false;
+            console.error('[录音错误]', res);
+            
+            if (this.currentSegmentText) {
+                this.allSegments.push(this.currentSegmentText);
+                this.currentSegmentText = '';
+                this.setData({
+                    resultText: this.allSegments.join('')
+                });
             }
 
-            this.setData({
-                isRecording: false,
-                statusText: '录音出错',
-                recordButtonText: '开始录音'
-            });
-            this.stopTimer();
-            wx.showToast({ title: '识别出错', icon: 'none' });
+            if (!this.isUserStop) {
+                setTimeout(() => {
+                    if (!this.isUserStop) this.startRecord(true);
+                }, 1000);
+            } else {
+                this.setData({
+                    isRecording: false,
+                    statusText: '录音出错',
+                    recordButtonText: '重新录音'
+                });
+                this.stopTimer();
+            }
         };
     },
 
@@ -97,43 +126,36 @@ Page({
 
     startRecord(isContinuation = false) {
         if (!isContinuation) {
-            // 全新开始录音
-            this.fullText = '';
+            this.allSegments = []; // 新录音，清空物理变量
+            this.currentSegmentText = '';
             this.setData({
                 seconds: 0,
                 timerDisplay: '00:00',
                 resultText: ''
             });
             this.startTimer();
-            console.log('开始新录音');
-        } else {
-            console.log('开始续录段落');
         }
 
         this.setData({
             isRecording: true,
-            statusText: '正在录音',
+            statusText: '正在录音...',
             recordButtonText: '停止录音'
         });
 
         try {
             manager.start({
-                duration: 60000, // 设置最大时长 60 秒
+                duration: 59000, 
                 lang: 'zh_CN'
             });
         } catch (e) {
-            console.error('启动录音异常:', e.message);
+            console.error('[启动失败]', e);
             if (!isContinuation) {
-                this.setData({
-                    isRecording: false,
-                    statusText: '启动失败',
-                    recordButtonText: '开始录音'
-                });
+                this.setData({ isRecording: false, statusText: '启动失败' });
                 this.stopTimer();
-                wx.showToast({ title: '录音失败', icon: 'none' });
             } else {
-                // 如果续录失败，尝试再次启动
-                setTimeout(() => this.startRecord(true), 1000);
+                setTimeout(() => {
+                    if (!this.isUserStop) this.startRecord(true);
+                }, 1000);
             }
         }
     },

@@ -4,7 +4,7 @@
             <text>{{statusText}}</text>
         </view>
         <view class="input-row">
-            <textarea class="result-input" disabled value="{{resultText}}" placeholder="这里显示语音识别结果"></textarea>
+            <textarea class="result-input" disabled value="{{resultText}}" maxlength="-1" placeholder="这里显示语音识别结果"></textarea>
             <view class="timer">
                 <text>{{timerDisplay}}</text>
             </view>
