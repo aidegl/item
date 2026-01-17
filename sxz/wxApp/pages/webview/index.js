@@ -173,9 +173,18 @@ Page({
     const globalOpenid = (app && app.globalData && app.globalData.openid) || '';
     const storedOpenid = wx.getStorageSync('openid') || '';
     const openid = globalOpenid || storedOpenid;
-    const baseUrl = this.data.baseUrl;
+    let baseUrl = this.data.baseUrl;
 
     if (!baseUrl) return;
+
+    // 对于websh.html，每次调用updateWebviewUrl时都重新生成带时间戳的URL，确保强制刷新
+    if (baseUrl.includes('websh.html')) {
+      // 移除旧的版本参数
+      let cleanUrl = baseUrl.split('?')[0];
+      // 添加新的时间戳和强制刷新标记
+      const timestamp = new Date().getTime();
+      baseUrl = `${cleanUrl}?v=${timestamp}&force_refresh=1`;
+    }
 
     let finalUrl = baseUrl;
     if (openid) {
