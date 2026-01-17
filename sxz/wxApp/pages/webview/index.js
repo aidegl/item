@@ -73,14 +73,21 @@ Page({
     let baseUrl = currentUrl.split('#')[0];
     let hash = currentUrl.split('#')[1] || '';
     
-    let hashParams = hash.split('&').filter(p => p && !p.startsWith(`${key}=`));
+    // 增加一个随机数或时间戳，强制让 URL 发生变化，确保 web-view 组件触发更新
+    const forceUpdateToken = `_t=${Date.now()}`;
+    
+    let hashParams = hash.split('&').filter(p => p && !p.startsWith(`${key}=`) && !p.startsWith('_t='));
     hashParams.push(`${key}=${encodeURIComponent(value)}`);
+    hashParams.push(forceUpdateToken);
     
     const newUrl = `${baseUrl}#${hashParams.join('&')}`;
     
-    console.log('[步骤8] 更新 URL 以发送数据，新 URL:', newUrl);
+    console.log('--- [原生小程序核心日志] 准备向 WebView 赋值 Hash ---');
+    console.log('识别数据内容:', value);
+    console.log('最终生成的新 URL:', newUrl);
+    
     this.setData({ url: newUrl }, () => {
-      console.log('[步骤9] Webview URL setData 完成，等待 WebView 内部监听');
+      console.log('[步骤9] Webview URL setData 完成');
     });
   },
 
