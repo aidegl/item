@@ -2848,20 +2848,20 @@ function showVerificationPopup(aiData, originalText) {
         if (!val) {
             // 尝试一些常见的变体
             const variants = {
-                'hospital': ['hospital_name', 'visit_hospital', '医院'],
-                'department': ['department_name', 'visit_department', '科室'],
-                'doctor': ['doctor_name', 'attending_doctor', '医生'],
-                'date': ['visit_date', 'appointment_time', '日期'],
-                'coreAppeal': ['appeal', 'main_complaint', '诉求'],
-                'onsetDate': ['onset_time', 'start_date'],
-                'duration': ['frequency', 'duration_time'],
-                'associatedSymptoms': ['symptoms', 'other_symptoms'],
-                'diagnosis': ['doctor_diagnosis', 'result'],
-                'examSummary': ['exam_results', 'lab_results'],
-                'advice': ['doctor_advice', 'medication'],
+                'hospital': ['medicalOrgName', 'hospital_name', 'visit_hospital', '医院'],
+                'department': ['departmentName', 'department_name', 'visit_department', '科室'],
+                'doctor': ['doctorName', 'doctor_name', 'attending_doctor', '医生'],
+                'date': ['appointmentTime', 'visit_date', '日期'],
+                'coreAppeal': ['serviceTitle', 'appeal', 'main_complaint', '诉求'],
+                'onsetDate': ['actualStartDate', 'onset_time', 'start_date'],
+                'duration': ['cxfzsj_pl', 'frequency', 'duration_time'],
+                'associatedSymptoms': ['bszz', 'symptoms', 'other_symptoms'],
+                'diagnosis': ['zhjy', 'doctor_diagnosis', 'result'],
+                'examSummary': ['zjbz', 'exam_results', 'lab_results'],
+                'advice': ['yyzysx', 'doctor_advice', 'medication'],
                 'lifestyleAdvice': ['lifestyle', 'notes'],
-                'followupDate': ['recheck_date', 'next_visit'],
-                'nurseReminder': ['reminder', 'tips']
+                'followupDate': ['hxfcap', 'recheck_date', 'next_visit'],
+                'nurseReminder': ['pzszhtx', 'reminder', 'tips']
             };
             
             const possibleKeys = variants[field.key] || [];
@@ -2883,6 +2883,13 @@ function showVerificationPopup(aiData, originalText) {
     // 特殊处理患者疑问
     let questionsVal = data.patientQuestions || data.questions || data['患者核心疑问'] || data['疑问'] || [];
     
+    // [增加匹配] 匹配 wentiyi, wentier, wentisan 这种格式
+    if (Array.isArray(questionsVal) && questionsVal.length === 0) {
+        if (data.wentiyi) questionsVal.push(data.wentiyi);
+        if (data.wentier) questionsVal.push(data.wentier);
+        if (data.wentisan) questionsVal.push(data.wentisan);
+    }
+
     // 如果是字符串，转为数组
     if (typeof questionsVal === 'string' && questionsVal.trim()) {
         questionsVal = questionsVal.split(/[\n,，]/).filter(q => q.trim());
