@@ -214,8 +214,13 @@ Page({
     }
 
     const nextOpenid = openid || '';
-    if (currentOpenid !== nextOpenid) {
-      console.log('[Webview] 登录状态变化，刷新 WebView，openid:', nextOpenid || '(空)');
+    // 对于websh.html，或者openid变化时，都刷新WebView
+    if (baseUrl.includes('websh.html') || currentOpenid !== nextOpenid) {
+      if (baseUrl.includes('websh.html')) {
+        console.log('[Webview] 强制刷新websh.html，确保加载最新版本');
+      } else {
+        console.log('[Webview] 登录状态变化，刷新 WebView，openid:', nextOpenid || '(空)');
+      }
       this.setData({ url: finalUrl });
     }
   },

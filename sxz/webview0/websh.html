@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="version" content="1">
-    <title>员工信息查询 - 版本1</title>
+    <meta name="version" content="2">
+    <title>陪诊服务介绍 - 陪诊助手</title>
     <!-- 防缓存 Meta 标签 -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
@@ -19,7 +19,7 @@
         }
 
         body {
-            background-color: #f5f5f5;
+            background-color: #f8f9fa;
             padding: 20px;
         }
 
@@ -34,208 +34,215 @@
 
         h1 {
             text-align: center;
-            color: #333;
+            color: #2c3e50;
             margin-bottom: 30px;
             font-size: 28px;
         }
 
-        .search-form {
-            margin-bottom: 30px;
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-size: 22px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        p {
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .service-section {
+            margin-bottom: 40px;
             padding: 20px;
             background-color: #f9f9f9;
             border-radius: 8px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-        }
-
-        input[type="text"],
-        input[type="tel"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
+        .service-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #fff;
+            border-left: 4px solid #3498db;
             border-radius: 4px;
+        }
+
+        .process-steps {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .process-steps li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 15px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .process-steps li:before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 24px;
+            height: 24px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .note-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .note-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
             font-size: 16px;
         }
 
-        input:focus {
-            outline: none;
-            border-color: #007aff;
-            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+        .note-box ul {
+            padding-left: 20px;
+            color: #856404;
         }
 
-        .btn-search {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            background-color: #007aff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 20px;
+        .note-box li {
+            margin-bottom: 8px;
+            line-height: 1.6;
         }
 
-        .btn-search:hover {
-            background-color: #0056b3;
-        }
-
-        .employee-info {
-            margin-bottom: 30px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-        }
-
-        .employee-info h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 22px;
-        }
-
-        .info-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .info-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .info-label {
-            font-weight: 600;
-            color: #555;
-            margin-right: 10px;
-        }
-
-        .info-value {
-            color: #333;
-        }
-
-        .error-message {
+        .contact-info {
             text-align: center;
-            color: #e74c3c;
-            font-size: 18px;
-            font-weight: 600;
-            margin-top: 20px;
+            padding: 20px;
+            background-color: #e8f4fc;
+            border-radius: 8px;
+            margin-top: 40px;
+        }
+
+        .contact-info p {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .version-info {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
+            font-size: 14px;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>公司内部员工信息查询</h1>
+        <h1>沈仙子陪诊助手 - 专业陪诊服务</h1>
 
-        <!-- 查询表单 -->
-        <div class="search-form">
-            <div class="form-group">
-                <label for="employeeId">员工工号</label>
-                <input type="text" id="employeeId" placeholder="请输入员工工号">
-            </div>
-            <div class="form-group">
-                <label for="employeeName">员工姓名</label>
-                <input type="text" id="employeeName" placeholder="请输入员工姓名">
-            </div>
-            <div class="form-group">
-                <label for="phone">手机号</label>
-                <input type="tel" id="phone" placeholder="请输入手机号">
-            </div>
-            <button class="btn-search" onclick="searchEmployee()">查询</button>
-        </div>
+        <!-- 服务介绍 -->
+        <div class="service-section">
+            <h2>🔍 陪诊服务介绍</h2>
+            <p>沈仙子陪诊助手致力于为患者提供专业、贴心的陪诊服务，解决您在就医过程中的各种困扰。我们的陪诊人员均经过专业培训，熟悉医院流程，能够为您提供全方位的就医协助。</p>
 
-        <!-- 员工信息展示区域 -->
-        <div class="employee-info">
-            <h2>员工信息</h2>
-            <div class="info-item">
-                <span class="info-label">工号：</span>
-                <span class="info-value" id="empIdValue"></span>
+            <div class="service-item">
+                <h3>📋 服务内容</h3>
+                <p>• 提前了解医院流程和科室分布</p>
+                <p>• 协助预约挂号、取号</p>
+                <p>• 陪同就诊，记录医生诊断和建议</p>
+                <p>• 协助缴费、取药</p>
+                <p>• 解读检查报告</p>
+                <p>• 提供就医建议和指导</p>
             </div>
-            <div class="info-item">
-                <span class="info-label">姓名：</span>
-                <span class="info-value" id="empNameValue"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">职责范围：</span>
-                <span class="info-value" id="dutyValue"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">入职时间：</span>
-                <span class="info-value" id="hireDateValue"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">联系方式：</span>
-                <span class="info-value" id="contactValue"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">所属部门：</span>
-                <span class="info-value" id="departmentValue"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">职位：</span>
-                <span class="info-value" id="positionValue"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">邮箱：</span>
-                <span class="info-value" id="emailValue"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">工作地点：</span>
-                <span class="info-value" id="workLocationValue"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">性别：</span>
-                <span class="info-value" id="genderValue"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">出生日期：</span>
-                <span class="info-value" id="birthDateValue"></span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">身份证号：</span>
-                <span class="info-value" id="idCardValue"></span>
+
+            <div class="service-item">
+                <h3>🎯 服务优势</h3>
+                <p>• 专业陪诊人员，熟悉医院流程</p>
+                <p>• 全程贴心陪同，减少就医压力</p>
+                <p>• 详细记录医嘱，避免遗漏重要信息</p>
+                <p>• 灵活预约，满足不同需求</p>
+                <p>• 合理收费，透明服务</p>
             </div>
         </div>
 
-        <!-- 错误信息显示区域 -->
-        <div id="errorMessage" class="error-message" style="display: none;">查询信息有误</div>
+        <!-- 服务流程 -->
+        <div class="service-section">
+            <h2>📌 陪诊服务流程</h2>
+            <ol class="process-steps">
+                <li>客户预约：通过小程序或电话预约陪诊服务，提供患者基本信息和就医需求</li>
+                <li>前期准备：陪诊人员了解就医详情，熟悉医院和科室情况</li>
+                <li>就医陪同：按照约定时间在医院等候，全程陪同完成就医流程</li>
+                <li>服务完成：向客户反馈就医情况，提供后续建议</li>
+                <li>满意度调查：收集客户反馈，不断提升服务质量</li>
+            </ol>
+        </div>
+
+        <!-- 注意事项 -->
+        <div class="service-section">
+            <h2>⚠️ 就医注意事项</h2>
+            <div class="note-box">
+                <h4>📋 就诊前准备</h4>
+                <ul>
+                    <li>携带有效身份证件和医保卡</li>
+                    <li>准备好既往病历和检查报告</li>
+                    <li>记录需要咨询医生的问题</li>
+                    <li>穿着舒适，便于检查</li>
+                </ul>
+            </div>
+
+            <div class="note-box">
+                <h4>👨‍⚕️ 就诊过程中</h4>
+                <ul>
+                    <li>如实向医生描述病情和症状</li>
+                    <li>认真听取医生的诊断和建议</li>
+                    <li>如有疑问，及时向医生咨询</li>
+                    <li>配合医生进行各项检查</li>
+                </ul>
+            </div>
+
+            <div class="note-box">
+                <h4>💊 就诊后</h4>
+                <ul>
+                    <li>按照医嘱按时服药</li>
+                    <li>注意休息，保持良好的生活习惯</li>
+                    <li>定期复诊，关注病情变化</li>
+                    <li>如有不适，及时就医</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 联系我们 -->
+        <div class="contact-info">
+            <h2>📞 联系我们</h2>
+            <p>如果您有任何疑问或需要预约陪诊服务，请随时联系我们：</p>
+            <p>客服电话：400-123-4567</p>
+            <p>工作时间：周一至周日 8:00-20:00</p>
+        </div>
+
+        <!-- 版本信息 -->
+        <div class="version-info">
+            <p>陪诊助手 - 版本 2</p>
+            <p>© 2026 沈仙子陪诊助手. 保留所有权利.</p>
+        </div>
     </div>
-
-    <script>
-        function searchEmployee() {
-            // 清空之前的错误信息
-            document.getElementById('errorMessage').style.display = 'none';
-
-            // 清空员工信息
-            document.getElementById('empIdValue').textContent = '';
-            document.getElementById('empNameValue').textContent = '';
-            document.getElementById('dutyValue').textContent = '';
-            document.getElementById('hireDateValue').textContent = '';
-            document.getElementById('contactValue').textContent = '';
-            document.getElementById('departmentValue').textContent = '';
-            document.getElementById('positionValue').textContent = '';
-            document.getElementById('emailValue').textContent = '';
-            document.getElementById('workLocationValue').textContent = '';
-            document.getElementById('genderValue').textContent = '';
-            document.getElementById('birthDateValue').textContent = '';
-            document.getElementById('idCardValue').textContent = '';
-
-            // 不管输入什么，都显示查询信息有误
-            document.getElementById('errorMessage').style.display = 'block';
-        }
-    </script>
 </body>
 
 </html>
