@@ -171,6 +171,31 @@ Page({
         const mm = m < 10 ? '0' + m : '' + m;
         const ss = s < 10 ? '0' + s : '' + s;
         return mm + ':' + ss;
+    },
+
+    onAIIdentify() {
+        // 准备要传递的数据
+        const content = this.data.resultText;
+        // 获取当前页面栈
+        const pages = getCurrentPages();
+        // 获取上一页面实例
+        const prevPage = pages[pages.length - 2];
+        
+        if (prevPage) {
+            // 设置上一页面的data
+            prevPage.setData({
+                aiContent: content
+            });
+            // 返回上一页面
+            wx.navigateBack({
+                delta: 1
+            });
+        } else {
+            // 如果没有上一页面，直接返回
+            wx.navigateBack({
+                delta: 1
+            });
+        }
     }
 });
 
