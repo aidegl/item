@@ -2731,12 +2731,39 @@ function showVerificationPopup(aiData, originalText) {
     // 如果 aiData 是字符串，尝试解析（防御性处理）
     let data = aiData;
     if (typeof aiData === 'string') {
+        console.log('检测到 aiData 是字符串，尝试解析...');
         try {
+            // 尝试直接解析
             data = JSON.parse(aiData);
         } catch (e) {
-            console.error('解析 AI 数据失败:', e);
-            showToast('数据解析失败，请手动填写');
-            return;
+            console.warn('初次解析失败，尝试提取 JSON 部分...');
+            // 尝试提取字符串中的 JSON 部分 (处理 Coze 可能返回的 Markdown 代码块或前后文字)
+            const jsonMatch = aiData.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                try {
+                    data = JSON.parse(jsonMatch[0]);
+                    console.log('成功从字符串中提取并解析 JSON');
+                } catch (e2) {
+                    console.error('从提取部分解析 JSON 仍然失败:', e2);
+                }
+            }
+        }
+    }
+
+    // [深度修复] 如果解析后的 data 仍然包含字符串形式的 output/data 字段，递归解析
+    if (data && typeof data.data === 'string') {
+        try {
+            console.log('检测到嵌套的 data 字符串，正在二次解析...');
+            data = JSON.parse(data.data);
+        } catch (e) {
+            console.warn('二次解析嵌套 data 失败');
+        }
+    } else if (data && typeof data.output === 'string') {
+        try {
+            console.log('检测到嵌套的 output 字符串，正在二次解析...');
+            data = JSON.parse(data.output);
+        } catch (e) {
+            console.warn('二次解析嵌套 output 失败');
         }
     }
 
