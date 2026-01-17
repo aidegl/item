@@ -2725,6 +2725,9 @@ function handleConfirm() {
 
 // ==================== AI 提取结果核对弹窗 ====================
 function showVerificationPopup(aiData, originalText) {
+    console.log('--- [AI 弹窗核对] 接收到的原始数据 ---');
+    console.log('aiData:', aiData);
+    
     // 如果 aiData 是字符串，尝试解析（防御性处理）
     let data = aiData;
     if (typeof aiData === 'string') {
@@ -2736,6 +2739,19 @@ function showVerificationPopup(aiData, originalText) {
             return;
         }
     }
+
+    // [关键修复] 有些工作流会把结果包装在 output 或 result 字段中
+    if (data && !data.hospital && !data['就诊医院']) {
+        if (data.output) {
+            console.log('检测到数据嵌套在 output 字段中');
+            data = data.output;
+        } else if (data.result) {
+            console.log('检测到数据嵌套在 result 字段中');
+            data = data.result;
+        }
+    }
+    
+    console.log('最终用于填充的数据对象:', data);
 
     // 创建弹窗容器
     const modal = document.createElement('div');
@@ -2823,7 +2839,40 @@ function showVerificationPopup(aiData, originalText) {
         }
 
         // 填充数据 (支持多种可能的 key 格式)
-        const val = data[field.key] || data[field.label] || '';
+        // 1. 直接匹配 field.key (如 'hospital')
+        // 2. 匹配 field.label (如 '就诊医院')
+        // 3. 匹配下划线格式 (如 'hospital_name' 或 'visit_hospital')
+        // 4. 匹配拼音或简写
+        let val = data[field.key] || data[field.label] || '';
+        
+        if (!val) {
+            // 尝试一些常见的变体
+            const variants = {
+                'hospital': ['hospital_name', 'visit_hospital', '医院'],
+                'department': ['department_name', 'visit_department', '科室'],
+                'doctor': ['doctor_name', 'attending_doctor', '医生'],
+                'date': ['visit_date', 'appointment_time', '日期'],
+                'coreAppeal': ['appeal', 'main_complaint', '诉求'],
+                'onsetDate': ['onset_time', 'start_date'],
+                'duration': ['frequency', 'duration_time'],
+                'associatedSymptoms': ['symptoms', 'other_symptoms'],
+                'diagnosis': ['doctor_diagnosis', 'result'],
+                'examSummary': ['exam_results', 'lab_results'],
+                'advice': ['doctor_advice', 'medication'],
+                'lifestyleAdvice': ['lifestyle', 'notes'],
+                'followupDate': ['recheck_date', 'next_visit'],
+                'nurseReminder': ['reminder', 'tips']
+            };
+            
+            const possibleKeys = variants[field.key] || [];
+            for (const k of possibleKeys) {
+                if (data[k]) {
+                    val = data[k];
+                    break;
+                }
+            }
+        }
+
         input.value = val;
         inputElements[field.key] = input;
 
@@ -2832,7 +2881,13 @@ function showVerificationPopup(aiData, originalText) {
     });
 
     // 特殊处理患者疑问
-    const questionsVal = data.patientQuestions || data.questions || [];
+    let questionsVal = data.patientQuestions || data.questions || data['患者核心疑问'] || data['疑问'] || [];
+    
+    // 如果是字符串，转为数组
+    if (typeof questionsVal === 'string' && questionsVal.trim()) {
+        questionsVal = questionsVal.split(/[\n,，]/).filter(q => q.trim());
+    }
+
     if (Array.isArray(questionsVal) && questionsVal.length > 0) {
         const group = document.createElement('div');
         group.style.cssText = 'display: flex; flex-direction: column; gap: 6px;';
