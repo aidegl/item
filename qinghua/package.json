@@ -1,0 +1,20 @@
+{
+  "name": "qinghua-website",
+  "version": "1.0.0",
+  "description": "清华大学官网 - 基于明道云 HAP 平台的内容展示网站",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx http-server . -p 8080 -o",
+    "start": "npm run dev"
+  },
+  "keywords": [
+    "qinghua",
+    "tsinghua",
+    "hap",
+    "website"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}
