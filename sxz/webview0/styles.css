@@ -374,11 +374,30 @@ body {
 
 /* 日期输入框特殊样式 */
 .input[type="date"] {
+    width: 100%;
+    max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     height: 40px;
     resize: none;
+    /* 修复 iOS 日期选择器样式问题 */
+    -webkit-appearance: none;
+    min-height: 40px;
+}
+
+/* 修复 iOS 上输入框可能出现的内边距或边距导致超出边框的问题 */
+input, textarea, select {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box !important;
+}
+
+/* 确保表单组内的元素不会溢出 */
+.form-group {
+    margin-bottom: 12px;
+    width: 100%;
+    overflow: hidden;
 }
 
 /* 就诊信息区域的医院、科室、医生输入框固定高度 */
