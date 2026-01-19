@@ -249,9 +249,10 @@ const AppState = {
                 // 调用 Coze 工作流处理识别结果
                 if (window.cozeWorkflow) {
                     console.log('[步骤14] WebView 内部：准备调用 Coze STT 工作流');
-                    showToast('AI 正在提取信息...', 5000);
+                    showLoading('AI 正在智能识别并提取信息，请稍候 (约 5-8 秒)...');
                     window.cozeWorkflow.runSTT(resultText).then((response) => {
                         console.log('[步骤15] WebView 内部：Coze STT 处理返回成功');
+                        hideLoading();
                         if (response.success && response.data && response.data.data) {
                             showVerificationPopup(response.data.data, resultText);
                         } else {
@@ -260,6 +261,7 @@ const AppState = {
                         }
                     }).catch(err => {
                         console.error('[步骤15] WebView 内部：Coze 调用异常', err);
+                        hideLoading();
                         showToast('AI 提取异常');
                     });
                 } else {
@@ -2073,15 +2075,17 @@ function renderConsultationFlow(container) {
                         <input type="date" name="date" class="input" style="height: 40px; resize: none;" value="${isEditMode ? formatDateForInput(consultation.date) : new Date().toISOString().split('T')[0]}">
                     </div>
 
+                    ${isEditMode ? `
                     <div class="form-group">
                         <label class="form-label">陪诊状态</label>
                         <select name="zhuangtai" class="input" style="height: 40px;">
-                            <option value="待提醒" ${(!isEditMode || (consultation.zhuangtai !== '已提醒' && consultation.zhuangtai !== '已完成')) ? 'selected' : ''}>待提醒</option>
-                            <option value="已提醒" ${isEditMode && consultation.zhuangtai === '已提醒' ? 'selected' : ''}>已提醒</option>
-                            <option value="已完成" ${isEditMode && consultation.zhuangtai === '已完成' ? 'selected' : ''}>已完成</option>
+                            <option value="待提醒" ${(consultation.zhuangtai !== '已提醒' && consultation.zhuangtai !== '已完成') ? 'selected' : ''}>待提醒</option>
+                            <option value="已提醒" ${consultation.zhuangtai === '已提醒' ? 'selected' : ''}>已提醒</option>
+                            <option value="已完成" ${consultation.zhuangtai === '已完成' ? 'selected' : ''}>已完成</option>
                         </select>
                         <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">注：填写诊后“诊断建议”后将自动设为“已完成”</p>
                     </div>
+                    ` : ''}
                     
                     <div class="form-group">
                         <label class="form-label">医院 *</label>
@@ -2253,7 +2257,7 @@ function renderConsultationFlow(container) {
                             <textarea name="lifestyleAdvice" class="textarea" placeholder="如：低盐低脂饮食、加强体育锻炼等...">${isEditMode ? (consultation.lifestyleAdvice || '') : ''}</textarea>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">后续复查安排</label>
+                            <label class="form-label">复诊日期</label>
                             <input type="date" name="followupDate" class="input w-full" value="${isEditMode ? formatDateForInput(consultation.followupDate) : ''}">
                         </div>
                     </div>
@@ -2344,13 +2348,6 @@ async function handleConsultationSubmit(event) {
     const shouzhen = formData.get('shouzhen');
     const consultationDate = formData.get('date');
     const today = new Date().toISOString().split('T')[0];
-
-    if (shouzhen === '1') {
-        if (consultationDate < today) {
-            showToast('初诊不能选择今天以前的日期');
-            return;
-        }
-    }
 
     let fuid = null;
     if (shouzhen === '0') {
@@ -5231,6 +5228,40 @@ function showToast(message) {
             document.body.removeChild(toast);
         }, 300);
     }, 2000);
+}
+
+let globalLoadingOverlay = null;
+
+/**
+ * 显示全局加载遮罩
+ * @param {string} message 提示文字
+ */
+function showLoading(message = '请稍候...') {
+    if (!globalLoadingOverlay) {
+        globalLoadingOverlay = document.createElement('div');
+        globalLoadingOverlay.className = 'loading-overlay';
+        globalLoadingOverlay.innerHTML = `
+            <div class="loading-spinner"></div>
+            <div class="loading-text">${message}</div>
+        `;
+        document.body.appendChild(globalLoadingOverlay);
+    } else {
+        const textEl = globalLoadingOverlay.querySelector('.loading-text');
+        if (textEl) textEl.textContent = message;
+    }
+
+    // 强制重绘
+    globalLoadingOverlay.offsetHeight;
+    globalLoadingOverlay.classList.add('show');
+}
+
+/**
+ * 隐藏全局加载遮罩
+ */
+function hideLoading() {
+    if (globalLoadingOverlay) {
+        globalLoadingOverlay.classList.remove('show');
+    }
 }
 
 // 获取URL中的hash ID

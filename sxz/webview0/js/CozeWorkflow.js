@@ -12,26 +12,39 @@ class CozeWorkflow {
         this.bearerToken = apiKey;
     }
 
-    // 调用OCR工作流
-    async runOCR(imageUrl) {
-        return this.executeWorkflow(this.ocrWorkflowId, imageUrl, 'OCR提取');
-    }
-
     // 调用语音识别提取工作流
     async runSTT(inputText) {
-        return this.executeWorkflow(this.sttWorkflowId, inputText, '语音提取');
+        const now = new Date();
+        const currentDateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+        const contextEnhancedInput = `当前日期是：${currentDateStr}。请基于该日期和常识，准确识别并提取以下语音内容中的日期、医院、科室等信息：\n${inputText}`;
+        return this.executeWorkflow(this.sttWorkflowId, contextEnhancedInput, '语音提取');
+    }
+
+    // 调用OCR工作流
+    async runOCR(imageUrl) {
+        const now = new Date();
+        const currentDateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+        // OCR 可能直接接收 URL，但如果是工作流，我们尝试在 executeWorkflow 中处理
+        return this.executeWorkflow(this.ocrWorkflowId, imageUrl, 'OCR提取', currentDateStr);
     }
 
     // 通用执行方法
-    async executeWorkflow(workflowId, input, typeName) {
+    async executeWorkflow(workflowId, input, typeName, currentDate = null) {
         try {
             this.log(`开始调用${typeName}工作流`, { input: typeof input === 'string' ? input.substring(0, 50) + '...' : '[Object]' });
 
+            const parameters = {
+                input: input
+            };
+
+            // 如果提供了当前日期，添加到参数中，以防工作流节点支持该参数
+            if (currentDate) {
+                parameters.current_date = currentDate;
+            }
+
             const requestBody = {
                 workflow_id: workflowId,
-                parameters: {
-                    input: input
-                }
+                parameters: parameters
             };
             this.log('API请求体', requestBody);
 
