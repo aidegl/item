@@ -30,14 +30,18 @@ body {
     -webkit-text-size-adjust: 100% !important;
     text-size-adjust: 100% !important;
     -moz-text-size-adjust: 100% !important;
+    overflow-x: hidden; /* 强制隐藏水平滚动条 */
+    width: 100%;
 }
 
 .app-container {
     max-width: 448px;
+    width: 100%;
     margin: 0 auto;
     min-height: 100vh;
     background-color: var(--bg-color);
     position: relative;
+    overflow-x: hidden; /* 强制隐藏水平滚动条，防止 iPhone 上意外溢出 */
 }
 
 /* 主内容区域 */
@@ -374,8 +378,8 @@ body {
 
 /* 日期输入框特殊样式 */
 .input[type="date"] {
-    width: 100%;
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -384,6 +388,16 @@ body {
     /* 修复 iOS 日期选择器样式问题 */
     -webkit-appearance: none;
     min-height: 40px;
+    display: block;
+    box-sizing: border-box !important;
+}
+
+/* 针对 iOS 的特殊修复，确保输入框内容不会溢出 */
+@supports (-webkit-overflow-scrolling: touch) {
+    .input, .textarea, select {
+        font-size: 16px; /* 防止 iOS 自动放大 */
+        max-width: calc(100vw - 32px) !important; /* 减去容器内边距 */
+    }
 }
 
 /* 修复 iOS 上输入框可能出现的内边距或边距导致超出边框的问题 */

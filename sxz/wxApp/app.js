@@ -9,6 +9,10 @@ App({
   },
   onLaunch() {
     console.log(`[执行日志] ${new Date().toLocaleString()} - 执行了onLaunch函数`);
+    
+    // 立即加载全局设置，不等待登录
+    this.loadGlobalSettings();
+
     try {
       const stored = wx.getStorageSync('openid');
       if (stored) {
@@ -19,6 +23,7 @@ App({
     } catch (e) {
       console.error(`[执行日志] ${new Date().toLocaleString()} - 执行了onLaunch函数，返回数据：`, e);
     }
+    
     wx.login({
       success: (res) => {
         console.log(`[原生API日志] ${new Date().toLocaleString()} - login调用成功，返回数据：`, res);
@@ -31,10 +36,6 @@ App({
         console.error(`[原生API日志] ${new Date().toLocaleString()} - login调用失败，错误信息：`, err);
         this.globalData.openid = null;
         this.globalData.isAnonymous = true;
-      },
-      complete: () => {
-        // 无论登录成功与否，都加载全局设置
-        this.loadGlobalSettings();
       }
     });
   },
