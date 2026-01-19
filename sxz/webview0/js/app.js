@@ -2980,7 +2980,7 @@ function showVerificationPopup(aiData, originalText) {
 
     // 底部按钮 (固定)
     const footer = document.createElement('div');
-    footer.style.cssText = 'padding: 16px 24px 24px 24px; border-top: 1px solid var(--border-color); display: flex; gap: 12px; flex-shrink: 0; background: var(--card-bg);';
+    footer.style.cssText = 'padding: 16px 24px 24px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: center; gap: 12px; flex-shrink: 0; background: var(--card-bg);';
 
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = '取消';
