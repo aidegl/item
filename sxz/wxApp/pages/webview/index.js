@@ -99,6 +99,28 @@ Page({
     this.checkRecordPermission();
   },
 
+  /**
+   * 用户点击右上角分享
+   */
+  onShareAppMessage() {
+    return {
+      title: '沈仙子陪诊助手',
+      path: '/pages/webview/index',
+      imageUrl: ''
+    }
+  },
+
+  /**
+   * 分享到朋友圈
+   */
+  onShareTimeline() {
+    return {
+      title: '沈仙子陪诊助手',
+      query: '',
+      imageUrl: ''
+    }
+  },
+
   // 通过 Hash 向 WebView 发送数据
   sendDataToWebviewByHash(key, value) {
     const currentUrl = this.data.url;
