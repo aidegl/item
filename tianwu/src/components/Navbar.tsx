@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../assets/img/天悟2.png';
+import logo from '../assets/img/天悟.png';
 
 const Navbar = () => {
   const navItems = [
@@ -14,7 +14,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed w-full z-50 bg-brand-dark/80 backdrop-blur-md border-b border-white/10">
+    <nav className="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         <div className="flex items-center">
           <img src={logo} alt="天悟 TIANWU" className="h-10 w-auto" />
@@ -24,7 +24,7 @@ const Navbar = () => {
             <a
               key={item.name}
               href={item.href}
-              className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
+              className="text-sm font-medium text-gray-700 hover:text-brand-blue transition-colors"
             >
               {item.name}
             </a>
