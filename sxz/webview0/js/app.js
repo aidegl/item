@@ -2303,6 +2303,17 @@ function renderConsultationFlow(container) {
         }
                     </div>
                 </div>
+                
+                ${isEditMode ? `
+                <div style="margin: 20px 0; padding: 0 16px; display: flex; flex-direction: column; gap: 12px;">
+                    <button type="button" class="btn btn-primary w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
+                        生成诊前报告
+                    </button>
+                    <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                        删除陪诊记录
+                    </button>
+                </div>
+                ` : ''}
                 </div>
                 
                 <!-- 诊后内容 -->
@@ -2399,6 +2410,9 @@ function renderConsultationFlow(container) {
 
                     ${isEditMode ? `
                     <div style="margin: 20px 0; padding: 0 16px;">
+                        <button type="button" class="btn btn-primary w-full" onclick="generatePostReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white; margin-bottom: 12px;">
+                            生成诊后报告
+                        </button>
                         <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
                             删除陪诊记录
                         </button>
@@ -3737,6 +3751,26 @@ async function renderRecordsList(container) {
         return timeA - timeB;
     });
 
+    // --- 调试日志：打印排序后的合并表 ---
+    console.group('备忘录排序调试');
+    console.log('合并后的提醒事项列表（已排序）:');
+    if (allReminders.length > 0) {
+        // 构建简化的表格数据用于打印
+        const tableData = allReminders.map((r, index) => ({
+            '序号': index + 1,
+            '标题': r.title,
+            '类型': r.type === 'appointment' ? '陪诊' : '复查',
+            '原始日期字符串': r.date,
+            '排序时间戳': r.sortDate,
+            '格式化后日期': new Date(r.sortDate).toLocaleString()
+        }));
+        console.table(tableData);
+    } else {
+        console.log('列表为空');
+    }
+    console.groupEnd();
+    // ------------------------------------
+
     console.log('转换后提醒事项总数:', allReminders.length);
 
     const today = new Date();
@@ -4609,6 +4643,20 @@ function mockLogin() {
         .finally(() => {
             console.log('=== 模拟登录完成 ===');
         });
+}
+
+// 生成诊前报告
+function generatePreReport(consultationId) {
+    console.log('生成诊前报告:', consultationId);
+    showToast('正在生成诊前报告...');
+    // TODO: 实现生成诊前报告的逻辑
+}
+
+// 生成诊后报告
+function generatePostReport(consultationId) {
+    console.log('生成诊后报告:', consultationId);
+    showToast('正在生成诊后报告...');
+    // TODO: 实现生成诊后报告的逻辑
 }
 
 // ==================== 会员与订单功能 ====================
