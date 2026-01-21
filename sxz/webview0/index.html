@@ -4,6 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- 缓存控制：防止部分机型对 HTML 本身进行强缓存 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
   <title>沈仙子陪诊助手</title>
 
   <!-- 调试与依赖 -->
@@ -14,7 +17,11 @@
 
   <script>
     (function () {
+      // 获取 URL 中的 v 参数（由小程序在冷启动时生成）
       var v = new URLSearchParams(window.location.search).get('v') || Date.now();
+      console.log('[Webview] 资源版本号:', v);
+      
+      // 动态注入 CSS，确保版本号透传
       document.write('<link rel="stylesheet" href="./styles.css?v=' + v + '">');
     })();
   </script>
@@ -114,7 +121,11 @@
   <script src="../mingdao/MingdaoArray.js"></script>
   <script>
     (function () {
+      // 获取 URL 中的 v 参数（由小程序在冷启动时生成）
       var v = new URLSearchParams(window.location.search).get('v') || Date.now();
+      console.log('[Webview] 动态加载脚本，版本号:', v);
+      
+      // 动态注入所有 JS 脚本，确保版本号透传到所有资源层级
       var scripts = [
         './js/WechatLogin.js',
         './js/coze.js',
