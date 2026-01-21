@@ -3050,7 +3050,8 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
                 verifiedData[key] = inputElements[key].value;
             }
         }
-        fillConsultationForm(verifiedData);
+        // 传递 sttType 给 fillConsultationForm，以便只填充对应类别的字段
+        fillConsultationForm(verifiedData, sttType);
         document.body.removeChild(modal);
         showToast('信息已填入表单');
     };
@@ -3063,7 +3064,7 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
     document.body.appendChild(modal);
 }
 
-function fillConsultationForm(data) {
+function fillConsultationForm(data, sttType = 'default') {
     // 确保有表单存在
     const form = document.getElementById('consultationForm');
     if (!form) {
@@ -3071,14 +3072,38 @@ function fillConsultationForm(data) {
         return;
     }
 
-    // 填充基本字段
+    // 定义字段分类
+    const preFields = ['hospital', 'department', 'doctor', 'date', 'coreAppeal', 'onsetDate', 'duration', 'associatedSymptoms', 'patientQuestions'];
+    const postFields = ['diagnosis', 'examSummary', 'advice', 'lifestyleAdvice', 'followupDate', 'nurseReminder'];
+
+    // 根据 sttType 过滤要填充的字段
+    let allowedFields = [];
+    if (sttType === 'pre') {
+        allowedFields = preFields;
+        console.log('[填充表单] 识别类型为诊前，只填充诊前相关字段');
+    } else if (sttType === 'post') {
+        allowedFields = postFields;
+        console.log('[填充表单] 识别类型为诊后，只填充诊后相关字段');
+    } else {
+        // 默认情况：填充所有字段
+        allowedFields = [...preFields, ...postFields];
+        console.log('[填充表单] 识别类型为通用/默认，填充所有字段');
+    }
+
+    // 填充基本字段（只填充允许的字段）
     for (const key in data) {
         if (key === 'patientQuestions') continue;
         
-        const input = form.querySelector(`[name="${key}"]`);
-        if (input && data[key]) {
-            input.value = data[key];
-            input.dispatchEvent(new Event('input', { bubbles: true }));
+        // 检查字段是否在允许列表中
+        if (allowedFields.includes(key)) {
+            const input = form.querySelector(`[name="${key}"]`);
+            if (input && data[key]) {
+                input.value = data[key];
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                console.log(`[填充表单] 已填充字段: ${key} = ${data[key]}`);
+            }
+        } else {
+            console.log(`[填充表单] 跳过字段: ${key} (不在 ${sttType} 类型的允许列表中)`);
         }
     }
 
