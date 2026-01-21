@@ -32,23 +32,22 @@ Page({
       let rawBaseUrl = IS_DEBUG ? LOCAL_URL : PROD_URL;
 
       // 添加防缓存参数（仅在小程序冷启动时生成一次）
+      // 每次 onLoad 都会生成新的时间戳，确保冷启动时强制刷新
       const timestamp = new Date().getTime();
       const separator = rawBaseUrl.includes('?') ? '&' : '?';
-      // 对于websh.html，始终添加版本参数和强制刷新标记，确保每次都加载最新版本
-      let baseUrlWithVersion;
-      if (rawBaseUrl.includes('websh.html')) {
-        baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}&force_refresh=1`;
-      } else {
-        baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}`;
-      }
+      // 统一为所有页面添加版本参数，确保全链路刷新
+      const baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}`;
 
+      console.log('[Webview] onLoad (冷启动), 生成版本号:', timestamp);
       console.log('[Webview] onLoad, baseUrl:', baseUrlWithVersion);
-      this.setData({ baseUrl: baseUrlWithVersion }, () => {
+      
+      // 先清空当前 URL，确保强制刷新
+      this.setData({ url: '', baseUrl: baseUrlWithVersion }, () => {
         // 检查是否有 STT 指令
         if (options.action === 'stt') {
           this.handleSTTAction(options.command);
         }
-        // 初始加载 URL
+        // 初始加载 URL（使用新生成的版本号）
         this.updateWebviewUrl(true);
       });
     };
@@ -235,17 +234,12 @@ Page({
     const openid = globalOpenid || storedOpenid;
     let baseUrl = this.data.baseUrl;
 
-    if (!baseUrl) return;
-
-    // 对于websh.html，每次调用updateWebviewUrl时都重新生成带时间戳的URL，确保强制刷新
-    if (baseUrl.includes('websh.html')) {
-      // 移除旧的版本参数
-      let cleanUrl = baseUrl.split('?')[0];
-      // 添加新的时间戳和强制刷新标记
-      const timestamp = new Date().getTime();
-      baseUrl = `${cleanUrl}?v=${timestamp}&force_refresh=1`;
+    if (!baseUrl) {
+      console.warn('[Webview] updateWebviewUrl: baseUrl 为空');
+      return;
     }
 
+    // 构建最终 URL，包含版本号和 openid
     let finalUrl = baseUrl;
     if (openid) {
       finalUrl += `#openid=${openid}`;
@@ -253,12 +247,16 @@ Page({
       finalUrl += `#openid=`;
     }
 
+    // 如果是初始加载（onLoad），或者当前 URL 为空，直接设置新 URL
+    // 这样可以确保每次冷启动都使用新的版本号刷新
     const currentUrl = this.data.url;
     if (isInitial || !currentUrl) {
+      console.log('[Webview] 初始加载或 URL 为空，设置新 URL:', finalUrl);
       this.setData({ url: finalUrl });
       return;
     }
 
+    // 非初始加载时，检查 openid 是否变化
     let currentOpenid = '';
     const hashIndex = currentUrl.indexOf('#');
     if (hashIndex >= 0) {
@@ -274,14 +272,12 @@ Page({
     }
 
     const nextOpenid = openid || '';
-    // 对于websh.html，或者openid变化时，都刷新WebView
-    if (baseUrl.includes('websh.html') || currentOpenid !== nextOpenid) {
-      if (baseUrl.includes('websh.html')) {
-        console.log('[Webview] 强制刷新websh.html，确保加载最新版本');
-      } else {
-        console.log('[Webview] 登录状态变化，刷新 WebView，openid:', nextOpenid || '(空)');
-      }
+    // 只有 openid 变化时才刷新（避免不必要的刷新）
+    if (currentOpenid !== nextOpenid) {
+      console.log('[Webview] 登录状态变化，刷新 WebView，openid:', nextOpenid || '(空)');
       this.setData({ url: finalUrl });
+    } else {
+      console.log('[Webview] openid 未变化，不刷新 WebView');
     }
   },
 
