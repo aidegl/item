@@ -265,6 +265,19 @@ const AppState = {
             // 额外清理 sttType，防止包含多余空格或引号
             sttType = sttType.trim().replace(/['"]/g, '');
 
+            // [强校验] 只有 'pre' 和 'post' 是合法值。如果是 'default' 或其他值，强制使用当前 Tab 状态
+            // 用户明确要求：没有“通用”这个说法，必须是诊前或诊后，以当前选中的 Tab 为准
+            if (sttType !== 'pre' && sttType !== 'post') {
+                console.warn(`[类型修正] 接收到的类型 '${sttType}' 不合法或为通用，正在根据当前 Tab 状态修正...`);
+                if (this.currentConsultationTab) {
+                    sttType = this.currentConsultationTab;
+                    console.log(`[类型修正] 已修正为: ${sttType} (来源于 UI Tab 选中状态)`);
+                } else {
+                    sttType = 'pre'; // 极端兜底
+                    console.log(`[类型修正] 无 Tab 状态，兜底修正为: ${sttType}`);
+                }
+            }
+
             if (resultText && this._lastProcessedHash !== hash) {
                 // [调试日志] 详细打印返回结果的类型判断
                 console.group('🔍 [录音后检查] 收到识别结果');
