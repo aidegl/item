@@ -29,7 +29,7 @@ window.testPayment = function () {
 
 // 语音转文字测试函数
 window.testSpeechToText = function (type = 'default') {
-    console.log(`--- 语音转文字测试 (${type}) (v1.0.18) ---`);
+    console.log(`--- 语音转文字测试 (${type}) (v1.0.19) ---`);
     
     // 检查是否已经登录
     const loginResult = checkLoginAndProceed();
