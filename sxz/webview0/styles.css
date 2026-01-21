@@ -33,11 +33,19 @@ body {
     overflow-x: hidden; /* 强制隐藏水平滚动条 */
     width: 100%;
     /* 禁止文字选中和系统默认菜单 */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+}
+
+/* 列表项和卡片内容强制禁止选中 */
+.list-item, .card, .card-title, .badge {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
 }
 
 .app-container {
@@ -412,7 +420,10 @@ input, textarea, select {
     max-width: 100%;
     width: 100%;
     box-sizing: border-box !important;
-    /* 允许输入框内容被选中 */
+}
+
+/* 仅允许输入框和文本域内容被选中 */
+input, textarea {
     -webkit-user-select: text;
     -moz-user-select: text;
     -ms-user-select: text;
