@@ -21,8 +21,8 @@
 
         appScriptLoading = true;
 
-        // 获取 URL 中的 v 参数（由小程序在冷启动时生成），并透传到 app.js
-        var v = new URLSearchParams(window.location.search).get('v') || Date.now();
+        // 动态资源版本化：获取 URL 中的版本号并透传到 app.js
+        var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
         console.log('[app-core] 加载 app.js，版本号:', v);
         var script = document.createElement('script');
         script.src = './js/app.js?v=' + v;
