@@ -31,15 +31,15 @@ Page({
 
       let rawBaseUrl = IS_DEBUG ? LOCAL_URL : PROD_URL;
 
-      // 添加防缓存参数（仅在小程序冷启动时生成一次）
-      // 每次 onLoad 都会生成新的时间戳，确保冷启动时强制刷新
+      // 动态资源版本化 (Cache Busting)
+      // 每次 onLoad（冷启动）时生成唯一的时间戳版本号，确保强制刷新
       const timestamp = new Date().getTime();
       const separator = rawBaseUrl.includes('?') ? '&' : '?';
       // 统一为所有页面添加版本参数，确保全链路刷新
       const baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}`;
 
-      console.log('[Webview] onLoad (冷启动), 生成版本号:', timestamp);
-      console.log('[Webview] onLoad, baseUrl:', baseUrlWithVersion);
+      console.log('[Webview 强制刷新] onLoad (冷启动), 生成版本号:', timestamp);
+      console.log('[Webview 强制刷新] baseUrl:', baseUrlWithVersion);
       
       // 先清空当前 URL，确保强制刷新
       this.setData({ url: '', baseUrl: baseUrlWithVersion }, () => {
@@ -235,7 +235,7 @@ Page({
     let baseUrl = this.data.baseUrl;
 
     if (!baseUrl) {
-      console.warn('[Webview] updateWebviewUrl: baseUrl 为空');
+      console.warn('[Webview 强制刷新] updateWebviewUrl: baseUrl 为空');
       return;
     }
 
@@ -248,10 +248,10 @@ Page({
     }
 
     // 如果是初始加载（onLoad），或者当前 URL 为空，直接设置新 URL
-    // 这样可以确保每次冷启动都使用新的版本号刷新
+    // 这样可以确保每次冷启动都使用新的版本号强制刷新
     const currentUrl = this.data.url;
     if (isInitial || !currentUrl) {
-      console.log('[Webview] 初始加载或 URL 为空，设置新 URL:', finalUrl);
+      console.log('[Webview 强制刷新] 初始加载或 URL 为空，设置新 URL (版本号已包含在 baseUrl 中)');
       this.setData({ url: finalUrl });
       return;
     }
@@ -273,11 +273,12 @@ Page({
 
     const nextOpenid = openid || '';
     // 只有 openid 变化时才刷新（避免不必要的刷新）
+    // 注意：版本号已经在 onLoad 时设置到 baseUrl 中，所以这里不需要重新生成
     if (currentOpenid !== nextOpenid) {
-      console.log('[Webview] 登录状态变化，刷新 WebView，openid:', nextOpenid || '(空)');
+      console.log('[Webview 强制刷新] 登录状态变化，刷新 WebView，openid:', nextOpenid || '(空)');
       this.setData({ url: finalUrl });
     } else {
-      console.log('[Webview] openid 未变化，不刷新 WebView');
+      console.log('[Webview 强制刷新] openid 未变化，不刷新 WebView');
     }
   },
 

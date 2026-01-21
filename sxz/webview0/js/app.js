@@ -5421,9 +5421,10 @@ function initApp() {
         }
     }
 
-    // 初始渲染，使用 setTimeout 确保在下一帧执行，避免 DOM 渲染竞争
+    // 异步渲染补救方案：强制初始渲染使用 setTimeout(0)
+    // 将其推入下一个事件循环，确保此时所有的 DOM 节点都已经渲染完毕且可用
     setTimeout(() => {
-        console.log('执行初始渲染');
+        console.log('[强制刷新] 执行强制初始渲染');
         renderCurrentPage();
         // 初始化开发模式
         if (typeof initDevMode === 'function') {
@@ -5432,7 +5433,20 @@ function initApp() {
     }, 0);
 }
 
-initApp();
+// 页面初始化状态校验 (Initialization Fallback)
+// 在单页应用中，脚本加载和 DOM 就绪的顺序可能因网络抖动而不确定
+// 通过状态检测确保初始化逻辑（尤其是首屏渲染）必定触发
+if (document.readyState === 'loading') {
+    // 如果 DOM 还在加载中，监听 DOMContentLoaded 事件
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('[强制刷新] DOM 加载完成，执行初始化');
+        initApp();
+    });
+} else {
+    // 如果 DOM 已经加载完成，立即执行初始化
+    console.log('[强制刷新] DOM 已就绪，立即执行初始化');
+    initApp();
+}
 
 // ==================== 开发模式管理 ====================
 let devModeActive = false; // 默认关闭，由父窗口控制
