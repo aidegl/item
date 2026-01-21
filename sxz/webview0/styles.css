@@ -32,6 +32,12 @@ body {
     -moz-text-size-adjust: 100% !important;
     overflow-x: hidden; /* 强制隐藏水平滚动条 */
     width: 100%;
+    /* 禁止文字选中和系统默认菜单 */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .app-container {
@@ -406,6 +412,12 @@ input, textarea, select {
     max-width: 100%;
     width: 100%;
     box-sizing: border-box !important;
+    /* 允许输入框内容被选中 */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
 }
 
 /* 确保表单组内的元素不会溢出 */
