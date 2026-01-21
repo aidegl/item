@@ -2321,7 +2321,7 @@ function renderConsultationFlow(container) {
                                 </div>
                                 <div style="width: 70%; text-align: center; flex-shrink: 0;">语音识别</div>
                             </button>
-                            <button class="ocr-btn" onclick="ocrRecognition()" style="display: flex; align-items: center; padding: 8px 16px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; flex: 1; font-size: 14px; font-weight: 400;">
+                            <button type="button" class="ocr-btn" onclick="ocrRecognition()" style="display: flex; align-items: center; padding: 8px 16px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; flex: 1; font-size: 14px; font-weight: 400;">
                                 <div style="width: 30%; display: flex; justify-content: center;">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
