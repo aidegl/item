@@ -8,16 +8,22 @@ Page({
         timerDisplay: '00:00',
         resultText: '',
         statusText: '未开始录音',
-        recordButtonText: '开始录音'
+        recordButtonText: '开始录音',
+        sttType: 'default' // 识别类型：pre (诊前), post (诊后), default
     },
 
-    onLoad() {
+    onLoad(options) {
         this._timer = null;
         this.isUserStop = false; 
         this.allSegments = []; // 物理存储：所有已完成段落的文字数组
         this.currentSegmentText = ''; // 物理存储：当前正在识别段落的文字
         this.isSegmentActive = false; // 标志：当前段落是否活跃
-        console.log('--- 录音页面加载 ---');
+        
+        if (options.type) {
+            this.setData({ sttType: options.type });
+        }
+        
+        console.log('--- 录音页面加载 ---, 类型:', this.data.sttType);
         this.initManager();
     },
 
@@ -216,9 +222,10 @@ Page({
                     const prevPage = pages[pages.length - 2];
                     
                     if (prevPage) {
-                        console.log('[步骤2] 找到上一页，设置 aiContent');
+                        console.log('[步骤2] 找到上一页，设置 aiContent 和 sttType');
                         prevPage.setData({
-                            aiContent: content
+                            aiContent: content,
+                            sttType: this.data.sttType
                         });
                         
                         wx.navigateBack({
