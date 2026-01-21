@@ -3680,31 +3680,44 @@ async function renderRecordsList(container) {
         return renderRecordsList(container);
     }
 
-    // 将陪诊记录转换为提醒事项
+    // 将陪诊记录转换为提醒事项（数据裂变：一条记录裂变为就诊提醒和复查提醒）
     const allReminders = [];
     const consultations = AppState.allUserConsultations || [];
+    
+    // 辅助函数：安全解析日期为时间戳
+    const getTimestamp = (dateStr) => {
+        if (!dateStr) return NaN;
+        // 尝试处理 "YYYY-MM-DD" 在某些环境下可能的问题（虽然现代浏览器通常支持）
+        // 如果是 iOS Webview，建议将 - 替换为 /
+        const safeDateStr = typeof dateStr === 'string' ? dateStr.replace(/-/g, '/') : dateStr;
+        const ts = new Date(safeDateStr).getTime();
+        return ts;
+    };
+
     consultations.forEach(c => {
-        // 1. 就诊日期提醒
+        // 1. 就诊日期提醒（按就诊日期）
         if (c.date) {
             allReminders.push({
                 id: c.id + '_apt',
                 consultationId: c.id,
                 title: `陪诊: ${c.patientName}`,
                 content: `${c.hospital}${c.department ? ' - ' + c.department : ''}`,
-                date: c.date,
+                date: c.date, // 显示用的日期字符串
+                sortDate: getTimestamp(c.date), // 排序用的统一时间戳
                 type: 'appointment',
                 status: c.status,
                 zhuangtai: c.zhuangtai
             });
         }
-        // 2. 后续复查提醒
+        // 2. 后续复查提醒（按复查日期）
         if (c.followupDate) {
             allReminders.push({
                 id: c.id + '_fup',
                 consultationId: c.id,
                 title: `复查提醒: ${c.patientName}`,
                 content: `建议复查日期`,
-                date: c.followupDate,
+                date: c.followupDate, // 显示用的日期字符串
+                sortDate: getTimestamp(c.followupDate), // 排序用的统一时间戳
                 type: 'followup',
                 status: c.status,
                 zhuangtai: c.zhuangtai
@@ -3712,10 +3725,10 @@ async function renderRecordsList(container) {
         }
     });
 
-    // 排序：按日期升序（确保陪诊和复查提醒混合排序）
+    // 排序：使用统一的 sortDate 字段进行正序排列
     allReminders.sort((a, b) => {
-        const timeA = new Date(a.date).getTime();
-        const timeB = new Date(b.date).getTime();
+        const timeA = a.sortDate;
+        const timeB = b.sortDate;
         
         // 处理无效日期：放在最后
         if (isNaN(timeA)) return 1;
