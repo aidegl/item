@@ -3712,11 +3712,16 @@ async function renderRecordsList(container) {
         }
     });
 
-    // 排序：按日期升序
+    // 排序：按日期升序（确保陪诊和复查提醒混合排序）
     allReminders.sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateA - dateB;
+        const timeA = new Date(a.date).getTime();
+        const timeB = new Date(b.date).getTime();
+        
+        // 处理无效日期：放在最后
+        if (isNaN(timeA)) return 1;
+        if (isNaN(timeB)) return -1;
+        
+        return timeA - timeB;
     });
 
     console.log('转换后提醒事项总数:', allReminders.length);
