@@ -774,6 +774,46 @@ function handleImageUpload(input) {
         .catch(error => {
             console.error('Upload failed:', error);
 
+            // 开发环境 CORS 错误降级处理 (更加宽容的判断)
+            const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            const isNetworkError = error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.name === 'TypeError';
+
+            if (isLocal && isNetworkError) {
+                console.warn('检测到本地开发环境 CORS/网络 错误，使用模拟上传数据');
+
+                const loadingMsgIndex = AppState.chatMessages.findIndex(msg => msg.id === loadingId);
+                if (loadingMsgIndex !== -1) {
+                    // 移除 loading 消息
+                    AppState.chatMessages.splice(loadingMsgIndex, 1);
+
+                    const mockUrl = "https://via.placeholder.com/300x400?text=Mock+Image";
+                    
+                    // 模拟用户发送图片
+                    AppState.chatMessages.push({
+                        role: 'user',
+                        type: 'image',
+                        content: mockUrl,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    // 模拟系统提示
+                    AppState.chatMessages.push({
+                        role: 'system',
+                        content: `(开发环境模拟) 文件上传成功！\n临时链接: ${mockUrl}`,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    // 模拟助手回复
+                    AppState.chatMessages.push({
+                        role: 'assistant',
+                        content: '已收到您的文件链接 (模拟)。目前仅支持链接接收，后续将升级深度分析功能。',
+                        timestamp: new Date().toISOString()
+                    });
+                }
+                renderCurrentPage();
+                return;
+            }
+
             // 更新 loading 消息为错误消息
             const loadingMsgIndex = AppState.chatMessages.findIndex(msg => msg.id === loadingId);
             if (loadingMsgIndex !== -1) {
@@ -2007,6 +2047,34 @@ function ocrRecognition() {
             })
             .catch(error => {
                 console.error('OCR failed:', error);
+                
+                // 开发环境 CORS 错误降级处理 (更加宽容的判断)
+                const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                const isNetworkError = error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.name === 'TypeError';
+
+                if (isLocal && isNetworkError) {
+                    console.warn('检测到本地开发环境 CORS/网络 错误，使用模拟数据进行测试');
+                    showToast('开发环境: 使用模拟OCR数据', 2000);
+                    
+                    setTimeout(() => {
+                        const mockData = {
+                            hospital: "测试医院",
+                            department: "内科",
+                            doctor: "测试医生",
+                            diagnosis: "模拟诊断结果：上呼吸道感染",
+                            checkResult: "模拟检查结果：各项指标正常",
+                            advice: "模拟医嘱：多喝水，注意休息"
+                        };
+                        if (typeof showVerificationPopup === 'function') {
+                            showVerificationPopup(mockData, 'OCR识别结果(模拟)', 'post');
+                        } else {
+                            console.error('showVerificationPopup not found');
+                            showToast('模拟数据准备就绪，但弹窗组件未找到');
+                        }
+                    }, 1000);
+                    return;
+                }
+                
                 showToast('识别失败: ' + error.message);
             });
     });
