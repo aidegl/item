@@ -1,4 +1,5 @@
-<web-view id="webview" src="{{url}}" bindmessage="onMessage"></web-view>
+<!-- web-view 组件：使用 key 属性强制刷新 -->
+<web-view id="webview" src="{{url}}" key="{{webviewKey}}" bindmessage="onMessage"></web-view>
 
 <!-- 原生录音悬浮窗 -->
 <view class="recording-overlay" wx:if="{{isRecording}}">
