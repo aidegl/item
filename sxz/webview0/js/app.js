@@ -3043,16 +3043,16 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
                 'department': ['departmentName', 'department_name', 'visit_department', '科室'],
                 'doctor': ['doctorName', 'doctor_name', 'attending_doctor', '医生'],
                 'date': ['appointmentTime', 'visit_date', 'visitDate', '日期'],
-                'coreAppeal': ['serviceTitle', 'appeal', 'main_complaint', '诉求', 'complaint'],
+                'coreAppeal': ['serviceTitle', 'appeal', 'main_complaint', '诉求', 'complaint', '主诉', '现病史'],
                 'onsetDate': ['actualStartDate', 'onset_time', 'start_date', 'onsetTime'],
                 'duration': ['cxfzsj_pl', 'frequency', 'duration_time', 'duration'],
                 'associatedSymptoms': ['bszz', 'symptoms', 'other_symptoms', 'accompanying_symptoms'],
-                'diagnosis': ['zhjy', 'doctor_diagnosis', 'result', 'diagnosis'],
-                'examSummary': ['zjbz', 'exam_results', 'lab_results', 'summary'],
-                'advice': ['yyzysx', 'doctor_advice', 'medication', 'advice'],
-                'lifestyleAdvice': ['lifestyle', 'notes', 'lifestyle_advice'],
+                'diagnosis': ['zhjy', 'doctor_diagnosis', 'result', 'diagnosis', '初步诊断', '诊断', '诊断意见'],
+                'examSummary': ['zjbz', 'exam_results', 'lab_results', 'summary', '体格检查', '检验检查', '辅助检查', '检查', '查体'],
+                'advice': ['yyzysx', 'doctor_advice', 'medication', 'advice', 'treatmentMeasures', '治疗措施', '处理意见', '处理', '建议'],
+                'lifestyleAdvice': ['lifestyle', 'notes', 'lifestyle_advice', '生活建议', '注意事项'],
                 'followupDate': ['hxfcap', 'recheck_date', 'next_visit', 'followup'],
-                'nurseReminder': ['pzszhtx', 'reminder', 'tips', 'nurse_reminder']
+                'nurseReminder': ['pzszhtx', 'reminder', 'tips', 'nurse_reminder', '提醒']
             };
             
             const possibleKeys = variants[field.key] || [];
