@@ -3905,7 +3905,7 @@ function renderSettings(container) {
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
-                    <p>版本：1.0.18 (全链路刷新已启用)</p>
+                    <p>版本：1.0.19 (全链路刷新已启用)</p>
                     <p style="margin-top: 12px; font-size: 12px;">Hash ID: ${getHashId()}</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
