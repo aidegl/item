@@ -77,15 +77,23 @@ Page({
     console.log('--- [步骤5] Webview 容器 onShow ---');
     console.log('当前 Webview URL:', this.data.url);
     console.log('当前 aiContent 数据状态:', this.data.aiContent ? '有数据(长度' + this.data.aiContent.length + ')' : '无数据');
+    console.log('当前 sttType 数据状态:', this.data.sttType || '无');
 
     // 检查是否有来自原生页面的识别结果
     if (this.data.aiContent) {
       const content = this.data.aiContent;
-      console.log('[步骤6] 准备将数据同步到 Webview Hash');
-      // 清除 aiContent，防止重复处理
-      this.setData({ aiContent: '' }, () => {
+      const sttType = this.data.sttType || 'default';
+      console.log('[步骤6] 准备将数据同步到 Webview Hash, 类型:', sttType);
+      
+      // 清除 aiContent 和 sttType，防止重复处理
+      this.setData({ aiContent: '', sttType: '' }, () => {
         console.log('[步骤7] aiContent 已清空，开始执行 sendDataToWebviewByHash');
-        this.sendDataToWebviewByHash('stt_result', content);
+        
+        // 同时发送结果和类型
+        this.sendDataToWebviewByHashBatch([
+          { key: 'stt_result', value: content },
+          { key: 'stt_type', value: sttType }
+        ]);
       });
       return;
     }
@@ -97,6 +105,36 @@ Page({
 
     // 检查录音权限
     this.checkRecordPermission();
+  },
+
+  // 批量通过 Hash 向 WebView 发送数据
+  sendDataToWebviewByHashBatch(items) {
+    const currentUrl = this.data.url;
+    if (!currentUrl) {
+      console.error('[步骤8] 失败：currentUrl 为空');
+      return;
+    }
+
+    let baseUrl = currentUrl.split('#')[0];
+    let hash = currentUrl.split('#')[1] || '';
+    const forceUpdateToken = `_t=${Date.now()}`;
+
+    let hashParams = hash.split('&').filter(p => {
+      if (!p || p.startsWith('_t=')) return false;
+      return !items.some(item => p.startsWith(`${item.key}=`));
+    });
+
+    items.forEach(item => {
+      hashParams.push(`${item.key}=${encodeURIComponent(item.value)}`);
+    });
+    hashParams.push(forceUpdateToken);
+
+    const newUrl = `${baseUrl}#${hashParams.join('&')}`;
+
+    console.log('--- [原生小程序核心日志] 准备向 WebView 批量赋值 Hash ---');
+    this.setData({ url: newUrl }, () => {
+      console.log('[步骤9] Webview URL setData 完成');
+    });
   },
 
   /**

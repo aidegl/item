@@ -28,8 +28,8 @@ window.testPayment = function () {
 };
 
 // 语音转文字测试函数
-window.testSpeechToText = function () {
-    console.log('--- 语音转文字测试 (v1.0.16) ---');
+window.testSpeechToText = function (type = 'default') {
+    console.log(`--- 语音转文字测试 (${type}) (v1.0.17) ---`);
     
     // 检查是否已经登录
     const loginResult = checkLoginAndProceed();
@@ -45,7 +45,7 @@ window.testSpeechToText = function () {
         console.log('检测微信 SDK:', !!wx, !!(wx && wx.miniProgram));
         
         if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
-            const targetUrl = '/pages/recorder/index?from=webview&timestamp=' + Date.now();
+            const targetUrl = `/pages/recorder/index?from=webview&type=${type}&timestamp=` + Date.now();
             console.log('准备跳转小程序原生页面:', targetUrl);
             
             wx.miniProgram.navigateTo({
@@ -238,9 +238,13 @@ const AppState = {
         // 处理 STT 结果
         if (hash.includes('stt_result=')) {
             const match = hash.match(/stt_result=([^&]*)/);
+            const typeMatch = hash.match(/stt_type=([^&]*)/);
+            
             if (match && match[1]) {
                 const resultText = decodeURIComponent(match[1]);
-                console.log('✅ [WebView 核心日志] 收到来自小程序的识别结果:', resultText);
+                const sttType = typeMatch ? decodeURIComponent(typeMatch[1]) : 'default';
+                
+                console.log('✅ [WebView 核心日志] 收到来自小程序的识别结果:', resultText, '类型:', sttType);
                 console.log('[步骤13] WebView 内部：成功解析识别文本, 长度:', resultText.length);
 
                 // 关闭录音 UI 并显示结果
@@ -254,7 +258,7 @@ const AppState = {
                         console.log('[步骤15] WebView 内部：Coze STT 处理返回成功');
                         hideLoading();
                         if (response.success && response.data && response.data.data) {
-                            showVerificationPopup(response.data.data, resultText);
+                            showVerificationPopup(response.data.data, resultText, sttType);
                         } else {
                             console.error('Coze 提取失败:', response);
                             showToast('AI 提取失败，请手动填写');
@@ -2012,7 +2016,7 @@ function renderConsultationFlow(container) {
                 <div class="card mb-2">
                     <h3 class="card-title mb-2">语音记录</h3>
                     <div class="upload-voice-section" style="padding: 16px;">
-                        <button type="button" class="upload-btn" onclick="testSpeechToText()" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-size: 14px; font-weight: 400; width: 100%;">
+                        <button type="button" class="upload-btn" onclick="testSpeechToText('pre')" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-size: 14px; font-weight: 400; width: 100%;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
                                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
@@ -2189,7 +2193,7 @@ function renderConsultationFlow(container) {
                     <div class="card mb-2">
                         <h3 class="card-title mb-2">辅助功能</h3>
                         <div class="upload-buttons-section" style="padding: 8px 0; display: flex; gap: 8px;">
-                            <button type="button" class="upload-btn" onclick="testSpeechToText()" style="display: flex; align-items: center; padding: 8px 16px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; flex: 1; font-size: 14px; font-weight: 400; gap: 0;">
+                            <button type="button" class="upload-btn" onclick="testSpeechToText('post')" style="display: flex; align-items: center; padding: 8px 16px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; flex: 1; font-size: 14px; font-weight: 400; gap: 0;">
                                 <div style="width: 30%; display: flex; justify-content: center;">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
                                         <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
@@ -2721,9 +2725,9 @@ function handleConfirm() {
 }
 
 // ==================== AI 提取结果核对弹窗 ====================
-function showVerificationPopup(aiData, originalText) {
+function showVerificationPopup(aiData, originalText, sttType = 'default') {
     console.log('--- [AI 弹窗核对] 接收到的原始数据 ---');
-    console.log('aiData:', aiData);
+    console.log('aiData:', aiData, 'sttType:', sttType);
     
     // 如果 aiData 是字符串，尝试解析（防御性处理）
     let data = aiData;
@@ -2776,6 +2780,33 @@ function showVerificationPopup(aiData, originalText) {
     }
     
     console.log('最终用于填充的数据对象:', data);
+
+    // 根据 sttType 定义字段列表
+    let fields = [];
+    const allFields = [
+        { label: '就诊医院', key: 'hospital', type: 'text', category: 'pre' },
+        { label: '就诊科室', key: 'department', type: 'text', category: 'pre' },
+        { label: '接诊医生', key: 'doctor', type: 'text', category: 'pre' },
+        { label: '就诊日期', key: 'date', type: 'date', category: 'pre' },
+        { label: '就诊核心诉求', key: 'coreAppeal', type: 'textarea', category: 'pre' },
+        { label: '起病时间', key: 'onsetDate', type: 'date', category: 'pre' },
+        { label: '持续时间/频率', key: 'duration', type: 'textarea', category: 'pre' },
+        { label: '伴随症状', key: 'associatedSymptoms', type: 'textarea', category: 'pre' },
+        { label: '医生诊断', key: 'diagnosis', type: 'textarea', category: 'post' },
+        { label: '检查结果摘要', key: 'examSummary', type: 'textarea', category: 'post' },
+        { label: '医嘱检查项目', key: 'advice', type: 'textarea', category: 'post' },
+        { label: '生活方式调整', key: 'lifestyleAdvice', type: 'textarea', category: 'post' },
+        { label: '后续复查安排', key: 'followupDate', type: 'date', category: 'post' },
+        { label: '陪诊师诊后提醒', key: 'nurseReminder', type: 'textarea', category: 'post' }
+    ];
+
+    if (sttType === 'pre') {
+        fields = allFields.filter(f => f.category === 'pre');
+    } else if (sttType === 'post') {
+        fields = allFields.filter(f => f.category === 'post');
+    } else {
+        fields = allFields;
+    }
 
     // 创建弹窗容器
     const modal = document.createElement('div');
@@ -2832,24 +2863,6 @@ function showVerificationPopup(aiData, originalText) {
     // 表单区域
     const form = document.createElement('div');
     form.style.cssText = 'display: flex; flex-direction: column; gap: 16px;';
-
-    // 字段定义 (根据 pzfwjl 表单字段名)
-    const fields = [
-        { label: '就诊医院', key: 'hospital', type: 'text' },
-        { label: '就诊科室', key: 'department', type: 'text' },
-        { label: '接诊医生', key: 'doctor', type: 'text' },
-        { label: '就诊日期', key: 'date', type: 'date' },
-        { label: '就诊核心诉求', key: 'coreAppeal', type: 'textarea' },
-        { label: '起病时间', key: 'onsetDate', type: 'date' },
-        { label: '持续时间/频率', key: 'duration', type: 'textarea' },
-        { label: '伴随症状', key: 'associatedSymptoms', type: 'textarea' },
-        { label: '医生诊断', key: 'diagnosis', type: 'textarea' },
-        { label: '检查结果摘要', key: 'examSummary', type: 'textarea' },
-        { label: '医嘱检查项目', key: 'advice', type: 'textarea' },
-        { label: '生活方式调整', key: 'lifestyleAdvice', type: 'textarea' },
-        { label: '后续复查安排', key: 'followupDate', type: 'date' },
-        { label: '陪诊师诊后提醒', key: 'nurseReminder', type: 'textarea' }
-    ];
 
     const inputElements = {};
 
@@ -2941,38 +2954,40 @@ function showVerificationPopup(aiData, originalText) {
         form.appendChild(group);
     });
 
-    // 特殊处理患者疑问
-    let questionsVal = data.patientQuestions || data.questions || data['患者核心疑问'] || data['疑问'] || [];
-    
-    // [增加匹配] 匹配 wentiyi, wentier, wentisan 这种格式
-    if (Array.isArray(questionsVal) && questionsVal.length === 0) {
-        if (data.wentiyi) questionsVal.push(data.wentiyi);
-        if (data.wentier) questionsVal.push(data.wentier);
-        if (data.wentisan) questionsVal.push(data.wentisan);
-    }
+    // 特殊处理患者疑问 (仅在诊前或默认情况下显示)
+    if (sttType === 'pre' || sttType === 'default') {
+        let questionsVal = data.patientQuestions || data.questions || data['患者核心疑问'] || data['疑问'] || [];
+        
+        // [增加匹配] 匹配 wentiyi, wentier, wentisan 这种格式
+        if (Array.isArray(questionsVal) && questionsVal.length === 0) {
+            if (data.wentiyi) questionsVal.push(data.wentiyi);
+            if (data.wentier) questionsVal.push(data.wentier);
+            if (data.wentisan) questionsVal.push(data.wentisan);
+        }
 
-    // 如果是字符串，转为数组
-    if (typeof questionsVal === 'string' && questionsVal.trim()) {
-        questionsVal = questionsVal.split(/[\n,，]/).filter(q => q.trim());
-    }
+        // 如果是字符串，转为数组
+        if (typeof questionsVal === 'string' && questionsVal.trim()) {
+            questionsVal = questionsVal.split(/[\n,，]/).filter(q => q.trim());
+        }
 
-    if (Array.isArray(questionsVal) && questionsVal.length > 0) {
-        const group = document.createElement('div');
-        group.style.cssText = 'display: flex; flex-direction: column; gap: 6px;';
-        const label = document.createElement('label');
-        label.textContent = '患者核心疑问';
-        label.style.cssText = 'font-size: 13px; font-weight: 500; color: var(--text-secondary);';
-        group.appendChild(label);
+        if (Array.isArray(questionsVal) && questionsVal.length > 0) {
+            const group = document.createElement('div');
+            group.style.cssText = 'display: flex; flex-direction: column; gap: 6px;';
+            const label = document.createElement('label');
+            label.textContent = '患者核心疑问';
+            label.style.cssText = 'font-size: 13px; font-weight: 500; color: var(--text-secondary);';
+            group.appendChild(label);
 
-        const questionsTextarea = document.createElement('textarea');
-        questionsTextarea.rows = 3;
-        questionsTextarea.placeholder = '每行一个问题';
-        questionsTextarea.style.cssText = 'padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);';
-        questionsTextarea.value = questionsVal.join('\n');
-        inputElements['patientQuestions'] = questionsTextarea;
+            const questionsTextarea = document.createElement('textarea');
+            questionsTextarea.rows = 3;
+            questionsTextarea.placeholder = '每行一个问题';
+            questionsTextarea.style.cssText = 'padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);';
+            questionsTextarea.value = questionsVal.join('\n');
+            inputElements['patientQuestions'] = questionsTextarea;
 
-        group.appendChild(questionsTextarea);
-        form.appendChild(group);
+            group.appendChild(questionsTextarea);
+            form.appendChild(group);
+        }
     }
 
     scrollBody.appendChild(form);
