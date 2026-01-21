@@ -5,7 +5,8 @@ Page({
   data: {
     baseUrl: '', // 存储带版本号的基础URL
     url: '',
-    isRecording: false
+    isRecording: false,
+    webviewKey: 0 // 用于强制刷新 web-view 组件的 key
   },
 
   onLoad(options) {
@@ -34,21 +35,27 @@ Page({
       // 动态资源版本化 (Cache Busting)
       // 每次 onLoad（冷启动）时生成唯一的时间戳版本号，确保强制刷新
       const timestamp = new Date().getTime();
+      const random = Math.random().toString(36).substring(2, 9); // 添加随机字符串
       const separator = rawBaseUrl.includes('?') ? '&' : '?';
-      // 统一为所有页面添加版本参数，确保全链路刷新
-      const baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}`;
+      // 统一为所有页面添加版本参数和随机参数，确保全链路刷新
+      const baseUrlWithVersion = `${rawBaseUrl}${separator}v=${timestamp}&_r=${random}`;
 
       console.log('[Webview 强制刷新] onLoad (冷启动), 生成版本号:', timestamp);
+      console.log('[Webview 强制刷新] 随机参数:', random);
       console.log('[Webview 强制刷新] baseUrl:', baseUrlWithVersion);
       
-      // 先清空当前 URL，确保强制刷新
+      // 强制刷新策略：先清空 URL，等待一帧后再设置新 URL
+      // 这样可以确保 web-view 组件真正重新加载
       this.setData({ url: '', baseUrl: baseUrlWithVersion }, () => {
-        // 检查是否有 STT 指令
-        if (options.action === 'stt') {
-          this.handleSTTAction(options.command);
-        }
-        // 初始加载 URL（使用新生成的版本号）
-        this.updateWebviewUrl(true);
+        // 使用 setTimeout 确保 web-view 组件完全清空后再设置新 URL
+        setTimeout(() => {
+          // 检查是否有 STT 指令
+          if (options.action === 'stt') {
+            this.handleSTTAction(options.command);
+          }
+          // 初始加载 URL（使用新生成的版本号）
+          this.updateWebviewUrl(true);
+        }, 50); // 50ms 延迟确保 web-view 组件响应
       });
     };
 
@@ -252,7 +259,19 @@ Page({
     const currentUrl = this.data.url;
     if (isInitial || !currentUrl) {
       console.log('[Webview 强制刷新] 初始加载或 URL 为空，设置新 URL (版本号已包含在 baseUrl 中)');
-      this.setData({ url: finalUrl });
+      console.log('[Webview 强制刷新] 最终 URL:', finalUrl);
+      
+      // 强制刷新：即使 URL 看起来相同，也要重新设置
+      // 通过先设置为空再设置新值，并更新 key，确保 web-view 组件真正刷新
+      const newKey = this.data.webviewKey + 1;
+      this.setData({ url: '', webviewKey: newKey }, () => {
+        setTimeout(() => {
+          this.setData({ url: finalUrl }, () => {
+            console.log('[Webview 强制刷新] URL 已更新，webviewKey:', newKey);
+            console.log('[Webview 强制刷新] web-view 应该已刷新');
+          });
+        }, 100); // 100ms 延迟确保 web-view 组件完全清空
+      });
       return;
     }
 
