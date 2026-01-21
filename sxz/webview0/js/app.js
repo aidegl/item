@@ -269,6 +269,7 @@ const AppState = {
 
                 console.log(`✅ [WebView 核心日志] 收到识别结果。类型: ${sttType}, 长度: ${resultText.length}`);
                 console.log('[步骤13] WebView 内部：成功解析识别文本');
+                console.log(`🏥 [关键节点状态] 识别文本解析成功，当前业务类型为：${sttType === 'pre' ? '诊前 (Pre-Consultation)' : (sttType === 'post' ? '诊后 (Post-Consultation)' : '通用 (General)')}`);
 
                 // 关闭录音 UI 并显示结果
                 stopRecordingUI();
