@@ -29,7 +29,7 @@ window.testPayment = function () {
 
 // 语音转文字测试函数
 window.testSpeechToText = function (type = 'default') {
-    console.log(`--- 语音转文字测试 (${type}) (v1.0.17) ---`);
+    console.log(`--- 语音转文字测试 (${type}) (v1.0.18) ---`);
     
     // 检查是否已经登录
     const loginResult = checkLoginAndProceed();
@@ -237,20 +237,27 @@ const AppState = {
 
         // 处理 STT 结果
         if (hash.includes('stt_result=')) {
-            // 使用更健壮的正则解析，支持 & 分隔符
-            const getParam = (name) => {
-                const reg = new RegExp('(^|&|#)' + name + '=([^&]*)(&|$)');
-                const r = hash.match(reg);
-                if (r != null) return decodeURIComponent(r[2]);
-                return null;
-            };
-
-            const resultText = getParam('stt_result');
-            const sttType = getParam('stt_type') || 'default';
+            // 使用更健壮的解析方式
+            const hashClean = hash.startsWith('#') ? hash.substring(1) : hash;
+            const params = new URLSearchParams(hashClean);
             
+            const resultText = params.get('stt_result');
+            let sttType = params.get('stt_type');
+            
+            // 尝试从原始 hash 字符串中正则表达式提取作为兜底
+            if (!sttType) {
+                const match = hash.match(/stt_type=([^&]*)/);
+                if (match) sttType = decodeURIComponent(match[1]);
+            }
+            
+            sttType = sttType || 'default';
+            
+            // 额外清理 sttType，防止包含多余空格或引号
+            sttType = sttType.trim().replace(/['"]/g, '');
+
             if (resultText && this._lastProcessedHash !== hash) {
-                console.log('✅ [WebView 核心日志] 收到来自小程序的识别结果:', resultText, '类型:', sttType);
-                console.log('[步骤13] WebView 内部：成功解析识别文本, 长度:', resultText.length);
+                console.log(`✅ [WebView 核心日志] 收到识别结果。类型: ${sttType}, 长度: ${resultText.length}`);
+                console.log('[步骤13] WebView 内部：成功解析识别文本');
 
                 // 关闭录音 UI 并显示结果
                 stopRecordingUI();
@@ -263,6 +270,7 @@ const AppState = {
                         console.log('[步骤15] WebView 内部：Coze STT 处理返回成功');
                         hideLoading();
                         if (response.success && response.data && response.data.data) {
+                            // 传入 sttType 供弹窗过滤字段
                             showVerificationPopup(response.data.data, resultText, sttType);
                         } else {
                             console.error('Coze 提取失败:', response);
@@ -2731,8 +2739,8 @@ function handleConfirm() {
 
 // ==================== AI 提取结果核对弹窗 ====================
 function showVerificationPopup(aiData, originalText, sttType = 'default') {
-    console.log('--- [AI 弹窗核对] 接收到的原始数据 ---');
-    console.log('aiData:', aiData, 'sttType:', sttType);
+    console.log(`--- [AI 弹窗核对] (类型: ${sttType}) ---`);
+    console.log('aiData:', aiData);
     
     // 如果 aiData 是字符串，尝试解析（防御性处理）
     let data = aiData;
@@ -2805,12 +2813,17 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
         { label: '陪诊师诊后提醒', key: 'nurseReminder', type: 'textarea', category: 'post' }
     ];
 
+    console.log(`[弹窗初始化] 识别类型(sttType): ${sttType}`);
+
     if (sttType === 'pre') {
         fields = allFields.filter(f => f.category === 'pre');
+        console.log(`[字段过滤] 识别为诊前，筛选出 ${fields.length} 个字段:`, fields.map(f => f.label));
     } else if (sttType === 'post') {
         fields = allFields.filter(f => f.category === 'post');
+        console.log(`[字段过滤] 识别为诊后，筛选出 ${fields.length} 个字段:`, fields.map(f => f.label));
     } else {
         fields = allFields;
+        console.log(`[字段过滤] 识别为通用/默认，显示全部 ${fields.length} 个字段`);
     }
 
     // 创建弹窗容器
