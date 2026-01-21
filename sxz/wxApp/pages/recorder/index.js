@@ -211,13 +211,14 @@ Page({
         }
 
         // [用户要求] 点击智能识别时给个提示，显示识别结果
+        const typeLabel = this.data.sttType === 'pre' ? '诊前' : (this.data.sttType === 'post' ? '诊后' : '通用');
         wx.showModal({
-            title: '识别结果',
+            title: `识别结果确认 [${typeLabel}]`,
             content: content,
             confirmText: '确认传回',
             success: (res) => {
                 if (res.confirm) {
-                    console.log('用户确认传回数据');
+                    console.log('用户确认传回数据, 类型:', this.data.sttType);
                     const pages = getCurrentPages();
                     const prevPage = pages[pages.length - 2];
                     
