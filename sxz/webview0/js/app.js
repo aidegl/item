@@ -4645,18 +4645,99 @@ function mockLogin() {
         });
 }
 
+// 辅助函数：收集表单数据
+function collectFormData(form, fields) {
+    const data = {};
+    const formData = new FormData(form);
+    
+    fields.forEach(field => {
+        if (field.type === 'array') {
+            // 处理数组类型（如 dynamic inputs）
+            const values = [];
+            const elements = form.querySelectorAll(`[name="${field.name}"]`);
+            elements.forEach(el => values.push(el.value));
+            data[field.key || field.name] = values;
+        } else if (field.type === 'complex_array') {
+             // 处理复杂对象数组（如用药记录）
+             data[field.key] = field.handler(form);
+        } else {
+            // 处理普通字段
+            data[field.key || field.name] = formData.get(field.name) || '';
+        }
+    });
+    return data;
+}
+
 // 生成诊前报告
 function generatePreReport(consultationId) {
     console.log('生成诊前报告:', consultationId);
     showToast('正在生成诊前报告...');
-    // TODO: 实现生成诊前报告的逻辑
+    
+    const form = document.getElementById('consultationForm');
+    if (!form) {
+        console.error('未找到表单元素');
+        return;
+    }
+
+    const preFields = [
+        { name: 'shouzhen', key: '是否初诊' },
+        { name: 'hasFirstRecord', key: '是否有首次记录' },
+        { name: 'fuid', key: '首次记录ID' },
+        { name: 'date', key: '就诊日期' },
+        { name: 'hospital', key: '医院' },
+        { name: 'department', key: '科室' },
+        { name: 'doctor', key: '医生' },
+        { name: 'coreAppeal', key: '就诊核心诉求' },
+        { name: 'onsetDate', key: '起病时间' },
+        { name: 'duration', key: '持续时间/发作频率' },
+        { name: 'associatedSymptoms', key: '伴随症状' },
+        { name: 'patientQuestions[]', key: '患者核心疑问', type: 'array' }
+    ];
+
+    const reportData = collectFormData(form, preFields);
+    console.log('诊前报告数据:', JSON.stringify(reportData, null, 2));
 }
 
 // 生成诊后报告
 function generatePostReport(consultationId) {
     console.log('生成诊后报告:', consultationId);
     showToast('正在生成诊后报告...');
-    // TODO: 实现生成诊后报告的逻辑
+
+    const form = document.getElementById('consultationForm');
+    if (!form) {
+        console.error('未找到表单元素');
+        return;
+    }
+
+    const postFields = [
+        { name: 'diagnosis', key: '医生诊断' },
+        { name: 'examSummary', key: '检查结果摘要' },
+        { name: 'advice', key: '医嘱检查项目' },
+        { 
+            key: '用药指导', 
+            type: 'complex_array',
+            handler: (form) => {
+                const meds = [];
+                const rows = form.querySelectorAll('.medication-row');
+                rows.forEach(row => {
+                    meds.push({
+                        name: row.querySelector('input[name="med_name[]"]')?.value || '',
+                        dosage: row.querySelector('input[name="med_dosage[]"]')?.value || '',
+                        frequency: row.querySelector('input[name="med_frequency[]"]')?.value || '',
+                        duration: row.querySelector('input[name="med_duration[]"]')?.value || ''
+                    });
+                });
+                return meds;
+            }
+        },
+        { name: 'lifestyleAdvice', key: '生活方式调整' },
+        { name: 'followupDate', key: '复诊日期' },
+        { name: 'doctorAnswers[]', key: '医生解答', type: 'array' },
+        { name: 'nurseReminder', key: '陪诊师诊后提醒' }
+    ];
+
+    const reportData = collectFormData(form, postFields);
+    console.log('诊后报告数据:', JSON.stringify(reportData, null, 2));
 }
 
 // ==================== 会员与订单功能 ====================
