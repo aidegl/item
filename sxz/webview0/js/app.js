@@ -29,6 +29,12 @@ window.testPayment = function () {
 
 // 语音转文字测试函数
 window.testSpeechToText = function (type = 'default') {
+    // 如果传入的是 default，尝试从当前 Tab 状态推断
+    if (type === 'default' && AppState.currentConsultationTab) {
+        type = AppState.currentConsultationTab;
+        console.log(`[智能推断] 未指定类型，根据当前 Tab 推断为: ${type}`);
+    }
+
     console.log(`--- 语音转文字测试 (${type}) (v1.0.19) ---`);
     
     // 检查是否已经登录
@@ -187,6 +193,7 @@ function callMiniProgramSTT(action) {
 const AppState = {
     currentTab: 'ai',
     currentView: 'main',
+    currentConsultationTab: 'pre', // 新增：记录当前就诊流程 Tab (pre/post)
     currentPatientId: null,
     currentConsultationId: null,
     onboardingStep: 1,
@@ -1877,6 +1884,10 @@ function autoResizeTextarea(textarea) {
 
 // 标签页切换函数
 function switchConsultationTab(tabName) {
+    // 更新全局状态
+    AppState.currentConsultationTab = tabName;
+    console.log(`[Tab切换] 切换到: ${tabName === 'pre' ? '诊前' : '诊后'}`);
+
     // 每次切换标签时，自动滚动到顶部，确保用户看到的是新页面的开始部分
     window.scrollTo(0, 0);
 
