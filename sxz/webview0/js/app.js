@@ -40,11 +40,14 @@ window.testSpeechToText = function (type = 'default') {
     }
 
     // 优先尝试在小程序环境中直接跳转到原生录音页面
-    try {
-        const wx = window.wx;
-        console.log('检测微信 SDK:', !!wx, !!(wx && wx.miniProgram));
-        
-        if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+        try {
+            const wx = window.wx;
+            console.log('检测微信 SDK:', !!wx, !!(wx && wx.miniProgram));
+            
+            // [调试日志] 记录录音前的类型判断
+            console.log(`🔍 [录音前检查] 准备启动录音，当前判断类型为: 【${type === 'pre' ? '诊前' : (type === 'post' ? '诊后' : '通用/默认')}】 (代码: ${type})`);
+
+            if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
             const targetUrl = `/pages/recorder/index?from=webview&type=${type}&timestamp=` + Date.now();
             console.log('准备跳转小程序原生页面:', targetUrl);
             
@@ -256,6 +259,14 @@ const AppState = {
             sttType = sttType.trim().replace(/['"]/g, '');
 
             if (resultText && this._lastProcessedHash !== hash) {
+                // [调试日志] 详细打印返回结果的类型判断
+                console.group('🔍 [录音后检查] 收到识别结果');
+                console.log(`原始 Hash: ${hash}`);
+                console.log(`解析到的文本长度: ${resultText.length}`);
+                console.log(`解析到的类型 (stt_type): ${sttType}`);
+                console.log(`最终判断类型: 【${sttType === 'pre' ? '诊前' : (sttType === 'post' ? '诊后' : '通用/默认')}】`);
+                console.groupEnd();
+
                 console.log(`✅ [WebView 核心日志] 收到识别结果。类型: ${sttType}, 长度: ${resultText.length}`);
                 console.log('[步骤13] WebView 内部：成功解析识别文本');
 
