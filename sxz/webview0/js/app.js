@@ -237,13 +237,18 @@ const AppState = {
 
         // 处理 STT 结果
         if (hash.includes('stt_result=')) {
-            const match = hash.match(/stt_result=([^&]*)/);
-            const typeMatch = hash.match(/stt_type=([^&]*)/);
+            // 使用更健壮的正则解析，支持 & 分隔符
+            const getParam = (name) => {
+                const reg = new RegExp('(^|&|#)' + name + '=([^&]*)(&|$)');
+                const r = hash.match(reg);
+                if (r != null) return decodeURIComponent(r[2]);
+                return null;
+            };
+
+            const resultText = getParam('stt_result');
+            const sttType = getParam('stt_type') || 'default';
             
-            if (match && match[1]) {
-                const resultText = decodeURIComponent(match[1]);
-                const sttType = typeMatch ? decodeURIComponent(typeMatch[1]) : 'default';
-                
+            if (resultText && this._lastProcessedHash !== hash) {
                 console.log('✅ [WebView 核心日志] 收到来自小程序的识别结果:', resultText, '类型:', sttType);
                 console.log('[步骤13] WebView 内部：成功解析识别文本, 长度:', resultText.length);
 
@@ -252,7 +257,7 @@ const AppState = {
 
                 // 调用 Coze 工作流处理识别结果
                 if (window.cozeWorkflow) {
-                    console.log('[步骤14] WebView 内部：准备调用 Coze STT 工作流');
+                    console.log(`[步骤14] WebView 内部：准备调用 Coze STT 工作流 (类型: ${sttType})`);
                     showLoading('AI 正在智能识别并提取信息，请稍候 (约 5-8 秒)...');
                     window.cozeWorkflow.runSTT(resultText).then((response) => {
                         console.log('[步骤15] WebView 内部：Coze STT 处理返回成功');
@@ -1950,8 +1955,8 @@ function ocrRecognition() {
             })
             .then(response => {
                 if (response && response.success && response.data && response.data.data) {
-                    // 显示核对弹窗
-                    showVerificationPopup(response.data.data, 'OCR识别结果');
+                    // 显示核对弹窗 (OCR 主要用于诊后检查报告)
+                    showVerificationPopup(response.data.data, 'OCR识别结果', 'post');
                 } else if (response) {
                     showToast('AI 提取失败，请手动填写');
                 }
@@ -2845,8 +2850,24 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
 
     // 标题
     const title = document.createElement('h2');
+    title.style.cssText = 'margin-bottom: 8px; font-size: 18px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px;';
     title.textContent = 'AI 信息提取核对';
-    title.style.cssText = 'margin-bottom: 8px; font-size: 18px; font-weight: 600; color: var(--text-primary);';
+
+    // 增加类型标识，方便用户识别 (v1.0.18)
+    const typeBadge = document.createElement('span');
+    typeBadge.style.cssText = 'font-size: 12px; padding: 2px 8px; border-radius: 4px; color: white; font-weight: normal;';
+    if (sttType === 'pre') {
+        typeBadge.textContent = '诊前';
+        typeBadge.style.backgroundColor = '#3b82f6'; // 蓝色
+    } else if (sttType === 'post') {
+        typeBadge.textContent = '诊后';
+        typeBadge.style.backgroundColor = '#10b981'; // 绿色
+    } else {
+        typeBadge.textContent = '通用';
+        typeBadge.style.backgroundColor = '#6b7280'; // 灰色
+    }
+    title.appendChild(typeBadge);
+    
     header.appendChild(title);
 
     const subTitle = document.createElement('p');
@@ -3837,13 +3858,16 @@ function renderSettings(container) {
             `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()" style="display: flex; align-items: center; justify-content: center;">立即登录</button>`
         }
                 <button class="btn btn-outline btn-lg w-full mt-2" onclick="console.log('支付测试按钮被点击'); testPayment()" style="display: flex; align-items: center; justify-content: center; border-color: var(--primary-color); color: var(--primary-color);">支付测试</button>
-                <button type="button" class="btn btn-outline btn-lg w-full mt-2" onclick="testSpeechToText()" style="display: flex; align-items: center; justify-content: center; border-color: #8b5cf6; color: #8b5cf6;">语音转文字测试</button>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button type="button" class="btn btn-outline btn-lg w-full" onclick="testSpeechToText('pre')" style="display: flex; align-items: center; justify-content: center; border-color: #3b82f6; color: #3b82f6; flex: 1;">诊前语音识别</button>
+                    <button type="button" class="btn btn-outline btn-lg w-full" onclick="testSpeechToText('post')" style="display: flex; align-items: center; justify-content: center; border-color: #10b981; color: #10b981; flex: 1;">诊后语音识别</button>
+                </div>
             </div>
             
             <div class="card">
                 <h3 class="card-title mb-2">关于</h3>
                 <div style="color: var(--text-secondary); line-height: 1.8;">
-                    <p>版本：1.0.17 (全链路刷新已启用)</p>
+                    <p>版本：1.0.18 (全链路刷新已启用)</p>
                     <p style="margin-top: 12px; font-size: 12px;">Hash ID: ${getHashId()}</p>
                     <p style="margin-top: 12px;">© 2026 陪诊助手</p>
                 </div>
