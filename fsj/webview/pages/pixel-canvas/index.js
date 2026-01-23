@@ -133,6 +133,17 @@ export default class PixelCanvasPage {
                             <img src="./assets/isPixel/jingyanbeijing.png" alt="经验背景" class="exp-background" id="expBackground">
                             <!-- 地图 -->
                             <img src="./assets/isPixel/ditu.png" alt="地图" class="ditu" id="ditu">
+                            <!-- 经验条格子 -->
+                            <div class="exp-bar-grid" id="expBarGrid">
+                                <div class="exp-bar-segment exp-bar-segment-1"></div>
+                                <div class="exp-bar-segment exp-bar-segment-2"></div>
+                                <div class="exp-bar-segment exp-bar-segment-3"></div>
+                                <div class="exp-bar-segment exp-bar-segment-4"></div>
+                            </div>
+                            <!-- 等级文字 -->
+                            <div class="level-text" id="levelText">LV 01</div>
+                            <!-- 经验值文字 -->
+                            <div class="exp-text" id="expText">经验值：0/20</div>
                         </div>
                     </div>
                     
@@ -220,6 +231,22 @@ export default class PixelCanvasPage {
         const dituHeight = (window.innerWidth / 120) * 17;
         document.documentElement.style.setProperty('--ditu-width', `${dituWidth}px`);
         document.documentElement.style.setProperty('--ditu-height', `${dituHeight}px`);
+        
+        // 经验条尺寸：屏幕宽度/120 × 尺寸（72x2）
+        const expBarWidth = (window.innerWidth / 120) * 72;
+        const expBarHeight = (window.innerWidth / 120) * 2;
+        document.documentElement.style.setProperty('--exp-bar-width', `${expBarWidth}px`);
+        document.documentElement.style.setProperty('--exp-bar-height', `${expBarHeight}px`);
+        
+        // 等级文字背景尺寸：屏幕宽度/120 × 尺寸（35x9）
+        const levelTextBgWidth = (window.innerWidth / 120) * 35;
+        const levelTextBgHeight = (window.innerWidth / 120) * 9;
+        document.documentElement.style.setProperty('--level-text-bg-width', `${levelTextBgWidth}px`);
+        document.documentElement.style.setProperty('--level-text-bg-height', `${levelTextBgHeight}px`);
+        
+        // 经验值文字宽度：屏幕宽度/120 × 尺寸（72）
+        const expTextWidth = (window.innerWidth / 120) * 72;
+        document.documentElement.style.setProperty('--exp-text-width', `${expTextWidth}px`);
         
         // 更新信息框和功能组位置
         this.updateInfoBox();

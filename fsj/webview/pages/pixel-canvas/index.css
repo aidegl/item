@@ -139,6 +139,68 @@ canvas {
     z-index: 0; /* cengji=0 */
 }
 
+.exp-bar-grid {
+    position: absolute;
+    /* xy="10,25" 在系统级分辨率下，尺寸72x2，分成4段 */
+    top: calc(25 * var(--system-scale));
+    left: calc(10 * var(--system-scale));
+    width: var(--exp-bar-width, 72px);
+    height: var(--exp-bar-height, 2px);
+    display: flex;
+    flex-direction: row;
+    z-index: 3; /* 在信息框之上 */
+}
+
+.exp-bar-segment {
+    height: 100%;
+    width: calc(var(--exp-bar-width, 72px) / 4); /* 每段占1/4宽度 */
+}
+
+.exp-bar-segment-1 {
+    background-color: #00C5E8; /* 较浅色 */
+}
+
+.exp-bar-segment-2 {
+    background-color: #00A2E8; /* 浅色 */
+}
+
+.exp-bar-segment-3 {
+    background-color: #0087E8; /* 深色 */
+}
+
+.exp-bar-segment-4 {
+    background-color: #0064E8; /* 较深色 */
+}
+
+.level-text {
+    position: absolute;
+    /* xy="5,5" 在系统级分辨率下，背景尺寸35x9 */
+    top: calc(5 * var(--system-scale));
+    left: calc(5 * var(--system-scale));
+    width: var(--level-text-bg-width, 35px);
+    height: var(--level-text-bg-height, 9px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(6 * var(--system-scale));
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    z-index: 4; /* 在经验条之上 */
+}
+
+.exp-text {
+    position: absolute;
+    /* xy="10,18" 在系统级分辨率下，宽度72 */
+    top: calc(18 * var(--system-scale));
+    left: calc(10 * var(--system-scale));
+    width: var(--exp-text-width, 72px);
+    font-size: calc(5 * var(--system-scale));
+    color: #030303; /* 全局样式最深色 */
+    text-align: center;
+    z-index: 4; /* 在经验条之上 */
+}
+
 /* 功能组样式 */
 .function-group {
     position: absolute;
