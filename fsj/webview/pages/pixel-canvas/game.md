@@ -184,24 +184,56 @@ AI性格： 自由、奔放、天马行空、甚至有点脱线。
 
 ### 界面色设计及UI
 UI分两种分辨率
+
 #### 系统级分辨率=屏幕宽/120
+**说明**：系统级分辨率用于功能图标、信息框等UI元素。计算公式：`系统级分辨率单位 = 屏幕宽度 / 120`（单位：px）
+
+**示例**：在750px宽度的屏幕上，1个系统级分辨率单位 = 750/120 = 6.25px
+
+**功能图标尺寸规则**：
+- **功能图标图片原始尺寸**：16px × 16px（图片文件的实际像素尺寸）
+- **功能图标显示尺寸计算公式**：`图标显示尺寸 = (屏幕宽度 / 120) × 16`
+  - 在750px屏幕上：图标显示尺寸 = (750/120) × 16 = 6.25 × 16 = 100px
+  - 在390px屏幕上：图标显示尺寸 = (390/120) × 16 = 3.25 × 16 = 52px
+- **功能图标间距**：2个系统级分辨率单位 = `2 × (屏幕宽度 / 120)`
+- **实现方式**：在JavaScript中计算 `(window.innerWidth / 120) * 16`，设置为CSS变量 `--function-icon-size`，CSS中使用 `width: var(--function-icon-size); height: var(--function-icon-size);`
+
+**系统级分辨率元素列表**：
 [
-    {"name":"xinxikuang","xy":"4,4","cengji":1,"color":"原色"},
+    {"name":"xinxikuang","xy":"4,4","cengji":1,"color":"原色","尺寸":"84x26"},
     {"name":"等级背景","xy":"4,4","cengji":0,"color":角色五行浅色}，
     {"name":"jingyanbeijing","xy":"4,4","cengji":0,"color":角色五行特淡}，
     {"name":"ditu","xy":"4,4","cengji":0,"color":"原色"}，
     {"name":[功能组-左上角],"xy":"3,17","cengji":0,"color":"#ffffff"}，//间距2像素，右上角有红点diandain.png代表有新内容
-    {"name":[功能组-右上角],"xy":"51,17","cengji":0,"color":"#ffffff"}，//间距2像素，右上角有红点diandain.png代表有新内容
+    {"name":[功能组-右上角],"xy":"102,17","cengji":0,"color":"#ffffff"}，//间距2像素，右上角有红点diandain.png代表有新内容
 ]
+
+**信息框（xinxikuang）实现规则**：
+- **图片位置**：webview/assets/isPixel/xinxikuang.png
+- **图片原始尺寸**：84px × 26px
+- **位置**：xy="4,4"（系统级分辨率）
+- **显示尺寸计算公式**：`显示宽度 = (屏幕宽度 / 120) × 84`，`显示高度 = (屏幕宽度 / 120) × 26`
+- **层级**：cengji=1（z-index: 2，在等级背景和经验背景之上）
+- **实现方式**：在JavaScript中计算 `(window.innerWidth / 120) * 84` 和 `(window.innerWidth / 120) * 26`，设置为CSS变量 `--info-box-width` 和 `--info-box-height`，CSS中使用 `width: var(--info-box-width); height: var(--info-box-height);`
+
 #### 功能组
-图片位置，在webview/assets/isPixel，名字为功能组键值为name的值.png
-左上角
+**说明**：功能组图标采用纵向排列（flex-direction: column），图标之间垂直堆叠。
+
+**图片位置**：在webview/assets/isPixel，名字为功能组键值为name的值.png
+
+**排列方式**：
+- 功能组容器使用 `flex-direction: column` 实现纵向排列
+- 图标间距：2个系统级分辨率单位（垂直间距，使用 `margin-bottom`）
+- 最后一个图标不需要底部间距
+
+**左上角功能组**（位置：xy="3,17"）：
 [
     {"name":"kapai"},
     {"name":"renwu"},
     {"name":"xiangfa"} 
 ]
-右上角
+
+**右上角功能组**（位置：xy="102,17"）：
 [
     {"name":"shangcheng"},
     {"name":"xiaoxi"},
@@ -210,10 +242,21 @@ UI分两种分辨率
     {"name":"paipai"}
 ]
 #### 角色场景级分辨率=屏幕宽/60
+**说明**：角色场景级分辨率用于角色渲染和角色相关的UI元素。计算公式：`角色场景级分辨率单位 = 屏幕宽度 / 60`（单位：px）
+
+**示例**：在750px宽度的屏幕上，1个角色场景级分辨率单位 = 750/60 = 12.5px
+
+**角色尺寸规则**：
+- 角色的标准尺寸为 **12px × 20px**（逻辑像素）
+- Canvas逻辑宽度固定为 **60px**（角色场景级分辨率单位）
+- 角色在Canvas中居中显示
+
+**角色场景级分辨率元素列表**：
 [
     {"name":"xinxikuang","位置":"正中心","cengji":1,"color":"原色"，分辨率}
 ]
-注意：目前测试阶段先加载本地，之后根据角色信息加载角色数据。
+
+**注意**：目前测试阶段先加载本地，之后根据角色信息加载角色数据。
 
 
 ### 图标显示逻辑

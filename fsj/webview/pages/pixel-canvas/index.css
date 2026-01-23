@@ -29,28 +29,21 @@ canvas {
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
     cursor: pointer;
-    transition: filter 0.2s;
-}
-
-canvas:hover {
-    filter: brightness(1.05);
 }
 
 /* 聊天框样式 */
 .chat-box {
     position: absolute;
-    bottom: 10px; /* 底部外边距10px */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6rem;
-    max-width: calc(100vw - 2rem); /* 确保不会超出屏幕，左右各留1rem边距 */
-    min-width: 3rem; /* 最小宽度，确保在小屏幕上也有合理显示 */
+    bottom: 0.05rem; /* 底部距离5px */
+    left: 0.05rem; /* 左边距5px */
+    right: 0.05rem; /* 右边距5px */
+    width: auto; /* 宽度撑满 */
     min-height: 1.5rem;
     background-color: #ffffff;
-    border: 0.04rem solid #000000;
+    border: 0.03rem solid #030303; /* 边框0.03rem，颜色#030303 */
     border-radius: 0.1rem;
     padding: 0.3rem 0.4rem;
-    box-sizing: border-box; /* 确保padding和border包含在宽度内 */
+    box-sizing: border-box;
     box-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 0.2);
     display: none;
     z-index: 10;
@@ -64,18 +57,123 @@ canvas:hover {
 @keyframes slideUp {
     from {
         opacity: 0;
-        transform: translateX(-50%) translateY(0.2rem);
+        transform: translateY(0.2rem);
     }
     to {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transform: translateY(0);
     }
 }
 
 .chat-message {
     font-size: 0.22rem; /* 减小字体大小 */
     line-height: 1.5;
-    color: #333333;
+    color: #121212; /* 使用全局样式浅色 */
     text-align: center;
     margin: 0;
+}
+
+/* 信息框样式（系统级分辨率：屏幕宽/120） */
+.info-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* 不阻挡Canvas交互 */
+    z-index: 1;
+}
+
+.info-box-image {
+    position: absolute;
+    /* xy="4,4" 在系统级分辨率下，图片原始尺寸84x26 */
+    top: calc(4 * var(--system-scale));
+    left: calc(4 * var(--system-scale));
+    /* 显示尺寸：使用CSS变量，计算公式为 (屏幕宽度 / 120) × 图片原始尺寸 */
+    width: var(--info-box-width, 84px);
+    height: var(--info-box-height, 26px);
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    z-index: 2; /* cengji=1，在等级背景之上 */
+}
+
+.level-background {
+    position: absolute;
+    /* xy="4,4" 在系统级分辨率下，图片原始尺寸84x26 */
+    top: calc(4 * var(--system-scale));
+    left: calc(4 * var(--system-scale));
+    /* 显示尺寸：使用CSS变量，计算公式为 (屏幕宽度 / 120) × 图片原始尺寸 */
+    width: var(--info-box-width, 84px);
+    height: var(--info-box-height, 26px);
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    z-index: 0; /* cengji=0，在信息框之下 */
+}
+
+.exp-background {
+    position: absolute;
+    /* xy="4,4" 在系统级分辨率下，图片原始尺寸84x26 */
+    top: calc(4 * var(--system-scale));
+    left: calc(4 * var(--system-scale));
+    /* 显示尺寸：使用CSS变量，计算公式为 (屏幕宽度 / 120) × 图片原始尺寸 */
+    width: var(--info-box-width, 84px);
+    height: var(--info-box-height, 26px);
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    z-index: -1; /* cengji=0，在最底层 */
+}
+
+.ditu {
+    position: absolute;
+    /* xy="91,14" 在系统级分辨率下，图片原始尺寸25x17 */
+    top: calc(14 * var(--system-scale));
+    left: calc(91 * var(--system-scale));
+    width: var(--ditu-width, 25px);
+    height: var(--ditu-height, 17px);
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    z-index: 0; /* cengji=0 */
+}
+
+/* 功能组样式 */
+.function-group {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    pointer-events: auto; /* 允许点击 */
+    z-index: 5;
+}
+
+.function-group-leftTop {
+    /* xy="3,34" 在系统级分辨率下，间距2像素 */
+    top: calc(34 * var(--system-scale));
+    left: calc(3 * var(--system-scale));
+    flex-direction: column; /* 纵向排列 */
+}
+
+.function-group-rightTop {
+    /* xy="100,34" 在系统级分辨率下，间距2像素 */
+    top: calc(34 * var(--system-scale));
+    left: calc(100 * var(--system-scale));
+    flex-direction: column; /* 纵向排列 */
+    align-items: flex-start;
+}
+
+.function-icon {
+    /* 功能图标标准尺寸：16px × 16px（在750px设计稿基准下） */
+    /* 使用CSS变量直接设置尺寸，按屏幕宽度比例缩放 */
+    width: var(--function-icon-size, 16px);
+    height: var(--function-icon-size, 16px);
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    margin-bottom: calc(2 * var(--system-scale)); /* 纵向间距2个系统级分辨率单位 */
+}
+
+.function-icon:last-child {
+    margin-bottom: 0;
 }
