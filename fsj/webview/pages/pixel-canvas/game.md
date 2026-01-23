@@ -203,9 +203,10 @@ UI分两种分辨率
     {"name":"xinxikuang","xy":"4,4","cengji":1,"color":"原色","尺寸":"84x26"},
     {"name":"等级背景","xy":"4,4","cengji":0,"color":角色五行浅色}，
     {"name":"jingyanbeijing","xy":"4,4","cengji":0,"color":角色五行特淡}，
-    {"name":"ditu","xy":"4,4","cengji":0,"color":"原色"}，
+    {"name":"ditu","xy":"91,14","cengji":0,"color":"原色"}，
+    {"name":"经验条格子","xy":"10,25","cengji":3,"color":"#030303","尺寸":"72x2"}，
     {"name":[功能组-左上角],"xy":"3,17","cengji":0,"color":"#ffffff"}，//间距2像素，右上角有红点diandain.png代表有新内容
-    {"name":[功能组-右上角],"xy":"102,17","cengji":0,"color":"#ffffff"}，//间距2像素，右上角有红点diandain.png代表有新内容
+    {"name":[功能组-右上角],"xy":"100,17","cengji":0,"color":"#ffffff"}，//间距2像素，右上角有红点diandain.png代表有新内容
 ]
 
 **信息框（xinxikuang）实现规则**：
@@ -215,6 +216,23 @@ UI分两种分辨率
 - **显示尺寸计算公式**：`显示宽度 = (屏幕宽度 / 120) × 84`，`显示高度 = (屏幕宽度 / 120) × 26`
 - **层级**：cengji=1（z-index: 2，在等级背景和经验背景之上）
 - **实现方式**：在JavaScript中计算 `(window.innerWidth / 120) * 84` 和 `(window.innerWidth / 120) * 26`，设置为CSS变量 `--info-box-width` 和 `--info-box-height`，CSS中使用 `width: var(--info-box-width); height: var(--info-box-height);`
+
+**经验条格子实现规则**：
+- **用途**：此位置用于显示经验值进度条
+- **位置**：xy="10,25"（系统级分辨率）
+- **尺寸**：72px × 2px（系统级分辨率），分成4段，每段18px
+- **显示尺寸计算公式**：`显示宽度 = (屏幕宽度 / 120) × 72`，`显示高度 = (屏幕宽度 / 120) × 2`
+- **分段颜色**：经验条分为4段，从左到右依次使用：
+  - 第1段：较浅色 `#00C5E8`
+  - 第2段：浅色 `#00A2E8`
+  - 第3段：深色 `#0087E8`
+  - 第4段：较深色 `#0064E8`
+- **层级**：cengji=3（z-index: 3，在信息框之上）
+- **实现方式**：
+  - 在JavaScript中计算 `(window.innerWidth / 120) * 72` 和 `(window.innerWidth / 120) * 2`，设置为CSS变量 `--exp-bar-width` 和 `--exp-bar-height`
+  - HTML结构：`expBarGrid` 容器内包含4个 `exp-bar-segment` 子元素
+  - CSS使用 `display: flex` 横向排列，每段宽度为 `calc(var(--exp-bar-width) / 4)`
+- **元素ID**：`expBarGrid`（后续可用于动态更新经验值进度）
 
 #### 功能组
 **说明**：功能组图标采用纵向排列（flex-direction: column），图标之间垂直堆叠。
