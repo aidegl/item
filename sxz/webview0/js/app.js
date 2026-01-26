@@ -2574,6 +2574,7 @@ async function handleConsultationSubmit(event) {
         { "id": "fuid", "controlId": "fuid", "value": fuid || '' },
         { "id": "patientId", "controlId": "patientId", "value": AppState.currentPatientId },
         { "id": "yonghu", "controlId": "yonghu", "value": userRowId },
+        { "id": "pzsgl", "controlId": "pzsgl", "value": userRowId }, // 陪诊师关联：设置为用户的rowid，用于关联查询
         { "id": "zhuangtai", "controlId": "zhuangtai", "value": zhuangtai },
         { "id": "del", "controlId": "del", "value": "0" }
     ];
