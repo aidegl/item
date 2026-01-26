@@ -2540,6 +2540,121 @@ async function handleConsultationSubmit(event) {
         userRowId = localStorage.getItem('openid') || 'ae75cf2e-0f73-4137-9e99-116d92c45a47';
     }
 
+    // 获取患者信息（用于创建/更新患者信息表和陪诊记录）
+    let patientName = '';
+    let patientPhone = '';
+    let finalPatientId = AppState.currentPatientId;
+    
+    if (AppState.currentPatientId) {
+        const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
+        if (patient) {
+            patientName = patient.name || '';
+            patientPhone = patient.phone || '';
+        }
+    }
+
+    // 如果患者信息不完整，尝试从表单获取（兼容直接创建陪诊记录的情况）
+    if (!patientName || !patientPhone) {
+        // 注意：陪诊记录表单中可能没有name和phone字段，这里只是作为兜底
+        console.warn('患者信息不完整，尝试从其他来源获取');
+    }
+
+    // 确保患者信息表中存在该患者（通过name和phone匹配）
+    if (patientName && patientPhone && !isEditMode) {
+        try {
+            // 检查患者信息表中是否已存在该患者
+            if (typeof window.MingDaoYunArrayAPI === 'undefined') {
+                console.warn('MingDaoYunArrayAPI组件未加载，跳过患者信息检查');
+            } else {
+                const checkApi = new window.MingDaoYunArrayAPI();
+                const checkResult = await checkApi.getData({
+                    worksheetId: 'hzxxgl',
+                    pageSize: 1,
+                    pageIndex: 1,
+                    filters: [
+                        {
+                            "controlId": "name",
+                            "dataType": 2,
+                            "spliceType": 1,
+                            "filterType": 2, // 等于
+                            "value": patientName
+                        },
+                        {
+                            "controlId": "phone",
+                            "dataType": 2,
+                            "spliceType": 1,
+                            "filterType": 2, // 等于
+                            "value": patientPhone
+                        },
+                        {
+                            "controlId": "del",
+                            "dataType": 2,
+                            "spliceType": 1,
+                            "filterType": 2,
+                            "value": 0
+                        }
+                    ]
+                });
+
+                if (checkResult.success && checkResult.data && checkResult.data.rows && checkResult.data.rows.length > 0) {
+                    // 患者已存在，使用已有的患者ID
+                    const existingPatient = checkResult.data.rows[0];
+                    finalPatientId = existingPatient.rowid || existingPatient.rowId || existingPatient.id;
+                    console.log('患者信息表中已存在该患者，使用已有ID:', finalPatientId);
+                } else {
+                    // 患者不存在，创建新患者记录
+                    if (typeof window.MingDaoYunAddAPI === 'undefined') {
+                        console.warn('MingDaoYunAddAPI组件未加载，无法创建患者记录');
+                    } else {
+                        const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
+                        if (patient) {
+                            const addApi = new window.MingDaoYunAddAPI();
+                            const ownerId = 'ae75cf2e-0f73-4137-9e99-116d92c45a47';
+                            const patientControls = [
+                                { controlId: 'name', value: patient.name },
+                                { controlId: 'gender', value: patient.gender, valueType: '' },
+                                { controlId: 'phone', value: patient.phone },
+                                { controlId: 'pastMedicalHistory', value: patient.medicalHistory || '无' },
+                                { controlId: 'escortRecords', value: '' },
+                                { controlId: 'age', value: String(patient.age) },
+                                { controlId: 'yonghu', value: userRowId },
+                                { controlId: 'del', value: '0' },
+                                { controlId: 'allergy_history', value: patient.allergies || '无' },
+                                { controlId: '_owner', value: ownerId }
+                            ];
+                            
+                            const addResult = await addApi.getData('hzxxgl', patientControls);
+                            if (addResult.success) {
+                                const newPatientId = typeof addResult.data === 'string' ? addResult.data : (addResult.data?.rowid || addResult.data?.rowId);
+                                finalPatientId = newPatientId;
+                                console.log('患者信息表中已创建新患者，ID:', finalPatientId);
+                                
+                                // 更新本地患者列表
+                                const newPatient = {
+                                    id: String(newPatientId),
+                                    ...patient
+                                };
+                                const existingIndex = AppState.patients.findIndex(p => p.id === AppState.currentPatientId);
+                                if (existingIndex !== -1) {
+                                    AppState.patients[existingIndex] = newPatient;
+                                } else {
+                                    AppState.patients.unshift(newPatient);
+                                }
+                                AppState.currentPatientId = String(newPatientId);
+                                AppState.saveToStorage();
+                            } else {
+                                console.error('创建患者记录失败:', addResult.error_msg);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('检查/创建患者信息异常:', error);
+            // 继续执行，不阻塞陪诊记录的创建
+        }
+    }
+
     // 确定陪诊状态 (zhuangtai)
     let zhuangtai = formData.get('zhuangtai') || '待提醒';
     const diagnosis = formData.get('diagnosis');
@@ -2572,7 +2687,9 @@ async function handleConsultationSubmit(event) {
         { "id": "pzszhtx", "controlId": "pzszhtx", "value": formData.get('nurseReminder') || '' },
         { "id": "shouzhen", "controlId": "shouzhen", "value": shouzhen === '1' ? 1 : 0 },
         { "id": "fuid", "controlId": "fuid", "value": fuid || '' },
-        { "id": "patientId", "controlId": "patientId", "value": AppState.currentPatientId },
+        { "id": "patientId", "controlId": "patientId", "value": finalPatientId },
+        { "id": "name", "controlId": "name", "value": patientName }, // 患者姓名：与患者信息表保持一致
+        { "id": "phone", "controlId": "phone", "value": patientPhone }, // 患者电话：与患者信息表保持一致
         { "id": "yonghu", "controlId": "yonghu", "value": userRowId },
         { "id": "pzsgl", "controlId": "pzsgl", "value": userRowId }, // 陪诊师关联：设置为用户的rowid，用于关联查询
         { "id": "zhuangtai", "controlId": "zhuangtai", "value": zhuangtai },
@@ -2608,7 +2725,7 @@ async function handleConsultationSubmit(event) {
 
             const consultation = {
                 id: String(rowId),
-                patientId: AppState.currentPatientId,
+                patientId: finalPatientId,
                 date: formData.get('date'),
                 hospital: formData.get('hospital'),
                 department: formData.get('department') || '',
