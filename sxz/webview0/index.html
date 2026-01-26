@@ -136,8 +136,14 @@
         './js/CozeWorkflow.js',
         './js/app-core.js'
       ];
+      
+      // 使用 DOM 操作加载脚本，避免 document.write 阻塞
+      // async = false 确保脚本按顺序执行
       scripts.forEach(function(src) {
-        document.write('<script src="' + src + '?v=' + v + '"><\/script>');
+        var script = document.createElement('script');
+        script.src = src + '?v=' + v;
+        script.async = false;
+        document.body.appendChild(script);
       });
     })();
   </script>
