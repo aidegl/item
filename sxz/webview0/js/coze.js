@@ -317,11 +317,13 @@ class CozeChatAPI {
     }
 
     // 发送消息
-    async sendMessage(text = null) {
+    async sendMessage(text = null, actualContent = null) {
         const input = document.querySelector(this.options.inputElement);
-        const content = text || input?.value.trim() || '';
+        const displayContent = text || input?.value.trim() || '';
+        // 如果没有提供 actualContent，则使用 displayContent
+        const apiContent = actualContent || displayContent;
 
-        if (!content || this.chatState.isStreaming) {
+        if (!displayContent || this.chatState.isStreaming) {
             return;
         }
 
@@ -331,8 +333,8 @@ class CozeChatAPI {
             input.style.height = 'auto';
         }
 
-        // 添加用户消息
-        this.addUserMessage(content);
+        // 添加用户消息（显示内容）
+        this.addUserMessage(displayContent);
 
         // 显示加载状态
         const bubble = this.addBotMessageLoading();
@@ -344,7 +346,7 @@ class CozeChatAPI {
         this.updateSendButtonState();
 
         // 开启调试日志
-        this._log('INFO', '开始发送消息', { content });
+        this._log('INFO', '开始发送消息', { displayContent, apiContent });
 
         try {
             const url = this.chatState.conversation_id
@@ -359,7 +361,7 @@ class CozeChatAPI {
                 additional_messages: [
                     {
                         role: 'user',
-                        content: content,
+                        content: apiContent, // 使用实际发送的内容
                         content_type: 'text'
                     }
                 ]

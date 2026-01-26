@@ -849,7 +849,7 @@ function initCozeAPI() {
     }
 
     cozeAPI = new CozeChatAPI({
-        botId: '7584776894743085106',
+        botId: '7593641609586819106',
         userId: 'user_' + Date.now(),
         // 禁用默认的 UI 绑定
         messagesContainer: null,
@@ -945,7 +945,25 @@ function sendMessage() {
 
     // 调用 Coze API
     if (cozeAPI) {
-        cozeAPI.sendMessage(message);
+        // 获取当前用户的rowid
+        let userRowId = null;
+        const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function' ? window.wechatLogin.getUserInfo() : null;
+        if (userInfo) {
+            const rawUser = userInfo.raw || userInfo;
+            userRowId = rawUser.rowid || rawUser.rowId || userInfo.id;
+        }
+        if (!userRowId) {
+            userRowId = localStorage.getItem('openid') || 'ae75cf2e-0f73-4137-9e99-116d92c45a47';
+        }
+
+        // 构造JSON格式的入参
+        const apiContent = JSON.stringify({
+            rowid: userRowId,
+            content: message
+        });
+
+        // 传递显示内容和实际发送内容
+        cozeAPI.sendMessage(message, apiContent);
     } else {
         // 降级处理：先显示加载状态
         AppState.chatMessages.push({
