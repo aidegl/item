@@ -1854,12 +1854,7 @@ function renderPatientDetail(container) {
                                 </div>
                             </div>
                         </div>
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; margin-left: 12px;">
-                            <!-- select removed -->
-                            <span class="badge ${c.status === 'completed' ? 'badge-success' : (c.status === 'reminded' ? 'badge-primary' : 'badge-warning')}" style="font-size: 10px; padding: 1px 6px;">
-                                ${c.status === 'completed' ? '已完成' : (c.status === 'reminded' ? '已提醒' : '待提醒')}
-                            </span>
-                        </div>
+                        <!-- Status indicator removed as per user request -->
                     </div>
                 `).join('')}
             </div>
