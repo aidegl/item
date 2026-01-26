@@ -2183,19 +2183,7 @@ function renderConsultationFlow(container) {
                         <label class="form-label">就诊日期 *</label>
                         <input type="date" name="date" class="input" style="height: 40px; resize: none;" value="${isEditMode ? formatDateForInput(consultation.date) : new Date().toISOString().split('T')[0]}">
                     </div>
-
-                    ${isEditMode ? `
-                    <div class="form-group">
-                        <label class="form-label">陪诊状态</label>
-                        <select name="zhuangtai" class="input" style="height: 40px;">
-                            <option value="待提醒" ${(consultation.zhuangtai !== '已提醒' && consultation.zhuangtai !== '已完成') ? 'selected' : ''}>待提醒</option>
-                            <option value="已提醒" ${consultation.zhuangtai === '已提醒' ? 'selected' : ''}>已提醒</option>
-                            <option value="已完成" ${consultation.zhuangtai === '已完成' ? 'selected' : ''}>已完成</option>
-                        </select>
-                        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">注：填写诊后“诊断建议”后将自动设为“已完成”</p>
-                    </div>
-                    ` : ''}
-                    
+                                        
                     <div class="form-group">
                         <label class="form-label">医院 *</label>
                         <input type="text" name="hospital" class="input" placeholder="请输入医院名称" style="height: 40px; resize: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" value="${isEditMode ? (consultation.hospital || '') : ''}">
