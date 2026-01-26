@@ -1855,14 +1855,7 @@ function renderPatientDetail(container) {
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; margin-left: 12px;">
-                            <select class="status-select" 
-                                onchange="updateMemoStatus('${c.id}', this.value)" 
-                                onclick="event.stopPropagation()"
-                                style="font-size: 12px; padding: 2px 20px 2px 8px; border-radius: 4px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-primary); cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 4px center; background-size: 12px; height: 24px; min-width: 70px;">
-                                <option value="待提醒" ${c.zhuangtai === '待提醒' || (!c.zhuangtai && c.status === 'pending') ? 'selected' : ''}>待提醒</option>
-                                <option value="已提醒" ${c.zhuangtai === '已提醒' || (!c.zhuangtai && c.status === 'reminded') ? 'selected' : ''}>已提醒</option>
-                                <option value="已完成" ${c.zhuangtai === '已完成' || (!c.zhuangtai && c.status === 'completed') ? 'selected' : ''}>已完成</option>
-                            </select>
+                            <!-- select removed -->
                             <span class="badge ${c.status === 'completed' ? 'badge-success' : (c.status === 'reminded' ? 'badge-primary' : 'badge-warning')}" style="font-size: 10px; padding: 1px 6px;">
                                 ${c.status === 'completed' ? '已完成' : (c.status === 'reminded' ? '已提醒' : '待提醒')}
                             </span>
