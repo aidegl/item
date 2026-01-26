@@ -2181,7 +2181,7 @@ function renderConsultationFlow(container) {
                     
                     <div class="form-group">
                         <label class="form-label">就诊日期 *</label>
-                        <input type="date" name="date" class="input" style="height: 40px; resize: none;" value="${isEditMode ? formatDateForInput(consultation.date) : new Date().toISOString().split('T')[0]}">
+                        <input type="datetime-local" name="date" class="input" style="height: 40px; resize: none;" value="${isEditMode ? formatDateTimeForInput(consultation.date) : formatDateTimeForInput(new Date())}">
                     </div>
                                         
                     <div class="form-group">
@@ -2694,17 +2694,9 @@ function handleShouzhenChange(radio) {
         const select = document.querySelector('select[name="fuid"]');
         if (select) select.value = '';
 
-        // 初诊逻辑：自动设置为当天
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
         if (dateInput) {
-            dateInput.value = today;
-            // 虽然设置了当天，但用户可能还是想改（比如昨天初诊今天录入），
-            // 但根据要求：“初诊选择日期时校验：不能选择今天以前的日期”
-            // 以及“选择初诊后，就诊日期自动显示当天，且不能修改其他日期”
-            // 这里的“不能修改其他日期”可能意味着变灰或者只读，但用户又说“初诊选择日期时校验”，这有点矛盾。
-            // 最稳妥的做法是：自动设为今天，但允许修改，提交时校验不能早于今天。
-            // 如果要严格执行“不能修改其他日期”，就设为 readOnly。
-            // 我们按用户说的“初诊选择日期时校验”和“自动显示当天”来做。
+            dateInput.value = formatDateTimeForInput(now);
         }
     } else {
         followupSection.style.display = 'block';
@@ -5422,6 +5414,19 @@ function formatDateForInput(dateStr) {
         return dateStr.split('T')[0];
     }
     return dateStr;
+}
+
+function formatDateTimeForInput(dateValue) {
+    if (!dateValue) return '';
+    const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+    if (isNaN(date.getTime())) return '';
+    const pad = n => n.toString().padStart(2, '0');
+    const y = date.getFullYear();
+    const m = pad(date.getMonth() + 1);
+    const d = pad(date.getDate());
+    const h = pad(date.getHours());
+    const mi = pad(date.getMinutes());
+    return `${y}-${m}-${d}T${h}:${mi}`;
 }
 
 /**
