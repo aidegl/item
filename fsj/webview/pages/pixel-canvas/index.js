@@ -6,11 +6,12 @@ export default class PixelCanvasPage {
         this.container = container;
         this.canvas = null;
         this.ctx = null;
-        this.characterImage = null;
-        this.isImageLoaded = false;
-        this.canvasWidth = 60;
-        this.charWidth = 12;
-        this.charHeight = 20;
+        this.characterData = null; // 角色JSON数据
+        this.colorPalette = null; // 调色板数据
+        this.isDataLoaded = false;
+        this.canvasWidth = 120; // Canvas逻辑宽度（系统级分辨率，统一分辨率）
+        this.charWidth = 0; // 角色宽度（从JSON数据计算，使用整个数据数组的宽度）
+        this.charHeight = 0; // 角色高度（从JSON数据计算，使用整个数据数组的高度）
         this.charX = 0;
         this.charY = 0;
         this.isSelected = false;
@@ -91,8 +92,10 @@ export default class PixelCanvasPage {
         this.loadCSS();
         // 初始化Canvas
         this.initCanvas();
-        // 加载角色图片
-        this.loadCharacter();
+        // 加载调色板
+        await this.loadColorPalette();
+        // 加载角色数据
+        await this.loadCharacter();
     }
 
     async loadHTML() {
@@ -282,9 +285,11 @@ export default class PixelCanvasPage {
         this.canvas.style.width = (this.canvasWidth * actualScale) + 'px';
         this.canvas.style.height = (canvasHeight * actualScale) + 'px';
         
-        // 更新角色位置
-        this.charX = Math.floor((this.canvas.width - this.charWidth) / 2);
-        this.charY = Math.floor((this.canvas.height - this.charHeight) / 2);
+        // 更新角色位置（居中）
+        if (this.charWidth > 0 && this.charHeight > 0) {
+            this.charX = Math.floor((this.canvas.width - this.charWidth) / 2);
+            this.charY = Math.floor((this.canvas.height - this.charHeight) / 2);
+        }
         
         // 重绘
         this.redraw();
@@ -296,7 +301,7 @@ export default class PixelCanvasPage {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         // 绘制角色
-        if (this.isImageLoaded) {
+        if (this.isDataLoaded) {
             this.drawCharacter();
             
             // 如果选中，绘制描边
@@ -307,53 +312,82 @@ export default class PixelCanvasPage {
     }
 
     drawCharacter() {
-        if (!this.isImageLoaded) return;
+        if (!this.isDataLoaded || !this.characterData || !this.colorPalette) return;
         
-        this.ctx.drawImage(
-            this.characterImage,
-            this.charX,
-            this.charY,
-            this.charWidth,
-            this.charHeight
-        );
+        // JSON数据宽度是120等分（系统级分辨率），Canvas宽度也是120等分
+        // 1:1 映射，不需要缩放
+        // 遍历JSON数据绘制像素
+        for (let row = 0; row < this.characterData.length; row++) {
+            for (let col = 0; col < this.characterData[row].length; col++) {
+                const colorValue = this.characterData[row][col];
+                
+                // 跳过透明像素
+                if (colorValue === null || colorValue === '') continue;
+                
+                // 将HEX颜色值转换为Canvas颜色
+                const color = this.hexToColor(colorValue);
+                if (!color) continue;
+                
+                // 计算在Canvas上的位置（1:1映射，居中）
+                const canvasX = this.charX + col;
+                const canvasY = this.charY + row;
+                
+                // 确保不超出Canvas边界
+                if (canvasX >= 0 && canvasX < this.canvas.width && 
+                    canvasY >= 0 && canvasY < this.canvas.height) {
+                    this.ctx.fillStyle = color;
+                    this.ctx.fillRect(canvasX, canvasY, 1, 1);
+                }
+            }
+        }
+    }
+    
+    hexToColor(hexValue) {
+        // 如果hexValue已经是完整的HEX颜色值（如"181818"），直接使用
+        if (typeof hexValue === 'string' && hexValue.length === 6) {
+            return '#' + hexValue;
+        }
+        
+        // 如果是数字索引（0-110），从调色板中查找
+        if (typeof hexValue === 'number') {
+            return this.getColorFromPalette(hexValue);
+        }
+        
+        return null;
+    }
+    
+    getColorFromPalette(index) {
+        if (!this.colorPalette || index < 0 || index > 110) return null;
+        
+        // 计算在调色板中的位置
+        // 第0行：0-9（10个颜色），第1行：10-19，以此类推
+        const row = Math.floor(index / 10);
+        const col = index % 10;
+        
+        if (row < this.colorPalette.length && col < this.colorPalette[row].length) {
+            const hexValue = this.colorPalette[row][col];
+            return '#' + hexValue;
+        }
+        
+        return null;
     }
 
     drawOutline() {
-        // 根据角色五行属性获取描边颜色
-        let outlineColor = this.defaultOutlineColor;
+        if (!this.isDataLoaded || !this.characterData) return;
+        
+        // 根据角色五行属性获取描边颜色，默认使用蓝色
+        let outlineColor = this.defaultOutlineColor; // 默认 #00C5E8（蓝色）
         if (this.characterWuxing && this.wuxingColors[this.characterWuxing]) {
             outlineColor = this.wuxingColors[this.characterWuxing]['浅色'];
         }
         
-        // 创建一个临时canvas来检测角色像素
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = this.charWidth;
-        tempCanvas.height = this.charHeight;
-        const tempCtx = tempCanvas.getContext('2d');
-        
-        // 禁用抗锯齿
-        tempCtx.imageSmoothingEnabled = false;
-        
-        // 在临时canvas上绘制角色图片
-        tempCtx.drawImage(
-            this.characterImage,
-            0, 0,
-            this.charWidth,
-            this.charHeight
-        );
-        
-        // 获取像素数据
-        const imageData = tempCtx.getImageData(0, 0, this.charWidth, this.charHeight);
-        const data = imageData.data;
-        
-        // 检测边界像素并绘制描边
-        for (let y = 0; y < this.charHeight; y++) {
-            for (let x = 0; x < this.charWidth; x++) {
-                const index = (y * this.charWidth + x) * 4;
-                const alpha = data[index + 3];
+        // 检测边界像素并绘制描边（1:1映射，不需要缩放）
+        for (let row = 0; row < this.characterData.length; row++) {
+            for (let col = 0; col < this.characterData[row].length; col++) {
+                const colorValue = this.characterData[row][col];
                 
                 // 如果当前像素不透明（是角色的一部分）
-                if (alpha > 0) {
+                if (colorValue !== null && colorValue !== '') {
                     // 检查上下左右四个方向的邻居
                     const neighbors = [
                         { dx: 0, dy: -1 }, // 上
@@ -364,32 +398,41 @@ export default class PixelCanvasPage {
                     
                     // 检查每个邻居
                     for (const neighbor of neighbors) {
-                        const nx = x + neighbor.dx;
-                        const ny = y + neighbor.dy;
+                        const nRow = row + neighbor.dy;
+                        const nCol = col + neighbor.dx;
                         
                         // 如果邻居超出边界，或者邻居是透明的，则绘制描边
-                        if (nx < 0 || nx >= this.charWidth || 
-                            ny < 0 || ny >= this.charHeight) {
+                        if (nRow < 0 || nRow >= this.characterData.length ||
+                            nCol < 0 || nCol >= this.characterData[row].length) {
                             // 超出边界，绘制描边
-                            this.ctx.fillStyle = outlineColor;
-                            this.ctx.fillRect(
-                                this.charX + x + neighbor.dx,
-                                this.charY + y + neighbor.dy,
-                                1, 1
-                            );
+                            const canvasX = this.charX + col;
+                            const canvasY = this.charY + row;
+                            
+                            // 在邻居位置绘制描边
+                            const outlineX = canvasX + neighbor.dx;
+                            const outlineY = canvasY + neighbor.dy;
+                            
+                            if (outlineX >= 0 && outlineX < this.canvas.width && 
+                                outlineY >= 0 && outlineY < this.canvas.height) {
+                                this.ctx.fillStyle = outlineColor;
+                                this.ctx.fillRect(outlineX, outlineY, 1, 1);
+                            }
                         } else {
-                            // 检查邻居像素的透明度
-                            const neighborIndex = (ny * this.charWidth + nx) * 4;
-                            const neighborAlpha = data[neighborIndex + 3];
+                            const neighborValue = this.characterData[nRow][nCol];
                             
                             // 如果邻居是透明的，绘制描边
-                            if (neighborAlpha === 0) {
-                                this.ctx.fillStyle = outlineColor;
-                                this.ctx.fillRect(
-                                    this.charX + nx,
-                                    this.charY + ny,
-                                    1, 1
-                                );
+                            if (neighborValue === null || neighborValue === '') {
+                                const canvasX = this.charX + col;
+                                const canvasY = this.charY + row;
+                                
+                                const outlineX = canvasX + neighbor.dx;
+                                const outlineY = canvasY + neighbor.dy;
+                                
+                                if (outlineX >= 0 && outlineX < this.canvas.width && 
+                                    outlineY >= 0 && outlineY < this.canvas.height) {
+                                    this.ctx.fillStyle = outlineColor;
+                                    this.ctx.fillRect(outlineX, outlineY, 1, 1);
+                                }
                             }
                         }
                     }
@@ -399,14 +442,17 @@ export default class PixelCanvasPage {
     }
 
     handleCanvasClick(e) {
+        if (!this.isDataLoaded || !this.characterData) return;
+        
         const rect = this.canvas.getBoundingClientRect();
         const scale = this.canvas.width / rect.width;
-        const x = (e.clientX - rect.left) * scale;
-        const y = (e.clientY - rect.top) * scale;
+        const x = Math.floor((e.clientX - rect.left) * scale);
+        const y = Math.floor((e.clientY - rect.top) * scale);
         
-        // 检查点击是否在角色范围内
+        // 检查点击是否在角色边界框范围内（整个角色区域，包括透明部分）
         if (x >= this.charX && x < this.charX + this.charWidth &&
             y >= this.charY && y < this.charY + this.charHeight) {
+            // 只要在角色边界框内就响应点击，不要求必须是像素位置
             // 切换选中状态
             this.isSelected = !this.isSelected;
             
@@ -494,24 +540,143 @@ export default class PixelCanvasPage {
         return shouldShow === 1 || shouldShow === 2;
     }
 
-    loadCharacter() {
-        this.characterImage = new Image();
+    async loadColorPalette() {
+        try {
+            // 尝试多个可能的路径（服务器可能在项目根目录或webview目录）
+            const paths = [
+                'webview/color.json',  // 服务器在项目根目录
+                '/color.json',         // 服务器在webview目录（绝对路径）
+                './color.json',        // 服务器在webview目录（相对路径）
+                '../../color.json'     // 备用相对路径
+            ];
+            let response = null;
+            let lastError = null;
+            
+            for (const path of paths) {
+                try {
+                    response = await fetch(path);
+                    if (response.ok) {
+                        console.log(`调色板路径成功: ${path}`);
+                        break;
+                    }
+                } catch (e) {
+                    lastError = e;
+                    continue;
+                }
+            }
+            
+            if (response && response.ok) {
+                const text = await response.text();
+                if (!text || text.trim().length === 0) {
+                    throw new Error('调色板文件为空');
+                }
+                this.colorPalette = JSON.parse(text);
+                console.log('调色板加载成功');
+            } else {
+                console.error('调色板加载失败: 所有路径都失败', lastError);
+            }
+        } catch (error) {
+            console.error('加载调色板失败:', error);
+        }
+    }
+
+    async loadCharacter() {
+        try {
+            // 尝试多个可能的路径（服务器可能在项目根目录或webview目录）
+            // 注意：调色板使用 ./color.json 成功，说明服务器在webview目录
+            const paths = [
+                './juese.json',        // 服务器在webview目录（相对路径，与color.json相同）
+                '../../juese.json',     // 备用相对路径
+                '/juese.json',          // 服务器在webview目录（绝对路径）
+                'webview/juese.json'    // 服务器在项目根目录
+            ];
+            let response = null;
+            let lastError = null;
+            let successfulPath = null;
+            
+            for (const path of paths) {
+                try {
+                    response = await fetch(path);
+                    if (response.ok) {
+                        // 克隆响应以便检查内容而不消费原始响应
+                        const clonedResponse = response.clone();
+                        const text = await clonedResponse.text();
+                        if (text && text.trim().length > 0) {
+                            console.log(`角色数据路径成功: ${path}, 文件大小: ${text.length} 字符`);
+                            successfulPath = path;
+                            break;
+                        } else {
+                            console.warn(`路径 ${path} 返回空文件`);
+                            response = null;
+                        }
+                    }
+                } catch (e) {
+                    lastError = e;
+                    response = null;
+                    continue;
+                }
+            }
+            
+            if (!response || !response.ok) {
+                throw new Error(`HTTP error! status: ${response ? response.status : 'no response'}, 最后错误: ${lastError}`);
+            }
+            
+            // 先获取文本，检查是否为空
+            const text = await response.text();
+            if (!text || text.trim().length === 0) {
+                throw new Error(`角色数据文件为空 (路径: ${successfulPath || '未知'})`);
+            }
+            
+            console.log(`文件内容长度: ${text.length} 字符, 前50字符: ${text.substring(0, 50)}`);
+            
+            // 尝试解析JSON
+            try {
+                this.characterData = JSON.parse(text);
+            } catch (parseError) {
+                console.error('JSON解析错误:', parseError);
+                console.error('文件内容前200字符:', text.substring(0, 200));
+                console.error('文件内容后200字符:', text.substring(Math.max(0, text.length - 200)));
+                throw new Error(`JSON解析失败: ${parseError.message}`);
+            }
+            
+            // 计算角色的实际尺寸（找出非null的边界）
+            this.calculateCharacterBounds();
+            
+            this.isDataLoaded = true;
+            console.log('角色数据加载成功', this.charWidth, 'x', this.charHeight);
+            
+            // 更新Canvas以重新计算角色位置
+            this.updateCanvas();
+        } catch (error) {
+            console.error('加载角色数据失败:', error);
+            if (this.ctx) {
+                this.ctx.fillStyle = '#000000';
+                this.ctx.font = '10px monospace';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('角色数据加载失败', this.canvasWidth / 2, this.canvas.height / 2);
+            }
+        }
+    }
+    
+    calculateCharacterBounds() {
+        if (!this.characterData || this.characterData.length === 0) {
+            this.charWidth = 0;
+            this.charHeight = 0;
+            return;
+        }
         
-        this.characterImage.onload = () => {
-            this.isImageLoaded = true;
-            console.log('图片加载成功', this.characterImage.width, 'x', this.characterImage.height);
-            this.redraw();
-        };
-
-        this.characterImage.onerror = () => {
-            console.error('图片加载失败，路径:', this.characterImage.src);
-            this.ctx.fillStyle = '#000000';
-            this.ctx.font = '10px monospace';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText('图片加载失败', this.canvasWidth / 2, this.canvas.height / 2);
-        };
-
-        this.characterImage.src = './assets/isPixel/像素角色.png';
+        // 使用整个数据数组的尺寸作为角色边界框
+        // 这样点击检测和绘制逻辑一致（都是从数组的(0,0)开始）
+        this.charHeight = this.characterData.length;
+        
+        // 找出数据数组的最大宽度
+        let maxWidth = 0;
+        for (let row = 0; row < this.characterData.length; row++) {
+            if (this.characterData[row] && this.characterData[row].length > maxWidth) {
+                maxWidth = this.characterData[row].length;
+            }
+        }
+        this.charWidth = maxWidth;
     }
 
     destroy() {
@@ -520,6 +685,7 @@ export default class PixelCanvasPage {
         if (this.canvas) {
             this.canvas.removeEventListener('click', this.handleCanvasClick);
         }
-        this.characterImage = null;
+        this.characterData = null;
+        this.colorPalette = null;
     }
 }
