@@ -24,8 +24,11 @@
       var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
       console.log('[Webview 强制刷新] 资源版本号:', v);
       
-      // 通过 JavaScript 动态写入 CSS，确保版本号透传到所有资源层级
-      document.write('<link rel="stylesheet" href="./styles.css?v=' + v + '">');
+      // 通过 DOM 操作动态加载 CSS，避免 document.write 阻塞
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = './styles.css?v=' + v;
+      document.head.appendChild(link);
     })();
   </script>
 </head>
@@ -118,10 +121,6 @@
     </nav>
   </div>
 
-  <script src="../mingdao/MingdaoQuery.js"></script>
-  <script src="../mingdao/MingdaoAdd.js"></script>
-  <script src="../mingdao/MingdaoUpdate.js"></script>
-  <script src="../mingdao/MingdaoArray.js"></script>
   <script>
     (function () {
       // 动态资源版本化：确保所有 JS 脚本都使用版本号
@@ -131,6 +130,10 @@
       
       // 动态注入所有 JS 脚本，确保版本号透传到所有资源层级
       var scripts = [
+        '../mingdao/MingdaoQuery.js',
+        '../mingdao/MingdaoAdd.js',
+        '../mingdao/MingdaoUpdate.js',
+        '../mingdao/MingdaoArray.js',
         './js/WechatLogin.js',
         './js/coze.js',
         './js/CozeWorkflow.js',
