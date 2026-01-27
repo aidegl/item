@@ -4802,7 +4802,17 @@ function generatePreReport(consultationId) {
     const reportData = collectFormData(form, preFields);
     
     // 添加患者信息
-    const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
+    let patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
+    
+    // 增强：如果当前患者ID未设置，尝试从咨询记录关联查找
+    if (!patient && consultationId) {
+        const consultation = AppState.consultations.find(c => c.id === consultationId) || 
+                             (AppState.allUserConsultations || []).find(c => c.id === consultationId);
+        if (consultation && consultation.patientId) {
+             patient = AppState.patients.find(p => p.id === consultation.patientId);
+        }
+    }
+
     if (patient) {
         reportData.patient_info = {
             name: patient.name,
@@ -4873,7 +4883,17 @@ function generatePostReport(consultationId) {
     const reportData = collectFormData(form, postFields);
     
     // 添加患者信息
-    const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
+    let patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
+    
+    // 增强：如果当前患者ID未设置，尝试从咨询记录关联查找
+    if (!patient && consultationId) {
+        const consultation = AppState.consultations.find(c => c.id === consultationId) || 
+                             (AppState.allUserConsultations || []).find(c => c.id === consultationId);
+        if (consultation && consultation.patientId) {
+             patient = AppState.patients.find(p => p.id === consultation.patientId);
+        }
+    }
+
     if (patient) {
         reportData.patient_info = {
             name: patient.name,
