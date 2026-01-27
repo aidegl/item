@@ -2692,6 +2692,7 @@ async function handleConsultationSubmit(event) {
         { "id": "phone", "controlId": "phone", "value": patientPhone }, // 患者电话：与患者信息表保持一致
         { "id": "yonghu", "controlId": "yonghu", "value": userRowId },
         { "id": "pzsgl", "controlId": "pzsgl", "value": userRowId }, // 陪诊师关联：设置为用户的rowid，用于关联查询
+        { "id": "yonghu_rowid", "controlId": "yonghu_rowid", "value": userRowId }, // 用户rowid：填登录用户的rowid
         { "id": "zhuangtai", "controlId": "zhuangtai", "value": zhuangtai },
         { "id": "del", "controlId": "del", "value": "0" }
     ];
@@ -4799,7 +4800,36 @@ function generatePreReport(consultationId) {
     ];
 
     const reportData = collectFormData(form, preFields);
+    
+    // 添加患者信息
+    const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
+    if (patient) {
+        reportData.patient_info = {
+            name: patient.name,
+            age: patient.age,
+            gender: patient.gender,
+            medical_history: patient.medicalHistory || patient.pastMedicalHistory || '无',
+            allergies: patient.allergies || patient.allergy_history || '无'
+        };
+    }
+    
     console.log('诊前报告数据:', JSON.stringify(reportData, null, 2));
+
+    // 调用Coze工作流
+    if (window.cozeWorkflow) {
+        window.cozeWorkflow.runReportGeneration(reportData, 'pre').then(result => {
+            if (result.success && result.data && result.data.data) {
+                console.log('诊前报告生成成功:', result.data.data);
+                showToast('诊前报告生成成功');
+                // 展示报告内容
+                showReportModal('诊前报告', result.data.data.output || JSON.stringify(result.data.data));
+            } else {
+                showToast('生成报告失败');
+            }
+        });
+    } else {
+        showToast('Coze组件未加载');
+    }
 }
 
 // 生成诊后报告
@@ -4841,7 +4871,76 @@ function generatePostReport(consultationId) {
     ];
 
     const reportData = collectFormData(form, postFields);
+    
+    // 添加患者信息
+    const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
+    if (patient) {
+        reportData.patient_info = {
+            name: patient.name,
+            age: patient.age,
+            gender: patient.gender,
+            medical_history: patient.medicalHistory || patient.pastMedicalHistory || '无',
+            allergies: patient.allergies || patient.allergy_history || '无'
+        };
+    }
+
     console.log('诊后报告数据:', JSON.stringify(reportData, null, 2));
+
+    // 调用Coze工作流
+    if (window.cozeWorkflow) {
+        window.cozeWorkflow.runReportGeneration(reportData, 'post').then(result => {
+            if (result.success && result.data && result.data.data) {
+                console.log('诊后报告生成成功:', result.data.data);
+                showToast('诊后报告生成成功');
+                showReportModal('诊后报告', result.data.data.output || JSON.stringify(result.data.data));
+            } else {
+                showToast('生成报告失败');
+            }
+        });
+    } else {
+        showToast('Coze组件未加载');
+    }
+}
+
+// 展示报告弹窗
+function showReportModal(title, content) {
+    const modalId = 'report-modal';
+    let modal = document.getElementById(modalId);
+    
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:center;align-items:center;padding:20px;';
+        document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = `
+        <div style="background:white;border-radius:12px;width:100%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+            <div style="padding:16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+                <h3 style="margin:0;font-size:18px;font-weight:600;">${title}</h3>
+                <button onclick="document.getElementById('${modalId}').style.display='none'" style="border:none;background:none;font-size:24px;cursor:pointer;">&times;</button>
+            </div>
+            <div style="padding:16px;overflow-y:auto;flex:1;white-space:pre-wrap;line-height:1.6;">${typeof content === 'string' ? content : JSON.stringify(content, null, 2)}</div>
+            <div style="padding:16px;border-top:1px solid #eee;text-align:right;">
+                <button class="btn btn-primary" onclick="copyToClipboard(this)" data-content="${encodeURIComponent(content)}" style="padding:8px 16px;border-radius:6px;background:#3b82f6;color:white;border:none;">复制内容</button>
+                <button class="btn" onclick="document.getElementById('${modalId}').style.display='none'" style="padding:8px 16px;border-radius:6px;margin-left:8px;border:1px solid #ddd;background:white;">关闭</button>
+            </div>
+        </div>
+    `;
+    modal.style.display = 'flex';
+}
+
+// 复制到剪贴板辅助函数
+function copyToClipboard(btn) {
+    const content = decodeURIComponent(btn.getAttribute('data-content'));
+    navigator.clipboard.writeText(content).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = '已复制!';
+        setTimeout(() => btn.textContent = originalText, 2000);
+    }).catch(err => {
+        console.error('复制失败:', err);
+        showToast('复制失败');
+    });
 }
 
 // ==================== 会员与订单功能 ====================

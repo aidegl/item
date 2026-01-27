@@ -4,12 +4,24 @@ class CozeWorkflow {
         this.apiUrl = 'https://api.coze.cn/v1/workflow/run';
         this.ocrWorkflowId = '7593545627851014196'; // OCR工作流ID
         this.sttWorkflowId = '7596225551557001225'; // 语音识别工作流ID
+        this.reportWorkflowId = '7597984172565233700'; // 报告生成工作流ID
         this.bearerToken = 'pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb'; // Coze API密钥
     }
 
     // 设置API密钥
     setApiKey(apiKey) {
         this.bearerToken = apiKey;
+    }
+
+    // 调用报告生成工作流
+    async runReportGeneration(data, reportType) {
+        const inputData = {
+            report_type: reportType, // 'pre' or 'post'
+            ...data
+        };
+        // 将JSON对象转换为字符串作为输入，或者直接传对象（取决于工作流定义）
+        // 假设工作流接受 JSON 字符串
+        return this.executeWorkflow(this.reportWorkflowId, JSON.stringify(inputData, null, 2), reportType === 'pre' ? '诊前报告生成' : '诊后报告生成');
     }
 
     // 调用语音识别提取工作流
