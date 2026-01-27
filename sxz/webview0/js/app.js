@@ -1186,6 +1186,24 @@ async function goToPatientDetail(patientId) {
     renderCurrentPage();
 }
 
+// 解析明道云图片字段
+function parseMingDaoPic(value) {
+    if (!value) return '';
+    if (typeof value === 'string' && value.startsWith('http')) return value;
+    try {
+        if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                // 优先使用 large_thumbnail_full_path，其次 file_path
+                return parsed[0].large_thumbnail_full_path || parsed[0].file_path || parsed[0].thumbnail_path || '';
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to parse MingDao pic:', e);
+    }
+    return value;
+}
+
 async function loadConsultations(patientId) {
     console.log('开始加载陪诊记录, patientId:', patientId);
     try {
@@ -1274,8 +1292,8 @@ async function loadConsultations(patientId) {
                 nurseReminder: row.pzszhtx,
                 medication: row.yyzd,
                 advice: row.nextAction,
-                zqbg: row.zqbg, // 诊前报告
-                zhbg: row.zhbg, // 诊后报告
+                zqbg: parseMingDaoPic(row.zqbg), // 诊前报告
+                zhbg: parseMingDaoPic(row.zhbg), // 诊后报告
                 shouzhen: (function (val) {
                     if (val == '1' || val == 1) return 1;
                     if (Array.isArray(val) && val[0] == '1') return 1;
@@ -1424,8 +1442,8 @@ async function loadAllUserConsultations() {
                     followupDate: row.hxfcap,
                     zhuangtai: row.zhuangtai,
                     specialNote: row.specialNote,
-                    zqbg: row.zqbg,
-                    zhbg: row.zhbg,
+                    zqbg: parseMingDaoPic(row.zqbg),
+                    zhbg: parseMingDaoPic(row.zhbg),
                     status: (function () {
                         if (row.zhuangtai === '已完成' || (row.specialNote && row.specialNote !== '未记录' && row.specialNote !== '')) {
                             return 'completed';
@@ -2306,26 +2324,27 @@ function renderConsultationFlow(container) {
                 ${isEditMode ? `
                 <div class="card mb-2">
                     <h3 class="card-title mb-2">诊前报告</h3>
-                    <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px;">
-                        ${consultation.zqbg ? `
-                            <a href="${consultation.zqbg}" target="_blank" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
-                                下载图片
-                            </a>
-                            <button type="button" class="btn btn-outline w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
-                                重新生成
-                            </button>
-                        ` : `
-                            <button type="button" class="btn btn-primary w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
-                                生成诊前报告
-                            </button>
-                        `}
-                        <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
-                            删除陪诊记录
-                        </button>
-                    </div>
                     <div id="pre-report-preview" style="display: ${isEditMode && consultation.zqbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
                         <img src="${isEditMode ? (consultation.zqbg || '') : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="诊前报告">
                     </div>
+                </div>
+
+                <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    ${consultation.zqbg ? `
+                        <a href="${consultation.zqbg}" target="_blank" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
+                            下载图片
+                        </a>
+                        <button type="button" class="btn btn-outline w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                            重新生成
+                        </button>
+                    ` : `
+                        <button type="button" class="btn btn-primary w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
+                            生成诊前报告
+                        </button>
+                    `}
+                    <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                        删除陪诊记录
+                    </button>
                 </div>
                 ` : ''}
                 </div>
@@ -4866,8 +4885,9 @@ function generatePreReport(consultationId) {
 
     // 调用Coze工作流
     if (window.cozeWorkflow) {
-        showToast('正在生成诊前报告...', 0);
+        showLoading('正在生成诊前报告...');
         window.cozeWorkflow.runReportGeneration(reportData, 'pre').then(result => {
+            hideLoading();
             if (result.success && result.data && result.data.data) {
                 console.log('诊前报告生成成功:', result.data.data);
                 showToast('诊前报告生成成功');
@@ -4967,8 +4987,9 @@ function generatePostReport(consultationId) {
 
     // 调用Coze工作流
     if (window.cozeWorkflow) {
-        showToast('正在生成诊后报告...', 0);
+        showLoading('正在生成诊后报告...');
         window.cozeWorkflow.runReportGeneration(reportData, 'post').then(result => {
+            hideLoading();
             if (result.success && result.data && result.data.data) {
                 console.log('诊后报告生成成功:', result.data.data);
                 showToast('诊后报告生成成功');
