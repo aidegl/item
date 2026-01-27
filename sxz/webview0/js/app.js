@@ -1274,6 +1274,8 @@ async function loadConsultations(patientId) {
                 nurseReminder: row.pzszhtx,
                 medication: row.yyzd,
                 advice: row.nextAction,
+                zqbg: row.zqbg, // 诊前报告
+                zhbg: row.zhbg, // 诊后报告
                 shouzhen: (function (val) {
                     if (val == '1' || val == 1) return 1;
                     if (Array.isArray(val) && val[0] == '1') return 1;
@@ -1422,6 +1424,8 @@ async function loadAllUserConsultations() {
                     followupDate: row.hxfcap,
                     zhuangtai: row.zhuangtai,
                     specialNote: row.specialNote,
+                    zqbg: row.zqbg,
+                    zhbg: row.zhbg,
                     status: (function () {
                         if (row.zhuangtai === '已完成' || (row.specialNote && row.specialNote !== '未记录' && row.specialNote !== '')) {
                             return 'completed';
@@ -2136,6 +2140,7 @@ function renderConsultationFlow(container) {
             <form id="consultationForm" onsubmit="handleConsultationSubmit(event)">
                 <!-- 诊前内容 -->
                 <div id="pre-tab" class="tab-content">
+                <input type="hidden" name="zqbg" id="zqbg_input" value="${isEditMode ? (consultation.zqbg || '') : ''}">
                 <div class="card mb-2">
                     <h3 class="card-title mb-2">语音记录</h3>
                     <div class="upload-voice-section" style="padding: 16px;">
@@ -2299,13 +2304,28 @@ function renderConsultationFlow(container) {
                 </div>
                 
                 ${isEditMode ? `
-                <div style="margin: 20px 0; padding: 0 16px; display: flex; flex-direction: column; gap: 12px;">
-                    <button type="button" class="btn btn-primary w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
-                        生成诊前报告
-                    </button>
-                    <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
-                        删除陪诊记录
-                    </button>
+                <div class="card mb-2">
+                    <h3 class="card-title mb-2">诊前报告</h3>
+                    <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px;">
+                        ${consultation.zqbg ? `
+                            <a href="${consultation.zqbg}" target="_blank" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
+                                下载图片
+                            </a>
+                            <button type="button" class="btn btn-outline w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                                重新生成
+                            </button>
+                        ` : `
+                            <button type="button" class="btn btn-primary w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
+                                生成诊前报告
+                            </button>
+                        `}
+                        <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                            删除陪诊记录
+                        </button>
+                    </div>
+                    <div id="pre-report-preview" style="display: ${isEditMode && consultation.zqbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
+                        <img src="${isEditMode ? (consultation.zqbg || '') : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="诊前报告">
+                    </div>
                 </div>
                 ` : ''}
                 </div>
@@ -2403,13 +2423,28 @@ function renderConsultationFlow(container) {
                     </div>
 
                     ${isEditMode ? `
-                    <div style="margin: 20px 0; padding: 0 16px;">
-                        <button type="button" class="btn btn-primary w-full" onclick="generatePostReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white; margin-bottom: 12px;">
-                            生成诊后报告
-                        </button>
-                        <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
-                            删除陪诊记录
-                        </button>
+                    <div class="card mb-2">
+                        <h3 class="card-title mb-2">诊后报告</h3>
+                        <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px;">
+                            ${consultation.zhbg ? `
+                                <a href="${consultation.zhbg}" target="_blank" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
+                                    下载图片
+                                </a>
+                                <button type="button" class="btn btn-outline w-full" onclick="generatePostReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                                    重新生成
+                                </button>
+                            ` : `
+                                <button type="button" class="btn btn-primary w-full" onclick="generatePostReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
+                                    生成诊后报告
+                                </button>
+                            `}
+                            <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                                删除陪诊记录
+                            </button>
+                        </div>
+                        <div id="post-report-preview" style="display: ${isEditMode && consultation.zhbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
+                            <img src="${isEditMode ? (consultation.zhbg || '') : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="诊后报告">
+                        </div>
                     </div>
                     ` : ''}
                 </div>
@@ -2694,6 +2729,8 @@ async function handleConsultationSubmit(event) {
         { "id": "pzsgl", "controlId": "pzsgl", "value": userRowId }, // 陪诊师关联：设置为用户的rowid，用于关联查询
         { "id": "yonghu_rowid", "controlId": "yonghu_rowid", "value": userRowId }, // 用户rowid：填登录用户的rowid
         { "id": "zhuangtai", "controlId": "zhuangtai", "value": zhuangtai },
+        { "id": "zqbg", "controlId": "zqbg", "value": formData.get('zqbg') || '' },
+        { "id": "zhbg", "controlId": "zhbg", "value": formData.get('zhbg') || '' },
         { "id": "del", "controlId": "del", "value": "0" }
     ];
 
@@ -2746,6 +2783,8 @@ async function handleConsultationSubmit(event) {
                 advice: formData.get('advice') || '',
                 shouzhen: parseInt(shouzhen),
                 fuid: fuid,
+                zqbg: formData.get('zqbg') || '',
+                zhbg: formData.get('zhbg') || '',
                 status: (formData.get('diagnosis') && formData.get('diagnosis') !== '') ? 'completed' : 'pending',
                 createdAt: new Date().toISOString()
             };
@@ -4827,12 +4866,32 @@ function generatePreReport(consultationId) {
 
     // 调用Coze工作流
     if (window.cozeWorkflow) {
+        showToast('正在生成诊前报告...', 0);
         window.cozeWorkflow.runReportGeneration(reportData, 'pre').then(result => {
             if (result.success && result.data && result.data.data) {
                 console.log('诊前报告生成成功:', result.data.data);
                 showToast('诊前报告生成成功');
+                
+                const imgUrl = result.data.data.img;
+                if (imgUrl) {
+                    // Update hidden input
+                    const zqbgInput = document.getElementById('zqbg_input');
+                    if (zqbgInput) {
+                        zqbgInput.value = imgUrl;
+                        zqbgInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    
+                    // Update preview
+                    const previewDiv = document.getElementById('pre-report-preview');
+                    if (previewDiv) {
+                        previewDiv.style.display = 'block';
+                        const img = previewDiv.querySelector('img');
+                        if (img) img.src = imgUrl;
+                    }
+                }
+
                 // 展示报告内容
-                showReportModal('诊前报告', result.data.data.output || JSON.stringify(result.data.data));
+                showReportModal('诊前报告', result.data.data.output || JSON.stringify(result.data.data), imgUrl);
             } else {
                 showToast('生成报告失败');
             }
@@ -4908,11 +4967,31 @@ function generatePostReport(consultationId) {
 
     // 调用Coze工作流
     if (window.cozeWorkflow) {
+        showToast('正在生成诊后报告...', 0);
         window.cozeWorkflow.runReportGeneration(reportData, 'post').then(result => {
             if (result.success && result.data && result.data.data) {
                 console.log('诊后报告生成成功:', result.data.data);
                 showToast('诊后报告生成成功');
-                showReportModal('诊后报告', result.data.data.output || JSON.stringify(result.data.data));
+                
+                const imgUrl = result.data.data.img;
+                if (imgUrl) {
+                    // Update hidden input
+                    const zhbgInput = document.getElementById('zhbg_input');
+                    if (zhbgInput) {
+                        zhbgInput.value = imgUrl;
+                        zhbgInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    
+                    // Update preview
+                    const previewDiv = document.getElementById('post-report-preview');
+                    if (previewDiv) {
+                        previewDiv.style.display = 'block';
+                        const img = previewDiv.querySelector('img');
+                        if (img) img.src = imgUrl;
+                    }
+                }
+
+                showReportModal('诊后报告', result.data.data.output || JSON.stringify(result.data.data), imgUrl);
             } else {
                 showToast('生成报告失败');
             }
@@ -4923,7 +5002,7 @@ function generatePostReport(consultationId) {
 }
 
 // 展示报告弹窗
-function showReportModal(title, content) {
+function showReportModal(title, content, imgUrl) {
     const modalId = 'report-modal';
     let modal = document.getElementById(modalId);
     
@@ -4933,6 +5012,46 @@ function showReportModal(title, content) {
         modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:center;align-items:center;padding:20px;';
         document.body.appendChild(modal);
     }
+
+    let contentHtml = '';
+    let footerHtml = '';
+
+    if (imgUrl) {
+        // 如果有图片，显示下载按钮，不显示文本内容
+        contentHtml = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 16px;">
+                <div style="margin-bottom: 24px; color: #10b981; font-size: 16px; font-weight: 500;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; display: block; margin: 0 auto 12px auto;">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    报告生成成功
+                </div>
+                <a href="${imgUrl}" download="report.png" target="_blank" class="btn btn-primary" style="padding: 12px 24px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; background-color: #3b82f6; color: white; font-weight: 500;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    下载图片
+                </a>
+            </div>
+        `;
+        footerHtml = `
+            <div style="padding:16px;border-top:1px solid #eee;text-align:right;">
+                <button class="btn" onclick="document.getElementById('${modalId}').style.display='none'" style="padding:8px 16px;border-radius:6px;border:1px solid #ddd;background:white;">关闭</button>
+            </div>
+        `;
+    } else {
+        // 没有图片，显示文本内容和复制按钮
+        contentHtml = `<div style="padding:16px;overflow-y:auto;flex:1;white-space:pre-wrap;line-height:1.6;">${typeof content === 'string' ? content : JSON.stringify(content, null, 2)}</div>`;
+        footerHtml = `
+            <div style="padding:16px;border-top:1px solid #eee;text-align:right;">
+                <button class="btn btn-primary" onclick="copyToClipboard(this)" data-content="${encodeURIComponent(content)}" style="padding:8px 16px;border-radius:6px;background:#3b82f6;color:white;border:none;">复制内容</button>
+                <button class="btn" onclick="document.getElementById('${modalId}').style.display='none'" style="padding:8px 16px;border-radius:6px;margin-left:8px;border:1px solid #ddd;background:white;">关闭</button>
+            </div>
+        `;
+    }
     
     modal.innerHTML = `
         <div style="background:white;border-radius:12px;width:100%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
@@ -4940,11 +5059,8 @@ function showReportModal(title, content) {
                 <h3 style="margin:0;font-size:18px;font-weight:600;">${title}</h3>
                 <button onclick="document.getElementById('${modalId}').style.display='none'" style="border:none;background:none;font-size:24px;cursor:pointer;">&times;</button>
             </div>
-            <div style="padding:16px;overflow-y:auto;flex:1;white-space:pre-wrap;line-height:1.6;">${typeof content === 'string' ? content : JSON.stringify(content, null, 2)}</div>
-            <div style="padding:16px;border-top:1px solid #eee;text-align:right;">
-                <button class="btn btn-primary" onclick="copyToClipboard(this)" data-content="${encodeURIComponent(content)}" style="padding:8px 16px;border-radius:6px;background:#3b82f6;color:white;border:none;">复制内容</button>
-                <button class="btn" onclick="document.getElementById('${modalId}').style.display='none'" style="padding:8px 16px;border-radius:6px;margin-left:8px;border:1px solid #ddd;background:white;">关闭</button>
-            </div>
+            ${contentHtml}
+            ${footerHtml}
         </div>
     `;
     modal.style.display = 'flex';
