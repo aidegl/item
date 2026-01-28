@@ -5304,24 +5304,6 @@ function previewImage(src) {
     const btnContainer = document.createElement('div');
     btnContainer.style.cssText = 'margin-top:20px;display:flex;gap:16px;z-index:10001;';
     
-    // 下载按钮
-    const downloadBtn = document.createElement('a');
-    downloadBtn.href = 'javascript:void(0)';
-    downloadBtn.className = 'btn btn-primary';
-    downloadBtn.style.cssText = 'padding:10px 24px;background:#3b82f6;color:white;text-decoration:none;border-radius:24px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(59,130,246,0.4);';
-    downloadBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        下载图片
-    `;
-    downloadBtn.onclick = (e) => {
-        e.stopPropagation();
-        downloadImage(src);
-    };
-    
     // 关闭按钮
     const closeBtn = document.createElement('button');
     closeBtn.className = 'btn';
@@ -5329,7 +5311,6 @@ function previewImage(src) {
     closeBtn.textContent = '关闭';
     closeBtn.onclick = () => document.body.removeChild(modal);
     
-    btnContainer.appendChild(downloadBtn);
     btnContainer.appendChild(closeBtn);
     
     // 添加长按保存提示
