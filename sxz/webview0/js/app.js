@@ -5228,8 +5228,7 @@ function previewImage(src) {
     // 图片
     const img = document.createElement('img');
     img.src = src;
-    img.style.cssText = 'max-width:100%;max-height:85vh;object-fit:contain;transition:transform 0.3s;cursor:default;';
-    img.onclick = (e) => e.stopPropagation(); // 防止点击图片关闭
+    img.style.cssText = 'max-width:100%;max-height:85vh;object-fit:contain;transition:transform 0.3s;cursor:zoom-out;';
     
     // 下载按钮容器
     const btnContainer = document.createElement('div');
