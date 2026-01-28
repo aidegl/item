@@ -30,7 +30,7 @@ body {
     -webkit-text-size-adjust: 100% !important;
     text-size-adjust: 100% !important;
     -moz-text-size-adjust: 100% !important;
-    overflow-x: hidden; /* 强制隐藏水平滚动条 */
+    /* overflow-x: hidden; 移除此行以尝试修复 position: sticky 在部分环境失效的问题 */
     width: 100%;
     /* 禁止文字选中和系统默认菜单 */
     -webkit-user-select: none !important;
@@ -55,7 +55,7 @@ body {
     min-height: 100vh;
     background-color: var(--bg-color);
     position: relative;
-    overflow-x: hidden; /* 强制隐藏水平滚动条，防止 iPhone 上意外溢出 */
+    /* overflow-x: hidden; 移除此行以修复 position: sticky 失效的问题 */
 }
 
 /* 主内容区域 */

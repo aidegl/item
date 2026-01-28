@@ -63,6 +63,11 @@
     function callAfterLoaded(fnName, args) {
         loadAppScript(function () {
             var fn = window[fnName];
+            // Prevent infinite recursion if app.js failed to override the function
+            if (core[fnName] && fn === core[fnName]) {
+                console.error('[app-core] Critical Error: ' + fnName + ' was not overridden by app.js. Possible syntax error in app.js.');
+                return;
+            }
             if (typeof fn === 'function') {
                 fn.apply(window, args || []);
             }

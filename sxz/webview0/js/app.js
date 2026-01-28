@@ -1011,6 +1011,126 @@ function getAIResponse(question) {
     return `我理解您的问题。作为陪诊助手，我建议：\n\n1. 保持专业和耐心\n2. 详细记录就诊信息\n3. 及时与患者和家属沟通\n4. 注意患者的情绪和需求\n\n如果您有更具体的问题，欢迎继续询问。您也可以在患者库中记录详细信息，我会根据患者情况提供更个性化的建议。`;
 }
 
+// ==================== 下拉刷新组件 ====================
+class PullToRefresh {
+    constructor(container, onRefresh) {
+        this.container = container;
+        this.onRefresh = onRefresh;
+        this.startY = 0;
+        this.currentY = 0;
+        this.isDragging = false;
+        this.isRefreshing = false;
+        this.threshold = 60; // 触发刷新的阈值
+        this.maxPull = 100; // 最大下拉距离
+
+        this.init();
+    }
+
+    init() {
+        // 创建下拉刷新提示元素
+        this.refreshIndicator = document.createElement('div');
+        this.refreshIndicator.className = 'ptr-indicator';
+        this.refreshIndicator.style.cssText = `
+            height: 0;
+            overflow: hidden;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: height 0.2s;
+            width: 100%;
+        `;
+        this.refreshIndicator.innerHTML = '下拉刷新...';
+        
+        // 插入到容器最前面
+        if (this.container.firstChild) {
+            this.container.insertBefore(this.refreshIndicator, this.container.firstChild);
+        } else {
+            this.container.appendChild(this.refreshIndicator);
+        }
+
+        // 绑定事件
+        this.container.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
+        this.container.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+        this.container.addEventListener('touchend', this.handleTouchEnd.bind(this));
+    }
+
+    handleTouchStart(e) {
+        // 只有当页面滚动到顶部时才触发
+        const scrollTop = this.container.scrollTop || window.scrollY;
+        if (scrollTop > 0) return;
+        
+        this.startY = e.touches[0].clientY;
+        // 只有在顶部向下拉时才触发
+        this.isDragging = true;
+    }
+
+    handleTouchMove(e) {
+        if (!this.isDragging || this.isRefreshing) return;
+        
+        const scrollTop = this.container.scrollTop || window.scrollY;
+        if (scrollTop > 0) {
+            this.isDragging = false;
+            return;
+        }
+
+        this.currentY = e.touches[0].clientY;
+        const diff = this.currentY - this.startY;
+
+        if (diff > 0) {
+            // 阻止默认滚动行为
+            if (e.cancelable) e.preventDefault();
+            
+            // 增加阻尼效果
+            const move = Math.min(diff * 0.5, this.maxPull);
+            this.refreshIndicator.style.height = `${move}px`;
+            
+            if (move >= this.threshold) {
+                this.refreshIndicator.innerHTML = '释放刷新...';
+            } else {
+                this.refreshIndicator.innerHTML = '下拉刷新...';
+            }
+        }
+    }
+
+    async handleTouchEnd(e) {
+        if (!this.isDragging || this.isRefreshing) return;
+        
+        this.isDragging = false;
+        const diff = this.currentY - this.startY;
+        
+        if (diff * 0.5 >= this.threshold) {
+            this.isRefreshing = true;
+            this.refreshIndicator.style.height = '40px';
+            this.refreshIndicator.innerHTML = '正在刷新...';
+            
+            try {
+                await this.onRefresh();
+            } catch (err) {
+                console.error('Refresh failed:', err);
+                showToast('刷新失败');
+            } finally {
+                // 注意：如果 refresh 导致页面重绘，这里的 finally 可能不会按预期执行（因为 DOM 被销毁）
+                // 但如果是在当前 DOM 上更新，这里是必要的
+                if (document.body.contains(this.refreshIndicator)) {
+                    this.isRefreshing = false;
+                    this.refreshIndicator.style.height = '0';
+                    setTimeout(() => {
+                        if (this.refreshIndicator) this.refreshIndicator.innerHTML = '下拉刷新...';
+                    }, 200);
+                }
+            }
+        } else {
+            this.refreshIndicator.style.height = '0';
+        }
+        
+        this.startY = 0;
+        this.currentY = 0;
+    }
+}
+
 // ==================== 患者列表页面 ====================
 // 添加一个标志位，防止API请求无限循环
 let isFetchingPatients = false;
@@ -1078,6 +1198,28 @@ function renderPatientList(container) {
             `}
         </div>
     `;
+
+    // 初始化下拉刷新
+    const listContainer = document.getElementById('patients-list-container');
+    if (listContainer && isLoggedIn) {
+        new PullToRefresh(listContainer, async () => {
+            let openid = '';
+            if (window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function') {
+                const userInfo = window.wechatLogin.getUserInfo();
+                openid = userInfo?.openid || '';
+            }
+            if (!openid) {
+                openid = localStorage.getItem('openid') || '';
+            }
+            
+            if (openid) {
+                // 这里调用 fetchPatientData，它会更新数据并重新渲染页面
+                // 由于 renderCurrentPage 会重绘 DOM，导致 PullToRefresh 实例销毁
+                // 这是符合预期的
+                await fetchPatientData(openid);
+            }
+        });
+    }
 }
 
 function renderEmptyPatients() {
@@ -1900,6 +2042,19 @@ function renderPatientDetail(container) {
             </div>
         </div>
     `;
+
+    // 初始化下拉刷新
+    const listContainer = document.getElementById('orders-list-container');
+    if (listContainer) {
+        new PullToRefresh(listContainer, async () => {
+             if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+                await new Promise(resolve => setTimeout(resolve, 800)); // 模拟刷新
+                renderCurrentPage();
+            } else {
+                 await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        });
+    }
 }
 
 function startConsultation(patientId) {
@@ -2324,24 +2479,35 @@ function renderConsultationFlow(container) {
                 ${isEditMode ? `
                 <div class="card mb-2">
                     <h3 class="card-title mb-2">诊前报告</h3>
+                    <div id="pre-report-status" style="display: none; padding: 20px; text-align: center; color: var(--primary-color);">
+                        <div style="display: inline-block; width: 20px; height: 20px; border: 2px solid var(--primary-color); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle;"></div>
+                        <span style="vertical-align: middle;">正在生成诊前报告...</span>
+                    </div>
                     <div id="pre-report-preview" style="display: ${isEditMode && consultation.zqbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
-                        <img src="${isEditMode ? (consultation.zqbg || '') : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="诊前报告">
+                        <img src="${isEditMode ? parseMingDaoPic(consultation.zqbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="诊前报告">
                     </div>
                 </div>
 
-                <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                <div style="margin-bottom: 12px;">
                     ${consultation.zqbg ? `
-                        <a href="${consultation.zqbg}" target="_blank" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
-                            下载图片
-                        </a>
-                        <button type="button" class="btn btn-outline w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
-                            重新生成
-                        </button>
+                        <div style="display: flex; gap: 10px;">
+                            <a href="${parseMingDaoPic(consultation.zqbg)}" target="_blank" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
+                                下载图片
+                            </a>
+                            <button type="button" class="btn btn-outline w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                                重新生成
+                            </button>
+                        </div>
                     ` : `
-                        <button type="button" class="btn btn-primary w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
+                        <button type="button" class="btn btn-primary w-full" id="btn-generate-pre" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
                             生成诊前报告
                         </button>
                     `}
+                </div>
+                ` : ''}
+
+                ${isEditMode ? `
+                <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                     <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
                         删除陪诊记录
                     </button>
@@ -2446,7 +2612,7 @@ function renderConsultationFlow(container) {
                         <h3 class="card-title mb-2">诊后报告</h3>
                         <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px;">
                             ${consultation.zhbg ? `
-                                <a href="${consultation.zhbg}" target="_blank" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
+                                <a href="${parseMingDaoPic(consultation.zhbg)}" target="_blank" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
                                     下载图片
                                 </a>
                                 <button type="button" class="btn btn-outline w-full" onclick="generatePostReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
@@ -2462,7 +2628,7 @@ function renderConsultationFlow(container) {
                             </button>
                         </div>
                         <div id="post-report-preview" style="display: ${isEditMode && consultation.zhbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
-                            <img src="${isEditMode ? (consultation.zhbg || '') : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="诊后报告">
+                            <img src="${isEditMode ? parseMingDaoPic(consultation.zhbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" alt="诊后报告" onclick="previewImage(this.src)">
                         </div>
                     </div>
                     ` : ''}
@@ -3964,7 +4130,7 @@ async function renderRecordsList(container) {
             </div>
         </div>
         
-        <div class="p-2">
+        <div class="p-2" id="records-list-container">
             ${isLoggedIn ? `
                 <!-- 待处理提醒 -->
                 <div class="card mb-2">
@@ -4040,6 +4206,14 @@ async function renderRecordsList(container) {
             `}
         </div>
     `;
+
+    // 初始化下拉刷新
+    const listContainer = document.getElementById('records-list-container');
+    if (listContainer && isLoggedIn) {
+        new PullToRefresh(listContainer, async () => {
+             await loadAllUserConsultations();
+        });
+    }
 }
 
 async function refreshMemoData() {
@@ -4628,7 +4802,7 @@ function fetchPatientData(userId) {
     console.log('患者数据API请求头:', headers);
 
     // 调用明道云的getFilterRows接口获取患者数据
-    fetch('https://api.mingdao.com/v2/open/worksheet/getFilterRows', {
+    return fetch('https://api.mingdao.com/v2/open/worksheet/getFilterRows', {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(patientData)
@@ -4885,9 +5059,17 @@ function generatePreReport(consultationId) {
 
     // 调用Coze工作流
     if (window.cozeWorkflow) {
-        showLoading('正在生成诊前报告...');
+        // showLoading('正在生成诊前报告...'); // Use inline status instead
+        const statusDiv = document.getElementById('pre-report-status');
+        const generateBtn = document.getElementById('btn-generate-pre');
+        
+        if (statusDiv) statusDiv.style.display = 'block';
+        if (generateBtn) generateBtn.style.display = 'none';
+
         window.cozeWorkflow.runReportGeneration(reportData, 'pre').then(result => {
-            hideLoading();
+            // hideLoading();
+            if (statusDiv) statusDiv.style.display = 'none';
+            
             if (result.success && result.data && result.data.data) {
                 console.log('诊前报告生成成功:', result.data.data);
                 showToast('诊前报告生成成功');
@@ -4911,7 +5093,7 @@ function generatePreReport(consultationId) {
                 }
 
                 // 展示报告内容
-                showReportModal('诊前报告', result.data.data.output || JSON.stringify(result.data.data), imgUrl);
+                // showReportModal('诊前报告', result.data.data.output || JSON.stringify(result.data.data), imgUrl);
             } else {
                 showToast('生成报告失败');
             }
@@ -5012,7 +5194,8 @@ function generatePostReport(consultationId) {
                     }
                 }
 
-                showReportModal('诊后报告', result.data.data.output || JSON.stringify(result.data.data), imgUrl);
+                // 展示报告内容
+                // showReportModal('诊后报告', result.data.data.output || JSON.stringify(result.data.data), imgUrl);
             } else {
                 showToast('生成报告失败');
             }
@@ -5022,69 +5205,65 @@ function generatePostReport(consultationId) {
     }
 }
 
+/*
 // 展示报告弹窗
 function showReportModal(title, content, imgUrl) {
-    const modalId = 'report-modal';
-    let modal = document.getElementById(modalId);
-    
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = modalId;
-        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:center;align-items:center;padding:20px;';
-        document.body.appendChild(modal);
-    }
+    // Deprecated
+}
+*/
 
-    let contentHtml = '';
-    let footerHtml = '';
-
-    if (imgUrl) {
-        // 如果有图片，显示下载按钮，不显示文本内容
-        contentHtml = `
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 16px;">
-                <div style="margin-bottom: 24px; color: #10b981; font-size: 16px; font-weight: 500;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; display: block; margin: 0 auto 12px auto;">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                    报告生成成功
-                </div>
-                <a href="${imgUrl}" download="report.png" target="_blank" class="btn btn-primary" style="padding: 12px 24px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; background-color: #3b82f6; color: white; font-weight: 500;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    下载图片
-                </a>
-            </div>
-        `;
-        footerHtml = `
-            <div style="padding:16px;border-top:1px solid #eee;text-align:right;">
-                <button class="btn" onclick="document.getElementById('${modalId}').style.display='none'" style="padding:8px 16px;border-radius:6px;border:1px solid #ddd;background:white;">关闭</button>
-            </div>
-        `;
-    } else {
-        // 没有图片，显示文本内容和复制按钮
-        contentHtml = `<div style="padding:16px;overflow-y:auto;flex:1;white-space:pre-wrap;line-height:1.6;">${typeof content === 'string' ? content : JSON.stringify(content, null, 2)}</div>`;
-        footerHtml = `
-            <div style="padding:16px;border-top:1px solid #eee;text-align:right;">
-                <button class="btn btn-primary" onclick="copyToClipboard(this)" data-content="${encodeURIComponent(content)}" style="padding:8px 16px;border-radius:6px;background:#3b82f6;color:white;border:none;">复制内容</button>
-                <button class="btn" onclick="document.getElementById('${modalId}').style.display='none'" style="padding:8px 16px;border-radius:6px;margin-left:8px;border:1px solid #ddd;background:white;">关闭</button>
-            </div>
-        `;
-    }
+// 图片预览功能
+function previewImage(src) {
+    if (!src) return;
     
-    modal.innerHTML = `
-        <div style="background:white;border-radius:12px;width:100%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-            <div style="padding:16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
-                <h3 style="margin:0;font-size:18px;font-weight:600;">${title}</h3>
-                <button onclick="document.getElementById('${modalId}').style.display='none'" style="border:none;background:none;font-size:24px;cursor:pointer;">&times;</button>
-            </div>
-            ${contentHtml}
-            ${footerHtml}
-        </div>
+    // 创建全屏遮罩
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:10000;display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:zoom-out;animation:fadeIn 0.2s ease-out;';
+    modal.onclick = (e) => {
+        if (e.target === modal || e.target.tagName === 'IMG') {
+            document.body.removeChild(modal);
+        }
+    };
+    
+    // 图片
+    const img = document.createElement('img');
+    img.src = src;
+    img.style.cssText = 'max-width:100%;max-height:85vh;object-fit:contain;transition:transform 0.3s;cursor:default;';
+    img.onclick = (e) => e.stopPropagation(); // 防止点击图片关闭
+    
+    // 下载按钮容器
+    const btnContainer = document.createElement('div');
+    btnContainer.style.cssText = 'margin-top:20px;display:flex;gap:16px;z-index:10001;';
+    
+    // 下载按钮
+    const downloadBtn = document.createElement('a');
+    downloadBtn.href = src;
+    downloadBtn.download = 'report.png'; // 默认文件名
+    downloadBtn.className = 'btn btn-primary';
+    downloadBtn.style.cssText = 'padding:10px 24px;background:#3b82f6;color:white;text-decoration:none;border-radius:24px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(59,130,246,0.4);';
+    downloadBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        下载图片
     `;
-    modal.style.display = 'flex';
+    downloadBtn.onclick = (e) => e.stopPropagation();
+    
+    // 关闭按钮
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'btn';
+    closeBtn.style.cssText = 'padding:10px 24px;background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:24px;cursor:pointer;backdrop-filter:blur(4px);';
+    closeBtn.textContent = '关闭';
+    closeBtn.onclick = () => document.body.removeChild(modal);
+    
+    btnContainer.appendChild(downloadBtn);
+    btnContainer.appendChild(closeBtn);
+    
+    modal.appendChild(img);
+    modal.appendChild(btnContainer);
+    document.body.appendChild(modal);
 }
 
 // 复制到剪贴板辅助函数
@@ -5106,7 +5285,7 @@ function showMyOrders() {
 }
 
 // 渲染我的订单页面
-function renderMyOrdersPage() {
+async function renderMyOrdersPage(refresh = false) {
     const container = document.getElementById('main-content');
     const bottomNav = document.querySelector('.bottom-nav');
 
@@ -5115,13 +5294,56 @@ function renderMyOrdersPage() {
         bottomNav.style.display = 'none';
     }
 
-    // Mock数据 - 我的订单 (仅显示已完成记录)
-    const myOrders = [
-        { id: 'ORD20260112001', date: '2026-01-12 10:30', name: '高级套餐 (3个月)', price: 258, status: '已支付', statusClass: 'success', type: 'membership' },
-        { id: 'ORD20260105002', date: '2026-01-05 15:45', name: '资源点充值 (100点)', price: 99, status: '已支付', statusClass: 'success', type: 'resource' },
-        { id: 'ORD20251228003', date: '2025-12-28 09:20', name: '基础套餐 (1个月)', price: 99, status: '已完成', statusClass: 'secondary', type: 'membership' },
-        { id: 'ORD20251215004', date: '2025-12-15 14:10', name: '资源点充值 (50点)', price: 50, status: '已完成', statusClass: 'secondary', type: 'resource' }
-    ];
+    // 获取真实数据 - 我的订单
+    let myOrders = [];
+    
+    if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+        const userInfo = window.wechatLogin.getUserInfo();
+        const rawUser = userInfo && userInfo.raw ? userInfo.raw : null;
+        const userId = rawUser && rawUser.rowid ? rawUser.rowid : null;
+
+        if (userId && window.fetchUserRecords) {
+            try {
+                const allRecords = await window.fetchUserRecords(userId);
+                
+                // 筛选订单记录: 
+                // 1. 会员充值 (hycz == '1' 或 true)
+                // 2. 资源点充值 (jine > 0)
+                const orderRecords = allRecords.filter(r => {
+                    const isMemberRecharge = r.hycz === '1' || r.hycz === true || r.hycz === 'true';
+                    const isResourceRecharge = (parseFloat(r.jine) > 0);
+                    return isMemberRecharge || isResourceRecharge;
+                });
+                
+                myOrders = orderRecords.map(r => {
+                    const isMember = r.hycz === '1' || r.hycz === true || r.hycz === 'true';
+                    const name = r.mingcheng || (isMember ? '会员充值' : `充值 ${r.token || 0} 资源点`);
+                    return {
+                        id: r.rowid ? r.rowid.substring(0, 8).toUpperCase() : 'UNKNOWN',
+                        date: r.ctime ? formatDateTimeForInput(r.ctime).replace('T', ' ') : '',
+                        name: name,
+                        price: r.jine || 0,
+                        status: '已完成', 
+                        statusClass: 'success',
+                        type: isMember ? 'membership' : 'resource'
+                    };
+                });
+
+            } catch (e) {
+                console.error('获取订单记录失败:', e);
+                showToast('获取数据失败');
+            }
+        }
+    }
+
+    // 如果没有数据，显示空状态或保留少量Mock数据用于演示（可选）
+    if (myOrders.length === 0 && !window.wechatLogin?.isLoggedIn()) {
+         // Mock数据 - 我的订单 (仅显示已完成记录) - 仅未登录时显示
+        myOrders = [
+            { id: 'ORD20260112001', date: '2026-01-12 10:30', name: '高级套餐 (3个月)', price: 258, status: '已支付', statusClass: 'success', type: 'membership' },
+            { id: 'ORD20260105002', date: '2026-01-05 15:45', name: '资源点充值 (100点)', price: 99, status: '已支付', statusClass: 'success', type: 'resource' }
+        ];
+    }
 
     container.innerHTML = `
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
@@ -5146,7 +5368,7 @@ function renderMyOrdersPage() {
             <button class="tab-btn" onclick="switchOrderTab('resource')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">资源点</button>
         </div>
         
-        <div class="p-2">
+        <div class="p-2" id="orders-list-container">
             <!-- 全部订单 -->
             <div id="all-orders" class="tab-content active">
                 ${myOrders.map(order => `
@@ -5222,6 +5444,18 @@ function renderMyOrdersPage() {
             </div>
         </div>
     `;
+
+    // 初始化下拉刷新
+    const listContainer = document.getElementById('orders-list-container');
+    if (listContainer) {
+        new PullToRefresh(listContainer, async () => {
+             if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+                await renderMyOrdersPage(true); // true for refresh
+            } else {
+                 await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        });
+    }
 }
 
 // 我的订单tab切换功能
@@ -5575,7 +5809,7 @@ function showMembershipBenefits() {
 }
 
 // 渲染消耗明细页面
-function renderConsumptionDetailsPage() {
+async function renderConsumptionDetailsPage(refresh = false) {
     const container = document.getElementById('main-content');
     const bottomNav = document.querySelector('.bottom-nav');
 
@@ -5584,22 +5818,67 @@ function renderConsumptionDetailsPage() {
         bottomNav.style.display = 'none';
     }
 
-    // Mock数据 - 资源点消耗明细
-    const resourceConsumption = [
-        { id: 1, date: '2026-01-10', description: 'AI健康咨询', amount: -5, balance: 125 },
-        { id: 2, date: '2026-01-08', description: '药品信息查询', amount: -3, balance: 130 },
-        { id: 3, date: '2026-01-05', description: '资源点充值', amount: 100, balance: 133 },
-        { id: 4, date: '2026-01-03', description: 'AI健康咨询', amount: -5, balance: 33 },
-        { id: 5, date: '2026-01-01', description: '新年福利', amount: 50, balance: 38 }
-    ];
+    // 获取真实数据
+    let resourceConsumption = [];
+    let reportGeneration = [];
 
-    // Mock数据 - 报告生成明细
-    const reportGeneration = [
-        { id: 1, date: '2026-01-09', patient: '张三', type: '诊断报告', status: '已完成' },
-        { id: 2, date: '2026-01-06', patient: '李四', type: '陪诊记录', status: '已完成' },
-        { id: 3, date: '2026-01-04', patient: '王五', type: '诊断报告', status: '已完成' },
-        { id: 4, date: '2026-01-02', patient: '赵六', type: '健康评估', status: '已完成' }
-    ];
+    if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+        const userInfo = window.wechatLogin.getUserInfo();
+        const rawUser = userInfo && userInfo.raw ? userInfo.raw : null;
+        const userId = rawUser && rawUser.rowid ? rawUser.rowid : null;
+
+        if (userId && window.fetchUserRecords) {
+            try {
+                const allRecords = await window.fetchUserRecords(userId);
+                
+                // 1. 资源点消耗明细 (token 不为 0)
+                resourceConsumption = allRecords
+                    .filter(r => r.token && parseFloat(r.token) !== 0)
+                    .map(r => ({
+                        id: r.rowid,
+                        date: r.ctime ? formatDateTimeForInput(r.ctime).replace('T', ' ') : '',
+                        description: r.xhmx || r.mingcheng || '资源点变动',
+                        amount: parseFloat(r.token),
+                        balance: null // 暂无历史余额数据
+                    }));
+
+                // 2. 报告生成明细 (名称或详情包含"报告")
+                reportGeneration = allRecords
+                    .filter(r => (r.mingcheng && r.mingcheng.includes('报告')) || (r.xhmx && r.xhmx.includes('报告')))
+                    .map(r => ({
+                        id: r.rowid,
+                        date: r.ctime ? formatDateTimeForInput(r.ctime).replace('T', ' ') : '',
+                        patient: r.mingcheng || '未知', // 暂时使用名称代替患者
+                        type: r.mingcheng || '诊后报告',
+                        status: '已完成'
+                    }));
+
+            } catch (e) {
+                console.error('获取消耗明细失败:', e);
+                showToast('获取数据失败');
+            }
+        }
+    }
+
+    // 如果没有数据且未登录，显示Mock数据
+    if (resourceConsumption.length === 0 && reportGeneration.length === 0 && !window.wechatLogin?.isLoggedIn()) {
+        // Mock数据 - 资源点消耗明细
+        resourceConsumption = [
+            { id: 1, date: '2026-01-10', description: 'AI健康咨询', amount: -5, balance: 125 },
+            { id: 2, date: '2026-01-08', description: '药品信息查询', amount: -3, balance: 130 },
+            { id: 3, date: '2026-01-05', description: '资源点充值', amount: 100, balance: 133 },
+            { id: 4, date: '2026-01-03', description: 'AI健康咨询', amount: -5, balance: 33 },
+            { id: 5, date: '2026-01-01', description: '新年福利', amount: 50, balance: 38 }
+        ];
+
+        // Mock数据 - 报告生成明细
+        reportGeneration = [
+            { id: 1, date: '2026-01-09', patient: '张三', type: '诊断报告', status: '已完成' },
+            { id: 2, date: '2026-01-06', patient: '李四', type: '陪诊记录', status: '已完成' },
+            { id: 3, date: '2026-01-04', patient: '王五', type: '诊断报告', status: '已完成' },
+            { id: 4, date: '2026-01-02', patient: '赵六', type: '健康评估', status: '已完成' }
+        ];
+    }
 
     container.innerHTML = `
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
@@ -5623,7 +5902,7 @@ function renderConsumptionDetailsPage() {
             <button class="tab-btn" onclick="switchConsumptionTab('reports')" style="flex: 1; padding: 4px 12px 12px 12px; border: none; background: none; font-weight: 500; position: relative;">报告生成</button>
         </div>
         
-        <div class="p-2">
+        <div class="p-2" id="consumption-list-container">
         
         <!-- 资源点消耗明细 -->
         <div id="resources" class="tab-content active">
@@ -5641,10 +5920,11 @@ function renderConsumptionDetailsPage() {
                                 <div style="font-size: 14px; ${item.amount < 0 ? 'color: var(--danger-color);' : 'color: var(--success-color);'}">
                                     ${item.amount > 0 ? '+' : ''}${item.amount}
                                 </div>
-                                <div style="font-size: 12px; color: var(--text-secondary);">余额: ${item.balance}</div>
+                                ${item.balance !== null ? `<div style="font-size: 12px; color: var(--text-secondary);">余额: ${item.balance}</div>` : ''}
                             </div>
                         </div>
                     `).join('')}
+                    ${resourceConsumption.length === 0 ? '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无记录</div>' : ''}
                 </div>
             </div>
         </div>
@@ -5662,16 +5942,29 @@ function renderConsumptionDetailsPage() {
                                 <div class="badge badge-success">${item.status}</div>
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div style="font-size: 12px; color: var(--text-secondary);">患者: ${item.patient}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">详情: ${item.patient}</div>
                                 <div style="font-size: 12px; color: var(--text-secondary);">${item.date}</div>
                             </div>
                         </div>
                     `).join('')}
+                    ${reportGeneration.length === 0 ? '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无记录</div>' : ''}
                 </div>
             </div>
         </div>
         </div>
     `;
+
+    // 初始化下拉刷新
+    const listContainer = document.getElementById('consumption-list-container');
+    if (listContainer) {
+        new PullToRefresh(listContainer, async () => {
+             if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+                await renderConsumptionDetailsPage(true); // 刷新数据
+            } else {
+                 await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        });
+    }
 }
 
 // 消耗明细tab切换功能
