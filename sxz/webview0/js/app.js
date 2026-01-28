@@ -5239,6 +5239,15 @@ function showReportModal(title, content, imgUrl) {
 function downloadImage(url, filename = 'report.png') {
     if (!url) return;
     
+    // 检测微信环境
+    const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+    
+    // 微信环境下，提示长按保存
+    if (isWeChat) {
+        showToast('请长按图片保存到相册', 3000);
+        return;
+    }
+    
     // 创建loading提示
     const toast = document.createElement('div');
     toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:white;padding:12px 24px;border-radius:8px;z-index:20000;font-size:14px;';
@@ -5323,8 +5332,16 @@ function previewImage(src) {
     btnContainer.appendChild(downloadBtn);
     btnContainer.appendChild(closeBtn);
     
+    // 添加长按保存提示
+    const tip = document.createElement('div');
+    tip.style.cssText = 'color:rgba(255,255,255,0.7);font-size:13px;margin-top:12px;text-align:center;';
+    tip.textContent = '长按图片可保存到相册';
+    
     modal.appendChild(img);
     modal.appendChild(btnContainer);
+    if (/MicroMessenger/i.test(navigator.userAgent)) {
+        modal.appendChild(tip);
+    }
     document.body.appendChild(modal);
 }
 
