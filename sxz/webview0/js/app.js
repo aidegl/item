@@ -36,7 +36,7 @@ window.testSpeechToText = function (type = 'default') {
     }
 
     console.log(`--- 语音转文字测试 (${type}) (v1.0.19) ---`);
-    
+
     // 检查是否已经登录
     const loginResult = checkLoginAndProceed();
     console.log('登录检查结果:', loginResult);
@@ -46,23 +46,23 @@ window.testSpeechToText = function (type = 'default') {
     }
 
     // 优先尝试在小程序环境中直接跳转到原生录音页面
-        try {
-            const wx = window.wx;
-            console.log('检测微信 SDK:', !!wx, !!(wx && wx.miniProgram));
-            
-            // [调试日志] 记录录音前的类型判断
-            console.log(`🔍 [录音前检查] 准备启动录音，当前判断类型为: 【${type === 'pre' ? '诊前' : (type === 'post' ? '诊后' : '通用/默认')}】 (代码: ${type})`);
+    try {
+        const wx = window.wx;
+        console.log('检测微信 SDK:', !!wx, !!(wx && wx.miniProgram));
 
-            if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
+        // [调试日志] 记录录音前的类型判断
+        console.log(`🔍 [录音前检查] 准备启动录音，当前判断类型为: 【${type === 'pre' ? '诊前' : (type === 'post' ? '诊后' : '通用/默认')}】 (代码: ${type})`);
+
+        if (wx && wx.miniProgram && typeof wx.miniProgram.navigateTo === 'function') {
             const targetUrl = `/pages/recorder/index?from=webview&type=${type}&timestamp=` + Date.now();
             console.log('准备跳转小程序原生页面:', targetUrl);
-            
+
             wx.miniProgram.navigateTo({
                 url: targetUrl,
-                success: function() {
+                success: function () {
                     console.log('小程序跳转指令发送成功');
                 },
-                fail: function(err) {
+                fail: function (err) {
                     console.error('小程序跳转失败:', err);
                     if (typeof showToast === 'function') showToast('跳转失败，请重试');
                 }
@@ -215,7 +215,7 @@ const AppState = {
         this.checkOnboarding();
         initDevMode(); // 初始化开发模式
         this.initHashChangeListener(); // 初始化 Hash 监听
-        
+
         // 初始加载也检查一次 Hash (防止 redirectTo 时 hashchange 不触发)
         this.handleHashData(window.location.hash);
     },
@@ -227,7 +227,7 @@ const AppState = {
             console.log('[步骤11] WebView 内部：监听到 Hash 变化, 新 Hash:', hash);
             this.handleHashData(hash);
         });
-        
+
         // 兼容性处理：每 500ms 检查一次 hash，防止某些环境 hashchange 不触发
         setInterval(() => {
             const currentHash = window.location.hash;
@@ -250,18 +250,18 @@ const AppState = {
             // 使用更健壮的解析方式
             const hashClean = hash.startsWith('#') ? hash.substring(1) : hash;
             const params = new URLSearchParams(hashClean);
-            
+
             const resultText = params.get('stt_result');
             let sttType = params.get('stt_type');
-            
+
             // 尝试从原始 hash 字符串中正则表达式提取作为兜底
             if (!sttType) {
                 const match = hash.match(/stt_type=([^&]*)/);
                 if (match) sttType = decodeURIComponent(match[1]);
             }
-            
+
             sttType = sttType || 'default';
-            
+
             // 额外清理 sttType，防止包含多余空格或引号
             sttType = sttType.trim().replace(/['"]/g, '');
 
@@ -787,7 +787,7 @@ function handleImageUpload(input) {
                     AppState.chatMessages.splice(loadingMsgIndex, 1);
 
                     const mockUrl = "https://via.placeholder.com/300x400?text=Mock+Image";
-                    
+
                     // 模拟用户发送图片
                     AppState.chatMessages.push({
                         role: 'user',
@@ -802,7 +802,7 @@ function handleImageUpload(input) {
                         content: `(开发环境模拟) 文件上传成功！\n临时链接: ${mockUrl}`,
                         timestamp: new Date().toISOString()
                     });
-                    
+
                     // 模拟助手回复
                     AppState.chatMessages.push({
                         role: 'assistant',
@@ -1043,7 +1043,7 @@ class PullToRefresh {
             width: 100%;
         `;
         this.refreshIndicator.innerHTML = '下拉刷新...';
-        
+
         // 插入到容器最前面
         if (this.container.firstChild) {
             this.container.insertBefore(this.refreshIndicator, this.container.firstChild);
@@ -1061,7 +1061,7 @@ class PullToRefresh {
         // 只有当页面滚动到顶部时才触发
         const scrollTop = this.container.scrollTop || window.scrollY;
         if (scrollTop > 0) return;
-        
+
         this.startY = e.touches[0].clientY;
         // 只有在顶部向下拉时才触发
         this.isDragging = true;
@@ -1069,7 +1069,7 @@ class PullToRefresh {
 
     handleTouchMove(e) {
         if (!this.isDragging || this.isRefreshing) return;
-        
+
         const scrollTop = this.container.scrollTop || window.scrollY;
         if (scrollTop > 0) {
             this.isDragging = false;
@@ -1082,11 +1082,11 @@ class PullToRefresh {
         if (diff > 0) {
             // 阻止默认滚动行为
             if (e.cancelable) e.preventDefault();
-            
+
             // 增加阻尼效果
             const move = Math.min(diff * 0.5, this.maxPull);
             this.refreshIndicator.style.height = `${move}px`;
-            
+
             if (move >= this.threshold) {
                 this.refreshIndicator.innerHTML = '释放刷新...';
             } else {
@@ -1097,15 +1097,15 @@ class PullToRefresh {
 
     async handleTouchEnd(e) {
         if (!this.isDragging || this.isRefreshing) return;
-        
+
         this.isDragging = false;
         const diff = this.currentY - this.startY;
-        
+
         if (diff * 0.5 >= this.threshold) {
             this.isRefreshing = true;
             this.refreshIndicator.style.height = '40px';
             this.refreshIndicator.innerHTML = '正在刷新...';
-            
+
             try {
                 await this.onRefresh();
             } catch (err) {
@@ -1125,7 +1125,7 @@ class PullToRefresh {
         } else {
             this.refreshIndicator.style.height = '0';
         }
-        
+
         this.startY = 0;
         this.currentY = 0;
     }
@@ -1211,7 +1211,7 @@ function renderPatientList(container) {
             if (!openid) {
                 openid = localStorage.getItem('openid') || '';
             }
-            
+
             if (openid) {
                 // 这里调用 fetchPatientData，它会更新数据并重新渲染页面
                 // 由于 renderCurrentPage 会重绘 DOM，导致 PullToRefresh 实例销毁
@@ -1333,7 +1333,7 @@ function parseMingDaoOriginalPic(value) {
     if (!value) return '';
     // 如果已经是http链接，尝试去除参数获取原图（针对七牛云等对象存储）
     if (typeof value === 'string' && value.startsWith('http')) {
-         return value.split('?')[0];
+        return value.split('?')[0];
     }
     try {
         if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
@@ -1509,10 +1509,10 @@ async function loadAllUserConsultations() {
         if (userInfo && userInfo.raw && userInfo.raw.relatedPatient) {
             try {
                 // 如果 relatedPatient 是字符串，先解析
-                const related = typeof userInfo.raw.relatedPatient === 'string' 
-                    ? JSON.parse(userInfo.raw.relatedPatient) 
+                const related = typeof userInfo.raw.relatedPatient === 'string'
+                    ? JSON.parse(userInfo.raw.relatedPatient)
                     : userInfo.raw.relatedPatient;
-                
+
                 if (Array.isArray(related)) {
                     patientIds = related.map(p => p.sid).filter(sid => sid);
                 }
@@ -2068,11 +2068,11 @@ function renderPatientDetail(container) {
     const listContainer = document.getElementById('orders-list-container');
     if (listContainer) {
         new PullToRefresh(listContainer, async () => {
-             if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+            if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
                 await new Promise(resolve => setTimeout(resolve, 800)); // 模拟刷新
                 renderCurrentPage();
             } else {
-                 await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
         });
     }
@@ -2095,7 +2095,7 @@ function editPatient(patientId) {
 
 function viewConsultation(consultationId) {
     let consultation = AppState.consultations.find(c => c.id === consultationId);
-    
+
     // 如果在当前患者记录中没找到，在所有记录中找（针对从备忘录进入的情况）
     if (!consultation) {
         consultation = AppState.allUserConsultations.find(c => c.id === consultationId);
@@ -2251,7 +2251,7 @@ function ocrRecognition() {
             })
             .catch(error => {
                 console.error('OCR failed:', error);
-                
+
                 // 开发环境 CORS 错误降级处理 (更加宽容的判断)
                 const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
                 const isNetworkError = error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.name === 'TypeError';
@@ -2259,7 +2259,7 @@ function ocrRecognition() {
                 if (isLocal && isNetworkError) {
                     console.warn('检测到本地开发环境 CORS/网络 错误，使用模拟数据进行测试');
                     showToast('开发环境: 使用模拟OCR数据', 2000);
-                    
+
                     setTimeout(() => {
                         const mockData = {
                             hospital: "测试医院",
@@ -2278,7 +2278,7 @@ function ocrRecognition() {
                     }, 1000);
                     return;
                 }
-                
+
                 showToast('识别失败: ' + error.message);
             });
     });
@@ -2785,7 +2785,7 @@ async function handleConsultationSubmit(event) {
     let patientName = '';
     let patientPhone = '';
     let finalPatientId = AppState.currentPatientId;
-    
+
     if (AppState.currentPatientId) {
         const patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
         if (patient) {
@@ -2863,13 +2863,13 @@ async function handleConsultationSubmit(event) {
                                 { controlId: 'allergy_history', value: patient.allergies || '无' },
                                 { controlId: '_owner', value: ownerId }
                             ];
-                            
+
                             const addResult = await addApi.getData('hzxxgl', patientControls);
                             if (addResult.success) {
                                 const newPatientId = typeof addResult.data === 'string' ? addResult.data : (addResult.data?.rowid || addResult.data?.rowId);
                                 finalPatientId = newPatientId;
                                 console.log('患者信息表中已创建新患者，ID:', finalPatientId);
-                                
+
                                 // 更新本地患者列表
                                 const newPatient = {
                                     id: String(newPatientId),
@@ -3045,7 +3045,7 @@ async function handleConsultationDelete(consultationId) {
             AppState.consultations = AppState.consultations.filter(c => c.id !== consultationId);
             AppState.saveToStorage();
             showToast('陪诊记录已删除');
-            
+
             // 刷新备忘录数据
             loadAllUserConsultations();
 
@@ -3209,7 +3209,7 @@ function handleConfirm() {
 function showVerificationPopup(aiData, originalText, sttType = 'default') {
     console.log(`--- [AI 弹窗核对] (类型: ${sttType}) ---`);
     console.log('aiData:', aiData);
-    
+
     // 如果 aiData 是字符串，尝试解析（防御性处理）
     let data = aiData;
     if (typeof aiData === 'string') {
@@ -3259,7 +3259,7 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
             data = data.result;
         }
     }
-    
+
     console.log('最终用于填充的数据对象:', data);
 
     // 根据 sttType 定义字段列表
@@ -3348,14 +3348,14 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
         typeBadge.style.backgroundColor = '#6b7280'; // 灰色
     }
     title.appendChild(typeBadge);
-    
+
     header.appendChild(title);
 
     const subTitle = document.createElement('p');
     subTitle.textContent = '请核对并修改 AI 提取的信息，确认无误后点击“信息填入”';
     subTitle.style.cssText = 'margin-bottom: 0; font-size: 13px; color: var(--text-secondary);';
     header.appendChild(subTitle);
-    
+
     content.appendChild(header);
 
     // 中间滚动区域
@@ -3391,11 +3391,11 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
         // --- 核心填充逻辑重新实现 ---
         let val = '';
         const dataKeys = Object.keys(data);
-        
+
         // 1. 尝试直接匹配
         if (data[field.key] !== undefined && data[field.key] !== null && data[field.key] !== '') {
             val = data[field.key];
-        } 
+        }
         // 2. 尝试标签匹配
         else if (data[field.label] !== undefined && data[field.label] !== null && data[field.label] !== '') {
             val = data[field.label];
@@ -3418,9 +3418,9 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
                 'followupDate': ['hxfcap', 'recheck_date', 'next_visit', 'followup'],
                 'nurseReminder': ['pzszhtx', 'reminder', 'tips', 'nurse_reminder', '提醒']
             };
-            
+
             const possibleKeys = variants[field.key] || [];
-            
+
             // 严格匹配变体列表
             for (const k of possibleKeys) {
                 if (data[k] !== undefined && data[k] !== null && data[k] !== '') {
@@ -3428,16 +3428,16 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
                     break;
                 }
             }
-            
+
             // 如果还没找到，尝试不区分大小写的包含匹配
             if (!val) {
                 const searchKey = field.key.toLowerCase();
                 const searchLabel = field.label.toLowerCase();
-                
+
                 for (const actualKey of dataKeys) {
                     const lowerActualKey = actualKey.toLowerCase();
-                    if (lowerActualKey.includes(searchKey) || 
-                        lowerActualKey.includes(searchLabel) || 
+                    if (lowerActualKey.includes(searchKey) ||
+                        lowerActualKey.includes(searchLabel) ||
                         searchKey.includes(lowerActualKey)) {
                         if (data[actualKey] && typeof data[actualKey] === 'string') {
                             val = data[actualKey];
@@ -3459,7 +3459,7 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
     // 特殊处理患者疑问 (仅在诊前或默认情况下显示)
     if (sttType === 'pre' || sttType === 'default') {
         let questionsVal = data.patientQuestions || data.questions || data['患者核心疑问'] || data['疑问'] || [];
-        
+
         // [增加匹配] 匹配 wentiyi, wentier, wentisan 这种格式
         if (Array.isArray(questionsVal) && questionsVal.length === 0) {
             if (data.wentiyi) questionsVal.push(data.wentiyi);
@@ -3561,7 +3561,7 @@ function fillConsultationForm(data, sttType = 'default') {
     // 填充基本字段（只填充允许的字段）
     for (const key in data) {
         if (key === 'patientQuestions') continue;
-        
+
         // 检查字段是否在允许列表中
         if (allowedFields.includes(key)) {
             const input = form.querySelector(`[name="${key}"]`);
@@ -4047,7 +4047,7 @@ async function renderRecordsList(container) {
     // 将陪诊记录转换为提醒事项（数据裂变：一条记录裂变为就诊提醒和复查提醒）
     const allReminders = [];
     const consultations = AppState.allUserConsultations || [];
-    
+
     // 辅助函数：安全解析日期为时间戳
     const getTimestamp = (dateStr) => {
         if (!dateStr) return NaN;
@@ -4093,11 +4093,11 @@ async function renderRecordsList(container) {
     allReminders.sort((a, b) => {
         const timeA = a.sortDate;
         const timeB = b.sortDate;
-        
+
         // 处理无效日期：放在最后
         if (isNaN(timeA)) return 1;
         if (isNaN(timeB)) return -1;
-        
+
         return timeA - timeB;
     });
 
@@ -4125,9 +4125,18 @@ async function renderRecordsList(container) {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayTimestamp = today.getTime();
 
-    const upcomingReminders = allReminders.filter(r => r.status !== 'completed');
-    const completedReminders = allReminders.filter(r => r.status === 'completed');
+    // 过滤掉已过期的记录（日期小于今天）
+    const validReminders = allReminders.filter(r => {
+        // 如果日期无效，保留（或者根据需求处理）
+        if (isNaN(r.sortDate)) return true;
+        // 只保留今天及以后的记录
+        return r.sortDate >= todayTimestamp;
+    });
+
+    const upcomingReminders = validReminders.filter(r => r.status !== 'completed');
+    const completedReminders = validReminders.filter(r => r.status === 'completed');
 
     console.log('待处理:', upcomingReminders.length, '已完成:', completedReminders.length);
 
@@ -4232,7 +4241,7 @@ async function renderRecordsList(container) {
     const listContainer = document.getElementById('records-list-container');
     if (listContainer && isLoggedIn) {
         new PullToRefresh(listContainer, async () => {
-             await loadAllUserConsultations();
+            await loadAllUserConsultations();
         });
     }
 }
@@ -4271,10 +4280,10 @@ async function updateMemoStatus(consultationId, newStatus) {
                     }
                 }
             };
-            
+
             updateLocal(AppState.allUserConsultations);
             updateLocal(AppState.consultations);
-            
+
             renderCurrentPage();
         } else {
             showToast('更新失败: ' + result.error_msg);
@@ -5007,7 +5016,7 @@ function mockLogin() {
 function collectFormData(form, fields) {
     const data = {};
     const formData = new FormData(form);
-    
+
     fields.forEach(field => {
         if (field.type === 'array') {
             // 处理数组类型（如 dynamic inputs）
@@ -5016,8 +5025,8 @@ function collectFormData(form, fields) {
             elements.forEach(el => values.push(el.value));
             data[field.key || field.name] = values;
         } else if (field.type === 'complex_array') {
-             // 处理复杂对象数组（如用药记录）
-             data[field.key] = field.handler(form);
+            // 处理复杂对象数组（如用药记录）
+            data[field.key] = field.handler(form);
         } else {
             // 处理普通字段
             data[field.key || field.name] = formData.get(field.name) || '';
@@ -5030,7 +5039,7 @@ function collectFormData(form, fields) {
 function generatePreReport(consultationId) {
     console.log('生成诊前报告:', consultationId);
     showToast('正在生成诊前报告...');
-    
+
     const form = document.getElementById('consultationForm');
     if (!form) {
         console.error('未找到表单元素');
@@ -5053,16 +5062,16 @@ function generatePreReport(consultationId) {
     ];
 
     const reportData = collectFormData(form, preFields);
-    
+
     // 添加患者信息
     let patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
-    
+
     // 增强：如果当前患者ID未设置，尝试从咨询记录关联查找
     if (!patient && consultationId) {
-        const consultation = AppState.consultations.find(c => c.id === consultationId) || 
-                             (AppState.allUserConsultations || []).find(c => c.id === consultationId);
+        const consultation = AppState.consultations.find(c => c.id === consultationId) ||
+            (AppState.allUserConsultations || []).find(c => c.id === consultationId);
         if (consultation && consultation.patientId) {
-             patient = AppState.patients.find(p => p.id === consultation.patientId);
+            patient = AppState.patients.find(p => p.id === consultation.patientId);
         }
     }
 
@@ -5076,7 +5085,7 @@ function generatePreReport(consultationId) {
             allergies: patient.allergies || patient.allergy_history || '无'
         };
     }
-    
+
     console.log('诊前报告数据:', JSON.stringify(reportData, null, 2));
 
     // 调用Coze工作流
@@ -5084,18 +5093,18 @@ function generatePreReport(consultationId) {
         // showLoading('正在生成诊前报告...'); // Use inline status instead
         const statusDiv = document.getElementById('pre-report-status');
         const generateBtn = document.getElementById('btn-generate-pre');
-        
+
         if (statusDiv) statusDiv.style.display = 'block';
         if (generateBtn) generateBtn.style.display = 'none';
 
         window.cozeWorkflow.runReportGeneration(reportData, 'pre').then(result => {
             // hideLoading();
             if (statusDiv) statusDiv.style.display = 'none';
-            
+
             if (result.success && result.data && result.data.data) {
                 console.log('诊前报告生成成功:', result.data.data);
                 showToast('诊前报告生成成功');
-                
+
                 const imgUrl = result.data.data.img;
                 if (imgUrl) {
                     // Update hidden input
@@ -5104,7 +5113,7 @@ function generatePreReport(consultationId) {
                         zqbgInput.value = imgUrl;
                         zqbgInput.dispatchEvent(new Event('input', { bubbles: true }));
                     }
-                    
+
                     // Update preview
                     const previewDiv = document.getElementById('pre-report-preview');
                     if (previewDiv) {
@@ -5140,8 +5149,8 @@ function generatePostReport(consultationId) {
         { name: 'diagnosis', key: '医生诊断' },
         { name: 'examSummary', key: '检查结果摘要' },
         { name: 'advice', key: '医嘱检查项目' },
-        { 
-            key: '用药指导', 
+        {
+            key: '用药指导',
             type: 'complex_array',
             handler: (form) => {
                 const meds = [];
@@ -5164,16 +5173,16 @@ function generatePostReport(consultationId) {
     ];
 
     const reportData = collectFormData(form, postFields);
-    
+
     // 添加患者信息
     let patient = AppState.patients.find(p => p.id === AppState.currentPatientId);
-    
+
     // 增强：如果当前患者ID未设置，尝试从咨询记录关联查找
     if (!patient && consultationId) {
-        const consultation = AppState.consultations.find(c => c.id === consultationId) || 
-                             (AppState.allUserConsultations || []).find(c => c.id === consultationId);
+        const consultation = AppState.consultations.find(c => c.id === consultationId) ||
+            (AppState.allUserConsultations || []).find(c => c.id === consultationId);
         if (consultation && consultation.patientId) {
-             patient = AppState.patients.find(p => p.id === consultation.patientId);
+            patient = AppState.patients.find(p => p.id === consultation.patientId);
         }
     }
 
@@ -5198,7 +5207,7 @@ function generatePostReport(consultationId) {
             if (result.success && result.data && result.data.data) {
                 console.log('诊后报告生成成功:', result.data.data);
                 showToast('诊后报告生成成功');
-                
+
                 const imgUrl = result.data.data.img;
                 if (imgUrl) {
                     // Update hidden input
@@ -5207,7 +5216,7 @@ function generatePostReport(consultationId) {
                         zhbgInput.value = imgUrl;
                         zhbgInput.dispatchEvent(new Event('input', { bubbles: true }));
                     }
-                    
+
                     // Update preview
                     const previewDiv = document.getElementById('post-report-preview');
                     if (previewDiv) {
@@ -5238,22 +5247,22 @@ function showReportModal(title, content, imgUrl) {
 // 下载图片函数
 function downloadImage(url, filename = 'report.png') {
     if (!url) return;
-    
+
     // 检测微信环境
     const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
-    
+
     // 微信环境下，提示长按保存
     if (isWeChat) {
         showToast('请长按图片保存到相册', 3000);
         return;
     }
-    
+
     // 创建loading提示
     const toast = document.createElement('div');
     toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:white;padding:12px 24px;border-radius:8px;z-index:20000;font-size:14px;';
     toast.textContent = '正在下载...';
     document.body.appendChild(toast);
-    
+
     fetch(url)
         .then(response => response.blob())
         .then(blob => {
@@ -5266,17 +5275,17 @@ function downloadImage(url, filename = 'report.png') {
             a.click();
             window.URL.revokeObjectURL(blobUrl);
             document.body.removeChild(a);
-            
+
             toast.textContent = '下载成功';
             setTimeout(() => {
-                if(toast.parentNode) document.body.removeChild(toast);
+                if (toast.parentNode) document.body.removeChild(toast);
             }, 1500);
         })
         .catch(err => {
             console.error('Download failed:', err);
             toast.textContent = '下载失败，尝试打开链接...';
             setTimeout(() => {
-                if(toast.parentNode) document.body.removeChild(toast);
+                if (toast.parentNode) document.body.removeChild(toast);
                 window.open(url, '_blank');
             }, 1500);
         });
@@ -5285,7 +5294,7 @@ function downloadImage(url, filename = 'report.png') {
 // 图片预览功能
 function previewImage(src) {
     if (!src) return;
-    
+
     // 创建全屏遮罩
     const modal = document.createElement('div');
     modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:10000;display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:zoom-out;animation:fadeIn 0.2s ease-out;';
@@ -5294,30 +5303,30 @@ function previewImage(src) {
             document.body.removeChild(modal);
         }
     };
-    
+
     // 图片
     const img = document.createElement('img');
     img.src = src;
     img.style.cssText = 'max-width:100%;max-height:85vh;object-fit:contain;transition:transform 0.3s;cursor:zoom-out;';
-    
+
     // 下载按钮容器
     const btnContainer = document.createElement('div');
     btnContainer.style.cssText = 'margin-top:20px;display:flex;gap:16px;z-index:10001;';
-    
+
     // 关闭按钮
     const closeBtn = document.createElement('button');
     closeBtn.className = 'btn';
     closeBtn.style.cssText = 'padding:10px 24px;background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2);border-radius:24px;cursor:pointer;backdrop-filter:blur(4px);';
     closeBtn.textContent = '关闭';
     closeBtn.onclick = () => document.body.removeChild(modal);
-    
+
     btnContainer.appendChild(closeBtn);
-    
+
     // 添加长按保存提示
     const tip = document.createElement('div');
     tip.style.cssText = 'color:rgba(255,255,255,0.7);font-size:13px;margin-top:12px;text-align:center;';
     tip.textContent = '长按图片可保存到相册';
-    
+
     modal.appendChild(img);
     modal.appendChild(btnContainer);
     if (/MicroMessenger/i.test(navigator.userAgent)) {
@@ -5356,7 +5365,7 @@ async function renderMyOrdersPage(refresh = false) {
 
     // 获取真实数据 - 我的订单
     let myOrders = [];
-    
+
     if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
         const userInfo = window.wechatLogin.getUserInfo();
         const rawUser = userInfo && userInfo.raw ? userInfo.raw : null;
@@ -5365,7 +5374,7 @@ async function renderMyOrdersPage(refresh = false) {
         if (userId && window.fetchUserRecords) {
             try {
                 const allRecords = await window.fetchUserRecords(userId);
-                
+
                 // 筛选订单记录: 
                 // 1. 会员充值 (hycz == '1' 或 true)
                 // 2. 资源点充值 (jine > 0)
@@ -5374,7 +5383,7 @@ async function renderMyOrdersPage(refresh = false) {
                     const isResourceRecharge = (parseFloat(r.jine) > 0);
                     return isMemberRecharge || isResourceRecharge;
                 });
-                
+
                 myOrders = orderRecords.map(r => {
                     const isMember = r.hycz === '1' || r.hycz === true || r.hycz === 'true';
                     const name = r.mingcheng || (isMember ? '会员充值' : `充值 ${r.token || 0} 资源点`);
@@ -5383,7 +5392,7 @@ async function renderMyOrdersPage(refresh = false) {
                         date: r.ctime ? formatDateTimeForInput(r.ctime).replace('T', ' ') : '',
                         name: name,
                         price: r.jine || 0,
-                        status: '已完成', 
+                        status: '已完成',
                         statusClass: 'success',
                         type: isMember ? 'membership' : 'resource'
                     };
@@ -5398,7 +5407,7 @@ async function renderMyOrdersPage(refresh = false) {
 
     // 如果没有数据，显示空状态或保留少量Mock数据用于演示（可选）
     if (myOrders.length === 0 && !window.wechatLogin?.isLoggedIn()) {
-         // Mock数据 - 我的订单 (仅显示已完成记录) - 仅未登录时显示
+        // Mock数据 - 我的订单 (仅显示已完成记录) - 仅未登录时显示
         myOrders = [
             { id: 'ORD20260112001', date: '2026-01-12 10:30', name: '高级套餐 (3个月)', price: 258, status: '已支付', statusClass: 'success', type: 'membership' },
             { id: 'ORD20260105002', date: '2026-01-05 15:45', name: '资源点充值 (100点)', price: 99, status: '已支付', statusClass: 'success', type: 'resource' }
@@ -5509,10 +5518,10 @@ async function renderMyOrdersPage(refresh = false) {
     const listContainer = document.getElementById('orders-list-container');
     if (listContainer) {
         new PullToRefresh(listContainer, async () => {
-             if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+            if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
                 await renderMyOrdersPage(true); // true for refresh
             } else {
-                 await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
         });
     }
@@ -5907,7 +5916,7 @@ async function renderConsumptionDetailsPage(refresh = false) {
                 // 2. 获取用户记录
                 if (window.fetchUserRecords) {
                     const allRecords = await window.fetchUserRecords(userId);
-                    
+
                     // 过滤出资源点相关记录并按时间倒序排列
                     const tokenRecords = allRecords
                         .filter(r => r.token && parseFloat(r.token) !== 0)
@@ -5918,13 +5927,13 @@ async function renderConsumptionDetailsPage(refresh = false) {
                     // 但这里是倒序，所以：
                     // 最新一条记录(i=0)的余额 = 当前总余额
                     // 下一条记录(i=1)的余额 = 上一条记录(i=0)的余额 - 上一条记录(i=0)的变动金额
-                    
+
                     let runningBalance = currentTotalBalance;
-                    
+
                     resourceConsumption = tokenRecords.map((r, index) => {
                         const amount = parseFloat(r.token);
                         const recordBalance = runningBalance;
-                        
+
                         // 为下一次迭代（更早的记录）准备余额
                         // 如果当前记录是 +10，那么发生前的余额就是 runningBalance - 10
                         runningBalance = runningBalance - amount;
@@ -6054,10 +6063,10 @@ async function renderConsumptionDetailsPage(refresh = false) {
     const listContainer = document.getElementById('consumption-list-container');
     if (listContainer) {
         new PullToRefresh(listContainer, async () => {
-             if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
+            if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
                 await renderConsumptionDetailsPage(true); // 刷新数据
             } else {
-                 await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
         });
     }
@@ -6451,7 +6460,7 @@ function initApp() {
 // 通过状态检测确保初始化逻辑（尤其是首屏渲染）必定触发
 if (document.readyState === 'loading') {
     // 如果 DOM 还在加载中，监听 DOMContentLoaded 事件
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         console.log('[强制刷新] DOM 加载完成，执行初始化');
         initApp();
     });
