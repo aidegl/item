@@ -2484,7 +2484,7 @@ function renderConsultationFlow(container) {
                         <span style="vertical-align: middle;">正在生成诊前报告...</span>
                     </div>
                     <div id="pre-report-preview" style="display: ${isEditMode && consultation.zqbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
-                        <img src="${isEditMode ? parseMingDaoPic(consultation.zqbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" alt="诊前报告">
+                        <img src="${isEditMode ? parseMingDaoPic(consultation.zqbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" alt="诊前报告" onclick="previewImage(this.src)">
                     </div>
                 </div>
 
@@ -5050,6 +5050,7 @@ function generatePreReport(consultationId) {
             name: patient.name,
             age: patient.age,
             gender: patient.gender,
+            phone: patient.phone || '无',
             medical_history: patient.medicalHistory || patient.pastMedicalHistory || '无',
             allergies: patient.allergies || patient.allergy_history || '无'
         };
@@ -5160,6 +5161,7 @@ function generatePostReport(consultationId) {
             name: patient.name,
             age: patient.age,
             gender: patient.gender,
+            phone: patient.phone || '无',
             medical_history: patient.medicalHistory || patient.pastMedicalHistory || '无',
             allergies: patient.allergies || patient.allergy_history || '无'
         };
@@ -5820,38 +5822,74 @@ async function renderConsumptionDetailsPage(refresh = false) {
     // 获取真实数据
     let resourceConsumption = [];
     let reportGeneration = [];
+    let currentTotalBalance = 0;
 
     if (window.wechatLogin && window.wechatLogin.isLoggedIn()) {
         const userInfo = window.wechatLogin.getUserInfo();
         const rawUser = userInfo && userInfo.raw ? userInfo.raw : null;
         const userId = rawUser && rawUser.rowid ? rawUser.rowid : null;
 
-        if (userId && window.fetchUserRecords) {
+        if (userId) {
             try {
-                const allRecords = await window.fetchUserRecords(userId);
-                
-                // 1. 资源点消耗明细 (token 不为 0)
-                resourceConsumption = allRecords
-                    .filter(r => r.token && parseFloat(r.token) !== 0)
-                    .map(r => ({
-                        id: r.rowid,
-                        date: r.ctime ? formatDateTimeForInput(r.ctime).replace('T', ' ') : '',
-                        description: r.xhmx || r.mingcheng || '资源点变动',
-                        amount: parseFloat(r.token),
-                        balance: null // 暂无历史余额数据
-                    }));
+                // 1. 获取最新用户信息以得到当前剩余资源点
+                if (typeof window.MingDaoYunAPI !== 'undefined') {
+                    const userApi = new window.MingDaoYunAPI();
+                    const userResult = await userApi.getData({
+                        worksheetId: 'peizhenshi',
+                        rowId: userId
+                    });
+                    if (userResult && userResult.data) {
+                        currentTotalBalance = parseFloat(userResult.data.syzyd) || 0;
+                    } else if (rawUser) {
+                        currentTotalBalance = parseFloat(rawUser.syzyd) || 0;
+                    }
+                }
 
-                // 2. 报告生成明细 (名称或详情包含"报告")
-                reportGeneration = allRecords
-                    .filter(r => (r.mingcheng && r.mingcheng.includes('报告')) || (r.xhmx && r.xhmx.includes('报告')))
-                    .map(r => ({
-                        id: r.rowid,
-                        date: r.ctime ? formatDateTimeForInput(r.ctime).replace('T', ' ') : '',
-                        patient: r.mingcheng || '未知', // 暂时使用名称代替患者
-                        type: r.mingcheng || '诊后报告',
-                        status: '已完成'
-                    }));
+                // 2. 获取用户记录
+                if (window.fetchUserRecords) {
+                    const allRecords = await window.fetchUserRecords(userId);
+                    
+                    // 过滤出资源点相关记录并按时间倒序排列
+                    const tokenRecords = allRecords
+                        .filter(r => r.token && parseFloat(r.token) !== 0)
+                        .sort((a, b) => new Date(b.ctime) - new Date(a.ctime));
 
+                    // 计算历史余额
+                    // 逻辑：当前记录的余额 = 上一条记录的余额 - 上一条记录的变动金额
+                    // 但这里是倒序，所以：
+                    // 最新一条记录(i=0)的余额 = 当前总余额
+                    // 下一条记录(i=1)的余额 = 上一条记录(i=0)的余额 - 上一条记录(i=0)的变动金额
+                    
+                    let runningBalance = currentTotalBalance;
+                    
+                    resourceConsumption = tokenRecords.map((r, index) => {
+                        const amount = parseFloat(r.token);
+                        const recordBalance = runningBalance;
+                        
+                        // 为下一次迭代（更早的记录）准备余额
+                        // 如果当前记录是 +10，那么发生前的余额就是 runningBalance - 10
+                        runningBalance = runningBalance - amount;
+
+                        return {
+                            id: r.rowid,
+                            date: r.ctime ? formatDateTimeForInput(r.ctime).replace('T', ' ') : '',
+                            description: r.xhmx || r.mingcheng || '资源点变动',
+                            amount: amount,
+                            balance: recordBalance
+                        };
+                    });
+
+                    // 3. 报告生成明细 (名称或详情包含"报告")
+                    reportGeneration = allRecords
+                        .filter(r => (r.mingcheng && r.mingcheng.includes('报告')) || (r.xhmx && r.xhmx.includes('报告')))
+                        .map(r => ({
+                            id: r.rowid,
+                            date: r.ctime ? formatDateTimeForInput(r.ctime).replace('T', ' ') : '',
+                            patient: r.mingcheng || '未知', // 暂时使用名称代替患者
+                            type: r.mingcheng || '诊后报告',
+                            status: '已完成'
+                        }));
+                }
             } catch (e) {
                 console.error('获取消耗明细失败:', e);
                 showToast('获取数据失败');
