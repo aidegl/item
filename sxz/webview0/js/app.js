@@ -1328,6 +1328,27 @@ async function goToPatientDetail(patientId) {
     renderCurrentPage();
 }
 
+// 解析明道云图片原图字段
+function parseMingDaoOriginalPic(value) {
+    if (!value) return '';
+    // 如果已经是http链接，尝试去除参数获取原图（针对七牛云等对象存储）
+    if (typeof value === 'string' && value.startsWith('http')) {
+         return value.split('?')[0];
+    }
+    try {
+        if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                // 优先使用 original_file_full_path
+                return parsed[0].original_file_full_path || parsed[0].file_path || '';
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to parse MingDao original pic:', e);
+    }
+    return value;
+}
+
 // 解析明道云图片字段
 function parseMingDaoPic(value) {
     if (!value) return '';
@@ -2484,14 +2505,14 @@ function renderConsultationFlow(container) {
                         <span style="vertical-align: middle;">正在生成诊前报告...</span>
                     </div>
                     <div id="pre-report-preview" style="display: ${isEditMode && consultation.zqbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
-                        <img src="${isEditMode ? parseMingDaoPic(consultation.zqbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" alt="诊前报告" onclick="previewImage(this.src)">
+                        <img src="${isEditMode ? parseMingDaoPic(consultation.zqbg) : ''}" data-original="${isEditMode ? parseMingDaoOriginalPic(consultation.zqbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" alt="诊前报告" onclick="previewImage(this.dataset.original || this.src)">
                     </div>
                 </div>
 
                 <div style="margin-bottom: 12px;">
                     ${consultation.zqbg ? `
                         <div style="display: flex; gap: 10px;">
-                            <a href="${parseMingDaoPic(consultation.zqbg)}" target="_blank" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
+                            <a href="javascript:void(0)" onclick="downloadImage('${parseMingDaoOriginalPic(consultation.zqbg)}')" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
                                 下载图片
                             </a>
                             <button type="button" class="btn btn-outline w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
@@ -2612,7 +2633,7 @@ function renderConsultationFlow(container) {
                         <h3 class="card-title mb-2">诊后报告</h3>
                         <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px;">
                             ${consultation.zhbg ? `
-                                <a href="${parseMingDaoPic(consultation.zhbg)}" target="_blank" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
+                                <a href="javascript:void(0)" onclick="downloadImage('${parseMingDaoOriginalPic(consultation.zhbg)}')" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
                                     下载图片
                                 </a>
                                 <button type="button" class="btn btn-outline w-full" onclick="generatePostReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
@@ -2628,7 +2649,7 @@ function renderConsultationFlow(container) {
                             </button>
                         </div>
                         <div id="post-report-preview" style="display: ${isEditMode && consultation.zhbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
-                            <img src="${isEditMode ? parseMingDaoPic(consultation.zhbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" alt="诊后报告" onclick="previewImage(this.src)">
+                            <img src="${isEditMode ? parseMingDaoPic(consultation.zhbg) : ''}" data-original="${isEditMode ? parseMingDaoOriginalPic(consultation.zhbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" alt="诊后报告" onclick="previewImage(this.dataset.original || this.src)">
                         </div>
                     </div>
                     ` : ''}
@@ -5214,6 +5235,44 @@ function showReportModal(title, content, imgUrl) {
 }
 */
 
+// 下载图片函数
+function downloadImage(url, filename = 'report.png') {
+    if (!url) return;
+    
+    // 创建loading提示
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:white;padding:12px 24px;border-radius:8px;z-index:20000;font-size:14px;';
+    toast.textContent = '正在下载...';
+    document.body.appendChild(toast);
+    
+    fetch(url)
+        .then(response => response.blob())
+        .then(blob => {
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(a);
+            
+            toast.textContent = '下载成功';
+            setTimeout(() => {
+                if(toast.parentNode) document.body.removeChild(toast);
+            }, 1500);
+        })
+        .catch(err => {
+            console.error('Download failed:', err);
+            toast.textContent = '下载失败，尝试打开链接...';
+            setTimeout(() => {
+                if(toast.parentNode) document.body.removeChild(toast);
+                window.open(url, '_blank');
+            }, 1500);
+        });
+}
+
 // 图片预览功能
 function previewImage(src) {
     if (!src) return;
@@ -5238,8 +5297,7 @@ function previewImage(src) {
     
     // 下载按钮
     const downloadBtn = document.createElement('a');
-    downloadBtn.href = src;
-    downloadBtn.download = 'report.png'; // 默认文件名
+    downloadBtn.href = 'javascript:void(0)';
     downloadBtn.className = 'btn btn-primary';
     downloadBtn.style.cssText = 'padding:10px 24px;background:#3b82f6;color:white;text-decoration:none;border-radius:24px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(59,130,246,0.4);';
     downloadBtn.innerHTML = `
@@ -5250,7 +5308,10 @@ function previewImage(src) {
         </svg>
         下载图片
     `;
-    downloadBtn.onclick = (e) => e.stopPropagation();
+    downloadBtn.onclick = (e) => {
+        e.stopPropagation();
+        downloadImage(src);
+    };
     
     // 关闭按钮
     const closeBtn = document.createElement('button');
