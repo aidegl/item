@@ -4428,11 +4428,7 @@ function renderSettings(container) {
             `<button class="btn btn-outline btn-lg btn-danger-outline w-full" onclick="logout()" style="display: flex; align-items: center; justify-content: center;">退出登录</button>` :
             `<button class="btn btn-primary btn-lg w-full" onclick="goToLogin()" style="display: flex; align-items: center; justify-content: center;">立即登录</button>`
         }
-                <button class="btn btn-outline btn-lg w-full mt-2" onclick="console.log('支付测试按钮被点击'); testPayment()" style="display: flex; align-items: center; justify-content: center; border-color: var(--primary-color); color: var(--primary-color);">支付测试</button>
-                <div style="display: flex; gap: 8px; margin-top: 8px;">
-                    <button type="button" class="btn btn-outline btn-lg w-full" onclick="testSpeechToText('pre')" style="display: flex; align-items: center; justify-content: center; border-color: #3b82f6; color: #3b82f6; flex: 1;">诊前语音识别</button>
-                    <button type="button" class="btn btn-outline btn-lg w-full" onclick="testSpeechToText('post')" style="display: flex; align-items: center; justify-content: center; border-color: #10b981; color: #10b981; flex: 1;">诊后语音识别</button>
-                </div>
+
             </div>
             
             <div class="card">
