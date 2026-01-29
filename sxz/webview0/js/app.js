@@ -5954,7 +5954,32 @@ function renderUserAgreementPage() {
         htmlContent = `<pre style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(content)}</pre>`;
     }
 
+    // 注入 Markdown 样式
+    const markdownStyle = `
+        <style>
+            .markdown-body h1 { font-size: 1.5em; font-weight: 600; margin: 1em 0 0.5em; line-height: 1.4; }
+            .markdown-body h2 { font-size: 1.3em; font-weight: 600; margin: 1em 0 0.5em; line-height: 1.4; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; }
+            .markdown-body h3 { font-size: 1.1em; font-weight: 600; margin: 1em 0 0.5em; line-height: 1.4; }
+            .markdown-body p { margin-bottom: 1em; line-height: 1.6; }
+            .markdown-body ul, .markdown-body ol { padding-left: 1.5em; margin-bottom: 1em; }
+            .markdown-body ul { list-style-type: disc; }
+            .markdown-body ol { list-style-type: decimal; }
+            .markdown-body li { margin-bottom: 0.25em; }
+            .markdown-body blockquote { border-left: 4px solid var(--border-color); padding-left: 1em; color: var(--text-secondary); margin: 0 0 1em 0; }
+            .markdown-body code { background-color: rgba(0,0,0,0.05); padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; font-size: 0.9em; }
+            .markdown-body pre { background-color: rgba(0,0,0,0.05); padding: 1em; border-radius: 8px; overflow-x: auto; margin-bottom: 1em; }
+            .markdown-body pre code { background-color: transparent; padding: 0; }
+            .markdown-body strong { font-weight: 600; }
+            .markdown-body a { color: var(--primary-color); text-decoration: none; }
+            .markdown-body hr { height: 1px; background-color: var(--border-color); border: none; margin: 1.5em 0; }
+            .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
+            .markdown-body th, .markdown-body td { border: 1px solid var(--border-color); padding: 8px; text-align: left; }
+            .markdown-body th { background-color: rgba(0,0,0,0.02); font-weight: 600; }
+        </style>
+    `;
+
     container.innerHTML = `
+        ${markdownStyle}
         <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
             <div style="display: flex; align-items: center;">
                 <button class="btn btn-icon btn-outline" onclick="goBackToSettings()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
