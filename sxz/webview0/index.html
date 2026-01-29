@@ -14,7 +14,14 @@
   <!-- 调试与依赖 -->
   <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
   <script>var vConsole = new VConsole();</script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- 优先使用国内 CDN，如果失败则回退到 unpkg -->
+  <script src="https://cdn.bootcdn.net/ajax/libs/marked/12.0.0/marked.min.js"></script>
+  <script>
+    if (typeof marked === 'undefined') {
+      console.warn('BootCDN加载失败，尝试使用unpkg备用源');
+      document.write('<script src="https://unpkg.com/marked/marked.min.js"><\/script>');
+    }
+  </script>
   <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
 
   <script>
