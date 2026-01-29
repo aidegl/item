@@ -206,6 +206,30 @@ const AppState = {
     aiQuickQuestionsHidden: false,
     patientSearchTerm: '',
 
+    // 加载全局设置
+    async loadGlobalSettings() {
+        console.log('[GlobalSettings] 开始加载全局设置...');
+        try {
+            if (typeof window.MingDaoYunAPI === 'undefined') {
+                console.warn('[GlobalSettings] MingDaoYunAPI 未加载，跳过全局设置加载');
+                return;
+            }
+            const api = new window.MingDaoYunAPI();
+            const worksheetId = 'qjsz';
+            const rowId = '9e5a5ed8-258b-4f20-a5c0-a1d9b9a97c2f';
+
+            const result = await api.getData(rowId, worksheetId);
+            if (result && result.success) {
+                console.log('[GlobalSettings] 加载成功:', result.data);
+                this.globalSettings = result.data;
+            } else {
+                console.error('[GlobalSettings] 加载失败:', result);
+            }
+        } catch (error) {
+            console.error('[GlobalSettings] 加载异常:', error);
+        }
+    },
+
     init() {
         console.log('WebView 初始化, 当前 URL:', window.location.href);
         console.log('当前 Hash:', window.location.hash);
@@ -213,6 +237,8 @@ const AppState = {
         this.chatMessages = [];
         this.saveToStorage();
         this.checkOnboarding();
+        // 初始化时加载全局设置
+        this.loadGlobalSettings();
         initDevMode(); // 初始化开发模式
         this.initHashChangeListener(); // 初始化 Hash 监听
 
@@ -4394,6 +4420,15 @@ function renderSettings(container) {
             <div class="card mb-2">
                 <h3 class="card-title mb-2">常规设置</h3>
                 
+                <div class="list-item" onclick="showUserAgreement()">
+                    <div class="flex justify-between items-center">
+                        <span>登录用户协议</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; color: var(--text-secondary);">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </div>
+                </div>
+
                 <div class="list-item" onclick="showOnboarding()">
                     <div class="flex justify-between items-center">
                         <span>新手引导</span>
@@ -5877,6 +5912,70 @@ function goBackToSettings() {
     if (bottomNav) {
         bottomNav.style.display = 'flex';
     }
+}
+
+// 显示用户协议页面
+function showUserAgreement() {
+    renderUserAgreementPage();
+}
+
+// 渲染用户协议页面
+function renderUserAgreementPage() {
+    console.log('开始渲染用户协议页面...');
+    const container = document.getElementById('main-content');
+    const bottomNav = document.querySelector('.bottom-nav');
+
+    if (!container) {
+        console.error('未找到 main-content 容器');
+        return;
+    }
+
+    // 隐藏底部导航栏，因为这是二级页面
+    if (bottomNav) {
+        bottomNav.style.display = 'none';
+    }
+
+    // 获取协议内容
+    let content = '暂无协议内容';
+    if (AppState.globalSettings && AppState.globalSettings.dlyhxy) {
+        content = AppState.globalSettings.dlyhxy;
+    }
+
+    // 解析 Markdown
+    let htmlContent = content;
+    if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+        try {
+            htmlContent = marked.parse(content);
+        } catch (e) {
+            console.error('Markdown 解析失败:', e);
+            htmlContent = `<pre>${escapeHtml(content)}</pre>`;
+        }
+    } else {
+        htmlContent = `<pre style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(content)}</pre>`;
+    }
+
+    container.innerHTML = `
+        <div class="ai-header" style="position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center;">
+                <button class="btn btn-icon btn-outline" onclick="goBackToSettings()" style="width: 72px; height: 30px; padding: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="font-size: 16px; font-weight: 500; text-align: center;">登录用户协议</div>
+            <div style="width: 72px;"></div>
+        </div>
+        
+        <div style="padding: 20px; background-color: var(--card-bg); min-height: calc(100vh - 55px);">
+            <div class="markdown-body" style="line-height: 1.6; color: var(--text-primary);">
+                ${htmlContent}
+            </div>
+        </div>
+    `;
+
+    // 滚动到顶部
+    window.scrollTo(0, 0);
 }
 
 function showMembershipBenefits() {
