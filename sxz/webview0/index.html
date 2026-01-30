@@ -4,26 +4,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- HTTP 头部强力禁用缓存：多重 Meta 标签确保移动端 Webview 不缓存 -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <!-- 优化缓存策略：允许协商缓存，去除 no-store -->
+  <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <meta http-equiv="Cache-Control" content="max-age=0" />
   <title>沈仙子陪诊助手</title>
 
   <!-- 调试与依赖 -->
-  <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
-  <script>var vConsole = new VConsole();</script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- 使用本地库文件替代 CDN，提高加载速度和稳定性 -->
+  <script src="./js/lib/vconsole.min.js"></script>
+  <script>
+    // 仅在 URL 包含 debug 参数或开发环境开启 vConsole
+    if (new URLSearchParams(window.location.search).get('debug')) {
+      var vConsole = new VConsole();
+    }
+  </script>
+
+  <script src="./js/lib/marked.min.js"></script>
   <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
 
   <script>
     (function () {
       // 动态资源版本化 (Cache Busting)
-      // 使用当前毫秒级时间戳作为版本号，确保每次加载都是唯一的
-      var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
-      console.log('[Webview 强制刷新] 资源版本号:', v);
-      
+      // 使用 URL 参数中的版本号，或者默认版本号，避免无意义的强制刷新
+      var v = new URLSearchParams(window.location.search).get('v') || '1.0.0';
+      console.log('[Webview] CSS资源版本号:', v);
+
       // 通过 DOM 操作动态加载 CSS，避免 document.write 阻塞
       var link = document.createElement('link');
       link.rel = 'stylesheet';
@@ -124,10 +130,10 @@
   <script>
     (function () {
       // 动态资源版本化：确保所有 JS 脚本都使用版本号
-      // 从 URL 获取版本号（由小程序在冷启动时生成），如果没有则使用当前时间戳
-      var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
-      console.log('[Webview 强制刷新] 动态加载脚本，版本号:', v);
-      
+      // 从 URL 获取版本号，如果未指定则使用默认版本号（允许缓存），而不是每次都使用当前时间戳
+      var v = new URLSearchParams(window.location.search).get('v') || '1.0.0';
+      console.log('[Webview] 动态加载脚本，版本号:', v);
+
       // 动态注入所有 JS 脚本，确保版本号透传到所有资源层级
       var scripts = [
         '../mingdao/MingdaoQuery.js',
@@ -140,10 +146,10 @@
         './js/fetchUserRecords.js',
         './js/app-core.js'
       ];
-      
+
       // 使用 DOM 操作加载脚本，避免 document.write 阻塞
       // async = false 确保脚本按顺序执行
-      scripts.forEach(function(src) {
+      scripts.forEach(function (src) {
         var script = document.createElement('script');
         script.src = src + '?v=' + v;
         script.async = false;
