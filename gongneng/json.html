@@ -344,28 +344,29 @@
         // 设置事件委托 (解决删除失效问题)
         function setupEventListeners() {
             visualList.addEventListener('click', (e) => {
-                // 处理删除按钮
                 const deleteBtn = e.target.closest('.delete');
                 if (deleteBtn) {
-                    const index = parseInt(deleteBtn.dataset.index);
-                    deleteItem(index);
+                    deleteItem(parseInt(deleteBtn.dataset.index));
                     return;
                 }
-
-                // 处理上移
                 const upBtn = e.target.closest('.action-up');
                 if (upBtn) {
-                    const index = parseInt(upBtn.dataset.index);
-                    moveItem(index, -1);
+                    moveItem(parseInt(upBtn.dataset.index), -1);
                     return;
                 }
-
-                // 处理下移
                 const downBtn = e.target.closest('.action-down');
                 if (downBtn) {
-                    const index = parseInt(downBtn.dataset.index);
-                    moveItem(index, 1);
+                    moveItem(parseInt(downBtn.dataset.index), 1);
                     return;
+                }
+            });
+
+            // 属性删除按钮事件委托
+            attrSchemaList.addEventListener('click', (e) => {
+                const btn = e.target.closest('.remove-attr');
+                if (btn && btn.dataset.attrIndex !== undefined) {
+                    e.preventDefault();
+                    removeAttributeByIndex(parseInt(btn.dataset.attrIndex));
                 }
             });
         }
@@ -383,12 +384,12 @@
         }
 
         function renderAttrSchema() {
-            attrSchemaList.innerHTML = attributeSchema.map((attr) => `
+            attrSchemaList.innerHTML = attributeSchema.map((attr, idx) => `
                 <div class="attr-chip">
                     <input type="text" value="${escapeHtml(attr)}" 
-                           onchange="renameAttribute('${escapeJsString(attr)}', this.value.trim())"
+                           onchange="renameAttribute(${idx}, this.value.trim())"
                            placeholder="属性名">
-                    <button class="remove-attr" onclick="removeAttribute('${escapeJsString(attr)}')" title="删除属性">&times;</button>
+                    <button type="button" class="remove-attr" data-attr-index="${idx}" title="删除属性">&times;</button>
                 </div>
             `).join('');
         }
@@ -492,28 +493,29 @@
             showToast('已添加属性：' + name);
         }
 
-        function removeAttribute(attrName) {
+        function removeAttributeByIndex(idx) {
             if (attributeSchema.length <= 1) {
                 showToast('至少保留一个属性');
                 return;
             }
-            const idx = attributeSchema.indexOf(attrName);
-            if (idx === -1) return;
+            if (idx < 0 || idx >= attributeSchema.length) return;
+            const attrName = attributeSchema[idx];
             attributeSchema.splice(idx, 1);
             dataArray.forEach(item => { delete item[attrName]; });
             render();
             showToast('已删除属性');
         }
 
-        function renameAttribute(oldName, newName) {
+        function renameAttribute(idx, newName) {
             newName = (newName || '').trim();
+            if (idx < 0 || idx >= attributeSchema.length) return;
+            const oldName = attributeSchema[idx];
             if (!newName || oldName === newName) { render(); return; }
             if (attributeSchema.includes(newName)) {
                 showToast('属性名已存在');
+                render();
                 return;
             }
-            const idx = attributeSchema.indexOf(oldName);
-            if (idx === -1) return;
             attributeSchema[idx] = newName;
             dataArray.forEach(item => {
                 item[newName] = item[oldName] !== undefined ? item[oldName] : '';
