@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON 数组可视化编辑器</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --bg-color: #f3f4f6;
+            --surface-color: #ffffff;
+            --border-color: #e5e7eb;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --font-mono: 'Menlo', 'Monaco', 'Courier New', monospace;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* 主布局 */
+        main {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            min-height: 0; /* 对Flex容器内的滚动很重要 */
+        }
+
+        /* 左侧：可视化编辑区 */
+        .editor-section {
+            flex: 2;
+            background: var(--surface-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .toolbar {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            background: #fafafa;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        button:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        button.primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        button.primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.danger {
+            color: var(--danger-color);
+            border-color: #fecaca;
+            background-color: #fef2f2;
+        }
+
+        button.danger:hover {
+            background-color: #fee2e2;
+        }
+
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 数组项卡片 */
+        .array-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+            transition: box-shadow 0.2s;
+        }
+
+        .array-item:hover {
+            box-shadow: var(--shadow-md);
+            border-color: #bfdbfe;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .item-index {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            background: #e5e7eb;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .icon-btn {
+            padding: 4px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .icon-btn:hover {
+            color: var(--primary-color);
+            background: #eff6ff;
+        }
+
+        .icon-btn.delete:hover {
+            color: var(--danger-color);
+            background: #fef2f2;
+        }
+
+        /* 属性行 */
+        .prop-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .prop-row:last-child {
+            margin-bottom: 0;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .key-input {
+            flex: 1;
+            font-family: var(--font-mono);
+            color: #7c3aed; /* Purple for keys */
+            font-weight: 600;
+            background: #f5f3ff;
+        }
+
+        .value-input {
+            flex: 2;
+            font-family: var(--font-mono);
+            color: #059669; /* Green for values */
+        }
+
+        .remove-prop-btn {
+            padding: 6px;
+            color: #9ca3af;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+        
+        .remove-prop-btn:hover {
+            color: var(--danger-color);
+        }
+
+        .add-prop-btn {
+            margin-top: 10px;
+            width: 100%;
+            border: 1px dashed var(--border-color);
+            color: var(--text-secondary);
+            background: #f9fafb;
+        }
+
+        .add-prop-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: #eff6ff;
+        }
+
+        /* 右侧：JSON 输出区 */
+        .output-section {
+            flex: 1;
+            background: var(--surface-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            min-width: 300px;
+        }
+
+        .section-header {
+            padding: 10px 15px;
+            background: #1f2937;
+            color: white;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .json-container {
+            flex: 1;
+            position: relative;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            resize: none;
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        /* 简单的 Toast 提示 */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 12px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;
+            }
+            .editor-section {
+                height: 50vh;
+            }
+            .output-section {
+                height: 30vh;
+            }
+        }
+        
+        /* 空状态提示 */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>JSON 数组可视化编辑器</h1>
+        <p class="subtitle">直观地编辑对象数组，实时生成 JSON 数据</p>
+    </header>
+
+    <main>
+        <!-- 编辑区 -->
+        <section class="editor-section">
+            <div class="toolbar">
+                <button class="primary" onclick="addItem()">+ 添加数组项</button>
+                <button onclick="clearAll()" class="danger">清空所有</button>
+                <div style="flex:1"></div>
+                <button onclick="importJson()">导入 JSON</button>
+            </div>
+            <div id="visualList" class="list-container">
+                <!-- 动态生成的内容将放在这里 -->
+            </div>
+        </section>
+
+        <!-- 输出区 -->
+        <section class="output-section">
+            <div class="section-header">
+                <span>JSON 预览</span>
+                <button onclick="copyJson()" style="padding: 4px 8px; font-size: 0.8rem; background: rgba(255,255,255,0.2); border:none; color:white;">复制</button>
+            </div>
+            <div class="json-container">
+                <textarea id="jsonOutput" readonly></textarea>
+            </div>
+        </section>
+    </main>
+
+    <!-- 隐藏的导入输入框 -->
+    <input type="file" id="fileInput" style="display:none" accept=".json" onchange="handleFileSelect(event)">
+    
+    <!-- Toast 消息 -->
+    <div id="toast">操作成功</div>
+
+    <script>
+        // 初始数据
+        let dataArray = [
+            { id: 101, name: "示例产品 A", price: 99.9, active: true },
+            { id: 102, name: "示例产品 B", price: 49.5, active: false }
+        ];
+
+        const visualList = document.getElementById('visualList');
+        const jsonOutput = document.getElementById('jsonOutput');
+        const toast = document.getElementById('toast');
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            render();
+        });
+
+        // 核心渲染函数
+        function render() {
+            visualList.innerHTML = '';
+            
+            if (dataArray.length === 0) {
+                visualList.innerHTML = '<div class="empty-state">数组为空，点击“添加数组项”开始</div>';
+                updateOutput();
+                return;
+            }
+
+            dataArray.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'array-item';
+                
+                // 获取所有的 Key
+                const keys = Object.keys(item);
+                
+                // 生成属性行的 HTML
+                let propsHtml = '';
+                keys.forEach(key => {
+                    const val = item[key];
+                    // 处理值的显示，如果是对象或数组这里做简单化处理（字符串化），否则直接显示
+                    const displayVal = (typeof val === 'object' && val !== null) ? JSON.stringify(val) : val;
+                    
+                    propsHtml += `
+                        <div class="prop-row">
+                            <input type="text" class="key-input" value="${escapeHtml(key)}" 
+                                   onchange="updateKey(${index}, '${escapeHtml(key)}', this.value)" 
+                                   placeholder="Key">
+                            <input type="text" class="value-input" value="${escapeHtml(displayVal)}" 
+                                   oninput="updateValue(${index}, '${escapeHtml(key)}', this.value)" 
+                                   placeholder="Value">
+                            <button class="remove-prop-btn" onclick="removeProp(${index}, '${escapeHtml(key)}')" title="删除属性">&times;</button>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="item-header">
+                        <span class="item-index">[ ${index} ]</span>
+                        <div class="item-actions">
+                            <button class="icon-btn" onclick="moveItem(${index}, -1)" title="上移" ${index === 0 ? 'disabled' : ''}>↑</button>
+                            <button class="icon-btn" onclick="moveItem(${index}, 1)" title="下移" ${index === dataArray.length - 1 ? 'disabled' : ''}>↓</button>
+                            <button class="icon-btn delete" onclick="deleteItem(${index})" title="删除此项">🗑</button>
+                        </div>
+                    </div>
+                    <div class="item-props">
+                        ${propsHtml}
+                    </div>
+                    <button class="add-prop-btn" onclick="addProp(${index})">+ 添加属性</button>
+                `;
+                
+                visualList.appendChild(card);
+            });
+
+            updateOutput();
+        }
+
+        // 更新 JSON 输出
+        function updateOutput() {
+            jsonOutput.value = JSON.stringify(dataArray, null, 4);
+        }
+
+        // --- 数据操作 ---
+
+        // 添加数组项
+        function addItem() {
+            dataArray.push({ newKey: "newValue" });
+            render();
+            scrollToBottom();
+        }
+
+        // 删除数组项
+        function deleteItem(index) {
+            if(confirm("确定要删除这一项吗？")) {
+                dataArray.splice(index, 1);
+                render();
+            }
+        }
+
+        // 移动数组项
+        function moveItem(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= dataArray.length) return;
+            
+            // 交换
+            [dataArray[index], dataArray[newIndex]] = [dataArray[newIndex], dataArray[index]];
+            render();
+        }
+
+        // 清空
+        function clearAll() {
+            if(confirm("确定要清空所有数据吗？")) {
+                dataArray = [];
+                render();
+            }
+        }
+
+        // --- 属性操作 ---
+
+        // 更新 Key
+        function updateKey(itemIndex, oldKey, newKey) {
+            if (!newKey || oldKey === newKey) return;
+            
+            const item = dataArray[itemIndex];
+            const value = item[oldKey];
+            delete item[oldKey];
+            item[newKey] = value;
+            render(); // 重新渲染以更新 onchange 里的 escapeHtml 引用
+        }
+
+        // 更新 Value
+        function updateValue(itemIndex, key, newValue) {
+            const item = dataArray[itemIndex];
+            
+            // 尝试自动转换类型
+            let finalVal = newValue;
+            if (newValue === 'true') finalVal = true;
+            else if (newValue === 'false') finalVal = false;
+            else if (!isNaN(Number(newValue)) && newValue.trim() !== '') finalVal = Number(newValue);
+            
+            item[key] = finalVal;
+            updateOutput(); // 只更新输出，不重新渲染，以免失去焦点
+        }
+
+        // 添加属性
+        function addProp(itemIndex) {
+            let newKey = "newProp";
+            let counter = 1;
+            const item = dataArray[itemIndex];
+            
+            while(item.hasOwnProperty(newKey)) {
+                newKey = `newProp${counter++}`;
+            }
+            
+            item[newKey] = "";
+            render();
+        }
+
+        // 删除属性
+        function removeProp(itemIndex, key) {
+            delete dataArray[itemIndex][key];
+            render();
+        }
+
+        // --- 工具功能 ---
+
+        // 复制 JSON
+        function copyJson() {
+            jsonOutput.select();
+            document.execCommand('copy');
+            showToast("JSON 已复制到剪贴板");
+        }
+
+        // 导入 JSON
+        function importJson() {
+            const input = prompt("请粘贴 JSON 数组内容：");
+            if (input) {
+                try {
+                    const parsed = JSON.parse(input);
+                    if (Array.isArray(parsed)) {
+                        dataArray = parsed;
+                        render();
+                        showToast("导入成功");
+                    } else {
+                        alert("JSON 必须是数组格式 [...] ");
+                    }
+                } catch (e) {
+                    alert("JSON 格式错误，请检查语法。");
+                }
+            }
+        }
+
+        // 辅助：HTML 转义防止 XSS
+        function escapeHtml(text) {
+            if (typeof text !== 'string') return text;
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // 辅助：显示 Toast
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // 辅助：滚动到底部
+        function scrollToBottom() {
+            setTimeout(() => {
+                visualList.scrollTop = visualList.scrollHeight;
+            }, 50);
+        }
+
+    </script>
+</body>
+</html>
