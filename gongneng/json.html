@@ -18,13 +18,10 @@
             --font-mono: 'Menlo', 'Monaco', 'Courier New', monospace;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -43,27 +40,16 @@
             flex-shrink: 0;
         }
 
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 8px;
-        }
+        h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+        p.subtitle { color: var(--text-secondary); font-size: 0.9rem; }
 
-        p.subtitle {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        /* 主布局 */
         main {
             display: flex;
             gap: 20px;
             flex: 1;
-            min-height: 0; /* 对Flex容器内的滚动很重要 */
+            min-height: 0;
         }
 
-        /* 左侧：可视化编辑区 */
         .editor-section {
             flex: 2;
             background: var(--surface-color);
@@ -81,6 +67,8 @@
             display: flex;
             gap: 10px;
             background: #fafafa;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         button {
@@ -97,30 +85,16 @@
             gap: 5px;
         }
 
-        button:hover {
-            background-color: #f9fafb;
-            border-color: #d1d5db;
-        }
+        button:hover { background-color: #f9fafb; border-color: #d1d5db; }
 
-        button.primary {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-        }
+        button.primary { background-color: var(--primary-color); color: white; border: none; }
+        button.primary:hover { background-color: var(--primary-hover); }
 
-        button.primary:hover {
-            background-color: var(--primary-hover);
-        }
+        button.secondary { background-color: #4b5563; color: white; border: none; }
+        button.secondary:hover { background-color: #374151; }
 
-        button.danger {
-            color: var(--danger-color);
-            border-color: #fecaca;
-            background-color: #fef2f2;
-        }
-
-        button.danger:hover {
-            background-color: #fee2e2;
-        }
+        button.danger { color: var(--danger-color); border-color: #fecaca; background-color: #fef2f2; }
+        button.danger:hover { background-color: #fee2e2; }
 
         .list-container {
             flex: 1;
@@ -141,10 +115,7 @@
             transition: box-shadow 0.2s;
         }
 
-        .array-item:hover {
-            box-shadow: var(--shadow-md);
-            border-color: #bfdbfe;
-        }
+        .array-item:hover { box-shadow: var(--shadow-md); border-color: #bfdbfe; }
 
         .item-header {
             display: flex;
@@ -165,10 +136,7 @@
             border-radius: 4px;
         }
 
-        .item-actions {
-            display: flex;
-            gap: 5px;
-        }
+        .item-actions { display: flex; gap: 5px; }
 
         .icon-btn {
             padding: 4px;
@@ -178,27 +146,11 @@
             font-size: 1.1rem;
         }
 
-        .icon-btn:hover {
-            color: var(--primary-color);
-            background: #eff6ff;
-        }
+        .icon-btn:hover { color: var(--primary-color); background: #eff6ff; }
+        .icon-btn.delete:hover { color: var(--danger-color); background: #fef2f2; }
 
-        .icon-btn.delete:hover {
-            color: var(--danger-color);
-            background: #fef2f2;
-        }
-
-        /* 属性行 */
-        .prop-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
-            align-items: center;
-        }
-
-        .prop-row:last-child {
-            margin-bottom: 0;
-        }
+        .prop-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; }
+        .key-label { flex: 1; font-family: var(--font-mono); color: #7c3aed; font-weight: 600; font-size: 0.9rem; min-width: 80px; }
 
         input[type="text"], input[type="number"] {
             padding: 8px 12px;
@@ -209,37 +161,13 @@
             transition: border-color 0.2s;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        }
+        input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); }
 
-        .key-input {
-            flex: 1;
-            font-family: var(--font-mono);
-            color: #7c3aed; /* Purple for keys */
-            font-weight: 600;
-            background: #f5f3ff;
-        }
+        .key-input { flex: 1; font-family: var(--font-mono); color: #7c3aed; font-weight: 600; background: #f5f3ff; }
+        .value-input { flex: 2; font-family: var(--font-mono); color: #059669; min-width: 0; }
 
-        .value-input {
-            flex: 2;
-            font-family: var(--font-mono);
-            color: #059669; /* Green for values */
-        }
-
-        .remove-prop-btn {
-            padding: 6px;
-            color: #9ca3af;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-        }
-        
-        .remove-prop-btn:hover {
-            color: var(--danger-color);
-        }
+        .remove-prop-btn { padding: 6px; color: #9ca3af; cursor: pointer; border: none; background: transparent; }
+        .remove-prop-btn:hover { color: var(--danger-color); }
 
         .add-prop-btn {
             margin-top: 10px;
@@ -249,13 +177,39 @@
             background: #f9fafb;
         }
 
-        .add-prop-btn:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            background: #eff6ff;
-        }
+        .add-prop-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: #eff6ff; }
 
-        /* 右侧：JSON 输出区 */
+        .attr-schema {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            background: #f8fafc;
+        }
+        .attr-schema-header { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px; }
+        .attr-schema-list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .attr-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 4px 8px;
+        }
+        .attr-chip input { width: 80px; padding: 4px 8px; font-size: 0.85rem; border: 1px solid transparent; }
+        .attr-chip input:focus { border-color: var(--primary-color); outline: none; }
+        .attr-chip .remove-attr { padding: 0 4px; color: #9ca3af; cursor: pointer; border: none; background: none; font-size: 1.1rem; line-height: 1; }
+        .attr-chip .remove-attr:hover { color: var(--danger-color); }
+        .add-attr-btn {
+            margin-top: 8px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border: 1px dashed var(--border-color);
+            color: var(--text-secondary);
+            background: white;
+        }
+        .add-attr-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+        /* 输出区 */
         .output-section {
             flex: 1;
             background: var(--surface-color);
@@ -268,20 +222,9 @@
             min-width: 300px;
         }
 
-        .section-header {
-            padding: 10px 15px;
-            background: #1f2937;
-            color: white;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .section-header { padding: 10px 15px; background: #1f2937; color: white; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
 
-        .json-container {
-            flex: 1;
-            position: relative;
-        }
+        .json-container { flex: 1; position: relative; }
 
         textarea {
             width: 100%;
@@ -296,55 +239,49 @@
             line-height: 1.6;
         }
 
-        textarea:focus {
-            outline: none;
-        }
+        textarea:focus { outline: none; }
 
-        /* 简单的 Toast 提示 */
-        #toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 4px;
-            padding: 12px;
-            position: fixed;
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex; justify-content: center; align-items: center;
             z-index: 1000;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-            font-size: 0.9rem;
-            opacity: 0;
-            transition: opacity 0.3s, bottom 0.3s;
+            opacity: 0; visibility: hidden; transition: opacity 0.2s;
         }
 
-        #toast.show {
-            visibility: visible;
-            opacity: 1;
-            bottom: 50px;
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+
+        .modal-content {
+            background: white; padding: 24px; border-radius: 8px;
+            width: 90%; max-width: 400px;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.95); transition: transform 0.2s;
         }
 
-        /* 响应式适配 */
+        .modal-overlay.show .modal-content { transform: scale(1); }
+
+        .modal-header { margin-bottom: 16px; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+        .modal-body { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; }
+
+        /* Toast */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 4px; padding: 12px;
+            position: fixed; z-index: 2000; left: 50%; bottom: 30px;
+            transform: translateX(-50%); font-size: 0.9rem;
+            opacity: 0; transition: opacity 0.3s, bottom 0.3s;
+        }
+
+        #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+
+        .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); border: 2px dashed var(--border-color); border-radius: 8px; }
+
         @media (max-width: 768px) {
-            main {
-                flex-direction: column;
-            }
-            .editor-section {
-                height: 50vh;
-            }
-            .output-section {
-                height: 30vh;
-            }
-        }
-        
-        /* 空状态提示 */
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-secondary);
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
+            main { flex-direction: column; }
+            .editor-section { height: 50vh; }
+            .output-section { height: 30vh; }
         }
     </style>
 </head>
@@ -356,20 +293,22 @@
     </header>
 
     <main>
-        <!-- 编辑区 -->
         <section class="editor-section">
             <div class="toolbar">
                 <button class="primary" onclick="addItem()">+ 添加数组项</button>
+                <button onclick="importJson()" style="margin-left:auto">导入 JSON</button>
                 <button onclick="clearAll()" class="danger">清空所有</button>
-                <div style="flex:1"></div>
-                <button onclick="importJson()">导入 JSON</button>
+            </div>
+            <div class="attr-schema">
+                <div class="attr-schema-header">属性结构（修改属性名会同步更新所有项）</div>
+                <div id="attrSchemaList" class="attr-schema-list"></div>
+                <button class="add-attr-btn" onclick="addAttribute()">+ 添加属性</button>
             </div>
             <div id="visualList" class="list-container">
-                <!-- 动态生成的内容将放在这里 -->
+                <!-- 动态内容 -->
             </div>
         </section>
 
-        <!-- 输出区 -->
         <section class="output-section">
             <div class="section-header">
                 <span>JSON 预览</span>
@@ -381,30 +320,81 @@
         </section>
     </main>
 
-    <!-- 隐藏的导入输入框 -->
-    <input type="file" id="fileInput" style="display:none" accept=".json" onchange="handleFileSelect(event)">
-    
-    <!-- Toast 消息 -->
     <div id="toast">操作成功</div>
 
     <script>
-        // 初始数据
+        // 全局属性结构：所有数组项统一使用这些键
+        let attributeSchema = ['属性1', '属性2', '属性3'];
         let dataArray = [
-            { id: 101, name: "示例产品 A", price: 99.9, active: true },
-            { id: 102, name: "示例产品 B", price: 49.5, active: false }
+            { 属性1: 101, 属性2: "示例产品 A", 属性3: 99.9 },
+            { 属性1: 102, 属性2: "示例产品 B", 属性3: 49.5 }
         ];
 
         const visualList = document.getElementById('visualList');
         const jsonOutput = document.getElementById('jsonOutput');
         const toast = document.getElementById('toast');
+        const attrSchemaList = document.getElementById('attrSchemaList');
 
-        // 初始化
         document.addEventListener('DOMContentLoaded', () => {
+            syncItemsToSchema(); // 确保所有项结构统一
             render();
+            setupEventListeners();
         });
 
-        // 核心渲染函数
+        // 设置事件委托 (解决删除失效问题)
+        function setupEventListeners() {
+            visualList.addEventListener('click', (e) => {
+                // 处理删除按钮
+                const deleteBtn = e.target.closest('.delete');
+                if (deleteBtn) {
+                    const index = parseInt(deleteBtn.dataset.index);
+                    deleteItem(index);
+                    return;
+                }
+
+                // 处理上移
+                const upBtn = e.target.closest('.action-up');
+                if (upBtn) {
+                    const index = parseInt(upBtn.dataset.index);
+                    moveItem(index, -1);
+                    return;
+                }
+
+                // 处理下移
+                const downBtn = e.target.closest('.action-down');
+                if (downBtn) {
+                    const index = parseInt(downBtn.dataset.index);
+                    moveItem(index, 1);
+                    return;
+                }
+            });
+        }
+
+        // 同步所有数组项：按 attributeSchema 统一结构
+        function syncItemsToSchema() {
+            dataArray.forEach(item => {
+                attributeSchema.forEach(key => {
+                    if (!item.hasOwnProperty(key)) item[key] = '';
+                });
+                Object.keys(item).forEach(key => {
+                    if (!attributeSchema.includes(key)) delete item[key];
+                });
+            });
+        }
+
+        function renderAttrSchema() {
+            attrSchemaList.innerHTML = attributeSchema.map((attr) => `
+                <div class="attr-chip">
+                    <input type="text" value="${escapeHtml(attr)}" 
+                           onchange="renameAttribute('${escapeJsString(attr)}', this.value.trim())"
+                           placeholder="属性名">
+                    <button class="remove-attr" onclick="removeAttribute('${escapeJsString(attr)}')" title="删除属性">&times;</button>
+                </div>
+            `).join('');
+        }
+
         function render() {
+            renderAttrSchema();
             visualList.innerHTML = '';
             
             if (dataArray.length === 0) {
@@ -416,26 +406,19 @@
             dataArray.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'array-item';
+                const keys = attributeSchema;
                 
-                // 获取所有的 Key
-                const keys = Object.keys(item);
-                
-                // 生成属性行的 HTML
                 let propsHtml = '';
                 keys.forEach(key => {
                     const val = item[key];
-                    // 处理值的显示，如果是对象或数组这里做简单化处理（字符串化），否则直接显示
-                    const displayVal = (typeof val === 'object' && val !== null) ? JSON.stringify(val) : val;
-                    
+                    const displayVal = (val === undefined || val === null) ? '' : 
+                        (typeof val === 'object' ? JSON.stringify(val) : String(val));
                     propsHtml += `
                         <div class="prop-row">
-                            <input type="text" class="key-input" value="${escapeHtml(key)}" 
-                                   onchange="updateKey(${index}, '${escapeHtml(key)}', this.value)" 
-                                   placeholder="Key">
+                            <span class="key-label">${escapeHtml(key)}</span>
                             <input type="text" class="value-input" value="${escapeHtml(displayVal)}" 
-                                   oninput="updateValue(${index}, '${escapeHtml(key)}', this.value)" 
-                                   placeholder="Value">
-                            <button class="remove-prop-btn" onclick="removeProp(${index}, '${escapeHtml(key)}')" title="删除属性">&times;</button>
+                                   oninput="updateValue(${index}, '${escapeJsString(key)}', this.value)" 
+                                   placeholder="值">
                         </div>
                     `;
                 });
@@ -444,15 +427,14 @@
                     <div class="item-header">
                         <span class="item-index">[ ${index} ]</span>
                         <div class="item-actions">
-                            <button class="icon-btn" onclick="moveItem(${index}, -1)" title="上移" ${index === 0 ? 'disabled' : ''}>↑</button>
-                            <button class="icon-btn" onclick="moveItem(${index}, 1)" title="下移" ${index === dataArray.length - 1 ? 'disabled' : ''}>↓</button>
-                            <button class="icon-btn delete" onclick="deleteItem(${index})" title="删除此项">🗑</button>
+                            <button class="icon-btn action-up" data-index="${index}" title="上移" ${index === 0 ? 'disabled' : ''}>↑</button>
+                            <button class="icon-btn action-down" data-index="${index}" title="下移" ${index === dataArray.length - 1 ? 'disabled' : ''}>↓</button>
+                            <button class="icon-btn delete" data-index="${index}" title="删除此项">🗑</button>
                         </div>
                     </div>
                     <div class="item-props">
                         ${propsHtml}
                     </div>
-                    <button class="add-prop-btn" onclick="addProp(${index})">+ 添加属性</button>
                 `;
                 
                 visualList.appendChild(card);
@@ -461,39 +443,34 @@
             updateOutput();
         }
 
-        // 更新 JSON 输出
         function updateOutput() {
             jsonOutput.value = JSON.stringify(dataArray, null, 4);
         }
 
-        // --- 数据操作 ---
+        // --- 数组操作 ---
 
-        // 添加数组项
         function addItem() {
-            dataArray.push({ newKey: "newValue" });
+            const newItem = {};
+            attributeSchema.forEach(k => { newItem[k] = ''; });
+            dataArray.push(newItem);
             render();
             scrollToBottom();
         }
 
-        // 删除数组项
         function deleteItem(index) {
-            if(confirm("确定要删除这一项吗？")) {
-                dataArray.splice(index, 1);
-                render();
-            }
+            // 移除了 confirm 弹窗，保证点击绝对有效
+            dataArray.splice(index, 1);
+            render();
+            showToast("已删除数组项");
         }
 
-        // 移动数组项
         function moveItem(index, direction) {
             const newIndex = index + direction;
             if (newIndex < 0 || newIndex >= dataArray.length) return;
-            
-            // 交换
             [dataArray[index], dataArray[newIndex]] = [dataArray[newIndex], dataArray[index]];
             render();
         }
 
-        // 清空
         function clearAll() {
             if(confirm("确定要清空所有数据吗？")) {
                 dataArray = [];
@@ -501,63 +478,69 @@
             }
         }
 
-        // --- 属性操作 ---
+        // --- 属性结构操作（全局，会同步更新所有数组项）---
 
-        // 更新 Key
-        function updateKey(itemIndex, oldKey, newKey) {
-            if (!newKey || oldKey === newKey) return;
-            
-            const item = dataArray[itemIndex];
-            const value = item[oldKey];
-            delete item[oldKey];
-            item[newKey] = value;
-            render(); // 重新渲染以更新 onchange 里的 escapeHtml 引用
+        function addAttribute() {
+            let name = '属性' + (attributeSchema.length + 1);
+            let i = 1;
+            while (attributeSchema.includes(name)) {
+                name = '属性' + (attributeSchema.length + (++i));
+            }
+            attributeSchema.push(name);
+            dataArray.forEach(item => { item[name] = ''; });
+            render();
+            showToast('已添加属性：' + name);
         }
 
-        // 更新 Value
+        function removeAttribute(attrName) {
+            if (attributeSchema.length <= 1) {
+                showToast('至少保留一个属性');
+                return;
+            }
+            const idx = attributeSchema.indexOf(attrName);
+            if (idx === -1) return;
+            attributeSchema.splice(idx, 1);
+            dataArray.forEach(item => { delete item[attrName]; });
+            render();
+            showToast('已删除属性');
+        }
+
+        function renameAttribute(oldName, newName) {
+            newName = (newName || '').trim();
+            if (!newName || oldName === newName) { render(); return; }
+            if (attributeSchema.includes(newName)) {
+                showToast('属性名已存在');
+                return;
+            }
+            const idx = attributeSchema.indexOf(oldName);
+            if (idx === -1) return;
+            attributeSchema[idx] = newName;
+            dataArray.forEach(item => {
+                item[newName] = item[oldName] !== undefined ? item[oldName] : '';
+                delete item[oldName];
+            });
+            render();
+            showToast('已重命名：' + oldName + ' → ' + newName);
+        }
+
         function updateValue(itemIndex, key, newValue) {
             const item = dataArray[itemIndex];
-            
-            // 尝试自动转换类型
             let finalVal = newValue;
             if (newValue === 'true') finalVal = true;
             else if (newValue === 'false') finalVal = false;
             else if (!isNaN(Number(newValue)) && newValue.trim() !== '') finalVal = Number(newValue);
-            
             item[key] = finalVal;
-            updateOutput(); // 只更新输出，不重新渲染，以免失去焦点
+            updateOutput();
         }
 
-        // 添加属性
-        function addProp(itemIndex) {
-            let newKey = "newProp";
-            let counter = 1;
-            const item = dataArray[itemIndex];
-            
-            while(item.hasOwnProperty(newKey)) {
-                newKey = `newProp${counter++}`;
-            }
-            
-            item[newKey] = "";
-            render();
-        }
+        // --- 工具 ---
 
-        // 删除属性
-        function removeProp(itemIndex, key) {
-            delete dataArray[itemIndex][key];
-            render();
-        }
-
-        // --- 工具功能 ---
-
-        // 复制 JSON
         function copyJson() {
             jsonOutput.select();
             document.execCommand('copy');
             showToast("JSON 已复制到剪贴板");
         }
 
-        // 导入 JSON
         function importJson() {
             const input = prompt("请粘贴 JSON 数组内容：");
             if (input) {
@@ -565,6 +548,15 @@
                     const parsed = JSON.parse(input);
                     if (Array.isArray(parsed)) {
                         dataArray = parsed;
+                        const allKeys = new Set();
+                        dataArray.forEach(item => {
+                            if (item && typeof item === 'object') Object.keys(item).forEach(k => allKeys.add(k));
+                        });
+                        const first = dataArray.find(item => item && typeof item === 'object');
+                        const ordered = first ? Object.keys(first) : [];
+                        ordered.forEach(k => allKeys.delete(k));
+                        attributeSchema = ordered.length ? [...ordered, ...allKeys] : (allKeys.size ? [...allKeys] : ['属性1', '属性2', '属性3']);
+                        syncItemsToSchema();
                         render();
                         showToast("导入成功");
                     } else {
@@ -576,7 +568,6 @@
             }
         }
 
-        // 辅助：HTML 转义防止 XSS
         function escapeHtml(text) {
             if (typeof text !== 'string') return text;
             return text
@@ -586,19 +577,27 @@
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
+        
+        // 增强的 JS 转义，支持反引号
+        function escapeJsString(text) {
+            if (typeof text !== 'string') return text;
+            return text
+                .replace(/\\/g, "\\\\")
+                .replace(/'/g, "\\'")
+                .replace(/"/g, "&quot;") // HTML 实体在 HTML 属性中是安全的，JS引擎会解析它
+                .replace(/`/g, "\\`")   // 转义反引号防止破坏模板字符串
+                .replace(/\n/g, "\\n")
+                .replace(/\r/g, "\\r");
+        }
 
-        // 辅助：显示 Toast
         function showToast(msg) {
             toast.textContent = msg;
             toast.className = "show";
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // 辅助：滚动到底部
         function scrollToBottom() {
-            setTimeout(() => {
-                visualList.scrollTop = visualList.scrollHeight;
-            }, 50);
+            setTimeout(() => { visualList.scrollTop = visualList.scrollHeight; }, 50);
         }
 
     </script>
