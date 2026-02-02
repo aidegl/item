@@ -35,7 +35,7 @@ window.testSpeechToText = function (type = 'default') {
         console.log(`[智能推断] 未指定类型，根据当前 Tab 推断为: ${type}`);
     }
 
-    console.log(`--- 语音转文字测试 (${type}) (v1.0.19) ---`);
+    console.log(`--- 语音转文字测试 (${type}) (v1.0.20) ---`);
 
     // 检查是否已经登录
     const loginResult = checkLoginAndProceed();

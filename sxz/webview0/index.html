@@ -27,7 +27,7 @@
     (function () {
       // 动态资源版本化 (Cache Busting)
       // 使用 URL 参数中的版本号，或者默认版本号，避免无意义的强制刷新
-      var v = new URLSearchParams(window.location.search).get('v') || '1.0.0';
+      var v = new URLSearchParams(window.location.search).get('v') || '20260202';
       console.log('[Webview] CSS资源版本号:', v);
 
       // 通过 DOM 操作动态加载 CSS，避免 document.write 阻塞
@@ -131,7 +131,7 @@
     (function () {
       // 动态资源版本化：确保所有 JS 脚本都使用版本号
       // 从 URL 获取版本号，如果未指定则使用默认版本号（允许缓存），而不是每次都使用当前时间戳
-      var v = new URLSearchParams(window.location.search).get('v') || '1.0.0';
+      var v = new URLSearchParams(window.location.search).get('v') || '20260202';
       console.log('[Webview] 动态加载脚本，版本号:', v);
 
       // 动态注入所有 JS 脚本，确保版本号透传到所有资源层级
