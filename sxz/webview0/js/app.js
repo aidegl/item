@@ -2532,29 +2532,33 @@ function renderConsultationFlow(container) {
                     </div>
                     <div id="pre-report-preview" style="display: ${isEditMode && consultation.zqbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
                         <img src="${isEditMode ? parseMingDaoPic(consultation.zqbg) : ''}" data-original="${isEditMode ? parseMingDaoOriginalPic(consultation.zqbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" alt="诊前报告" onclick="previewImage(this.dataset.original || this.src)">
+                        <div style="margin-top: 12px;">
+                            <button type="button" class="btn btn-outline w-full" onclick="copyReportScript('pre')" style="border-radius: 8px; font-size: 14px; padding: 8px; border-color: var(--primary-color); color: var(--primary-color);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 4px; vertical-align: text-bottom;">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                复制话术给患者
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div style="margin-bottom: 12px;">
-                    ${consultation.zqbg ? `
-                        <div style="display: flex; gap: 10px;">
-                            <a href="javascript:void(0)" onclick="downloadImage('${parseMingDaoOriginalPic(consultation.zqbg)}')" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
-                                下载图片
-                            </a>
-                            <button type="button" class="btn btn-outline w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                    <div style="margin-bottom: 12px;">
+                        ${consultation.zqbg ? `
+                            <button type="button" class="btn btn-primary w-full" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
                                 重新生成
                             </button>
-                        </div>
-                    ` : `
-                        <button type="button" class="btn btn-primary w-full" id="btn-generate-pre" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
-                            生成诊前报告
-                        </button>
-                    `}
-                </div>
+                        ` : `
+                            <button type="button" class="btn btn-primary w-full" id="btn-generate-pre" onclick="generatePreReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
+                                生成诊前报告
+                            </button>
+                        `}
+                    </div>
                 ` : ''}
 
                 ${isEditMode ? `
-                <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                     <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
                         删除陪诊记录
                     </button>
@@ -2564,6 +2568,7 @@ function renderConsultationFlow(container) {
                 
                 <!-- 诊后内容 -->
                 <div id="post-tab" class="tab-content hidden">
+                    <input type="hidden" name="zhbg" id="zhbg_input" value="${isEditMode ? (consultation.zhbg || '') : ''}">
                     <div class="card mb-2">
                         <h3 class="card-title mb-2">辅助功能</h3>
                         <div class="upload-buttons-section" style="padding: 8px 0; display: flex; gap: 8px;">
@@ -2663,19 +2668,23 @@ function renderConsultationFlow(container) {
                         </div>
                         <div id="post-report-preview" style="display: ${isEditMode && consultation.zhbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
                             <img src="${isEditMode ? parseMingDaoPic(consultation.zhbg) : ''}" data-original="${isEditMode ? parseMingDaoOriginalPic(consultation.zhbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" alt="诊后报告" onclick="previewImage(this.dataset.original || this.src)">
+                            <div style="margin-top: 12px;">
+                                <button type="button" class="btn btn-outline w-full" onclick="copyReportScript('post')" style="border-radius: 8px; font-size: 14px; padding: 8px; border-color: var(--primary-color); color: var(--primary-color);">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 4px; vertical-align: text-bottom;">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    复制话术给患者
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 12px;">
                         ${consultation.zhbg ? `
-                            <div style="display: flex; gap: 10px;">
-                                <a href="javascript:void(0)" onclick="downloadImage('${parseMingDaoOriginalPic(consultation.zhbg)}')" class="btn btn-primary w-full" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none;">
-                                    下载图片
-                                </a>
-                                <button type="button" class="btn btn-outline w-full" onclick="generatePostReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
-                                    重新生成
-                                </button>
-                            </div>
+                            <button type="button" class="btn btn-primary w-full" onclick="generatePostReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
+                                重新生成
+                            </button>
                         ` : `
                             <button type="button" class="btn btn-primary w-full" onclick="generatePostReport('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500; background-color: #3b82f6; color: white;">
                                 生成诊后报告
@@ -2683,11 +2692,11 @@ function renderConsultationFlow(container) {
                         `}
                     </div>
 
-                    <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-                        <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
-                            删除陪诊记录
-                        </button>
-                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <button type="button" class="btn btn-danger w-full" onclick="handleConsultationDelete('${consultation.id}')" style="height: 44px; border-radius: 12px; font-size: 16px; font-weight: 500;">
+                        删除陪诊记录
+                    </button>
+                </div>
                     ` : ''}
                 </div>
         
@@ -5388,6 +5397,38 @@ function copyToClipboard(btn) {
         showToast('复制失败');
     });
 }
+
+// 复制报告话术
+window.copyReportScript = function (type) {
+    console.log('[copyReportScript] 尝试复制话术, 类型:', type);
+
+    if (!AppState.globalSettings) {
+        console.warn('[copyReportScript] 全局设置未加载');
+        showToast('配置加载中，请稍后...');
+        AppState.loadGlobalSettings();
+        return;
+    }
+
+    let content = '';
+    if (type === 'pre') {
+        content = AppState.globalSettings.zqbg;
+    } else if (type === 'post') {
+        content = AppState.globalSettings.zhbg;
+    }
+
+    if (!content) {
+        console.warn('[copyReportScript] 对应话术为空, type:', type);
+        showToast('未配置相关话术');
+        return;
+    }
+
+    navigator.clipboard.writeText(content).then(() => {
+        showToast('话术已复制');
+    }).catch(err => {
+        console.error('[copyReportScript] 复制失败:', err);
+        showToast('复制失败，请重试');
+    });
+};
 
 // ==================== 会员与订单功能 ====================
 function showMyOrders() {
