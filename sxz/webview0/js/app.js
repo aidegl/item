@@ -2409,7 +2409,7 @@ function renderConsultationFlow(container) {
 
                         <div id="first-record-selector" style="display: ${isEditMode && consultation.fuid ? 'block' : 'none'}; margin-top: 16px; border-top: 1px solid rgba(59, 130, 246, 0.1); pt-12;">
                             <label class="form-label" style="font-size: 13px; color: var(--text-secondary); margin-top: 12px;">请选择该复诊的首次陪诊记录 *</label>
-                            <select name="fuid" class="input" style="height: 38px; margin-top: 6px; font-size: 13px; background-color: white;">
+                            <select name="fuid" class="input" onchange="handleFirstRecordSelect(this)" style="height: 38px; margin-top: 6px; font-size: 13px; background-color: white;">
                                 <option value="">-- 请选择记录 --</option>
                                 ${AppState.consultations
             .filter(c => c.patientId === AppState.currentPatientId && (c.shouzhen == 1 || c.shouzhen == '1') && c.id !== (isEditMode ? consultation.id : ''))
@@ -3138,6 +3138,39 @@ function handleHasFirstRecordChange(radio) {
         selector.style.display = 'none';
         const select = document.querySelector('select[name="fuid"]');
         if (select) select.value = '';
+    }
+}
+
+function handleFirstRecordSelect(select) {
+    const selectedId = select.value;
+    if (!selectedId) return;
+
+    // 查找选中的陪诊记录
+    const record = AppState.consultations.find(c => c.id === selectedId);
+    if (!record) return;
+
+    // 填充字段
+    const hospitalInput = document.querySelector('input[name="hospital"]');
+    const departmentInput = document.querySelector('input[name="department"]');
+    const doctorInput = document.querySelector('input[name="doctor"]');
+
+    let updated = false;
+
+    if (hospitalInput && record.hospital) {
+        hospitalInput.value = record.hospital;
+        updated = true;
+    }
+    if (departmentInput && record.department) {
+        departmentInput.value = record.department;
+        updated = true;
+    }
+    if (doctorInput && record.doctor) {
+        doctorInput.value = record.doctor;
+        updated = true;
+    }
+
+    if (updated) {
+        showToast('已自动导入首次陪诊记录信息');
     }
 }
 
