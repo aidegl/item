@@ -866,83 +866,6 @@ function handleChatKeyPress(event) {
     }
 }
 
-let cozeAPI = null;
-
-function initCozeAPI() {
-    if (typeof CozeChatAPI === 'undefined') {
-        console.error('CozeChatAPI not found');
-        return;
-    }
-
-    cozeAPI = new CozeChatAPI({
-        botId: '7593641609586819106',
-        userId: 'user_' + Date.now(),
-        // 禁用默认的 UI 绑定
-        messagesContainer: null,
-        inputElement: null,
-        sendButton: null,
-
-        onStreamingStart: () => {
-            // 添加"正在思考中..."的AI消息占位
-            AppState.chatMessages.push({
-                role: 'assistant',
-                content: '正在思考中...',
-                timestamp: new Date().toISOString(),
-                isLoading: true
-            });
-            // 渲染页面，显示加载状态
-            renderCurrentPage();
-        },
-
-        onStreamingUpdate: (content) => {
-            // 更新最后一条消息的内容
-            const msgs = AppState.chatMessages;
-            if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
-                // 如果是加载状态，移除标记
-                if (msgs[msgs.length - 1].isLoading) {
-                    delete msgs[msgs.length - 1].isLoading;
-                }
-                msgs[msgs.length - 1].content = content;
-
-                // 直接更新 DOM 以获得更好的流式体验
-                // 查找最后一个助手消息的气泡
-                const assistantMessages = document.querySelectorAll('.chat-message.assistant .message-text');
-                const lastBubble = assistantMessages[assistantMessages.length - 1];
-
-                if (lastBubble) {
-                    if (typeof marked !== 'undefined') {
-                        try {
-                            lastBubble.innerHTML = marked.parse(content);
-                        } catch (e) {
-                            lastBubble.innerText = content;
-                        }
-                    } else {
-                        lastBubble.innerText = content;
-                    }
-                }
-            }
-        },
-
-        onMessageReceived: (message) => {
-            AppState.saveToStorage();
-            // 可以在这里做一些收尾工作，比如移除光标效果等
-            // 由于 renderChatMessages 会重新渲染整个列表，如果这里调用 renderCurrentPage() 会导致重绘
-            // 我们已经通过 direct DOM update 更新了内容，所以这里可以选择不重绘，或者为了数据一致性重绘一次
-            // renderCurrentPage();
-        },
-
-        onError: (error) => {
-            console.error('Coze API Error:', error);
-            const msgs = AppState.chatMessages;
-            if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
-                msgs[msgs.length - 1].content += `\n\n[出错了: ${error.message}]`;
-                renderCurrentPage();
-            }
-            AppState.saveToStorage();
-        }
-    });
-}
-
 function sendMessage() {
     // 检查登录状态
     if (!checkLoginAndProceed()) return;
@@ -951,11 +874,6 @@ function sendMessage() {
     const message = input.value.trim();
 
     if (!message) return;
-
-    // 如果 API 未初始化，尝试初始化
-    if (!cozeAPI) {
-        initCozeAPI();
-    }
 
     AppState.aiQuickQuestionsHidden = true;
 
@@ -967,51 +885,58 @@ function sendMessage() {
     });
 
     input.value = '';
+
+    // 添加助手loading消息
+    const loadingMsgId = 'msg-' + Date.now();
+    AppState.chatMessages.push({
+        id: loadingMsgId,
+        role: 'assistant',
+        content: '正在思考中...',
+        timestamp: new Date().toISOString(),
+        isLoading: true
+    });
+
     renderCurrentPage();
 
-    // 调用 Coze API
-    if (cozeAPI) {
-        // 获取当前用户的rowid
-        let userRowId = null;
-        const userInfo = window.wechatLogin && typeof window.wechatLogin.getUserInfo === 'function' ? window.wechatLogin.getUserInfo() : null;
-        if (userInfo) {
-            const rawUser = userInfo.raw || userInfo;
-            userRowId = rawUser.rowid || rawUser.rowId || userInfo.id;
-        }
-        if (!userRowId) {
-            userRowId = localStorage.getItem('openid') || 'ae75cf2e-0f73-4137-9e99-116d92c45a47';
-        }
+    // 调用 Coze 工作流 API
+    if (window.cozeWorkflow) {
+        window.cozeWorkflow.runAIHelper(message).then(response => {
+            const msgIndex = AppState.chatMessages.findIndex(m => m.id === loadingMsgId);
+            if (msgIndex !== -1) {
+                delete AppState.chatMessages[msgIndex].isLoading;
 
-        // 构造JSON格式的入参
-        const apiContent = JSON.stringify({
-            rowid: userRowId,
-            content: message
-        });
-
-        // 传递显示内容和实际发送内容
-        cozeAPI.sendMessage(message, apiContent);
-    } else {
-        // 降级处理：先显示加载状态
-        AppState.chatMessages.push({
-            role: 'assistant',
-            content: '正在思考中...',
-            timestamp: new Date().toISOString(),
-            isLoading: true
-        });
-        renderCurrentPage();
-
-        setTimeout(() => {
-            // 更新为实际回复
-            const aiResponse = "抱歉，智能体服务暂时无法连接。";
-            const msgs = AppState.chatMessages;
-            if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant' && msgs[msgs.length - 1].isLoading) {
-                delete msgs[msgs.length - 1].isLoading;
-                msgs[msgs.length - 1].content = aiResponse;
-                msgs[msgs.length - 1].timestamp = new Date().toISOString();
+                if (response.success && response.data) {
+                    // response.data.data 是工作流返回的实际内容（文本/Markdown）
+                    const content = response.data.data;
+                    // 如果内容是对象，尝试获取 output 字段，否则转字符串
+                    if (typeof content === 'object' && content !== null) {
+                        AppState.chatMessages[msgIndex].content = content.output || content.data || JSON.stringify(content);
+                    } else {
+                        AppState.chatMessages[msgIndex].content = content || 'AI 未返回内容';
+                    }
+                } else {
+                    AppState.chatMessages[msgIndex].content = '抱歉，AI 暂时无法回答您的请求。' + (response.error ? `(${typeof response.error === 'object' ? JSON.stringify(response.error) : response.error})` : '');
+                }
+                AppState.saveToStorage();
+                renderCurrentPage();
             }
-            AppState.saveToStorage();
+        }).catch(err => {
+            console.error('AI Helper Error:', err);
+            const msgIndex = AppState.chatMessages.findIndex(m => m.id === loadingMsgId);
+            if (msgIndex !== -1) {
+                delete AppState.chatMessages[msgIndex].isLoading;
+                AppState.chatMessages[msgIndex].content = '发生错误: ' + err.message;
+                AppState.saveToStorage();
+                renderCurrentPage();
+            }
+        });
+    } else {
+        const msgIndex = AppState.chatMessages.findIndex(m => m.id === loadingMsgId);
+        if (msgIndex !== -1) {
+            AppState.chatMessages[msgIndex].content = '错误: CozeWorkflow 未初始化';
+            delete AppState.chatMessages[msgIndex].isLoading;
             renderCurrentPage();
-        }, 1000);
+        }
     }
 }
 
@@ -1512,13 +1437,14 @@ async function loadConsultations(patientId) {
                 })(row.shouzhen),
                 fuid: row.fuid,
                 zhuangtai: row.zhuangtai, // 增加状态字段
+                txhz: row.txhz, // 提醒状态字段: 0=待提醒, 1=已提醒
                 status: (function () {
                     // 1. 如果信息完整，自动判定为已完成
                     if (row.specialNote && row.specialNote !== '未记录' && row.specialNote !== '') {
                         return 'completed';
                     }
                     // 2. 如果手动设置了已提醒，返回已提醒
-                    if (row.zhuangtai === '已提醒') {
+                    if (row.zhuangtai === '已提醒' || row.txhz === '1' || row.txhz === 1) {
                         return 'reminded';
                     }
                     // 3. 默认为待提醒（或原有的 pending）
@@ -1651,6 +1577,7 @@ async function loadAllUserConsultations() {
                     doctor: row.doctorName,
                     followupDate: row.hxfcap,
                     zhuangtai: row.zhuangtai,
+                    txhz: row.txhz,
                     specialNote: row.specialNote,
                     zqbg: parseMingDaoPic(row.zqbg),
                     zhbg: parseMingDaoPic(row.zhbg),
@@ -1658,7 +1585,7 @@ async function loadAllUserConsultations() {
                         if (row.zhuangtai === '已完成' || (row.specialNote && row.specialNote !== '未记录' && row.specialNote !== '')) {
                             return 'completed';
                         }
-                        if (row.zhuangtai === '已提醒') {
+                        if (row.zhuangtai === '已提醒' || row.txhz === '1' || row.txhz === 1) {
                             return 'reminded';
                         }
                         return 'pending';
@@ -2551,7 +2478,7 @@ function renderConsultationFlow(container) {
                         <div style="display: inline-block; width: 20px; height: 20px; border: 2px solid var(--primary-color); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle;"></div>
                         <span style="vertical-align: middle;">正在生成诊前报告...</span>
                     </div>
-                    <div id="pre-report-preview" style="display: ${isEditMode && consultation.zqbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
+                    <div id="pre-report-preview" style="display: ${isEditMode && parseMingDaoOriginalPic(consultation.zqbg) ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
                         <div class="report-file-item" data-original="${isEditMode ? parseMingDaoOriginalPic(consultation.zqbg) : ''}" onclick="previewReportImage(this.dataset.original)" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background-color: #f8f9fa; border: 1px dashed #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; color: #3b82f6; margin-bottom: 12px;">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -2697,7 +2624,7 @@ function renderConsultationFlow(container) {
                             <div style="display: inline-block; width: 20px; height: 20px; border: 2px solid var(--primary-color); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle;"></div>
                             <span style="vertical-align: middle;">正在生成诊后报告...</span>
                         </div>
-                        <div id="post-report-preview" style="display: ${isEditMode && consultation.zhbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
+                        <div id="post-report-preview" style="display: ${isEditMode && parseMingDaoOriginalPic(consultation.zhbg) ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
                             <div class="report-file-item" data-original="${isEditMode ? parseMingDaoOriginalPic(consultation.zhbg) : ''}" onclick="previewReportImage(this.dataset.original)" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background-color: #f8f9fa; border: 1px dashed #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; color: #3b82f6; margin-bottom: 12px;">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -4189,7 +4116,8 @@ async function renderRecordsList(container) {
                 sortDate: getTimestamp(c.date), // 排序用的统一时间戳
                 type: 'appointment',
                 status: c.status,
-                zhuangtai: c.zhuangtai
+                zhuangtai: c.zhuangtai,
+                txhz: c.txhz
             });
         }
         // 2. 后续复查提醒（按复查日期）
@@ -4203,7 +4131,8 @@ async function renderRecordsList(container) {
                 sortDate: getTimestamp(c.followupDate), // 排序用的统一时间戳
                 type: 'followup',
                 status: c.status,
-                zhuangtai: c.zhuangtai
+                zhuangtai: c.zhuangtai,
+                txhz: c.txhz
             });
         }
     });
@@ -4254,10 +4183,15 @@ async function renderRecordsList(container) {
         return r.sortDate >= todayTimestamp;
     });
 
-    const upcomingReminders = validReminders.filter(r => r.status !== 'completed');
-    const completedReminders = validReminders.filter(r => r.status === 'completed');
+    // 判定是否为已提醒：zhuangtai为'已提醒' 或 txhz为'1'或1
+    const isReminded = (r) => r.zhuangtai === '已提醒' || r.txhz === '1' || r.txhz === 1;
 
-    console.log('待处理:', upcomingReminders.length, '已完成:', completedReminders.length);
+    // 待处理：未完成 且 未提醒
+    const upcomingReminders = validReminders.filter(r => r.status !== 'completed' && !isReminded(r));
+    // 已处理：已完成 或 已提醒
+    const completedReminders = validReminders.filter(r => r.status === 'completed' || isReminded(r));
+
+    console.log('待处理:', upcomingReminders.length, '已完成/已处理:', completedReminders.length);
 
     container.innerHTML = `
         <!-- 固定顶部标题 -->
@@ -4291,7 +4225,7 @@ async function renderRecordsList(container) {
                     ` : upcomingReminders.map(r => `
                         <div class="list-item" style="padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="viewConsultation('${r.consultationId}')">
                             <div class="flex items-center gap-3">
-                                <div style="width: 4px; height: 48px; border-radius: 2px; background-color: ${r.zhuangtai === '已提醒' ? 'var(--primary-color)' : 'var(--warning-color)'}; flex-shrink: 0;"></div>
+                                <div style="width: 4px; height: 48px; border-radius: 2px; background-color: var(--warning-color); flex-shrink: 0;"></div>
                                 <div class="flex-1 flex justify-between items-center">
                                     <div class="flex-1 min-w-0">
                                         <div style="font-weight: 600; font-size: 15px; color: var(--text-primary); display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.title}</div>
@@ -4305,12 +4239,12 @@ async function renderRecordsList(container) {
                                     
                                     <div style="margin-left: 12px; flex-shrink: 0; align-self: stretch; display: flex; align-items: center;" onclick="event.stopPropagation()">
                                         <select 
-                                            class="badge ${r.zhuangtai === '已提醒' ? 'badge-primary' : 'badge-warning'}"
+                                            class="badge badge-warning"
                                             onchange="updateMemoStatus('${r.consultationId}', this.value)"
                                             style="appearance: none; -webkit-appearance: none; padding: 4px 24px 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; font-weight: 500; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 8px center; background-size: 10px auto;"
                                         >
-                                            <option value="待提醒" ${r.zhuangtai === '待提醒' ? 'selected' : ''}>待提醒</option>
-                                            <option value="已提醒" ${r.zhuangtai === '已提醒' ? 'selected' : ''}>已提醒</option>
+                                            <option value="待提醒" selected>待提醒</option>
+                                            <option value="已提醒">已提醒</option>
                                         </select>
                                     </div>
                                 </div>
@@ -4319,14 +4253,20 @@ async function renderRecordsList(container) {
                     `).join('')}
                 </div>
                 
-                <!-- 已完成 -->
+                <!-- 已完成/已处理 -->
                 ${completedReminders.length > 0 ? `
                 <div class="card">
-                    <h3 class="card-title mb-2">已完成 (${completedReminders.length})</h3>
-                    ${completedReminders.map(r => `
+                    <h3 class="card-title mb-2">已处理 (${completedReminders.length})</h3>
+                    ${completedReminders.map(r => {
+        const isDone = r.status === 'completed'; // 真正完成
+        const isRemind = !isDone && isReminded(r); // 仅已提醒
+        const badgeClass = isDone ? 'badge-success' : 'badge-primary';
+        const badgeText = isDone ? '已完成' : '已提醒';
+        const barColor = isDone ? 'var(--success-color)' : 'var(--primary-color)';
+        return `
                         <div class="list-item" style="padding: 12px; border-bottom: 1px solid var(--border-color); opacity: 0.7; cursor: pointer;" onclick="viewConsultation('${r.consultationId}')">
                             <div class="flex items-center gap-3">
-                                <div style="width: 4px; height: 48px; border-radius: 2px; background-color: var(--success-color); flex-shrink: 0;"></div>
+                                <div style="width: 4px; height: 48px; border-radius: 2px; background-color: ${barColor}; flex-shrink: 0;"></div>
                                 <div class="flex-1 flex justify-between items-center">
                                     <div class="flex-1 min-w-0">
                                         <div style="font-weight: 500; font-size: 15px; color: var(--text-secondary); text-decoration: line-through; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${r.title}</div>
@@ -4338,12 +4278,13 @@ async function renderRecordsList(container) {
                                         </div>
                                     </div>
                                     <div style="margin-left: 12px; flex-shrink: 0; align-self: stretch; display: flex; align-items: center;">
-                                        <span class="badge badge-success">已完成</span>
+                                        <span class="badge ${badgeClass}">${badgeText}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    `).join('')}
+                        `;
+    }).join('')}
                 </div>
                 ` : ''}
             ` : `
@@ -4380,9 +4321,13 @@ async function updateMemoStatus(consultationId, newStatus) {
             return;
         }
 
+        // 映射 txhz 值: 待提醒 -> '0', 已提醒 -> '1'
+        const txhzValue = newStatus === '已提醒' ? '1' : '0';
+
         const api = new window.MingDaoYunUpdateAPI();
         const result = await api.getData(consultationId, 'pzfwjl', [
-            { controlId: 'zhuangtai', value: newStatus }
+            { controlId: 'zhuangtai', value: newStatus },
+            { controlId: 'txhz', value: txhzValue }
         ]);
 
         if (result.success) {
@@ -4393,6 +4338,7 @@ async function updateMemoStatus(consultationId, newStatus) {
                 const item = list.find(c => c.id === consultationId);
                 if (item) {
                     item.zhuangtai = newStatus;
+                    item.txhz = txhzValue;
                     // 只有当不是“已完成”时才根据 zhuangtai 更新 status
                     if (!(item.specialNote && item.specialNote !== '未记录' && item.specialNote !== '')) {
                         item.status = newStatus === '已提醒' ? 'reminded' : 'upcoming';
@@ -5245,9 +5191,16 @@ function generatePreReport(consultationId) {
                         const fileItem = previewDiv.querySelector('.report-file-item');
                         if (fileItem) {
                             fileItem.dataset.original = imgUrl;
-                            fileItem.setAttribute('data-original', imgUrl); // Explicit attribute update
+                            fileItem.setAttribute('data-original', imgUrl);
                             // Ensure onclick handler uses the new URL immediately
-                            fileItem.onclick = function() { previewReportImage(imgUrl); };
+                            // Remove any existing event listeners by cloning (optional, but cleaner if using addEventListener)
+                            // But here we use onclick property which overrides.
+                            fileItem.onclick = function (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log('Previewing new generated image:', imgUrl);
+                                previewReportImage(imgUrl);
+                            };
                         }
                     }
                 }
@@ -5353,9 +5306,14 @@ function generatePostReport(consultationId) {
                         const fileItem = previewDiv.querySelector('.report-file-item');
                         if (fileItem) {
                             fileItem.dataset.original = imgUrl;
-                            fileItem.setAttribute('data-original', imgUrl); // Explicit attribute update
+                            fileItem.setAttribute('data-original', imgUrl);
                             // Ensure onclick handler uses the new URL immediately
-                            fileItem.onclick = function() { previewReportImage(imgUrl); };
+                            fileItem.onclick = function (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log('Previewing new generated image:', imgUrl);
+                                previewReportImage(imgUrl);
+                            };
                         }
                     }
                 }
@@ -5428,24 +5386,25 @@ function downloadImage(url, filename = 'report.png') {
 // 预览报告图片（带缓存清理的高清原图）
 function previewReportImage(url) {
     if (!url) return;
-    
+
     let finalUrl = url;
-    
-    // 1. 针对明道Yun图片：去除缩略图参数以获取原图，并添加时间戳防缓存
+
+    // 1. 针对明道Yun图片：添加时间戳防缓存
     if (url.includes('mingdaoyun.cn')) {
-        if (finalUrl.includes('?')) {
-            finalUrl = finalUrl.split('?')[0];
-        }
         const timestamp = new Date().getTime();
-        finalUrl = `${finalUrl}?t=${timestamp}`;
-    } 
+        if (finalUrl.includes('?')) {
+            finalUrl = `${finalUrl}&t=${timestamp}`;
+        } else {
+            finalUrl = `${finalUrl}?t=${timestamp}`;
+        }
+    }
     // 2. 针对其他图片（如Coze生成的临时带签名链接）：保留原参数，不添加额外参数以免破坏签名
     else {
         // Coze链接通常带有签名参数，去除会导致403，添加额外参数也可能导致签名验证失败
         // 直接使用原链接
         finalUrl = url;
     }
-    
+
     console.log('Previewing Report Image:', finalUrl);
     previewImage(finalUrl);
 }

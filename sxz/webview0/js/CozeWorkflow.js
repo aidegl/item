@@ -5,12 +5,18 @@ class CozeWorkflow {
         this.ocrWorkflowId = '7593545627851014196'; // OCR工作流ID
         this.sttWorkflowId = '7596225551557001225'; // 语音识别工作流ID
         this.reportWorkflowId = '7603173498043252799'; // 报告生成工作流ID
+        this.aiHelperWorkflowId = '7603176766723227655'; // AI助手工作流ID
         this.bearerToken = 'pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb'; // Coze API密钥
     }
 
     // 设置API密钥
     setApiKey(apiKey) {
         this.bearerToken = apiKey;
+    }
+
+    // 调用AI助手工作流
+    async runAIHelper(inputText) {
+        return this.executeWorkflow(this.aiHelperWorkflowId, inputText, 'AI助手');
     }
 
     // 调用报告生成工作流
@@ -90,7 +96,9 @@ class CozeWorkflow {
                 try {
                     parsedData = JSON.parse(dataString);
                 } catch (e) {
-                    this.error('数据解析失败', e);
+                    // 如果解析失败，说明返回的可能直接是文本/Markdown内容，直接使用
+                    this.log('数据非JSON格式，使用原始字符串', { dataString: typeof dataString === 'string' ? dataString.substring(0, 50) + '...' : dataString });
+                    parsedData = dataString;
                 }
 
                 const outputData = {
