@@ -2531,7 +2531,17 @@ function renderConsultationFlow(container) {
                         <span style="vertical-align: middle;">正在生成诊前报告...</span>
                     </div>
                     <div id="pre-report-preview" style="display: ${isEditMode && consultation.zqbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
-                        <img src="${isEditMode ? parseMingDaoPic(consultation.zqbg) : ''}" data-original="${isEditMode ? parseMingDaoOriginalPic(consultation.zqbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" alt="诊前报告" onclick="previewImage(this.dataset.original || this.src)">
+                        <div class="report-file-item" data-original="${isEditMode ? parseMingDaoOriginalPic(consultation.zqbg) : ''}" onclick="previewReportImage(this.dataset.original)" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background-color: #f8f9fa; border: 1px dashed #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; color: #3b82f6; margin-bottom: 12px;">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <path d="M16 13H8"></path>
+                                <path d="M16 17H8"></path>
+                                <path d="M10 9H8"></path>
+                            </svg>
+                            <div style="font-size: 14px; color: #4b5563; font-weight: 500;">点击查看诊前报告图片</div>
+                            <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">高清原图</div>
+                        </div>
                         <div style="margin-top: 12px;">
                             <button type="button" class="btn btn-outline w-full" onclick="copyReportScript('pre')" style="border-radius: 8px; font-size: 14px; padding: 8px; border-color: var(--primary-color); color: var(--primary-color);">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 4px; vertical-align: text-bottom;">
@@ -2667,7 +2677,17 @@ function renderConsultationFlow(container) {
                             <span style="vertical-align: middle;">正在生成诊后报告...</span>
                         </div>
                         <div id="post-report-preview" style="display: ${isEditMode && consultation.zhbg ? 'block' : 'none'}; margin-top: 12px; text-align: center;">
-                            <img src="${isEditMode ? parseMingDaoPic(consultation.zhbg) : ''}" data-original="${isEditMode ? parseMingDaoOriginalPic(consultation.zhbg) : ''}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: zoom-in;" alt="诊后报告" onclick="previewImage(this.dataset.original || this.src)">
+                            <div class="report-file-item" data-original="${isEditMode ? parseMingDaoOriginalPic(consultation.zhbg) : ''}" onclick="previewReportImage(this.dataset.original)" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background-color: #f8f9fa; border: 1px dashed #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; color: #3b82f6; margin-bottom: 12px;">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <path d="M16 13H8"></path>
+                                    <path d="M16 17H8"></path>
+                                    <path d="M10 9H8"></path>
+                                </svg>
+                                <div style="font-size: 14px; color: #4b5563; font-weight: 500;">点击查看诊后报告图片</div>
+                                <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">高清原图</div>
+                            </div>
                             <div style="margin-top: 12px;">
                                 <button type="button" class="btn btn-outline w-full" onclick="copyReportScript('post')" style="border-radius: 8px; font-size: 14px; padding: 8px; border-color: var(--primary-color); color: var(--primary-color);">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 4px; vertical-align: text-bottom;">
@@ -5201,8 +5221,8 @@ function generatePreReport(consultationId) {
                     const previewDiv = document.getElementById('pre-report-preview');
                     if (previewDiv) {
                         previewDiv.style.display = 'block';
-                        const img = previewDiv.querySelector('img');
-                        if (img) img.src = imgUrl;
+                        const fileItem = previewDiv.querySelector('.report-file-item');
+                        if (fileItem) fileItem.dataset.original = imgUrl;
                     }
                 }
 
@@ -5304,8 +5324,8 @@ function generatePostReport(consultationId) {
                     const previewDiv = document.getElementById('post-report-preview');
                     if (previewDiv) {
                         previewDiv.style.display = 'block';
-                        const img = previewDiv.querySelector('img');
-                        if (img) img.src = imgUrl;
+                        const fileItem = previewDiv.querySelector('.report-file-item');
+                        if (fileItem) fileItem.dataset.original = imgUrl;
                     }
                 }
 
@@ -5372,6 +5392,24 @@ function downloadImage(url, filename = 'report.png') {
                 window.open(url, '_blank');
             }, 1500);
         });
+}
+
+// 预览报告图片（带缓存清理的高清原图）
+function previewReportImage(url) {
+    if (!url) return;
+    
+    // 1. 去除缩略图参数（如果存在）
+    let hdUrl = url;
+    if (hdUrl.includes('?')) {
+        hdUrl = hdUrl.split('?')[0];
+    }
+    
+    // 2. 添加时间戳防止缓存
+    const timestamp = new Date().getTime();
+    const finalUrl = `${hdUrl}?t=${timestamp}`;
+    
+    console.log('Previewing HD Report:', finalUrl);
+    previewImage(finalUrl);
 }
 
 // 图片预览功能
