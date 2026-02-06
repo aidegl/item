@@ -1364,13 +1364,23 @@ function parseMingDaoOriginalPic(value) {
     try {
         if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
             const parsed = JSON.parse(value);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                // 优先使用 original_file_full_path
-                return parsed[0].original_file_full_path || parsed[0].file_path || '';
+            if (Array.isArray(parsed)) {
+                if (parsed.length > 0) {
+                    // 优先使用 original_file_full_path
+                    return parsed[0].original_file_full_path || parsed[0].file_path || '';
+                }
+                return ''; // 空数组返回空字符串
             }
         }
     } catch (e) {
         console.warn('Failed to parse MingDao original pic:', e);
+    }
+    // 如果不是JSON格式且不以http开头，但值不为空，可能是旧数据或异常数据
+    // 此时如果不确定是图片URL，最好返回空，或者原样返回（视情况而定）
+    // 这里为了避免显示空框，如果看起来像JSON但解析失败或为空，上面已经处理
+    // 如果是普通字符串且不含http，可能无效
+    if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
+        return '';
     }
     return value;
 }
@@ -1382,13 +1392,19 @@ function parseMingDaoPic(value) {
     try {
         if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
             const parsed = JSON.parse(value);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                // 优先使用 large_thumbnail_full_path，其次 file_path
-                return parsed[0].large_thumbnail_full_path || parsed[0].file_path || parsed[0].thumbnail_path || '';
+            if (Array.isArray(parsed)) {
+                if (parsed.length > 0) {
+                    // 优先使用 large_thumbnail_full_path，其次 file_path
+                    return parsed[0].large_thumbnail_full_path || parsed[0].file_path || parsed[0].thumbnail_path || '';
+                }
+                return ''; // 空数组返回空字符串
             }
         }
     } catch (e) {
         console.warn('Failed to parse MingDao pic:', e);
+    }
+    if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
+        return '';
     }
     return value;
 }
@@ -5222,7 +5238,12 @@ function generatePreReport(consultationId) {
                     if (previewDiv) {
                         previewDiv.style.display = 'block';
                         const fileItem = previewDiv.querySelector('.report-file-item');
-                        if (fileItem) fileItem.dataset.original = imgUrl;
+                        if (fileItem) {
+                            fileItem.dataset.original = imgUrl;
+                            fileItem.setAttribute('data-original', imgUrl); // Explicit attribute update
+                            // Ensure onclick handler uses the new URL immediately
+                            fileItem.onclick = function() { previewReportImage(imgUrl); };
+                        }
                     }
                 }
 
@@ -5325,7 +5346,12 @@ function generatePostReport(consultationId) {
                     if (previewDiv) {
                         previewDiv.style.display = 'block';
                         const fileItem = previewDiv.querySelector('.report-file-item');
-                        if (fileItem) fileItem.dataset.original = imgUrl;
+                        if (fileItem) {
+                            fileItem.dataset.original = imgUrl;
+                            fileItem.setAttribute('data-original', imgUrl); // Explicit attribute update
+                            // Ensure onclick handler uses the new URL immediately
+                            fileItem.onclick = function() { previewReportImage(imgUrl); };
+                        }
                     }
                 }
 
