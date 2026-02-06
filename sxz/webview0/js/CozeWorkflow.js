@@ -4,7 +4,7 @@ class CozeWorkflow {
         this.apiUrl = 'https://api.coze.cn/v1/workflow/run';
         this.ocrWorkflowId = '7593545627851014196'; // OCR工作流ID
         this.sttWorkflowId = '7596225551557001225'; // 语音识别工作流ID
-        this.reportWorkflowId = '7597984172565233700'; // 报告生成工作流ID
+        this.reportWorkflowId = '7603173498043252799'; // 报告生成工作流ID
         this.bearerToken = 'pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb'; // Coze API密钥
     }
 
