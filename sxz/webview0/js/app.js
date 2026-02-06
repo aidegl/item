@@ -1357,9 +1357,14 @@ async function goToPatientDetail(patientId) {
 // 解析明道云图片原图字段
 function parseMingDaoOriginalPic(value) {
     if (!value) return '';
-    // 如果已经是http链接，尝试去除参数获取原图（针对七牛云等对象存储）
+    // 如果已经是http链接
     if (typeof value === 'string' && value.startsWith('http')) {
-        return value.split('?')[0];
+        // 如果是明道云链接，尝试去除参数获取原图
+        if (value.includes('mingdaoyun.cn')) {
+            return value.split('?')[0];
+        }
+        // 其他链接（如Coze带签名链接）直接返回，保留参数
+        return value;
     }
     try {
         if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
@@ -5424,17 +5429,24 @@ function downloadImage(url, filename = 'report.png') {
 function previewReportImage(url) {
     if (!url) return;
     
-    // 1. 去除缩略图参数（如果存在）
-    let hdUrl = url;
-    if (hdUrl.includes('?')) {
-        hdUrl = hdUrl.split('?')[0];
+    let finalUrl = url;
+    
+    // 1. 针对明道Yun图片：去除缩略图参数以获取原图，并添加时间戳防缓存
+    if (url.includes('mingdaoyun.cn')) {
+        if (finalUrl.includes('?')) {
+            finalUrl = finalUrl.split('?')[0];
+        }
+        const timestamp = new Date().getTime();
+        finalUrl = `${finalUrl}?t=${timestamp}`;
+    } 
+    // 2. 针对其他图片（如Coze生成的临时带签名链接）：保留原参数，不添加额外参数以免破坏签名
+    else {
+        // Coze链接通常带有签名参数，去除会导致403，添加额外参数也可能导致签名验证失败
+        // 直接使用原链接
+        finalUrl = url;
     }
     
-    // 2. 添加时间戳防止缓存
-    const timestamp = new Date().getTime();
-    const finalUrl = `${hdUrl}?t=${timestamp}`;
-    
-    console.log('Previewing HD Report:', finalUrl);
+    console.log('Previewing Report Image:', finalUrl);
     previewImage(finalUrl);
 }
 
