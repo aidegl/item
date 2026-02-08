@@ -61,10 +61,6 @@ function updateShopInfo(shopData) {
     document.getElementById('shopName').textContent = shopData.mingcheng;
   }
 
-  if (shopData.dizhi) {
-    document.getElementById('shopAddress').textContent = '地址: ' + shopData.dizhi;
-  }
-
   if (shopData.rowid) {
     document.getElementById('shopId').textContent = '店铺ID: ' + shopData.rowid;
   }

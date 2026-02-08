@@ -80,12 +80,13 @@
       gap: 12px;
     }
 
-    .shop-address {
-      font-size: 14px;
-      color: #666;
+    .shop-url {
+      font-size: 12px;
+      color: #999;
       background: #f5f5f5;
-      padding: 4px 12px;
+      padding: 4px 8px;
       border-radius: 4px;
+      font-family: monospace;
     }
 
     .shop-meta {
@@ -297,10 +298,8 @@
       <div class="shop-info">
         <div class="shop-avatar">店</div>
         <div class="shop-details">
-          <div class="shop-name">
-            <span id="shopName">加载中...</span>
-            <span class="shop-address" id="shopAddress">地址: --</span>
-          </div>
+          <div class="shop-name" id="shopName">加载中...</div>
+          <div class="shop-url" id="shopUrl"></div>
           <div class="shop-meta">
             <span id="shopId">店铺ID: --</span>
             <span id="shopType">店铺类型: --</span>
@@ -409,6 +408,10 @@
       const params = getUrlParams();
 
       console.log('获取商家id：?mRowid=' + params.mRowid + '；');
+
+      const fullUrl = window.location.href;
+      document.getElementById('shopUrl').textContent = fullUrl;
+      console.log('[shouye.html] 完整URL:', fullUrl);
 
       if (params.mRowid) {
         loadShopData(params.mRowid);
