@@ -107,13 +107,6 @@
       margin-bottom: 8px;
     }
 
-    .shop-url {
-      font-size: 12px;
-      color: #999;
-      margin-left: 12px;
-      word-break: break-all;
-    }
-
     .shop-meta {
       color: #666;
       font-size: 14px;
@@ -324,7 +317,6 @@
         <div class="shop-avatar">店</div>
         <div class="shop-details">
           <div class="shop-name" id="shopName">加载中...</div>
-          <div class="shop-url" id="shopUrl"></div>
           <div class="shop-meta">
             <span id="shopId">店铺ID: --</span>
             <span id="shopType">店铺类型: --</span>
@@ -433,9 +425,6 @@
       const params = getUrlParams();
 
       console.log('获取商家id：?mRowid=' + params.mRowid + '；');
-
-      const fullUrl = window.location.href;
-      document.getElementById('shopUrl').textContent = fullUrl;
 
       if (params.mRowid) {
         loadShopData(params.mRowid);
