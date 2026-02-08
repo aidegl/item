@@ -12,7 +12,7 @@ async function loadShopData(mRowid) {
       "controlId": "mingcheng",
       "dataType": 2,
       "spliceType": 1,
-      "filterType": 24,
+      "filterType": 2,
       "value": actualRowid
     }
   ];
