@@ -385,7 +385,7 @@
       const params = new URLSearchParams(window.location.search);
       return {
         userId: params.get('userId') || '',
-        shopId: params.get('shopId') || ''
+        mRowid: params.get('mRowid') || ''
       };
     }
 
@@ -393,7 +393,7 @@
       const params = getUrlParams();
 
       document.getElementById('shopName').textContent = '示例店铺';
-      document.getElementById('shopId').textContent = '店铺ID: ' + (params.shopId || 'SHOP001');
+      document.getElementById('shopId').textContent = '店铺ID: ' + (params.mRowid || 'SHOP001');
       document.getElementById('shopType').textContent = '店铺类型: 综合商城';
 
       document.getElementById('userCount').textContent = '1,234';
@@ -401,7 +401,7 @@
       document.getElementById('deliveryCount').textContent = '89';
       document.getElementById('memberCount').textContent = '456';
 
-      console.log('获取商家id：?mRowid=123456；');
+      console.log('获取商家id：?mRowid=' + params.mRowid + '；');
     }
 
     function publishCode() {
