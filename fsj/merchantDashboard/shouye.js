@@ -9,7 +9,7 @@ async function loadShopData(mRowid) {
 
   const filters = [
     {
-      "controlId": "mingcheng",
+      "controlId": "mRowid",
       "dataType": 2,
       "spliceType": 1,
       "filterType": 2,
