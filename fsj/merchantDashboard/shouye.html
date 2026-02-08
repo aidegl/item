@@ -75,18 +75,13 @@
       font-size: 20px;
       font-weight: 600;
       margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
     }
 
     .shop-url {
       font-size: 12px;
       color: #999;
-      background: #f5f5f5;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-family: monospace;
+      margin-left: 12px;
+      word-break: break-all;
     }
 
     .shop-meta {
@@ -411,7 +406,6 @@
 
       const fullUrl = window.location.href;
       document.getElementById('shopUrl').textContent = fullUrl;
-      console.log('[shouye.html] 完整URL:', fullUrl);
 
       if (params.mRowid) {
         loadShopData(params.mRowid);
