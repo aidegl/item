@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商家后台首页</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      padding: 20px;
+      caret-color: transparent;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .shop-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .shop-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .shop-details {
+      flex: 1;
+    }
+
+    .shop-name {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .shop-meta {
+      color: #666;
+      font-size: 14px;
+      display: flex;
+      gap: 20px;
+    }
+
+    .shop-status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      background: #e6f7ff;
+      color: #1890ff;
+    }
+
+    .data-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .data-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      padding: 20px;
+      color: #fff;
+      text-align: center;
+    }
+
+    .data-card:nth-child(2) {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .data-card:nth-child(3) {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .data-card:nth-child(4) {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .data-value {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .data-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .function-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+    }
+
+    .function-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #fafafa;
+    }
+
+    .function-item:hover {
+      background: #e6f7ff;
+      transform: translateY(-2px);
+    }
+
+    .function-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .function-name {
+      font-size: 14px;
+      color: #333;
+      text-align: center;
+    }
+
+    .marketing-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .marketing-item {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      border-radius: 8px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .marketing-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .marketing-item:nth-child(2) {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    }
+
+    .marketing-item:nth-child(3) {
+      background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);
+    }
+
+    .marketing-item:nth-child(4) {
+      background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);
+    }
+
+    .marketing-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .marketing-desc {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .code-publish {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-info {
+      flex: 1;
+    }
+
+    .code-version {
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .code-status {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .publish-btn {
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .publish-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    @media (max-width: 1200px) {
+      .data-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .function-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .marketing-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .data-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .function-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .marketing-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="section">
+      <div class="section-title">店铺信息</div>
+      <div class="shop-info">
+        <div class="shop-avatar">店</div>
+        <div class="shop-details">
+          <div class="shop-name" id="shopName">加载中...</div>
+          <div class="shop-meta">
+            <span id="shopId">店铺ID: --</span>
+            <span id="shopType">店铺类型: --</span>
+            <span class="shop-status" id="shopStatus">营业中</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">运营数据</div>
+      <div class="data-cards">
+        <div class="data-card">
+          <div class="data-value" id="userCount">--</div>
+          <div class="data-label">用户数量</div>
+        </div>
+        <div class="data-card">
+          <div class="data-value" id="orderCount">--</div>
+          <div class="data-label">订单数量</div>
+        </div>
+        <div class="data-card">
+          <div class="data-value" id="deliveryCount">--</div>
+          <div class="data-label">配送数量</div>
+        </div>
+        <div class="data-card">
+          <div class="data-value" id="memberCount">--</div>
+          <div class="data-label">会员数量</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">常用功能</div>
+      <div class="function-grid">
+        <div class="function-item">
+          <div class="function-icon" style="background: #e6f7ff;">📦</div>
+          <div class="function-name">商品管理</div>
+        </div>
+        <div class="function-item">
+          <div class="function-icon" style="background: #fff7e6;">📋</div>
+          <div class="function-name">订单管理</div>
+        </div>
+        <div class="function-item">
+          <div class="function-icon" style="background: #f6ffed;">🚚</div>
+          <div class="function-name">配送管理</div>
+        </div>
+        <div class="function-item">
+          <div class="function-icon" style="background: #fff0f6;">👥</div>
+          <div class="function-name">会员管理</div>
+        </div>
+        <div class="function-item">
+          <div class="function-icon" style="background: #f9f0ff;">🏪</div>
+          <div class="function-name">门店管理</div>
+        </div>
+        <div class="function-item">
+          <div class="function-icon" style="background: #fffbe6;">⚙️</div>
+          <div class="function-name">系统设置</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">营销功能</div>
+      <div class="marketing-grid">
+        <div class="marketing-item">
+          <div class="marketing-title">优惠券</div>
+          <div class="marketing-desc">创建和管理各类优惠券活动</div>
+        </div>
+        <div class="marketing-item">
+          <div class="marketing-title">满减活动</div>
+          <div class="marketing-desc">设置满额减免促销活动</div>
+        </div>
+        <div class="marketing-item">
+          <div class="marketing-title">秒杀活动</div>
+          <div class="marketing-desc">限时秒杀商品设置</div>
+        </div>
+        <div class="marketing-item">
+          <div class="marketing-title">会员积分</div>
+          <div class="marketing-desc">会员积分规则设置</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">代码发布</div>
+      <div class="code-publish">
+        <div class="code-info">
+          <div class="code-version" id="codeVersion">版本: v1.0.0</div>
+          <div class="code-status" id="codeStatus">当前版本运行正常</div>
+        </div>
+        <button class="publish-btn" onclick="publishCode()">发布新版本</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        userId: params.get('userId') || '',
+        shopId: params.get('shopId') || ''
+      };
+    }
+
+    function loadShopInfo() {
+      const params = getUrlParams();
+
+      document.getElementById('shopName').textContent = '示例店铺';
+      document.getElementById('shopId').textContent = '店铺ID: ' + (params.shopId || 'SHOP001');
+      document.getElementById('shopType').textContent = '店铺类型: 综合商城';
+
+      document.getElementById('userCount').textContent = '1,234';
+      document.getElementById('orderCount').textContent = '567';
+      document.getElementById('deliveryCount').textContent = '89';
+      document.getElementById('memberCount').textContent = '456';
+    }
+
+    function publishCode() {
+      alert('代码发布功能开发中...');
+    }
+
+    window.onload = function () {
+      loadShopInfo();
+    };
+  </script>
+</body>
+
+</html>
