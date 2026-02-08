@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>商家后台首页</title>
+  <script src="../mingdao/MingdaoArray.js"></script>
+  <script src="shouye.js"></script>
   <style>
     * {
       margin: 0;
@@ -392,16 +394,13 @@
     function loadShopInfo() {
       const params = getUrlParams();
 
-      document.getElementById('shopName').textContent = '示例店铺';
-      document.getElementById('shopId').textContent = '店铺ID: ' + (params.mRowid || 'SHOP001');
-      document.getElementById('shopType').textContent = '店铺类型: 综合商城';
-
-      document.getElementById('userCount').textContent = '1,234';
-      document.getElementById('orderCount').textContent = '567';
-      document.getElementById('deliveryCount').textContent = '89';
-      document.getElementById('memberCount').textContent = '456';
-
       console.log('获取商家id：?mRowid=' + params.mRowid + '；');
+
+      if (params.mRowid) {
+        loadShopData(params.mRowid);
+      } else {
+        console.warn('[shouye.html] 未获取到mRowid参数，使用默认数据');
+      }
     }
 
     function publishCode() {
