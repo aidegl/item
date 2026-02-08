@@ -1,7 +1,10 @@
 async function loadShopData(mRowid) {
   console.log('[shouye.js] 开始加载商家数据，原始 mRowid:', mRowid);
 
-  const actualRowid = mRowid.substring(3);
+  let actualRowid = mRowid.replace(/%23/g, '#');
+  console.log('[shouye.js] 替换 %23 为 # 后:', actualRowid);
+
+  actualRowid = actualRowid.substring(3);
   console.log('[shouye.js] 处理后的 mRowid (去掉前3个字符):', actualRowid);
 
   const filters = [
