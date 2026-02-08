@@ -4,8 +4,8 @@ async function loadShopData(mRowid) {
   let actualRowid = mRowid.replace(/%23/g, '#');
   console.log('[shouye.js] 替换 %23 为 # 后:', actualRowid);
 
-  actualRowid = actualRowid.substring(3);
-  console.log('[shouye.js] 处理后的 mRowid (去掉前3个字符):', actualRowid);
+  actualRowid = actualRowid.substring(2);
+  console.log('[shouye.js] 处理后的 mRowid (去掉前2个字符):', actualRowid);
 
   const filters = [
     {
