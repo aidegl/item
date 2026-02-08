@@ -88,5 +88,5 @@ function updateShopInfo(shopData) {
     }
   }
 
-  console.log('[shouye.js] 页面信息更新完成');
+  console.log('[shouye.js] 页面信息更新完成111');
 }
