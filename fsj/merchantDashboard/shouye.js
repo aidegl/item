@@ -41,6 +41,13 @@ async function loadShopData(mRowid) {
       }
     } else {
       console.error('[shouye.js] 查询失败:', result.error_msg, '错误代码:', result.error_code);
+
+      if (result.error_code === 430022) {
+        console.error('[shouye.js] worksheetId不存在，请检查：');
+        console.error('[shouye.js] 1. 工作表别名是否正确');
+        console.error('[shouye.js] 2. appKey和sign是否有权限访问该表');
+        console.error('[shouye.js] 3. 工作表是否在正确的应用下');
+      }
     }
   } catch (error) {
     console.error('[shouye.js] 调用异常:', error);
