@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <title>门店管理</title>
+  <title>店铺资料</title>
   <script>
     (function () {
       var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
@@ -33,22 +33,66 @@
               var logoPath = logoArray[0].large_thumbnail_full_path;
               console.log('[localStorage] 图片路径:', logoPath);
 
-              var avatarElement = document.querySelector('.shop-avatar');
-              if (avatarElement) {
-                avatarElement.innerHTML = '<img src="' + logoPath + '" alt="店铺头像" style="width: 100%; height: 100%; object-fit: cover;">';
-                console.log('[localStorage] 头像元素已更新');
+              var logoElement = document.querySelector('.logo-preview');
+              if (logoElement) {
+                logoElement.innerHTML = '<img src="' + logoPath + '" alt="店铺logo" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">';
+                console.log('[localStorage] logo已更新');
               }
-            } else {
-              console.error('[localStorage] logo 数组为空');
             }
-          } else {
-            console.error('[localStorage] logo 字段不存在');
           }
+
+          if (data.beijing) {
+            var noticeElement = document.getElementById('shopNotice');
+            if (noticeElement) {
+              noticeElement.textContent = data.beijing;
+            }
+          }
+
+          if (data.jieshao) {
+            var descElement = document.getElementById('shopDesc');
+            if (descElement) {
+              descElement.textContent = data.jieshao;
+            }
+          }
+
+          if (data.gongsimingcheng) {
+            var companyElement = document.getElementById('companyName');
+            if (companyElement) {
+              companyElement.textContent = data.gongsimingcheng;
+            }
+          }
+
+          if (data.qiyelianxiren) {
+            var contactElement = document.getElementById('contactPerson');
+            if (contactElement) {
+              contactElement.textContent = data.qiyelianxiren;
+            }
+          }
+
+          if (data.fuwudianhua) {
+            var phoneElement = document.getElementById('servicePhone');
+            if (phoneElement) {
+              phoneElement.textContent = data.fuwudianhua;
+            }
+          }
+
+          if (data.qiyedizhi) {
+            var addressElement = document.getElementById('companyAddress');
+            if (addressElement) {
+              addressElement.textContent = data.qiyedizhi;
+            }
+          }
+
+          if (data.youxiang) {
+            var emailElement = document.getElementById('email');
+            if (emailElement) {
+              emailElement.textContent = data.youxiang;
+            }
+          }
+
         } catch (error) {
           console.error('[localStorage] 解析数据失败:', error);
         }
-      } else {
-        console.warn('[localStorage] merchantData 不存在，等待数据加载');
       }
     });
   </script>
@@ -108,7 +152,6 @@
       border-bottom: none;
       display: flex;
       align-items: center;
-      justify-content: space-between;
     }
 
     .section-title::before {
@@ -121,7 +164,95 @@
       border-radius: 2px;
     }
 
-    .add-btn {
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .form-value {
+      font-size: 14px;
+      color: var(--text-secondary);
+      padding: 10px 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-textarea {
+      font-size: 14px;
+      color: var(--text-secondary);
+      padding: 12px 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      min-height: 80px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    .logo-preview {
+      width: 100px;
+      height: 100px;
+      background: #e0e7ff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+      font-size: 24px;
+      font-weight: bold;
+      overflow: hidden;
+    }
+
+    .logo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .logo-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .background-preview {
+      width: 375px;
+      height: 125px;
+      background: #e0e7ff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+      font-size: 24px;
+      font-weight: bold;
+      overflow: hidden;
+    }
+
+    .background-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .company-info {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .edit-btn {
       padding: 8px 20px;
       background: var(--primary-color);
       color: #fff;
@@ -132,168 +263,23 @@
       cursor: pointer;
       transition: all 0.2s ease;
       box-shadow: var(--shadow-sm);
+      margin-top: 24px;
     }
 
-    .add-btn:hover {
+    .edit-btn:hover {
       background: var(--primary-hover);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
 
-    .shop-info {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-    }
-
-    .shop-avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 16px;
-      background: #e0e7ff;
-      color: var(--primary-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      font-weight: bold;
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-    }
-
-    .shop-details {
-      flex: 1;
-    }
-
-    .shop-name {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--text-main);
-    }
-
-    .shop-meta {
-      color: var(--text-secondary);
-      font-size: 14px;
-      display: flex;
-      gap: 24px;
-      align-items: center;
-    }
-
-    .store-list {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .store-card {
-      background: #fff;
-      border-radius: var(--border-radius);
-      padding: 20px;
-      border: 1px solid #f1f5f9;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .store-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      border-color: var(--primary-color);
-    }
-
-    .store-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background: var(--primary-color);
-      opacity: 0.8;
-    }
-
-    .store-name {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--text-main);
-    }
-
-    .store-address {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-bottom: 12px;
-      line-height: 1.4;
-    }
-
-    .store-meta {
-      display: flex;
-      gap: 12px;
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-
-    .store-status {
-      padding: 4px 10px;
-      border-radius: 9999px;
-      font-size: 11px;
-      font-weight: 600;
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .store-status.closed {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .store-actions {
-      margin-top: 16px;
-      display: flex;
-      gap: 8px;
-    }
-
-    .action-btn {
-      flex: 1;
-      padding: 6px 12px;
-      background: #f8fafc;
-      color: var(--text-secondary);
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .action-btn:hover {
-      background: var(--primary-color);
-      color: #fff;
-      border-color: var(--primary-color);
-    }
-
-    @media (max-width: 1200px) {
-      .store-list {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
     @media (max-width: 768px) {
-      .shop-info {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .store-list {
+      .company-info {
         grid-template-columns: 1fr;
       }
 
-      .section-title {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
+      .background-preview {
+        width: 100%;
+        max-width: 375px;
       }
     }
   </style>
@@ -302,62 +288,67 @@
 <body>
   <div class="container">
     <div class="section">
-      <div class="shop-info">
-        <div class="shop-avatar">店</div>
-        <div class="shop-details">
-          <div class="shop-name" id="shopName">加载中...</div>
-          <div class="shop-meta">
-            <span id="expireTime">到期时间: --</span>
-            <span id="shopType">店铺类型: --</span>
-          </div>
-        </div>
+      <div class="section-title">店铺信息</div>
+
+      <div class="form-group">
+        <label class="form-label">店铺名称</label>
+        <div class="form-value" id="shopName">蹦跶熊猫</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">店铺公告</label>
+        <div class="form-textarea" id="shopNotice">欢迎来到蹦跶熊猫的app商城</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">店铺介绍</label>
+        <div class="form-textarea" id="shopDesc">蹦跶熊猫的文创世界</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">店铺logo</label>
+        <div class="logo-preview">店</div>
+        <div class="logo-hint">建议长宽：100px*100px</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">店铺背景</label>
+        <div class="background-preview">背景</div>
+        <div class="logo-hint">建议尺寸：375px*125px</div>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-title">
-        门店列表
-        <button class="add-btn" onclick="addStore()">+ 添加门店</button>
-      </div>
-      <div class="store-list" id="storeList">
-        <div class="store-card">
-          <div class="store-name">示例门店1</div>
-          <div class="store-address">北京市朝阳区建国路88号</div>
-          <div class="store-meta">
-            <span class="store-status">营业中</span>
-            <span>营业时间: 09:00-21:00</span>
-          </div>
-          <div class="store-actions">
-            <button class="action-btn" onclick="editStore(1)">编辑</button>
-            <button class="action-btn" onclick="deleteStore(1)">删除</button>
-          </div>
+      <div class="section-title">公司信息</div>
+      <div class="company-info">
+        <div class="form-group">
+          <label class="form-label">公司名称</label>
+          <div class="form-value" id="companyName">上海协顺广告有限公司</div>
         </div>
-        <div class="store-card">
-          <div class="store-name">示例门店2</div>
-          <div class="store-address">北京市海淀区中关村大街1号</div>
-          <div class="store-meta">
-            <span class="store-status closed">已打烊</span>
-            <span>营业时间: 10:00-20:00</span>
-          </div>
-          <div class="store-actions">
-            <button class="action-btn" onclick="editStore(2)">编辑</button>
-            <button class="action-btn" onclick="deleteStore(2)">删除</button>
-          </div>
+
+        <div class="form-group">
+          <label class="form-label">企业联系人</label>
+          <div class="form-value" id="contactPerson">林东城</div>
         </div>
-        <div class="store-card">
-          <div class="store-name">示例门店3</div>
-          <div class="store-address">北京市西城区西单北大街120号</div>
-          <div class="store-meta">
-            <span class="store-status">营业中</span>
-            <span>营业时间: 08:00-22:00</span>
-          </div>
-          <div class="store-actions">
-            <button class="action-btn" onclick="editStore(3)">编辑</button>
-            <button class="action-btn" onclick="deleteStore(3)">删除</button>
-          </div>
+
+        <div class="form-group">
+          <label class="form-label">商家服务电话</label>
+          <div class="form-value" id="servicePhone">18017043586</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">企业地址</label>
+          <div class="form-value" id="companyAddress">上海闵行区新镇路603弄</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">邮箱</label>
+          <div class="form-value" id="email">997399840@qq.com</div>
         </div>
       </div>
     </div>
+
+    <button class="edit-btn" onclick="editShopInfo()">编辑资料</button>
   </div>
 
   <script>
@@ -381,18 +372,8 @@
       }
     }
 
-    function addStore() {
-      alert('添加门店功能开发中...');
-    }
-
-    function editStore(storeId) {
-      alert('编辑门店功能开发中... 门店ID: ' + storeId);
-    }
-
-    function deleteStore(storeId) {
-      if (confirm('确定要删除这个门店吗？')) {
-        alert('删除门店功能开发中... 门店ID: ' + storeId);
-      }
+    function editShopInfo() {
+      alert('编辑店铺资料功能开发中...');
     }
 
     window.onload = function () {
