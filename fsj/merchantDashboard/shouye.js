@@ -1,5 +1,8 @@
 async function loadShopData(mRowid) {
-  console.log('[shouye.js] 开始加载商家数据，mRowid:', mRowid);
+  console.log('[shouye.js] 开始加载商家数据，原始 mRowid:', mRowid);
+
+  const actualRowid = mRowid.substring(3);
+  console.log('[shouye.js] 处理后的 mRowid (去掉前3个字符):', actualRowid);
 
   const filters = [
     {
@@ -7,7 +10,7 @@ async function loadShopData(mRowid) {
       "dataType": 2,
       "spliceType": 1,
       "filterType": 24,
-      "value": mRowid
+      "value": actualRowid
     }
   ];
 
