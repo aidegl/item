@@ -22,7 +22,7 @@ class MingDaoYunArrayAPI {
       useControlId = "false",
       getSystemControl = "false"
     } = params;
-    
+
     // 确保filters始终是JSON格式字符串
     const filtersJson = typeof filters === "string" ? filters : JSON.stringify(filters);
 
@@ -53,6 +53,7 @@ class MingDaoYunArrayAPI {
             "Content-Type": "application/json"
           };
           console.log("[组件日志] 准备发起请求，请求头：", headers);
+          console.log("[组件日志] 完整请求体：", JSON.stringify(requestBody, null, 2));
 
           const response = await fetch(this.baseUrl, {
             method: "POST",
