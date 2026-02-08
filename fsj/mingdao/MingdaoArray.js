@@ -8,6 +8,8 @@ class MingDaoYunArrayAPI {
 
   async getData(params) {
     const {
+      appKey,
+      sign,
       worksheetId,
       viewId = "",
       pageSize = 50,
@@ -28,15 +30,15 @@ class MingDaoYunArrayAPI {
 
     try {
       const requestBody = {
-        "appKey": this.appKey,
-        "sign": this.sign,
+        "appKey": appKey || this.appKey,
+        "sign": sign || this.sign,
         "worksheetId": worksheetId,
         "viewId": viewId,
         "pageSize": pageSize,
         "pageIndex": pageIndex,
         "keyWords": keyWords,
         "listType": listType,
-        "controls": typeof controls === "string" ? controls : JSON.stringify(controls),
+        "controls": Array.isArray(controls) ? controls : (typeof controls === "string" && (controls.startsWith('[') || controls === "") ? (controls === "" ? [] : JSON.parse(controls)) : []),
         "filters": JSON.parse(filtersJson),
         "sortId": sortId,
         "isAsc": isAsc,
@@ -52,9 +54,6 @@ class MingDaoYunArrayAPI {
           const headers = {
             "Content-Type": "application/json"
           };
-          console.log("[组件日志] 准备发起请求，请求头：", headers);
-          console.log("[组件日志] requestBody对象：", requestBody);
-          console.log("[组件日志] 完整请求体：", JSON.stringify(requestBody, null, 2));
 
           const response = await fetch(this.baseUrl, {
             method: "POST",
