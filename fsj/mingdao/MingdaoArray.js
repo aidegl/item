@@ -53,6 +53,7 @@ class MingDaoYunArrayAPI {
             "Content-Type": "application/json"
           };
           console.log("[组件日志] 准备发起请求，请求头：", headers);
+          console.log("[组件日志] requestBody对象：", requestBody);
           console.log("[组件日志] 完整请求体：", JSON.stringify(requestBody, null, 2));
 
           const response = await fetch(this.baseUrl, {
