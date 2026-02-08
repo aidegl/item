@@ -18,24 +18,39 @@
     })();
   </script>
   <script>
-    fetch('merchant.json?v=' + v)
-      .then(response => response.json())
-      .then(data => {
-        console.log('[merchant.json] 加载成功:', data);
-        console.log('[merchant.json] logo 数组:', data.logo);
-        if (data.logo && data.logo.length > 0) {
-          var logoPath = data.logo[0].large_thumbnail_full_path;
-          console.log('[merchant.json] 图片路径:', logoPath);
-          var avatarElement = document.querySelector('.shop-avatar');
-          if (avatarElement) {
-            avatarElement.innerHTML = '<img src="' + logoPath + '" alt="店铺头像" style="width: 100%; height: 100%; object-fit: cover;">';
-            console.log('[merchant.json] 头像元素已更新');
+    window.addEventListener('load', function () {
+      var merchantData = localStorage.getItem('merchantData');
+      if (merchantData) {
+        try {
+          var data = JSON.parse(merchantData);
+          console.log('[localStorage] 加载成功:', data);
+
+          if (data.logo) {
+            var logoArray = JSON.parse(data.logo);
+            console.log('[localStorage] logo 数组:', logoArray);
+
+            if (logoArray && logoArray.length > 0) {
+              var logoPath = logoArray[0].large_thumbnail_full_path;
+              console.log('[localStorage] 图片路径:', logoPath);
+
+              var avatarElement = document.querySelector('.shop-avatar');
+              if (avatarElement) {
+                avatarElement.innerHTML = '<img src="' + logoPath + '" alt="店铺头像" style="width: 100%; height: 100%; object-fit: cover;">';
+                console.log('[localStorage] 头像元素已更新');
+              }
+            } else {
+              console.error('[localStorage] logo 数组为空');
+            }
+          } else {
+            console.error('[localStorage] logo 字段不存在');
           }
-        } else {
-          console.error('[merchant.json] logo 数组为空或不存在');
+        } catch (error) {
+          console.error('[localStorage] 解析数据失败:', error);
         }
-      })
-      .catch(error => console.error('加载 merchant.json 失败:', error));
+      } else {
+        console.warn('[localStorage] merchantData 不存在，等待数据加载');
+      }
+    });
   </script>
   <style>
     * {
