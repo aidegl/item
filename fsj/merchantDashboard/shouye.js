@@ -88,6 +88,16 @@ function updateShopInfo(shopData) {
     }
   }
 
+  if (shopData.logo && shopData.logo.length > 0) {
+    const logoPath = shopData.logo[0].large_thumbnail_full_path;
+    console.log('[shouye.js] 店铺头像路径:', logoPath);
+    const avatarElement = document.querySelector('.shop-avatar');
+    if (avatarElement) {
+      avatarElement.innerHTML = '<img src="' + logoPath + '" alt="店铺头像" style="width: 100%; height: 100%; object-fit: cover;">';
+      console.log('[shouye.js] 头像元素已更新');
+    }
+  }
+
   console.log('[shouye.js] 赋值后的数据:', shopData);
 
   localStorage.setItem('merchantData', JSON.stringify(shopData));
