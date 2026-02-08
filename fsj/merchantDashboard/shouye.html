@@ -314,7 +314,7 @@
     <div class="section">
       <div class="section-title">店铺信息</div>
       <div class="shop-info">
-        <div class="shop-avatar">店</div>
+        <div class="shop-avatar" onclick="reloadMerchantJson()">店</div>
         <div class="shop-details">
           <div class="shop-name" id="shopName">加载中...</div>
           <div class="shop-meta">
@@ -431,6 +431,29 @@
       } else {
         console.warn('[shouye.html] 未获取到mRowid参数，使用默认数据');
       }
+    }
+
+    function reloadMerchantJson() {
+      console.log('[reloadMerchantJson] 开始重新加载 merchant.json');
+      var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
+      fetch('merchant.json?v=' + v)
+        .then(response => response.json())
+        .then(data => {
+          console.log('[merchant.json] 完整数据:', data);
+          console.log('[merchant.json] logo 数组:', data.logo);
+          if (data.logo && data.logo.length > 0) {
+            var logoPath = data.logo[0].large_thumbnail_full_path;
+            console.log('[merchant.json] 图片路径:', logoPath);
+            var avatarElement = document.querySelector('.shop-avatar');
+            if (avatarElement) {
+              avatarElement.innerHTML = '<img src="' + logoPath + '" alt="店铺头像" style="width: 100%; height: 100%; object-fit: cover;">';
+              console.log('[merchant.json] 头像元素已更新');
+            }
+          } else {
+            console.error('[merchant.json] logo 数组为空或不存在');
+          }
+        })
+        .catch(error => console.error('加载 merchant.json 失败:', error));
     }
 
     function publishCode() {
