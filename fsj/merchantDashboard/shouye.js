@@ -67,8 +67,8 @@ function updateShopInfo(shopData) {
     document.getElementById('shopName').textContent = shopData.mingcheng;
   }
 
-  if (shopData.rowid) {
-    document.getElementById('shopId').textContent = '店铺ID: ' + shopData.rowid;
+  if (shopData.dqsj) {
+    document.getElementById('expireTime').textContent = '到期时间: ' + shopData.dqsj;
   }
 
   if (shopData.leixing) {
