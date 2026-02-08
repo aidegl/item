@@ -4,9 +4,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
   <title>商家后台首页</title>
-  <script src="../mingdao/MingdaoArray.js"></script>
-  <script src="shouye.js"></script>
+  <script>
+    (function () {
+      var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
+
+      var scripts = ['../mingdao/MingdaoArray.js', 'shouye.js'];
+      scripts.forEach(function (src) {
+        document.write('<script src="' + src + '?v=' + v + '"><\/script>');
+      });
+    })();
+  </script>
   <style>
     * {
       margin: 0;
