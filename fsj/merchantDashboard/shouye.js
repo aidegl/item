@@ -88,16 +88,6 @@ function updateShopInfo(shopData) {
     }
   }
 
-  if (shopData.logo && shopData.logo.length > 0) {
-    const logoPath = shopData.logo[0].large_thumbnail_full_path;
-    console.log('[shouye.js] 店铺头像路径:', logoPath);
-    const avatarElement = document.querySelector('.shop-avatar');
-    if (avatarElement) {
-      avatarElement.innerHTML = '<img src="' + logoPath + '" alt="店铺头像" style="width: 100%; height: 100%; object-fit: cover;">';
-      console.log('[shouye.js] 头像元素已更新');
-    }
-  }
-
   console.log('[shouye.js] 赋值后的数据:', shopData);
 
   localStorage.setItem('merchantData', JSON.stringify(shopData));
@@ -106,24 +96,8 @@ function updateShopInfo(shopData) {
   const savedData = localStorage.getItem('merchantData');
   console.log('[shouye.js] localStorage 中的 merchant.json:', savedData);
 
-  console.log('[shouye.js] shopData.logo:', shopData.logo);
-
-  if (shopData.logo && shopData.logo.length > 0) {
-    console.log('[shouye.js] shopData.logo[0]:', shopData.logo[0]);
-    const logoPath = shopData.logo[0].large_thumbnail_full_path;
-    console.log('[shouye.js] 店铺头像路径:', logoPath);
-
-    const parsedData = JSON.parse(localStorage.getItem('merchantData'));
-    console.log('[shouye.js] JSON.parse(localStorage.getItem(\'merchantData\')).logo[0]:', parsedData.logo[0]);
-
-    const avatarElement = document.querySelector('.shop-avatar');
-    if (avatarElement) {
-      avatarElement.innerHTML = '<img src="' + logoPath + '" alt="店铺头像" style="width: 100%; height: 100%; object-fit: cover;">';
-      console.log('[shouye.js] 头像元素已更新');
-    }
-  } else {
-    console.error('[shouye.js] logo 数组为空或不存在');
-  }
+  const logoData = JSON.parse(localStorage.getItem('merchantData')).logo[0];
+  console.log('[shouye.js] logo[0]:', logoData);
 
   console.log('[shouye.js] 页面信息更新完成');
 }
