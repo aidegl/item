@@ -89,5 +89,12 @@ function updateShopInfo(shopData) {
   }
 
   console.log('[shouye.js] 赋值后的数据:', shopData);
-  console.log('[shouye.js] 页面信息更新完成111');
+
+  localStorage.setItem('merchantData', JSON.stringify(shopData));
+  console.log('[shouye.js] 数据已保存到 localStorage (merchantData)');
+
+  const savedData = localStorage.getItem('merchantData');
+  console.log('[shouye.js] localStorage 中的 merchant.json:', savedData);
+
+  console.log('[shouye.js] 页面信息更新完成');
 }
