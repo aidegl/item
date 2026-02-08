@@ -19,6 +19,7 @@ async function loadShopData(mRowid) {
   };
 
   console.log('[shouye.js] 调用明道云接口，参数:', params);
+  console.log('[shouye.js] 请求体:', JSON.stringify(params, null, 2));
 
   try {
     const api = new window.MingDaoYunArrayAPI();
