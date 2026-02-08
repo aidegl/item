@@ -96,7 +96,8 @@ function updateShopInfo(shopData) {
   const savedData = localStorage.getItem('merchantData');
   console.log('[shouye.js] localStorage 中的 merchant.json:', savedData);
 
-  const logoData = JSON.parse(localStorage.getItem('merchantData')).logo[0];
+  const merchantData = JSON.parse(localStorage.getItem('merchantData'));
+  const logoData = JSON.parse(merchantData.logo)[0];
   console.log('[shouye.js] logo[0]:', logoData);
 
   console.log('[shouye.js] 页面信息更新完成');
