@@ -89,5 +89,5 @@ function updateShopInfo(shopData) {
   }
 
   console.log('[shouye.js] 赋值后的数据:', shopData);
-  console.log('[shouye.js] 页面信息更新完成');
+  console.log('[shouye.js] 页面信息更新完成111');
 }
