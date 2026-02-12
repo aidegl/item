@@ -16,6 +16,8 @@ class CozeChatAPI {
             botTemplate: '#message-template-bot',
             botStreamingTemplate: '#message-template-bot-streaming',
             apiUrl: 'https://api.coze.cn/v3/chat',
+            // Coze API Token（从全局设置获取）
+            apiToken: options.apiToken || null,
             // 事件回调
             onMessageSent: null,
             onMessageReceived: null,
@@ -369,16 +371,9 @@ class CozeChatAPI {
 
             this._log('API', '发起请求', { url, body: requestBody });
 
-            // 从全局设置获取token，如果没有则使用默认token
-            let bearerToken = 'pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb';
-            if (window.AppState && window.AppState.globalSettings && window.AppState.globalSettings.grlp) {
-                bearerToken = window.AppState.globalSettings.grlp;
-                this._log('INFO', '使用全局设置中的token', { token: bearerToken.substring(0, 20) + '...' });
-            }
-
             const headers = {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${bearerToken}`
+                'Authorization': `Bearer ${this.options.apiToken}`
             };
 
             this._log('API', '请求头', headers);
@@ -540,4 +535,6 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = CozeChatAPI;
 } else if (typeof window !== 'undefined') {
     window.CozeChatAPI = CozeChatAPI;
+    // 全局实例（在app.js中初始化时会传入动态token）
+    // window.cozeChat = new CozeChatAPI({ apiToken: '...' });
 }

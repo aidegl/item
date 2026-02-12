@@ -1,12 +1,13 @@
 // Coze工作流API调用模块
 class CozeWorkflow {
-    constructor() {
+    constructor(options = {}) {
         this.apiUrl = 'https://api.coze.cn/v1/workflow/run';
         this.ocrWorkflowId = '7593545627851014196'; // OCR工作流ID
         this.sttWorkflowId = '7596225551557001225'; // 语音识别工作流ID
         this.reportWorkflowId = '7603173498043252799'; // 报告生成工作流ID
         this.aiHelperWorkflowId = '7603176766723227655'; // AI助手工作流ID
-        this.bearerToken = 'pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb'; // Coze API密钥
+        // Coze API Token（从全局设置获取）
+        this.bearerToken = options.apiToken || null;
     }
 
     // 设置API密钥
@@ -70,15 +71,8 @@ class CozeWorkflow {
                 throw new Error('Coze API密钥未设置');
             }
 
-            // 从全局设置获取token，如果没有则使用默认token
-            let bearerToken = this.bearerToken;
-            if (window.AppState && window.AppState.globalSettings && window.AppState.globalSettings.grlp) {
-                bearerToken = window.AppState.globalSettings.grlp;
-                this.log('使用全局设置中的token', { token: bearerToken.substring(0, 20) + '...' });
-            }
-
             const headers = {
-                'Authorization': `Bearer ${bearerToken}`,
+                'Authorization': `Bearer ${this.bearerToken}`,
                 'Content-Type': 'application/json'
             };
             this.log('API请求头', headers);
@@ -222,5 +216,5 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = CozeWorkflow;
 }
 
-// 全局实例
-window.cozeWorkflow = new CozeWorkflow();
+// 全局实例（在app.js中初始化时会传入动态token）
+// window.cozeWorkflow = new CozeWorkflow({ apiToken: '...' });
