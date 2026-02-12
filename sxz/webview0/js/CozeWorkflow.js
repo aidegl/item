@@ -1,13 +1,12 @@
 // Coze工作流API调用模块
 class CozeWorkflow {
-    constructor(options = {}) {
+    constructor() {
         this.apiUrl = 'https://api.coze.cn/v1/workflow/run';
         this.ocrWorkflowId = '7593545627851014196'; // OCR工作流ID
         this.sttWorkflowId = '7596225551557001225'; // 语音识别工作流ID
         this.reportWorkflowId = '7603173498043252799'; // 报告生成工作流ID
         this.aiHelperWorkflowId = '7603176766723227655'; // AI助手工作流ID
-        // Coze API Token（从全局设置获取）
-        this.bearerToken = options.apiToken || null;
+        this.bearerToken = 'pat_KNA17LR4GzTvkBciLlSs0nfW5jDavQMQ0uXO0GpOWNIX0Z3q7lZJ0fe3xwitGtl3'; // Coze API密钥
     }
 
     // 设置API密钥
@@ -216,5 +215,5 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = CozeWorkflow;
 }
 
-// 全局实例（在app.js中初始化时会传入动态token）
-// window.cozeWorkflow = new CozeWorkflow({ apiToken: '...' });
+// 全局实例
+window.cozeWorkflow = new CozeWorkflow();

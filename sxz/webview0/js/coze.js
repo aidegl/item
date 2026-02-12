@@ -16,8 +16,6 @@ class CozeChatAPI {
             botTemplate: '#message-template-bot',
             botStreamingTemplate: '#message-template-bot-streaming',
             apiUrl: 'https://api.coze.cn/v3/chat',
-            // Coze API Token（从全局设置获取）
-            apiToken: options.apiToken || null,
             // 事件回调
             onMessageSent: null,
             onMessageReceived: null,
@@ -373,7 +371,7 @@ class CozeChatAPI {
 
             const headers = {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.options.apiToken}`
+                'Authorization': 'Bearer pat_KNA17LR4GzTvkBciLlSs0nfW5jDavQMQ0uXO0GpOWNIX0Z3q7lZJ0fe3xwitGtl3'
             };
 
             this._log('API', '请求头', headers);
@@ -535,6 +533,4 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = CozeChatAPI;
 } else if (typeof window !== 'undefined') {
     window.CozeChatAPI = CozeChatAPI;
-    // 全局实例（在app.js中初始化时会传入动态token）
-    // window.cozeChat = new CozeChatAPI({ apiToken: '...' });
 }
