@@ -1,6 +1,3 @@
-// 全局实例
-window.cozeWorkflow = new CozeWorkflow();
-
 // ==================== 应用状态管理 ====================
 console.log('app.js 正在加载...');
 
@@ -222,6 +219,17 @@ const AppState = {
             if (result && result.success) {
                 console.log('[GlobalSettings] 加载成功:', result.data);
                 this.globalSettings = result.data;
+
+                // 使用全局设置中的grlp token重新初始化Coze API
+                if (result.data.grlp) {
+                    console.log('[GlobalSettings] 使用grlp token初始化Coze API');
+                    if (window.CozeChatAPI) {
+                        window.cozeChat = new CozeChatAPI({ apiToken: result.data.grlp });
+                    }
+                    if (window.CozeWorkflow) {
+                        window.cozeWorkflow = new CozeWorkflow({ apiToken: result.data.grlp });
+                    }
+                }
             } else {
                 console.error('[GlobalSettings] 加载失败:', result);
             }
