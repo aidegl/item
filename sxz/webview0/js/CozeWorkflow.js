@@ -70,8 +70,15 @@ class CozeWorkflow {
                 throw new Error('Coze API密钥未设置');
             }
 
+            // 从全局设置获取token，如果没有则使用默认token
+            let bearerToken = this.bearerToken;
+            if (window.AppState && window.AppState.globalSettings && window.AppState.globalSettings.grlp) {
+                bearerToken = window.AppState.globalSettings.grlp;
+                this.log('使用全局设置中的token', { token: bearerToken.substring(0, 20) + '...' });
+            }
+
             const headers = {
-                'Authorization': `Bearer ${this.bearerToken}`,
+                'Authorization': `Bearer ${bearerToken}`,
                 'Content-Type': 'application/json'
             };
             this.log('API请求头', headers);

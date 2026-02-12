@@ -369,9 +369,16 @@ class CozeChatAPI {
 
             this._log('API', '发起请求', { url, body: requestBody });
 
+            // 从全局设置获取token，如果没有则使用默认token
+            let bearerToken = 'pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb';
+            if (window.AppState && window.AppState.globalSettings && window.AppState.globalSettings.grlp) {
+                bearerToken = window.AppState.globalSettings.grlp;
+                this._log('INFO', '使用全局设置中的token', { token: bearerToken.substring(0, 20) + '...' });
+            }
+
             const headers = {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer pat_6oqCg3euNcoDO3MdQ4xUaiuXGljmWSEMBVzkYExjO9XXv8f4u0PLA4B2Pb9foQgb'
+                'Authorization': `Bearer ${bearerToken}`
             };
 
             this._log('API', '请求头', headers);
