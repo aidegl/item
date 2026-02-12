@@ -1,0 +1,7 @@
+<image 
+  src="{{src}}" 
+  mode="widthFix" 
+  class="single-image"
+  style="width: {{width}}; height: {{height}}; border-radius: {{borderRadius}}rpx;"
+  bindtap="onImageTap"
+/>

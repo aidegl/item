@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <title>门店装修</title>
+  <script>
+    (function () {
+      var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
+
+      var scripts = ['../mingdao/MingdaoArray.js', 'decoration.js'];
+      scripts.forEach(function (src) {
+        document.write('<script src="' + src + '?v=' + v + '"><\/script>');
+      });
+    })();
+  </script>
+  <style>
+    :root {
+      --primary-color: #0557e1ff;
+      --primary-hover: #044ac3;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --border-radius: 8px;
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      caret-color: transparent;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 8px 20px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+    }
+
+    .main-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      gap: 0;
+    }
+
+    .left-panel {
+      width: 280px;
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .sidebar {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .sidebar-header .btn-add {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .page-tree {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .page-item {
+      padding: 12px 16px;
+      margin-bottom: 4px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .page-item:hover {
+      background: #f1f5f9;
+    }
+
+    .page-item.active {
+      background: #e0e7ff;
+      color: var(--primary-color);
+    }
+
+    .page-item .page-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .page-item .page-actions {
+      display: none;
+      gap: 8px;
+    }
+
+    .page-item:hover .page-actions {
+      display: flex;
+    }
+
+    .page-item .page-action-btn {
+      padding: 4px 8px;
+      font-size: 12px;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .page-item .page-action-btn:hover {
+      background: var(--primary-color);
+      color: #fff;
+    }
+
+    .component-library {
+      flex: 1;
+      background: var(--bg-color);
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .component-section {
+      margin-bottom: 20px;
+    }
+
+    .component-section h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .component-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      text-align: center;
+      cursor: grab;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .component-item:hover {
+      border-color: var(--primary-color);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .component-item:active {
+      cursor: grabbing;
+    }
+
+    .component-item .component-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .component-item .component-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .properties-panel {
+      width: 320px;
+      background: var(--card-bg);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .properties-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .properties-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .properties-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .property-group {
+      margin-bottom: 20px;
+    }
+
+    .property-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .property-group input,
+    .property-group select,
+    .property-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      color: var(--text-main);
+      transition: border-color 0.2s;
+    }
+
+    .property-group input:focus,
+    .property-group select:focus,
+    .property-group textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(5, 87, 225, 0.1);
+    }
+
+    .property-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .property-group .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .property-group .color-picker input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .preview-area {
+      flex: 1;
+      background: #e5e5e5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+      overflow-y: auto;
+      min-width: 0;
+    }
+
+    .preview-header {
+      width: 100%;
+      max-width: 375px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .preview-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .preview-header .device-select {
+      padding: 6px 12px;
+      font-size: 13px;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+    }
+
+    .phone-preview {
+      width: 375px;
+      height: 667px;
+      background: #fff;
+      border-radius: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .phone-screen {
+      height: calc(100% - 60px);
+      overflow-y: auto;
+      background: #f5f5f5;
+    }
+
+    .phone-screen .page-canvas {
+      min-height: 100%;
+      padding: 10px;
+    }
+
+    .phone-screen .component-wrapper {
+      border: 2px dashed transparent;
+      padding: 5px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 4px;
+    }
+
+    .phone-screen .component-wrapper:hover {
+      border-color: var(--primary-color);
+      background: rgba(5, 87, 225, 0.05);
+    }
+
+    .phone-screen .component-wrapper.selected {
+      border-color: var(--primary-color);
+      background: rgba(5, 87, 225, 0.1);
+    }
+
+    .phone-screen .component-placeholder {
+      background: #f1f5f9;
+      border: 2px dashed #cbd5e1;
+      border-radius: 4px;
+      padding: 20px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .tab-bar {
+      height: 60px;
+      background: #fff;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+    }
+
+    .tab-bar.classic {
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .tab-bar.modern {
+      border-top: none;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-item.active {
+      color: var(--primary-color);
+    }
+
+    .tab-item .tab-icon {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .tab-bar.classic .tab-item {
+      color: #999999;
+    }
+
+    .tab-bar.classic .tab-item.active {
+      color: #667eea;
+    }
+
+    .tab-bar.modern .tab-item {
+      color: #6c757d;
+    }
+
+    .tab-bar.modern .tab-item.active {
+      color: #007bff;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state .empty-text {
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>门店装修</h1>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="loadConfig()">加载配置</button>
+      <button class="btn" onclick="saveConfig()">保存配置</button>
+      <button class="btn" onclick="publishCode()">发布新版本</button>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="left-panel">
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h2>页面树</h2>
+          <button class="btn btn-add" onclick="addPage()">+ 新增页面</button>
+        </div>
+        <div class="page-tree" id="pageTree">
+        </div>
+      </div>
+
+      <div class="component-library">
+        <div class="component-section">
+          <h3>基础组件</h3>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-component="carousel">
+              <div class="component-icon">🖼️</div>
+              <div class="component-name">轮播图</div>
+            </div>
+            <div class="component-item" draggable="true" data-component="function-list">
+              <div class="component-icon">📋</div>
+              <div class="component-name">功能列表</div>
+            </div>
+            <div class="component-item" draggable="true" data-component="image">
+              <div class="component-icon">🖼️</div>
+              <div class="component-name">图片</div>
+            </div>
+            <div class="component-item" draggable="true" data-component="text">
+              <div class="component-icon">📝</div>
+              <div class="component-name">文本</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-section">
+          <h3>商品组件</h3>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-component="product-grid">
+              <div class="component-icon">🛍️</div>
+              <div class="component-name">商品网格</div>
+            </div>
+            <div class="component-item" draggable="true" data-component="product-list">
+              <div class="component-icon">📦</div>
+              <div class="component-name">商品列表</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-section">
+          <h3>内容组件</h3>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-component="notice">
+              <div class="component-icon">📢</div>
+              <div class="component-name">公告</div>
+            </div>
+            <div class="component-item" draggable="true" data-component="tabs">
+              <div class="component-icon">📑</div>
+              <div class="component-name">标签页面</div>
+            </div>
+            <div class="component-item" draggable="true" data-component="content-list">
+              <div class="component-icon">📄</div>
+              <div class="component-name">内容列表</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-area">
+      <div class="preview-header">
+        <h3>预览</h3>
+        <select class="device-select" id="deviceSelect" onchange="changeDevice()">
+          <option value="iphone">iPhone (375×667)</option>
+          <option value="android">Android (360×640)</option>
+          <option value="ipad">iPad (768×1024)</option>
+        </select>
+      </div>
+      <div class="phone-preview" id="phonePreview">
+        <div class="phone-screen" id="phoneScreen">
+          <div class="page-canvas" id="pageCanvas">
+          </div>
+        </div>
+        <div class="tab-bar classic" id="tabBar">
+        </div>
+      </div>
+    </div>
+
+    <div class="properties-panel">
+      <div class="properties-header">
+        <h2>属性设置</h2>
+      </div>
+      <div class="properties-content" id="propertiesContent">
+        <div class="empty-state">
+          <div class="empty-icon">🎯</div>
+          <div class="empty-text">请选择一个组件进行编辑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = null;
+    let selectedComponent = null;
+    let pages = [];
+    let globalConfig = {
+      style: 'classic',
+      navigationBar: {
+        backgroundColor: '#000000',
+        textColor: '#ffffff'
+      }
+    };
+    let tabBarConfig = {
+      style: 'classic',
+      backgroundColor: '#ffffff',
+      selectedColor: '#667eea',
+      unselectedColor: '#999999',
+      list: [
+        {
+          name: '首页',
+          selectedIcon: 'home-active.png',
+          unselectedIcon: 'home.png',
+          pageId: 'page-001'
+        },
+        {
+          name: '分类',
+          selectedIcon: 'category-active.png',
+          unselectedIcon: 'category.png',
+          pageId: 'page-002'
+        },
+        {
+          name: '我的',
+          selectedIcon: 'user-active.png',
+          unselectedIcon: 'user.png',
+          pageId: 'page-003'
+        }
+      ]
+    };
+
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0,
+          v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    function renderPageTree() {
+      const pageTree = document.getElementById('pageTree');
+      pageTree.innerHTML = '';
+
+      pages.forEach((page, index) => {
+        const pageItem = document.createElement('div');
+        pageItem.className = 'page-item' + (currentPage && currentPage.pageId === page.pageId ? ' active' : '');
+        pageItem.innerHTML = `
+          <span class="page-name">${page.pageName}</span>
+          <div class="page-actions">
+            <button class="page-action-btn" onclick="event.stopPropagation(); copyPage('${page.pageId}')">复制</button>
+            <button class="page-action-btn" onclick="event.stopPropagation(); deletePage('${page.pageId}')">删除</button>
+          </div>
+        `;
+        pageItem.onclick = () => selectPage(page);
+        pageTree.appendChild(pageItem);
+      });
+    }
+
+    function selectPage(page) {
+      currentPage = page;
+      renderPageTree();
+      renderPreview();
+      renderProperties();
+    }
+
+    function addPage() {
+      const newPage = {
+        pageId: generateUUID(),
+        pageName: '新页面 ' + (pages.length + 1),
+        components: []
+      };
+      pages.push(newPage);
+      selectPage(newPage);
+      renderPageTree();
+    }
+
+    function copyPage(pageId) {
+      const page = pages.find(p => p.pageId === pageId);
+      if (page) {
+        const newPage = {
+          pageId: generateUUID(),
+          pageName: page.pageName + ' (副本)',
+          components: JSON.parse(JSON.stringify(page.components))
+        };
+        pages.push(newPage);
+        renderPageTree();
+      }
+    }
+
+    function deletePage(pageId) {
+      if (confirm('确定要删除这个页面吗？')) {
+        pages = pages.filter(p => p.pageId !== pageId);
+        if (currentPage && currentPage.pageId === pageId) {
+          currentPage = pages.length > 0 ? pages[0] : null;
+        }
+        renderPageTree();
+        if (currentPage) {
+          renderPreview();
+        } else {
+          document.getElementById('pageCanvas').innerHTML = '';
+        }
+      }
+    }
+
+    function renderPreview() {
+      const pageCanvas = document.getElementById('pageCanvas');
+      pageCanvas.innerHTML = '';
+
+      if (!currentPage || currentPage.components.length === 0) {
+        pageCanvas.innerHTML = `
+          <div class="component-placeholder">
+            拖拽组件到此处开始设计页面
+          </div>
+        `;
+        return;
+      }
+
+      currentPage.components.forEach((component, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'component-wrapper' + (selectedComponent && selectedComponent.componentId === component.componentId ? ' selected' : '');
+        wrapper.dataset.componentId = component.componentId;
+        wrapper.onclick = () => selectComponent(component);
+        wrapper.innerHTML = renderComponentPreview(component);
+        pageCanvas.appendChild(wrapper);
+      });
+
+      renderTabBar();
+    }
+
+    function renderComponentPreview(component) {
+      switch (component.componentName) {
+        case '轮播图':
+          return `
+            <div style="background: #f0f0f0; height: ${component.properties.height || 200}px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;">
+              🖼️ 轮播图 (${component.componentItems.length}张)
+            </div>
+          `;
+        case '功能列表':
+          return `
+            <div style="background: #fff; padding: 10px; border-radius: 8px;">
+              <div style="display: grid; grid-template-columns: repeat(${component.properties.columns || 3}, 1fr); gap: 10px;">
+                ${component.componentItems.map(item => `
+                  <div style="text-align: center; padding: 10px;">
+                    <div style="font-size: 24px;">📱</div>
+                    <div style="font-size: 12px; color: #666;">${item}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case '图片':
+          return `
+            <div style="background: #f0f0f0; height: ${component.properties.height || 'auto'}; border-radius: ${component.properties.borderRadius || 0}px; display: flex; align-items: center; justify-content: center; color: #999;">
+              🖼️ 图片
+            </div>
+          `;
+        case '文本':
+          return `
+            <div style="font-size: ${component.properties.fontSize || 16}px; color: ${component.properties.color || '#333'}; text-align: ${component.properties.textAlign || 'left'}; padding: 10px;">
+              ${component.componentItems[0] || '文本内容'}
+            </div>
+          `;
+        case '商品网格':
+          return `
+            <div style="background: #fff; padding: 10px; border-radius: 8px;">
+              <div style="display: grid; grid-template-columns: repeat(${component.properties.columns || 2}, 1fr); gap: 10px;">
+                ${[1, 2, 3, 4].map(i => `
+                  <div style="background: #f9f9f9; border-radius: 8px; overflow: hidden;">
+                    <div style="height: 80px; background: #e0e0e0; display: flex; align-items: center; justify-content: center; color: #999;">商品${i}</div>
+                    <div style="padding: 8px;">
+                      <div style="font-size: 12px; color: #333; margin-bottom: 4px;">商品名称${i}</div>
+                      ${component.properties.showPrice ? '<div style="font-size: 14px; color: #ff4400; font-weight: bold;">¥99.00</div>' : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case '公告':
+          return `
+            <div style="background: ${component.properties.backgroundColor || '#fff7e6'}; color: ${component.properties.textColor || '#ff6b00'}; padding: 10px; border-radius: 8px; display: flex; align-items: center;">
+              <span style="margin-right: 8px;">${component.properties.icon || '📢'}</span>
+              <span>${component.componentItems[0] || '公告内容'}</span>
+            </div>
+          `;
+        case '标签页面':
+          return `
+            <div style="background: #fff; padding: 10px; border-radius: 8px;">
+              <div style="display: flex; gap: 10px; border-bottom: 1px solid #e0e0e0;">
+                ${component.componentItems.map((item, i) => `
+                  <div style="padding: 8px 16px; cursor: pointer; ${i === 0 ? 'color: #667eea; border-bottom: 2px solid #667eea;' : ''}">${item}</div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case '内容列表':
+          return `
+            <div style="background: #fff; padding: 10px; border-radius: 8px;">
+              ${component.componentItems.map(item => `
+                <div style="padding: 12px; border-bottom: 1px solid #f0f0f0; display: flex; gap: 10px;">
+                  <div style="width: 60px; height: 60px; background: #e0e0e0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;">图</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 14px; color: #333; margin-bottom: 4px;">${item.title || '标题'}</div>
+                    <div style="font-size: 12px; color: #666;">${item.desc || '描述'}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        default:
+          return `<div style="padding: 20px; text-align: center; color: #999;">${component.componentName}</div>`;
+      }
+    }
+
+    function renderTabBar() {
+      const tabBar = document.getElementById('tabBar');
+      tabBar.className = 'tab-bar ' + tabBarConfig.style;
+      tabBar.innerHTML = tabBarConfig.list.map(tab => `
+        <div class="tab-item ${currentPage && currentPage.pageId === tab.pageId ? 'active' : ''}">
+          <div class="tab-icon">${tab.name === '首页' ? '🏠' : tab.name === '分类' ? '📂' : '👤'}</div>
+          <div>${tab.name}</div>
+        </div>
+      `).join('');
+    }
+
+    function selectComponent(component) {
+      selectedComponent = component;
+      renderPreview();
+      renderProperties();
+    }
+
+    function renderProperties() {
+      const propertiesContent = document.getElementById('propertiesContent');
+
+      if (!selectedComponent) {
+        propertiesContent.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🎯</div>
+            <div class="empty-text">请选择一个组件进行编辑</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = `
+        <div class="property-group">
+          <label>组件名称</label>
+          <input type="text" value="${selectedComponent.componentName}" readonly>
+        </div>
+      `;
+
+      Object.keys(selectedComponent.properties || {}).forEach(key => {
+        const value = selectedComponent.properties[key];
+        const label = getPropertyLabel(key);
+
+        if (typeof value === 'boolean') {
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <select onchange="updateProperty('${key}', this.value === 'true')">
+                <option value="true" ${value ? 'selected' : ''}>是</option>
+                <option value="false" ${!value ? 'selected' : ''}>否</option>
+              </select>
+            </div>
+          `;
+        } else if (typeof value === 'number') {
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <input type="number" value="${value}" onchange="updateProperty('${key}', Number(this.value))">
+            </div>
+          `;
+        } else if (key.includes('Color') || key.includes('color')) {
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <div class="color-picker">
+                <input type="color" value="${value}" onchange="updateProperty('${key}', this.value)">
+                <input type="text" value="${value}" onchange="updateProperty('${key}', this.value)">
+              </div>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <input type="text" value="${value}" onchange="updateProperty('${key}', this.value)">
+            </div>
+          `;
+        }
+      });
+
+      html += `
+        <div class="property-group">
+          <label>组件内容</label>
+          <textarea onchange="updateComponentItems(this.value)">${JSON.stringify(selectedComponent.componentItems, null, 2)}</textarea>
+        </div>
+        <div class="property-group">
+          <button class="btn" style="width: 100%; background: #ff4d4f;" onclick="deleteComponent()">删除组件</button>
+        </div>
+      `;
+
+      propertiesContent.innerHTML = html;
+    }
+
+    function getPropertyLabel(key) {
+      const labels = {
+        'height': '高度',
+        'autoplay': '自动播放',
+        'interval': '间隔时间(ms)',
+        'columns': '列数',
+        'iconSize': '图标大小',
+        'width': '宽度',
+        'borderRadius': '圆角',
+        'fontSize': '字体大小',
+        'color': '颜色',
+        'textAlign': '对齐方式',
+        'showPrice': '显示价格',
+        'showSales': '显示销量',
+        'backgroundColor': '背景色',
+        'textColor': '文字颜色',
+        'icon': '图标'
+      };
+      return labels[key] || key;
+    }
+
+    function updateProperty(key, value) {
+      if (selectedComponent) {
+        selectedComponent.properties[key] = value;
+        renderPreview();
+      }
+    }
+
+    function updateComponentItems(value) {
+      try {
+        if (selectedComponent) {
+          selectedComponent.componentItems = JSON.parse(value);
+          renderPreview();
+        }
+      } catch (e) {
+        alert('JSON格式错误，请检查输入');
+      }
+    }
+
+    function deleteComponent() {
+      if (selectedComponent && currentPage) {
+        if (confirm('确定要删除这个组件吗？')) {
+          currentPage.components = currentPage.components.filter(c => c.componentId !== selectedComponent.componentId);
+          selectedComponent = null;
+          renderPreview();
+          renderProperties();
+        }
+      }
+    }
+
+    function changeDevice() {
+      const device = document.getElementById('deviceSelect').value;
+      const phonePreview = document.getElementById('phonePreview');
+
+      switch (device) {
+        case 'iphone':
+          phonePreview.style.width = '375px';
+          phonePreview.style.height = '667px';
+          break;
+        case 'android':
+          phonePreview.style.width = '360px';
+          phonePreview.style.height = '640px';
+          break;
+        case 'ipad':
+          phonePreview.style.width = '768px';
+          phonePreview.style.height = '1024px';
+          break;
+      }
+    }
+
+    function saveConfig() {
+      const config = {
+        globalConfig: globalConfig,
+        tabBarConfig: tabBarConfig,
+        pages: pages
+      };
+
+      console.log('[decoration.html] 保存配置:', config);
+      localStorage.setItem('decorationConfig', JSON.stringify(config));
+      alert('配置已保存！');
+    }
+
+    function loadConfig() {
+      const config = localStorage.getItem('decorationConfig');
+      if (config) {
+        try {
+          const data = JSON.parse(config);
+          globalConfig = data.globalConfig || globalConfig;
+          tabBarConfig = data.tabBarConfig || tabBarConfig;
+          pages = data.pages || [];
+
+          if (pages.length > 0) {
+            currentPage = pages[0];
+          }
+
+          renderPageTree();
+          renderPreview();
+          renderTabBar();
+          alert('配置已加载！');
+        } catch (e) {
+          console.error('[decoration.html] 加载配置失败:', e);
+          alert('加载配置失败！');
+        }
+      } else {
+        alert('没有找到保存的配置');
+      }
+    }
+
+    function publishCode() {
+      const config = {
+        globalConfig: globalConfig,
+        tabBarConfig: tabBarConfig,
+        pages: pages
+      };
+
+      console.log('[decoration.html] 发布代码:', config);
+      alert('代码发布功能开发中...\n\n配置已生成：\n' + JSON.stringify(config, null, 2));
+    }
+
+    document.querySelectorAll('.component-item').forEach(item => {
+      item.addEventListener('dragstart', handleDragStart);
+      item.addEventListener('dragend', handleDragEnd);
+    });
+
+    const pageCanvas = document.getElementById('pageCanvas');
+    pageCanvas.addEventListener('dragover', handleDragOver);
+    pageCanvas.addEventListener('drop', handleDrop);
+
+    function handleDragStart(e) {
+      e.dataTransfer.setData('componentType', e.target.dataset.component);
+      e.target.style.opacity = '0.5';
+    }
+
+    function handleDragEnd(e) {
+      e.target.style.opacity = '1';
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      const componentType = e.dataTransfer.getData('componentType');
+
+      if (componentType && currentPage) {
+        const component = {
+          componentName: getComponentName(componentType),
+          componentId: generateUUID(),
+          componentItems: getDefaultItems(componentType),
+          properties: getDefaultProperties(componentType)
+        };
+
+        currentPage.components.push(component);
+        renderPreview();
+        selectComponent(component);
+      }
+    }
+
+    function getComponentName(type) {
+      const names = {
+        'carousel': '轮播图',
+        'function-list': '功能列表',
+        'image': '图片',
+        'text': '文本',
+        'product-grid': '商品网格',
+        'product-list': '商品列表',
+        'notice': '公告',
+        'tabs': '标签页面',
+        'content-list': '内容列表'
+      };
+      return names[type] || type;
+    }
+
+    function getDefaultItems(type) {
+      const defaults = {
+        'carousel': ['image1.png', 'image2.png', 'image3.png'],
+        'function-list': ['圈子', '想法', '团送'],
+        'image': ['https://example.com/image.png'],
+        'text': ['请输入文本内容'],
+        'product-grid': [],
+        'product-list': [],
+        'notice': ['欢迎使用本小程序'],
+        'tabs': ['标签1', '标签2', '标签3'],
+        'content-list': []
+      };
+      return defaults[type] || [];
+    }
+
+    function getDefaultProperties(type) {
+      const properties = {
+        'carousel': {
+          height: 200,
+          autoplay: true,
+          interval: 3000
+        },
+        'function-list': {
+          columns: 3,
+          iconSize: 48
+        },
+        'image': {
+          width: '100%',
+          height: 'auto',
+          borderRadius: 0
+        },
+        'text': {
+          fontSize: 16,
+          color: '#333333',
+          textAlign: 'left'
+        },
+        'product-grid': {
+          columns: 2,
+          showPrice: true,
+          showSales: true
+        },
+        'product-list': {
+          showPrice: true,
+          showSales: true
+        },
+        'notice': {
+          backgroundColor: '#fff7e6',
+          textColor: '#ff6b00',
+          icon: '📢'
+        },
+        'tabs': {
+          activeColor: '#667eea',
+          inactiveColor: '#999999'
+        },
+        'content-list': {
+          showImage: true,
+          showDesc: true
+        }
+      };
+      return properties[type] || {};
+    }
+
+    window.onload = function () {
+      if (pages.length === 0) {
+        addPage();
+      }
+      renderPageTree();
+      renderPreview();
+      renderTabBar();
+    };
+  </script>
+</body>
+
+</html>
