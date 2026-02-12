@@ -1,5 +1,43 @@
 // 全局实例
 window.cozeWorkflow = new CozeWorkflow();
+window.cozeChatAPI = new CozeChatAPI({
+    botId: '7593641609586819106',
+    userId: '111',
+    messagesContainer: null,
+    inputElement: '#chatInput',
+    sendButton: '#send-btn',
+    onMessageSent: (content) => {
+        AppState.chatMessages.push({
+            role: 'user',
+            content: content,
+            timestamp: new Date().toISOString()
+        });
+        AppState.saveToStorage();
+        renderCurrentPage();
+    },
+    onStreamingStart: () => {
+        AppState.chatMessages.push({
+            role: 'assistant',
+            content: '正在思考中...',
+            timestamp: new Date().toISOString()
+        });
+        renderCurrentPage();
+    },
+    onStreamingUpdate: (content) => {
+        const messages = AppState.chatMessages;
+        if (messages.length > 0) {
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg.role === 'assistant') {
+                lastMsg.content = content;
+                // 只更新最后一条消息的DOM，避免重新渲染整个页面
+                updateLastAssistantMessage(content);
+            }
+        }
+    },
+    onStreamingEnd: () => {
+        AppState.saveToStorage();
+    }
+});
 
 // ==================== 应用状态管理 ====================
 console.log('app.js 正在加载...');
@@ -867,75 +905,52 @@ function handleChatKeyPress(event) {
 }
 
 function sendMessage() {
-    // 检查登录状态
-    if (!checkLoginAndProceed()) return;
-
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
 
     if (!message) return;
 
     AppState.aiQuickQuestionsHidden = true;
-
-    // 添加用户消息
-    AppState.chatMessages.push({
-        role: 'user',
-        content: message,
-        timestamp: new Date().toISOString()
-    });
-
     input.value = '';
 
-    // 添加助手loading消息
-    const loadingMsgId = 'msg-' + Date.now();
-    AppState.chatMessages.push({
-        id: loadingMsgId,
-        role: 'assistant',
-        content: '正在思考中...',
-        timestamp: new Date().toISOString(),
-        isLoading: true
-    });
-
-    renderCurrentPage();
-
-    // 调用 Coze 工作流 API
-    if (window.cozeWorkflow) {
-        window.cozeWorkflow.runAIHelper(message).then(response => {
-            const msgIndex = AppState.chatMessages.findIndex(m => m.id === loadingMsgId);
-            if (msgIndex !== -1) {
-                delete AppState.chatMessages[msgIndex].isLoading;
-
-                if (response.success && response.data) {
-                    // response.data.data 是工作流返回的实际内容（文本/Markdown）
-                    const content = response.data.data;
-                    // 如果内容是对象，尝试获取 output 字段，否则转字符串
-                    if (typeof content === 'object' && content !== null) {
-                        AppState.chatMessages[msgIndex].content = content.output || content.data || JSON.stringify(content);
-                    } else {
-                        AppState.chatMessages[msgIndex].content = content || 'AI 未返回内容';
-                    }
-                } else {
-                    AppState.chatMessages[msgIndex].content = '抱歉，AI 暂时无法回答您的请求。' + (response.error ? `(${typeof response.error === 'object' ? JSON.stringify(response.error) : response.error})` : '');
-                }
-                AppState.saveToStorage();
-                renderCurrentPage();
-            }
-        }).catch(err => {
-            console.error('AI Helper Error:', err);
-            const msgIndex = AppState.chatMessages.findIndex(m => m.id === loadingMsgId);
-            if (msgIndex !== -1) {
-                delete AppState.chatMessages[msgIndex].isLoading;
-                AppState.chatMessages[msgIndex].content = '发生错误: ' + err.message;
-                AppState.saveToStorage();
-                renderCurrentPage();
-            }
+    if (window.cozeChatAPI) {
+        window.cozeChatAPI.sendMessage(message).catch(err => {
+            console.error('Coze Chat API Error:', err);
+            AppState.chatMessages.push({
+                role: 'assistant',
+                content: '发生错误: ' + err.message,
+                timestamp: new Date().toISOString()
+            });
+            AppState.saveToStorage();
+            renderCurrentPage();
         });
     } else {
-        const msgIndex = AppState.chatMessages.findIndex(m => m.id === loadingMsgId);
-        if (msgIndex !== -1) {
-            AppState.chatMessages[msgIndex].content = '错误: CozeWorkflow 未初始化';
-            delete AppState.chatMessages[msgIndex].isLoading;
-            renderCurrentPage();
+        AppState.chatMessages.push({
+            role: 'assistant',
+            content: '错误: CozeChatAPI 未初始化',
+            timestamp: new Date().toISOString()
+        });
+        renderCurrentPage();
+    }
+}
+
+function updateLastAssistantMessage(content) {
+    const messages = document.querySelectorAll('.chat-message.assistant');
+    const lastMessage = messages[messages.length - 1];
+
+    if (lastMessage) {
+        const messageText = lastMessage.querySelector('.message-text');
+        if (messageText) {
+            try {
+                if (typeof marked !== 'undefined' && marked.parse) {
+                    messageText.innerHTML = marked.parse(content);
+                } else {
+                    messageText.innerHTML = escapeHtml(content).replace(/\n/g, '<br>');
+                }
+            } catch (e) {
+                console.error('Markdown 渲染失败:', e);
+                messageText.innerHTML = escapeHtml(content).replace(/\n/g, '<br>');
+            }
         }
     }
 }
