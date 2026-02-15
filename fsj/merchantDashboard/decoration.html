@@ -13,7 +13,7 @@
 
       console.log('[decoration.html] 资源版本号:', v);
 
-      var scripts = ['../mingdao/MingdaoArray.js'];
+      var scripts = ['../mingdao/MingdaoArray.js', 'decoration.js'];
       scripts.forEach(function (src) {
         document.write('<script src="' + src + '?v=' + v + '"><\/script>');
       });
@@ -1204,26 +1204,33 @@
         return;
       }
 
-      const name = prompt('请输入导航项名称：', '新导航');
-      if (!name) return;
+      const usedPageIds = tabBarConfig.list.map(tab => tab.pageId);
+      const availablePages = pages.filter(p => !usedPageIds.includes(p.pageId));
 
-      const pageOptions = pages.map((p, i) => (i + 1) + '. ' + p.pageName).join('\n');
-      const pageIndex = prompt('请选择关联的页面（输入序号）：\n' + pageOptions, '1');
-      if (!pageIndex) return;
-
-      const index = parseInt(pageIndex) - 1;
-      if (index < 0 || index >= pages.length) {
-        alert('无效的页面序号！');
+      if (availablePages.length === 0) {
+        alert('所有页面都已经被使用，请先创建新页面！');
         return;
       }
 
-      const selectedPage = pages[index];
+      const name = prompt('请输入导航项名称：', '新导航');
+      if (!name) return;
+
+      let pageOptions = availablePages.map((p, i) => `${i + 1}. ${p.pageName}`).join('\n');
+      const pageChoice = prompt(`请选择关联的页面：\n${pageOptions}\n\n请输入序号（1-${availablePages.length}）：`);
+
+      if (!pageChoice) return;
+
+      const pageIndex = parseInt(pageChoice) - 1;
+      if (isNaN(pageIndex) || pageIndex < 0 || pageIndex >= availablePages.length) {
+        alert('请输入有效的序号！');
+        return;
+      }
 
       const newTab = {
         name: name,
         selectedIcon: 'home-active.png',
         unselectedIcon: 'home.png',
-        pageId: selectedPage.pageId
+        pageId: availablePages[pageIndex].pageId
       };
 
       tabBarConfig.list.push(newTab);
@@ -1237,21 +1244,28 @@
       const name = prompt('请输入导航项名称：', tab.name);
       if (!name) return;
 
-      const pageOptions = pages.map((p, i) => (i + 1) + '. ' + p.pageName).join('\n');
-      const currentPageIndex = pages.findIndex(p => p.pageId === tab.pageId);
-      const pageIndex = prompt('请选择关联的页面（输入序号）：\n' + pageOptions, (currentPageIndex + 1).toString());
-      if (!pageIndex) return;
+      const usedPageIds = tabBarConfig.list
+        .filter((_, i) => i !== index)
+        .map(t => t.pageId);
 
-      const index = parseInt(pageIndex) - 1;
-      if (index < 0 || index >= pages.length) {
-        alert('无效的页面序号！');
+      const availablePages = pages.filter(p => !usedPageIds.includes(p.pageId));
+
+      let pageOptions = availablePages.map((p, i) => `${i + 1}. ${p.pageName}`).join('\n');
+      const currentPageIndex = availablePages.findIndex(p => p.pageId === tab.pageId);
+      const currentPageIndexDisplay = currentPageIndex >= 0 ? currentPageIndex + 1 : 0;
+
+      const pageChoice = prompt(`请选择关联的页面（当前：${pages.find(p => p.pageId === tab.pageId)?.pageName || '未选择'}）：\n${pageOptions}\n\n请输入序号（1-${availablePages.length}）：`, currentPageIndexDisplay.toString());
+
+      if (pageChoice === null) return;
+
+      const pageIndex = parseInt(pageChoice) - 1;
+      if (isNaN(pageIndex) || pageIndex < 0 || pageIndex >= availablePages.length) {
+        alert('请输入有效的序号！');
         return;
       }
 
-      const selectedPage = pages[index];
-
       tab.name = name;
-      tab.pageId = selectedPage.pageId;
+      tab.pageId = availablePages[pageIndex].pageId;
       renderTabBarList();
       renderTabBar();
       saveConfig();
@@ -1499,6 +1513,15 @@
       }
     }
 
+    document.querySelectorAll('.component-item').forEach(item => {
+      item.addEventListener('dragstart', handleDragStart);
+      item.addEventListener('dragend', handleDragEnd);
+    });
+
+    const pageCanvas = document.getElementById('pageCanvas');
+    pageCanvas.addEventListener('dragover', handleDragOver);
+    pageCanvas.addEventListener('drop', handleDrop);
+
     function handleDragStart(e) {
       e.dataTransfer.setData('componentType', e.target.dataset.component);
       e.target.style.opacity = '0.5';
@@ -1610,15 +1633,6 @@
     }
 
     window.onload = function () {
-      document.querySelectorAll('.component-item').forEach(item => {
-        item.addEventListener('dragstart', handleDragStart);
-        item.addEventListener('dragend', handleDragEnd);
-      });
-
-      const pageCanvas = document.getElementById('pageCanvas');
-      pageCanvas.addEventListener('dragover', handleDragOver);
-      pageCanvas.addEventListener('drop', handleDrop);
-
       if (pages.length === 0) {
         addPage();
       }
