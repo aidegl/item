@@ -1309,7 +1309,7 @@
       }
     }
 
-    function publishCode() {
+    async function publishCode() {
       const config = {
         globalConfig: globalConfig,
         tabBarConfig: tabBarConfig,
@@ -1317,7 +1317,27 @@
       };
 
       console.log('[decoration.html] 发布代码:', config);
-      alert('代码发布功能开发中...\n\n配置已生成：\n' + JSON.stringify(config, null, 2));
+
+      try {
+        const response = await fetch('/api/generate-miniprogram', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(config)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('代码生成成功！正在下载...');
+          window.location.href = result.downloadUrl;
+        } else {
+          alert('生成失败: ' + result.message);
+        }
+      } catch (error) {
+        alert('请求失败: ' + error.message);
+      }
     }
 
     document.querySelectorAll('.component-item').forEach(item => {
