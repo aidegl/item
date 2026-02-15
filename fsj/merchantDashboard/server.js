@@ -359,14 +359,6 @@ app.get('/download/:filename', (req, res) => {
         res.download(filePath, 'miniprogram.zip', (err) => {
             if (!err) {
                 console.log(`文件下载: ${filename}`);
-                setTimeout(() => {
-                    try {
-                        fs.unlinkSync(filePath);
-                        console.log(`下载后删除文件: ${filename}`);
-                    } catch (e) {
-                        console.error('删除文件失败:', e);
-                    }
-                }, 1000);
             }
         });
     } else {

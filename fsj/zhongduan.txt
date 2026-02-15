@@ -1,3 +1,6 @@
+root@iZf8zal6c69zav3ybcmj74Z:~# pm2 logs miniprogram-generator --lines 100
+[TAILING] Tailing last 100 lines for [miniprogram-generator] process (change the value with --lines option)
+/root/.pm2/logs/miniprogram-generator-error.log last 100 lines:
 0|miniprog |     at listenInCluster (node:net:1997:12)
 0|miniprog |     at Server.listen (node:net:2102:7)
 0|miniprog |     at app.listen (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/node_modules/express/lib/application.js:635:24)
@@ -100,13 +103,25 @@
 0|miniprog | }
 
 /root/.pm2/logs/miniprogram-generator-out.log last 100 lines:
+0|miniprog | 复制: app.js
+0|miniprog | 复制: app.wxss
+0|miniprog | 复制: sitemap.json
+0|miniprog | 复制: project.config.json
+0|miniprog | 复制: images
+0|miniprog | 2. 生成页面代码...
+0|miniprog | 生成页面: 新页面 1
+0|miniprog | 生成页面: 新页面 2
+0|miniprog | 3. 生成app.json...
+0|miniprog | 生成app.json
 0|miniprog | 4. 创建ZIP文件...
-0|miniprog | ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771162385067.zip (5350 bytes)
+0|miniprog | ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771162618753.zip (6704 bytes)
 0|miniprog | 5. 清理临时文件...
-0|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771162385067
-0|miniprog | 文件下载: miniprogram_1771162385067.zip
-0|miniprog | 下载后删除文件: miniprogram_1771162385067.zip
-0|miniprog | 收到生成请求: 2026-02-15T13:36:58.752Z
+0|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771162618753
+0|miniprog | 文件下载: miniprogram_1771162618753.zip
+0|miniprog | 下载后删除文件: miniprogram_1771162618753.zip
+0|miniprog | 服务器运行在 http://localhost:3001
+0|miniprog | 健康检查: http://localhost:3001/health
+0|miniprog | 收到生成请求: 2026-02-15T13:48:33.893Z
 0|miniprog | 接收到的配置: {
 0|miniprog |   "globalConfig": {
 0|miniprog |     "style": "classic",
@@ -124,26 +139,12 @@
 0|miniprog |   },
 0|miniprog |   "pages": [
 0|miniprog |     {
-0|miniprog |       "pageId": "52ce58a3-006a-4536-8c5b-e26b6b12e97e",
+0|miniprog |       "pageId": "bd32ebd4-e885-4e59-b4a5-dd62b5b38c6d",
 0|miniprog |       "pageName": "新页面 1",
 0|miniprog |       "components": [
 0|miniprog |         {
 0|miniprog |           "componentName": "轮播图",
-0|miniprog |           "componentId": "4cd19e4a-7fab-4ba6-99ea-6006c9d0dae8",
-0|miniprog |           "componentItems": [
-0|miniprog |             "image1.png",
-0|miniprog |             "image2.png",
-0|miniprog |             "image3.png"
-0|miniprog |           ],
-0|miniprog |           "properties": {
-0|miniprog |             "height": 200,
-0|miniprog |             "autoplay": true,
-0|miniprog |             "interval": 3000
-0|miniprog |           }
-0|miniprog |         },
-0|miniprog |         {
-0|miniprog |           "componentName": "轮播图",
-0|miniprog |           "componentId": "d8be25dd-f4aa-4c70-93ed-b6808b7781de",
+0|miniprog |           "componentId": "ccfecc89-c5fa-4213-b518-ec991e4c19fa",
 0|miniprog |           "componentItems": [
 0|miniprog |             "image1.png",
 0|miniprog |             "image2.png",
@@ -159,25 +160,9 @@
 0|miniprog |       "expanded": true
 0|miniprog |     },
 0|miniprog |     {
-0|miniprog |       "pageId": "1e2d4595-c3ec-4744-bd44-ca3a4a4b8161",
+0|miniprog |       "pageId": "6734607b-e541-4950-8240-1473e674f2bb",
 0|miniprog |       "pageName": "新页面 2",
-0|miniprog |       "components": [
-0|miniprog |         {
-0|miniprog |           "componentName": "轮播图",
-0|miniprog |           "componentId": "101276e5-96c2-40f1-953a-e481817f9a1a",
-0|miniprog |           "componentItems": [
-0|miniprog |             "image1.png",
-0|miniprog |             "image2.png",
-0|miniprog |             "image3.png"
-0|miniprog |           ],
-0|miniprog |           "properties": {
-0|miniprog |             "height": 200,
-0|miniprog |             "autoplay": true,
-0|miniprog |             "interval": 3000
-0|miniprog |           }
-0|miniprog |         }
-0|miniprog |       ],
-0|miniprog |       "expanded": true
+0|miniprog |       "components": []
 0|miniprog |     }
 0|miniprog |   ]
 0|miniprog | }
@@ -190,16 +175,31 @@
 0|miniprog | 复制: project.config.json
 0|miniprog | 复制: images
 0|miniprog | 2. 生成页面代码...
+0|miniprog | 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771163313894/pages/bd32ebd4-e885-4e59-b4a5-dd62b5b38c6d
+0|miniprog | 生成JS文件...
+0|miniprog | JS文件生成成功
+0|miniprog | 生成WXML文件...
+0|miniprog | WXML文件生成成功
+0|miniprog | 生成WXSS文件...
+0|miniprog | WXSS文件生成成功
+0|miniprog | 生成JSON文件...
+0|miniprog | JSON文件生成成功
 0|miniprog | 生成页面: 新页面 1
+0|miniprog | 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771163313894/pages/6734607b-e541-4950-8240-1473e674f2bb
+0|miniprog | 生成JS文件...
+0|miniprog | JS文件生成成功
+0|miniprog | 生成WXML文件...
+0|miniprog | WXML文件生成成功
+0|miniprog | 生成WXSS文件...
+0|miniprog | WXSS文件生成成功
+0|miniprog | 生成JSON文件...
+0|miniprog | JSON文件生成成功
 0|miniprog | 生成页面: 新页面 2
 0|miniprog | 3. 生成app.json...
 0|miniprog | 生成app.json
 0|miniprog | 4. 创建ZIP文件...
-0|miniprog | ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771162618753.zip (6704 bytes)
+0|miniprog | ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771163313894.zip (6546 bytes)
 0|miniprog | 5. 清理临时文件...
-0|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771162618753
-0|miniprog | 文件下载: miniprogram_1771162618753.zip
-0|miniprog | 下载后删除文件: miniprogram_1771162618753.zip
-
-^C
-root@iZf8zal6c69zav3ybcmj74Z:~# 
+0|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771163313894
+0|miniprog | 文件下载: miniprogram_1771163313894.zip
+0|miniprog | 下载后删除文件: miniprogram_1771163313894.zip
