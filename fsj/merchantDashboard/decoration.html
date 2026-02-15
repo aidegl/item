@@ -1207,8 +1207,8 @@
       const name = prompt('请输入导航项名称：', '新导航');
       if (!name) return;
 
-      const pageOptions = pages.map((p, i) => `${i + 1}. ${p.pageName}`).join('\n');
-      const pageIndex = prompt(`请选择关联的页面（输入序号）：\n${pageOptions}`, '1');
+      const pageOptions = pages.map((p, i) => (i + 1) + '. ' + p.pageName).join('\n');
+      const pageIndex = prompt('请选择关联的页面（输入序号）：\n' + pageOptions, '1');
       if (!pageIndex) return;
 
       const index = parseInt(pageIndex) - 1;
@@ -1237,9 +1237,9 @@
       const name = prompt('请输入导航项名称：', tab.name);
       if (!name) return;
 
-      const pageOptions = pages.map((p, i) => `${i + 1}. ${p.pageName}`).join('\n');
+      const pageOptions = pages.map((p, i) => (i + 1) + '. ' + p.pageName).join('\n');
       const currentPageIndex = pages.findIndex(p => p.pageId === tab.pageId);
-      const pageIndex = prompt(`请选择关联的页面（输入序号）：\n${pageOptions}`, (currentPageIndex + 1).toString());
+      const pageIndex = prompt('请选择关联的页面（输入序号）：\n' + pageOptions, (currentPageIndex + 1).toString());
       if (!pageIndex) return;
 
       const index = parseInt(pageIndex) - 1;
