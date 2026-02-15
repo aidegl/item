@@ -1199,14 +1199,31 @@
     }
 
     function addTabBarItem() {
+      if (pages.length === 0) {
+        alert('请先创建页面！');
+        return;
+      }
+
       const name = prompt('请输入导航项名称：', '新导航');
       if (!name) return;
+
+      const pageOptions = pages.map((p, i) => `${i + 1}. ${p.pageName}`).join('\n');
+      const pageIndex = prompt(`请选择关联的页面（输入序号）：\n${pageOptions}`, '1');
+      if (!pageIndex) return;
+
+      const index = parseInt(pageIndex) - 1;
+      if (index < 0 || index >= pages.length) {
+        alert('无效的页面序号！');
+        return;
+      }
+
+      const selectedPage = pages[index];
 
       const newTab = {
         name: name,
         selectedIcon: 'home-active.png',
         unselectedIcon: 'home.png',
-        pageId: pages.length > 0 ? pages[0].pageId : null
+        pageId: selectedPage.pageId
       };
 
       tabBarConfig.list.push(newTab);
@@ -1220,7 +1237,21 @@
       const name = prompt('请输入导航项名称：', tab.name);
       if (!name) return;
 
+      const pageOptions = pages.map((p, i) => `${i + 1}. ${p.pageName}`).join('\n');
+      const currentPageIndex = pages.findIndex(p => p.pageId === tab.pageId);
+      const pageIndex = prompt(`请选择关联的页面（输入序号）：\n${pageOptions}`, (currentPageIndex + 1).toString());
+      if (!pageIndex) return;
+
+      const index = parseInt(pageIndex) - 1;
+      if (index < 0 || index >= pages.length) {
+        alert('无效的页面序号！');
+        return;
+      }
+
+      const selectedPage = pages[index];
+
       tab.name = name;
+      tab.pageId = selectedPage.pageId;
       renderTabBarList();
       renderTabBar();
       saveConfig();
