@@ -71,7 +71,8 @@ async function copyBaseFramework(outputDir) {
         'sitemap.json',
         'project.config.json',
         'utils',
-        'components'
+        'components',
+        'images'
     ];
 
     for (const item of filesToCopy) {
@@ -237,7 +238,19 @@ async function generateAppJson(config, outputDir) {
             navigationBarTitleText: '小程序',
             navigationBarTextStyle: config.globalConfig.navigationBar.textColor === '#ffffff' ? 'white' : 'black'
         },
-        tabBar: {
+        sitemapLocation: 'sitemap.json'
+    };
+
+    const imagesDir = path.join(outputDir, 'images');
+    const hasTabBarIcons = config.tabBarConfig.list.length > 0 && 
+        fs.existsSync(imagesDir) && 
+        config.tabBarConfig.list.every(tab => 
+            fs.existsSync(path.join(imagesDir, tab.unselectedIcon)) && 
+            fs.existsSync(path.join(imagesDir, tab.selectedIcon))
+        );
+
+    if (hasTabBarIcons) {
+        appJson.tabBar = {
             color: config.tabBarConfig.unselectedColor || '#999999',
             selectedColor: config.tabBarConfig.selectedColor || '#667eea',
             backgroundColor: config.tabBarConfig.backgroundColor || '#ffffff',
@@ -248,9 +261,11 @@ async function generateAppJson(config, outputDir) {
                 iconPath: `images/${tab.unselectedIcon}`,
                 selectedIconPath: `images/${tab.selectedIcon}`
             }))
-        },
-        sitemapLocation: 'sitemap.json'
-    };
+        };
+        console.log('生成tabBar配置');
+    } else {
+        console.log('图标文件不存在，跳过tabBar配置');
+    }
 
     fs.writeFileSync(path.join(outputDir, 'app.json'), JSON.stringify(appJson, null, 2));
     console.log('生成app.json');
