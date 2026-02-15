@@ -149,7 +149,7 @@
     }
 
     .page-tree {
-      flex: 1;
+      height: 250px;
       overflow-y: auto;
       padding: 8px;
     }
@@ -163,6 +163,40 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: relative;
+    }
+
+    .page-item-content {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      gap: 8px;
+    }
+
+    .page-item .toggle-arrow {
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+
+    .page-item .toggle-arrow.expanded {
+      transform: rotate(90deg);
+    }
+
+    .page-item .toggle-arrow.hidden {
+      visibility: hidden;
+    }
+
+    .page-item .page-name {
+      font-size: 14px;
+      font-weight: 500;
+      flex: 1;
     }
 
     .page-item:hover {
@@ -174,9 +208,66 @@
       color: var(--primary-color);
     }
 
-    .page-item .page-name {
+    .page-item.active .toggle-arrow {
+      color: var(--primary-color);
+    }
+
+    .page-children {
+      margin-left: 24px;
+      padding-left: 12px;
+      border-left: 1px solid var(--border-color);
+      display: none;
+    }
+
+    .page-children.expanded {
+      display: block;
+    }
+
+    .page-child-item {
+      padding: 8px 12px;
+      margin-bottom: 2px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+
+    .page-child-item.dragging {
+      opacity: 0.5;
+      background: #e0e7ff;
+    }
+
+    .page-child-item.drag-over {
+      border-top: 2px solid var(--primary-color);
+    }
+
+    .page-child-item:hover {
+      background: #f1f5f9;
+    }
+
+    .page-child-item.selected {
+      background: #e0e7ff;
+      color: var(--primary-color);
+    }
+
+    .page-child-item .child-icon {
       font-size: 14px;
-      font-weight: 500;
+    }
+
+    .page-child-item .drag-handle {
+      cursor: grab;
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin-right: 4px;
+    }
+
+    .page-child-item .drag-handle:active {
+      cursor: grabbing;
     }
 
     .page-item .page-actions {
@@ -490,79 +581,6 @@
     .empty-state .empty-text {
       font-size: 14px;
     }
-
-    .draggable-list {
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      overflow: hidden;
-    }
-
-    .draggable-item {
-      padding: 12px 16px;
-      background: #fff;
-      border-bottom: 1px solid var(--border-color);
-      cursor: move;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.2s;
-      user-select: auto;
-      -webkit-user-select: auto;
-      -moz-user-select: auto;
-      -ms-user-select: auto;
-    }
-
-    .draggable-item:last-child {
-      border-bottom: none;
-    }
-
-    .draggable-item:hover {
-      background: #f8fafc;
-    }
-
-    .draggable-item.dragging {
-      opacity: 0.5;
-      background: #e0e7ff;
-    }
-
-    .draggable-item .drag-handle {
-      color: #94a3b8;
-      cursor: grab;
-      font-size: 16px;
-      user-select: auto;
-      -webkit-user-select: auto;
-      -moz-user-select: auto;
-      -ms-user-select: auto;
-      padding: 4px;
-    }
-
-    .draggable-item .drag-handle:active {
-      cursor: grabbing;
-    }
-
-    .draggable-item .item-content {
-      flex: 1;
-      font-size: 14px;
-    }
-
-    .draggable-item .item-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .draggable-item .item-actions button {
-      padding: 4px 8px;
-      font-size: 12px;
-      background: #fff;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .draggable-item .item-actions button:hover {
-      background: var(--primary-color);
-      color: #fff;
-    }
   </style>
 </head>
 
@@ -580,7 +598,7 @@
     <div class="left-panel">
       <div class="sidebar">
         <div class="sidebar-header">
-          <h2>页面树</h2>
+          <h2>页面</h2>
           <button class="btn btn-add" onclick="addPage()">+ 新增页面</button>
         </div>
         <div class="page-tree" id="pageTree">
@@ -727,10 +745,16 @@
       pageTree.innerHTML = '';
 
       pages.forEach((page, index) => {
+        const hasChildren = page.components && page.components.length > 0;
+        const isExpanded = page.expanded !== false;
+
         const pageItem = document.createElement('div');
         pageItem.className = 'page-item' + (currentPage && currentPage.pageId === page.pageId ? ' active' : '');
         pageItem.innerHTML = `
-          <span class="page-name">${page.pageName}</span>
+          <div class="page-item-content">
+            <span class="toggle-arrow ${isExpanded ? 'expanded' : ''} ${hasChildren ? '' : 'hidden'}" onclick="event.stopPropagation(); togglePageExpand('${page.pageId}')">▶</span>
+            <span class="page-name">${page.pageName}</span>
+          </div>
           <div class="page-actions">
             <button class="page-action-btn" onclick="event.stopPropagation(); copyPage('${page.pageId}')">复制</button>
             <button class="page-action-btn" onclick="event.stopPropagation(); deletePage('${page.pageId}')">删除</button>
@@ -738,7 +762,129 @@
         `;
         pageItem.onclick = () => selectPage(page);
         pageTree.appendChild(pageItem);
+
+        if (hasChildren && isExpanded) {
+          const childrenContainer = document.createElement('div');
+          childrenContainer.className = 'page-children expanded';
+          childrenContainer.id = `page-children-${page.pageId}`;
+
+          page.components.forEach((component, compIndex) => {
+            const childItem = document.createElement('div');
+            childItem.className = 'page-child-item' + (selectedComponent && selectedComponent.componentId === component.componentId ? ' selected' : '');
+            childItem.draggable = true;
+            childItem.dataset.componentId = component.componentId;
+            childItem.dataset.pageId = page.pageId;
+            childItem.dataset.index = compIndex;
+            childItem.innerHTML = `
+              <span class="drag-handle">⋮⋮</span>
+              <span class="child-icon">${getComponentIcon(component.componentName)}</span>
+              <span>${component.componentName}</span>
+            `;
+
+            childItem.onclick = (e) => {
+              if (!e.target.classList.contains('drag-handle')) {
+                selectComponent(component);
+              }
+            };
+
+            childItem.ondragstart = (e) => handleChildDragStart(e, page.pageId, compIndex);
+            childItem.ondragover = (e) => handleChildDragOver(e);
+            childItem.ondragleave = (e) => handleChildDragLeave(e);
+            childItem.ondrop = (e) => handleChildDrop(e, page.pageId, compIndex);
+            childItem.ondragend = (e) => handleChildDragEnd(e);
+
+            childrenContainer.appendChild(childItem);
+          });
+
+          pageTree.appendChild(childrenContainer);
+        }
       });
+    }
+
+    function getComponentIcon(componentName) {
+      const iconMap = {
+        '轮播图': '🎠',
+        '功能列表': '📋',
+        '图片': '🖼️',
+        '文本': '📝',
+        '商品网格': '🛍️',
+        '商品列表': '📦',
+        '公告': '📢',
+        '标签页面': '📑',
+        '内容列表': '📄'
+      };
+      return iconMap[componentName] || '📄';
+    }
+
+    function togglePageExpand(pageId) {
+      const page = pages.find(p => p.pageId === pageId);
+      if (page) {
+        page.expanded = page.expanded === false ? true : false;
+        renderPageTree();
+      }
+    }
+
+    let draggedComponent = null;
+    let draggedPageIndex = null;
+
+    function handleChildDragStart(e, pageId, index) {
+      draggedComponent = e.target.dataset.componentId;
+      draggedPageIndex = index;
+      e.target.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleChildDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const target = e.target.closest('.page-child-item');
+      if (target && target.dataset.componentId !== draggedComponent) {
+        target.classList.add('drag-over');
+      }
+    }
+
+    function handleChildDragLeave(e) {
+      const target = e.target.closest('.page-child-item');
+      if (target) {
+        target.classList.remove('drag-over');
+      }
+    }
+
+    function handleChildDrop(e, pageId, targetIndex) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const target = e.target.closest('.page-child-item');
+      if (target) {
+        target.classList.remove('drag-over');
+      }
+
+      if (draggedComponent === null || draggedPageIndex === null) {
+        return;
+      }
+
+      const page = pages.find(p => p.pageId === pageId);
+      if (!page || draggedPageIndex === targetIndex) {
+        return;
+      }
+
+      const componentToMove = page.components[draggedPageIndex];
+      page.components.splice(draggedPageIndex, 1);
+      page.components.splice(targetIndex, 0, componentToMove);
+
+      draggedComponent = null;
+      draggedPageIndex = null;
+
+      renderPageTree();
+      renderPreview();
+    }
+
+    function handleChildDragEnd(e) {
+      e.target.classList.remove('dragging');
+      const dragOverItems = document.querySelectorAll('.page-child-item.drag-over');
+      dragOverItems.forEach(item => item.classList.remove('drag-over'));
+      draggedComponent = null;
+      draggedPageIndex = null;
     }
 
     function selectPage(page) {
@@ -910,6 +1056,7 @@
 
     function selectComponent(component) {
       selectedComponent = component;
+      renderPageTree();
       renderPreview();
       renderProperties();
     }
@@ -975,35 +1122,11 @@
         }
       });
 
-      if (selectedComponent.componentName === '功能列表') {
-        html += `
-          <div class="property-group">
-            <label>功能列表 (拖拽排序)</label>
-            <div class="draggable-list" id="draggableList">
-              ${selectedComponent.componentItems.map((item, index) => `
-                <div class="draggable-item" data-index="${index}">
-                  <span class="drag-handle" onmousedown="startDrag(event, ${index})">⋮⋮</span>
-                  <span class="item-content">${item}</span>
-                  <div class="item-actions">
-                    <button onclick="editFunctionItem(${index})">编辑</button>
-                    <button onclick="deleteFunctionItem(${index})">删除</button>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-            <button class="btn" style="width: 100%; margin-top: 10px;" onclick="addFunctionItem()">+ 添加功能项</button>
-          </div>
-        `;
-      } else {
-        html += `
-          <div class="property-group">
-            <label>组件内容</label>
-            <textarea onchange="updateComponentItems(this.value)">${JSON.stringify(selectedComponent.componentItems, null, 2)}</textarea>
-          </div>
-        `;
-      }
-
       html += `
+        <div class="property-group">
+          <label>组件内容</label>
+          <textarea onchange="updateComponentItems(this.value)">${JSON.stringify(selectedComponent.componentItems, null, 2)}</textarea>
+        </div>
         <div class="property-group">
           <button class="btn" style="width: 100%; background: #ff4d4f;" onclick="deleteComponent()">删除组件</button>
         </div>
@@ -1056,136 +1179,10 @@
         if (confirm('确定要删除这个组件吗？')) {
           currentPage.components = currentPage.components.filter(c => c.componentId !== selectedComponent.componentId);
           selectedComponent = null;
+          renderPageTree();
           renderPreview();
           renderProperties();
         }
-      }
-    }
-
-    let dragState = {
-      isDragging: false,
-      draggedIndex: null,
-      draggedElement: null,
-      placeholder: null
-    };
-
-    function startDrag(event, index) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const list = document.getElementById('draggableList');
-      if (!list) return;
-
-      const items = list.querySelectorAll('.draggable-item');
-      const draggedItem = items[index];
-
-      dragState.isDragging = true;
-      dragState.draggedIndex = index;
-      dragState.draggedElement = draggedItem;
-
-      draggedItem.style.opacity = '0.5';
-      draggedItem.style.cursor = 'grabbing';
-
-      document.addEventListener('mousemove', onDragMove);
-      document.addEventListener('mouseup', onDragEnd);
-
-      console.log('[decoration.html] 开始拖拽，索引:', index);
-    }
-
-    function onDragMove(event) {
-      if (!dragState.isDragging || !dragState.draggedElement) return;
-
-      const list = document.getElementById('draggableList');
-      if (!list) return;
-
-      const items = [...list.querySelectorAll('.draggable-item')];
-      const draggedRect = dragState.draggedElement.getBoundingClientRect();
-
-      let closestIndex = -1;
-      let closestDistance = Infinity;
-
-      items.forEach((item, index) => {
-        if (item === dragState.draggedElement) return;
-
-        const rect = item.getBoundingClientRect();
-        const itemCenter = rect.top + rect.height / 2;
-        const distance = Math.abs(event.clientY - itemCenter);
-
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestIndex = index;
-        }
-      });
-
-      if (closestIndex !== -1 && closestIndex !== dragState.draggedIndex) {
-        const targetItem = items[closestIndex];
-        if (event.clientY < targetItem.getBoundingClientRect().top + targetItem.getBoundingClientRect().height / 2) {
-          list.insertBefore(dragState.draggedElement, targetItem);
-        } else {
-          list.insertBefore(dragState.draggedElement, targetItem.nextSibling);
-        }
-        dragState.draggedIndex = closestIndex;
-      }
-    }
-
-    function onDragEnd(event) {
-      if (!dragState.isDragging) return;
-
-      if (dragState.draggedElement) {
-        dragState.draggedElement.style.opacity = '1';
-        dragState.draggedElement.style.cursor = 'move';
-      }
-
-      document.removeEventListener('mousemove', onDragMove);
-      document.removeEventListener('mouseup', onDragEnd);
-
-      if (dragState.isDragging && selectedComponent) {
-        const newOrder = [];
-        const items = document.querySelectorAll('#draggableList .draggable-item');
-        items.forEach(item => {
-          const index = parseInt(item.dataset.index);
-          newOrder.push(selectedComponent.componentItems[index]);
-        });
-        selectedComponent.componentItems = newOrder;
-        console.log('[decoration.html] 新的顺序:', newOrder);
-        renderPreview();
-        renderProperties();
-      }
-
-      dragState.isDragging = false;
-      dragState.draggedIndex = null;
-      dragState.draggedElement = null;
-
-      console.log('[decoration.html] 拖拽结束');
-    }
-
-    function addFunctionItem() {
-      if (selectedComponent) {
-        const name = prompt('请输入功能名称:');
-        if (name) {
-          selectedComponent.componentItems.push(name);
-          renderPreview();
-          renderProperties();
-        }
-      }
-    }
-
-    function editFunctionItem(index) {
-      if (selectedComponent) {
-        const newName = prompt('请输入新的功能名称:', selectedComponent.componentItems[index]);
-        if (newName !== null) {
-          selectedComponent.componentItems[index] = newName;
-          renderPreview();
-          renderProperties();
-        }
-      }
-    }
-
-    function deleteFunctionItem(index) {
-      if (selectedComponent && confirm('确定要删除这个功能项吗？')) {
-        selectedComponent.componentItems.splice(index, 1);
-        renderPreview();
-        renderProperties();
       }
     }
 
@@ -1293,6 +1290,8 @@
         };
 
         currentPage.components.push(component);
+        currentPage.expanded = true;
+        renderPageTree();
         renderPreview();
         selectComponent(component);
       }
