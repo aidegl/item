@@ -1327,7 +1327,17 @@
           body: JSON.stringify(config)
         });
 
+        console.log('[decoration.html] 响应状态:', response.status, response.statusText);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[decoration.html] 错误响应:', errorText);
+          alert(`请求失败 (${response.status}): ${errorText}`);
+          return;
+        }
+
         const result = await response.json();
+        console.log('[decoration.html] 响应结果:', result);
 
         if (result.success) {
           alert('代码生成成功！正在下载...');
@@ -1336,6 +1346,7 @@
           alert('生成失败: ' + result.message);
         }
       } catch (error) {
+        console.error('[decoration.html] 请求异常:', error);
         alert('请求失败: ' + error.message);
       }
     }
