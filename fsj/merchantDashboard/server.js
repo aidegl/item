@@ -16,12 +16,52 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const TEMP_DIR = path.join(__dirname, 'temp');
 const OUTPUT_DIR = path.join(__dirname, 'output');
+const MAX_ZIP_FILES = 10;
+const ZIP_EXPIRE_HOURS = 24;
 
 [TEMP_DIR, OUTPUT_DIR].forEach(dir => {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }
 });
+
+function cleanupOldFiles() {
+    try {
+        const files = fs.readdirSync(OUTPUT_DIR).filter(file => file.endsWith('.zip'));
+        
+        if (files.length > MAX_ZIP_FILES) {
+            files.sort((a, b) => {
+                const statA = fs.statSync(path.join(OUTPUT_DIR, a));
+                const statB = fs.statSync(path.join(OUTPUT_DIR, b));
+                return statA.mtime - statB.mtime;
+            });
+            
+            const filesToDelete = files.slice(0, files.length - MAX_ZIP_FILES);
+            filesToDelete.forEach(file => {
+                const filePath = path.join(OUTPUT_DIR, file);
+                fs.unlinkSync(filePath);
+                console.log(`删除旧文件: ${file}`);
+            });
+        }
+        
+        const now = Date.now();
+        files.forEach(file => {
+            const filePath = path.join(OUTPUT_DIR, file);
+            const stats = fs.statSync(filePath);
+            const ageHours = (now - stats.mtime.getTime()) / (1000 * 60 * 60);
+            
+            if (ageHours > ZIP_EXPIRE_HOURS) {
+                fs.unlinkSync(filePath);
+                console.log(`删除过期文件: ${file}`);
+            }
+        });
+    } catch (error) {
+        console.error('清理文件失败:', error);
+    }
+}
+
+setInterval(cleanupOldFiles, 60 * 60 * 1000);
+cleanupOldFiles();
 
 async function copyBaseFramework(outputDir) {
     const baseDir = path.join(__dirname, 'wxApp');
@@ -297,6 +337,14 @@ app.get('/download/:filename', (req, res) => {
         res.download(filePath, 'miniprogram.zip', (err) => {
             if (!err) {
                 console.log(`文件下载: ${filename}`);
+                setTimeout(() => {
+                    try {
+                        fs.unlinkSync(filePath);
+                        console.log(`下载后删除文件: ${filename}`);
+                    } catch (e) {
+                        console.error('删除文件失败:', e);
+                    }
+                }, 1000);
             }
         });
     } else {
