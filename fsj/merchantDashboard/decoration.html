@@ -506,6 +506,10 @@
       align-items: center;
       gap: 10px;
       transition: all 0.2s;
+      user-select: auto;
+      -webkit-user-select: auto;
+      -moz-user-select: auto;
+      -ms-user-select: auto;
     }
 
     .draggable-item:last-child {
@@ -525,6 +529,11 @@
       color: #94a3b8;
       cursor: grab;
       font-size: 16px;
+      user-select: auto;
+      -webkit-user-select: auto;
+      -moz-user-select: auto;
+      -ms-user-select: auto;
+      padding: 4px;
     }
 
     .draggable-item .drag-handle:active {
@@ -1059,27 +1068,37 @@
 
     function initDraggableList() {
       const list = document.getElementById('draggableList');
-      if (!list) return;
+      if (!list) {
+        console.log('[decoration.html] 未找到 draggableList 元素');
+        return;
+      }
+
+      console.log('[decoration.html] 初始化拖拽列表');
 
       let draggedItem = null;
 
-      list.addEventListener('dragstart', (e) => {
-        draggedItem = e.target.closest('.draggable-item');
-        if (draggedItem) {
+      list.addEventListener('dragstart', function (e) {
+        const target = e.target.closest('.draggable-item');
+        if (target) {
+          draggedItem = target;
           draggedItem.classList.add('dragging');
           e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/html', draggedItem.innerHTML);
+          console.log('[decoration.html] 开始拖拽');
         }
       });
 
-      list.addEventListener('dragend', (e) => {
+      list.addEventListener('dragend', function (e) {
         if (draggedItem) {
           draggedItem.classList.remove('dragging');
           draggedItem = null;
+          console.log('[decoration.html] 拖拽结束');
         }
       });
 
-      list.addEventListener('dragover', (e) => {
+      list.addEventListener('dragover', function (e) {
         e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
         const afterElement = getDragAfterElement(list, e.clientY);
         if (draggedItem) {
           if (afterElement == null) {
@@ -1090,15 +1109,17 @@
         }
       });
 
-      list.addEventListener('drop', (e) => {
+      list.addEventListener('drop', function (e) {
         e.preventDefault();
+        console.log('[decoration.html] 放置元素');
         if (draggedItem && selectedComponent) {
           const newOrder = [];
-          list.querySelectorAll('.draggable-item').forEach(item => {
+          list.querySelectorAll('.draggable-item').forEach(function (item) {
             const index = parseInt(item.dataset.index);
             newOrder.push(selectedComponent.componentItems[index]);
           });
           selectedComponent.componentItems = newOrder;
+          console.log('[decoration.html] 新的顺序:', newOrder);
           renderPreview();
           renderProperties();
         }
