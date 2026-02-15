@@ -435,19 +435,21 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       padding: 20px;
       overflow-y: auto;
       min-width: 0;
+      position: relative;
     }
 
     .preview-header {
-      width: 100%;
-      max-width: 375px;
+      position: absolute;
+      top: 20px;
+      right: 20px;
       display: flex;
-      justify-content: space-between;
+      gap: 12px;
       align-items: center;
-      margin-bottom: 16px;
+      z-index: 10;
     }
 
     .preview-header h3 {
@@ -472,12 +474,62 @@
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
       overflow: hidden;
       position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-status-bar {
+      height: 44px;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #000;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .phone-status-bar .status-left {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .phone-status-bar .status-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .phone-capsule {
+      width: 87px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      position: absolute;
+      top: 44px;
+      right: 16px;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .phone-capsule .capsule-dot {
+      width: 4px;
+      height: 4px;
+      background: #000;
+      border-radius: 50%;
     }
 
     .phone-screen {
-      height: calc(100% - 60px);
+      height: calc(100% - 60px - 44px);
       overflow-y: auto;
       background: #f5f5f5;
+      padding-top: 44px;
     }
 
     .phone-screen .page-canvas {
@@ -672,6 +724,19 @@
         </select>
       </div>
       <div class="phone-preview" id="phonePreview">
+        <div class="phone-status-bar">
+          <div class="status-left">
+            <span>12:00</span>
+          </div>
+          <div class="status-right">
+            <span>📶</span>
+            <span>🔋</span>
+          </div>
+        </div>
+        <div class="phone-capsule">
+          <div class="capsule-dot"></div>
+          <div class="capsule-dot"></div>
+        </div>
         <div class="phone-screen" id="phoneScreen">
           <div class="page-canvas" id="pageCanvas">
           </div>
