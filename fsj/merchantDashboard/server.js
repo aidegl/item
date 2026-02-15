@@ -28,14 +28,14 @@ const ZIP_EXPIRE_HOURS = 24;
 function cleanupOldFiles() {
     try {
         const files = fs.readdirSync(OUTPUT_DIR).filter(file => file.endsWith('.zip'));
-        
+
         if (files.length > MAX_ZIP_FILES) {
             files.sort((a, b) => {
                 const statA = fs.statSync(path.join(OUTPUT_DIR, a));
                 const statB = fs.statSync(path.join(OUTPUT_DIR, b));
                 return statA.mtime - statB.mtime;
             });
-            
+
             const filesToDelete = files.slice(0, files.length - MAX_ZIP_FILES);
             filesToDelete.forEach(file => {
                 const filePath = path.join(OUTPUT_DIR, file);
@@ -43,13 +43,13 @@ function cleanupOldFiles() {
                 console.log(`删除旧文件: ${file}`);
             });
         }
-        
+
         const now = Date.now();
         files.forEach(file => {
             const filePath = path.join(OUTPUT_DIR, file);
             const stats = fs.statSync(filePath);
             const ageHours = (now - stats.mtime.getTime()) / (1000 * 60 * 60);
-            
+
             if (ageHours > ZIP_EXPIRE_HOURS) {
                 fs.unlinkSync(filePath);
                 console.log(`删除过期文件: ${file}`);
@@ -241,15 +241,7 @@ async function generateAppJson(config, outputDir) {
         sitemapLocation: 'sitemap.json'
     };
 
-    const imagesDir = path.join(outputDir, 'images');
-    const hasTabBarIcons = config.tabBarConfig.list.length > 0 && 
-        fs.existsSync(imagesDir) && 
-        config.tabBarConfig.list.every(tab => 
-            fs.existsSync(path.join(imagesDir, tab.unselectedIcon)) && 
-            fs.existsSync(path.join(imagesDir, tab.selectedIcon))
-        );
-
-    if (hasTabBarIcons) {
+    if (config.tabBarConfig.list.length > 0) {
         appJson.tabBar = {
             color: config.tabBarConfig.unselectedColor || '#999999',
             selectedColor: config.tabBarConfig.selectedColor || '#667eea',
@@ -263,8 +255,6 @@ async function generateAppJson(config, outputDir) {
             }))
         };
         console.log('生成tabBar配置');
-    } else {
-        console.log('图标文件不存在，跳过tabBar配置');
     }
 
     fs.writeFileSync(path.join(outputDir, 'app.json'), JSON.stringify(appJson, null, 2));
