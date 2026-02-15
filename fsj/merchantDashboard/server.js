@@ -6,7 +6,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -33,11 +33,11 @@ async function copyBaseFramework(outputDir) {
         'utils',
         'components'
     ];
-    
+
     for (const item of filesToCopy) {
         const src = path.join(baseDir, item);
         const dest = path.join(outputDir, item);
-        
+
         if (fs.existsSync(src)) {
             if (fs.statSync(src).isDirectory()) {
                 fs.cpSync(src, dest, { recursive: true });
@@ -52,19 +52,19 @@ async function copyBaseFramework(outputDir) {
 async function generatePage(page, outputDir) {
     const pageDir = path.join(outputDir, 'pages', page.pageId);
     fs.mkdirSync(pageDir, { recursive: true });
-    
+
     const jsContent = generatePageJS(page);
     fs.writeFileSync(path.join(pageDir, 'index.js'), jsContent);
-    
+
     const wxmlContent = generatePageWXML(page);
     fs.writeFileSync(path.join(pageDir, 'index.wxml'), wxmlContent);
-    
+
     const wxssContent = generatePageWXSS(page);
     fs.writeFileSync(path.join(pageDir, 'index.wxss'), wxssContent);
-    
+
     const jsonContent = generatePageJSON(page);
     fs.writeFileSync(path.join(pageDir, 'index.json'), jsonContent);
-    
+
     console.log(`生成页面: ${page.pageName}`);
 }
 
@@ -72,7 +72,7 @@ function generatePageJS(page) {
     const componentsData = page.components.map(comp => {
         return `  ${comp.componentName}: ${JSON.stringify(comp.componentItems)},`;
     }).join('\n');
-    
+
     return `Page({
   data: {
 ${componentsData}
@@ -104,7 +104,7 @@ function generatePageWXML(page) {
     const componentsHTML = page.components.map(comp => {
         return generateComponentHTML(comp);
     }).join('\n');
-    
+
     return `<view class="page">
 ${componentsHTML}
 </view>`;
@@ -211,7 +211,7 @@ async function generateAppJson(config, outputDir) {
         },
         sitemapLocation: 'sitemap.json'
     };
-    
+
     fs.writeFileSync(path.join(outputDir, 'app.json'), JSON.stringify(appJson, null, 2));
     console.log('生成app.json');
 }
@@ -249,29 +249,29 @@ app.post('/api/generate-miniprogram', async (req, res) => {
     try {
         console.log('收到生成请求:', new Date().toISOString());
         const config = req.body;
-        
+
         const timestamp = Date.now();
         const uniqueDir = path.join(OUTPUT_DIR, `miniprogram_${timestamp}`);
         fs.mkdirSync(uniqueDir, { recursive: true });
-        
+
         console.log('1. 复制基础框架代码...');
         await copyBaseFramework(uniqueDir);
-        
+
         console.log('2. 生成页面代码...');
         for (const page of config.pages) {
             await generatePage(page, uniqueDir);
         }
-        
+
         console.log('3. 生成app.json...');
         await generateAppJson(config, uniqueDir);
-        
+
         console.log('4. 创建ZIP文件...');
         const zipPath = path.join(OUTPUT_DIR, `miniprogram_${timestamp}.zip`);
         await createZip(uniqueDir, zipPath);
-        
+
         console.log('5. 清理临时文件...');
         cleanup(uniqueDir);
-        
+
         const downloadUrl = `/download/miniprogram_${timestamp}.zip`;
         res.json({
             success: true,
@@ -279,7 +279,7 @@ app.post('/api/generate-miniprogram', async (req, res) => {
             downloadUrl: downloadUrl,
             timestamp: timestamp
         });
-        
+
     } catch (error) {
         console.error('生成失败:', error);
         res.status(500).json({
@@ -292,7 +292,7 @@ app.post('/api/generate-miniprogram', async (req, res) => {
 app.get('/download/:filename', (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(OUTPUT_DIR, filename);
-    
+
     if (fs.existsSync(filePath)) {
         res.download(filePath, 'miniprogram.zip', (err) => {
             if (!err) {
