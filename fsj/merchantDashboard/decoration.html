@@ -11,6 +11,8 @@
     (function () {
       var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
 
+      console.log('[decoration.html] 资源版本号:', v);
+
       var scripts = ['../mingdao/MingdaoArray.js', 'decoration.js'];
       scripts.forEach(function (src) {
         document.write('<script src="' + src + '?v=' + v + '"><\/script>');
@@ -225,23 +227,21 @@
     .component-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 3px;
+      gap: 5px;
     }
 
     .component-item {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: var(--border-radius);
-      padding: 16px;
+      padding: 6px 14px;
       text-align: center;
       cursor: grab;
       transition: all 0.2s;
-      box-shadow: var(--shadow-sm);
     }
 
     .component-item:hover {
       border-color: var(--primary-color);
-      box-shadow: var(--shadow-md);
       transform: translateY(-2px);
     }
 
@@ -255,7 +255,7 @@
     }
 
     .component-item .component-name {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 500;
       color: var(--text-main);
     }
