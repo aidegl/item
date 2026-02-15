@@ -981,8 +981,8 @@
             <label>功能列表 (拖拽排序)</label>
             <div class="draggable-list" id="draggableList">
               ${selectedComponent.componentItems.map((item, index) => `
-                <div class="draggable-item" draggable="true" data-index="${index}">
-                  <span class="drag-handle">⋮⋮</span>
+                <div class="draggable-item" data-index="${index}">
+                  <span class="drag-handle" onmousedown="startDrag(event, ${index})">⋮⋮</span>
                   <span class="item-content">${item}</span>
                   <div class="item-actions">
                     <button onclick="editFunctionItem(${index})">编辑</button>
@@ -1010,10 +1010,6 @@
       `;
 
       propertiesContent.innerHTML = html;
-
-      if (selectedComponent.componentName === '功能列表') {
-        initDraggableList();
-      }
     }
 
     function getPropertyLabel(key) {
@@ -1066,78 +1062,101 @@
       }
     }
 
-    function initDraggableList() {
+    let dragState = {
+      isDragging: false,
+      draggedIndex: null,
+      draggedElement: null,
+      placeholder: null
+    };
+
+    function startDrag(event, index) {
+      event.preventDefault();
+      event.stopPropagation();
+
       const list = document.getElementById('draggableList');
-      if (!list) {
-        console.log('[decoration.html] 未找到 draggableList 元素');
-        return;
-      }
+      if (!list) return;
 
-      console.log('[decoration.html] 初始化拖拽列表');
+      const items = list.querySelectorAll('.draggable-item');
+      const draggedItem = items[index];
 
-      let draggedItem = null;
+      dragState.isDragging = true;
+      dragState.draggedIndex = index;
+      dragState.draggedElement = draggedItem;
 
-      list.addEventListener('dragstart', function (e) {
-        const target = e.target.closest('.draggable-item');
-        if (target) {
-          draggedItem = target;
-          draggedItem.classList.add('dragging');
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/html', draggedItem.innerHTML);
-          console.log('[decoration.html] 开始拖拽');
-        }
-      });
+      draggedItem.style.opacity = '0.5';
+      draggedItem.style.cursor = 'grabbing';
 
-      list.addEventListener('dragend', function (e) {
-        if (draggedItem) {
-          draggedItem.classList.remove('dragging');
-          draggedItem = null;
-          console.log('[decoration.html] 拖拽结束');
-        }
-      });
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', onDragEnd);
 
-      list.addEventListener('dragover', function (e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        const afterElement = getDragAfterElement(list, e.clientY);
-        if (draggedItem) {
-          if (afterElement == null) {
-            list.appendChild(draggedItem);
-          } else {
-            list.insertBefore(draggedItem, afterElement);
-          }
-        }
-      });
-
-      list.addEventListener('drop', function (e) {
-        e.preventDefault();
-        console.log('[decoration.html] 放置元素');
-        if (draggedItem && selectedComponent) {
-          const newOrder = [];
-          list.querySelectorAll('.draggable-item').forEach(function (item) {
-            const index = parseInt(item.dataset.index);
-            newOrder.push(selectedComponent.componentItems[index]);
-          });
-          selectedComponent.componentItems = newOrder;
-          console.log('[decoration.html] 新的顺序:', newOrder);
-          renderPreview();
-          renderProperties();
-        }
-      });
+      console.log('[decoration.html] 开始拖拽，索引:', index);
     }
 
-    function getDragAfterElement(container, y) {
-      const draggableElements = [...container.querySelectorAll('.draggable-item:not(.dragging)')];
+    function onDragMove(event) {
+      if (!dragState.isDragging || !dragState.draggedElement) return;
 
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
+      const list = document.getElementById('draggableList');
+      if (!list) return;
+
+      const items = [...list.querySelectorAll('.draggable-item')];
+      const draggedRect = dragState.draggedElement.getBoundingClientRect();
+
+      let closestIndex = -1;
+      let closestDistance = Infinity;
+
+      items.forEach((item, index) => {
+        if (item === dragState.draggedElement) return;
+
+        const rect = item.getBoundingClientRect();
+        const itemCenter = rect.top + rect.height / 2;
+        const distance = Math.abs(event.clientY - itemCenter);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
         }
-      }, { offset: Number.NEGATIVE_INFINITY }).element;
+      });
+
+      if (closestIndex !== -1 && closestIndex !== dragState.draggedIndex) {
+        const targetItem = items[closestIndex];
+        if (event.clientY < targetItem.getBoundingClientRect().top + targetItem.getBoundingClientRect().height / 2) {
+          list.insertBefore(dragState.draggedElement, targetItem);
+        } else {
+          list.insertBefore(dragState.draggedElement, targetItem.nextSibling);
+        }
+        dragState.draggedIndex = closestIndex;
+      }
+    }
+
+    function onDragEnd(event) {
+      if (!dragState.isDragging) return;
+
+      if (dragState.draggedElement) {
+        dragState.draggedElement.style.opacity = '1';
+        dragState.draggedElement.style.cursor = 'move';
+      }
+
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('mouseup', onDragEnd);
+
+      if (dragState.isDragging && selectedComponent) {
+        const newOrder = [];
+        const items = document.querySelectorAll('#draggableList .draggable-item');
+        items.forEach(item => {
+          const index = parseInt(item.dataset.index);
+          newOrder.push(selectedComponent.componentItems[index]);
+        });
+        selectedComponent.componentItems = newOrder;
+        console.log('[decoration.html] 新的顺序:', newOrder);
+        renderPreview();
+        renderProperties();
+      }
+
+      dragState.isDragging = false;
+      dragState.draggedIndex = null;
+      dragState.draggedElement = null;
+
+      console.log('[decoration.html] 拖拽结束');
     }
 
     function addFunctionItem() {
