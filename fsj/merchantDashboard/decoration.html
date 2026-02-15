@@ -490,6 +490,70 @@
     .empty-state .empty-text {
       font-size: 14px;
     }
+
+    .draggable-list {
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+
+    .draggable-item {
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid var(--border-color);
+      cursor: move;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+
+    .draggable-item:last-child {
+      border-bottom: none;
+    }
+
+    .draggable-item:hover {
+      background: #f8fafc;
+    }
+
+    .draggable-item.dragging {
+      opacity: 0.5;
+      background: #e0e7ff;
+    }
+
+    .draggable-item .drag-handle {
+      color: #94a3b8;
+      cursor: grab;
+      font-size: 16px;
+    }
+
+    .draggable-item .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .draggable-item .item-content {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .draggable-item .item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .draggable-item .item-actions button {
+      padding: 4px 8px;
+      font-size: 12px;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .draggable-item .item-actions button:hover {
+      background: var(--primary-color);
+      color: #fff;
+    }
   </style>
 </head>
 
@@ -902,17 +966,45 @@
         }
       });
 
+      if (selectedComponent.componentName === '功能列表') {
+        html += `
+          <div class="property-group">
+            <label>功能列表 (拖拽排序)</label>
+            <div class="draggable-list" id="draggableList">
+              ${selectedComponent.componentItems.map((item, index) => `
+                <div class="draggable-item" draggable="true" data-index="${index}">
+                  <span class="drag-handle">⋮⋮</span>
+                  <span class="item-content">${item}</span>
+                  <div class="item-actions">
+                    <button onclick="editFunctionItem(${index})">编辑</button>
+                    <button onclick="deleteFunctionItem(${index})">删除</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <button class="btn" style="width: 100%; margin-top: 10px;" onclick="addFunctionItem()">+ 添加功能项</button>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="property-group">
+            <label>组件内容</label>
+            <textarea onchange="updateComponentItems(this.value)">${JSON.stringify(selectedComponent.componentItems, null, 2)}</textarea>
+          </div>
+        `;
+      }
+
       html += `
-        <div class="property-group">
-          <label>组件内容</label>
-          <textarea onchange="updateComponentItems(this.value)">${JSON.stringify(selectedComponent.componentItems, null, 2)}</textarea>
-        </div>
         <div class="property-group">
           <button class="btn" style="width: 100%; background: #ff4d4f;" onclick="deleteComponent()">删除组件</button>
         </div>
       `;
 
       propertiesContent.innerHTML = html;
+
+      if (selectedComponent.componentName === '功能列表') {
+        initDraggableList();
+      }
     }
 
     function getPropertyLabel(key) {
@@ -962,6 +1054,98 @@
           renderPreview();
           renderProperties();
         }
+      }
+    }
+
+    function initDraggableList() {
+      const list = document.getElementById('draggableList');
+      if (!list) return;
+
+      let draggedItem = null;
+
+      list.addEventListener('dragstart', (e) => {
+        draggedItem = e.target.closest('.draggable-item');
+        if (draggedItem) {
+          draggedItem.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        }
+      });
+
+      list.addEventListener('dragend', (e) => {
+        if (draggedItem) {
+          draggedItem.classList.remove('dragging');
+          draggedItem = null;
+        }
+      });
+
+      list.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(list, e.clientY);
+        if (draggedItem) {
+          if (afterElement == null) {
+            list.appendChild(draggedItem);
+          } else {
+            list.insertBefore(draggedItem, afterElement);
+          }
+        }
+      });
+
+      list.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (draggedItem && selectedComponent) {
+          const newOrder = [];
+          list.querySelectorAll('.draggable-item').forEach(item => {
+            const index = parseInt(item.dataset.index);
+            newOrder.push(selectedComponent.componentItems[index]);
+          });
+          selectedComponent.componentItems = newOrder;
+          renderPreview();
+          renderProperties();
+        }
+      });
+    }
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.draggable-item:not(.dragging)')];
+
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function addFunctionItem() {
+      if (selectedComponent) {
+        const name = prompt('请输入功能名称:');
+        if (name) {
+          selectedComponent.componentItems.push(name);
+          renderPreview();
+          renderProperties();
+        }
+      }
+    }
+
+    function editFunctionItem(index) {
+      if (selectedComponent) {
+        const newName = prompt('请输入新的功能名称:', selectedComponent.componentItems[index]);
+        if (newName !== null) {
+          selectedComponent.componentItems[index] = newName;
+          renderPreview();
+          renderProperties();
+        }
+      }
+    }
+
+    function deleteFunctionItem(index) {
+      if (selectedComponent && confirm('确定要删除这个功能项吗？')) {
+        selectedComponent.componentItems.splice(index, 1);
+        renderPreview();
+        renderProperties();
       }
     }
 
