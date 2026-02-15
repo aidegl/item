@@ -91,22 +91,36 @@ async function copyBaseFramework(outputDir) {
 }
 
 async function generatePage(page, outputDir) {
-    const pageDir = path.join(outputDir, 'pages', page.pageId);
-    fs.mkdirSync(pageDir, { recursive: true });
+    try {
+        const pageDir = path.join(outputDir, 'pages', page.pageId);
+        console.log(`创建页面目录: ${pageDir}`);
+        fs.mkdirSync(pageDir, { recursive: true });
 
-    const jsContent = generatePageJS(page);
-    fs.writeFileSync(path.join(pageDir, 'index.js'), jsContent);
+        console.log(`生成JS文件...`);
+        const jsContent = generatePageJS(page);
+        fs.writeFileSync(path.join(pageDir, 'index.js'), jsContent);
+        console.log(`JS文件生成成功`);
 
-    const wxmlContent = generatePageWXML(page);
-    fs.writeFileSync(path.join(pageDir, 'index.wxml'), wxmlContent);
+        console.log(`生成WXML文件...`);
+        const wxmlContent = generatePageWXML(page);
+        fs.writeFileSync(path.join(pageDir, 'index.wxml'), wxmlContent);
+        console.log(`WXML文件生成成功`);
 
-    const wxssContent = generatePageWXSS(page);
-    fs.writeFileSync(path.join(pageDir, 'index.wxss'), wxssContent);
+        console.log(`生成WXSS文件...`);
+        const wxssContent = generatePageWXSS(page);
+        fs.writeFileSync(path.join(pageDir, 'index.wxss'), wxssContent);
+        console.log(`WXSS文件生成成功`);
 
-    const jsonContent = generatePageJSON(page);
-    fs.writeFileSync(path.join(pageDir, 'index.json'), jsonContent);
+        console.log(`生成JSON文件...`);
+        const jsonContent = generatePageJSON(page);
+        fs.writeFileSync(path.join(pageDir, 'index.json'), jsonContent);
+        console.log(`JSON文件生成成功`);
 
-    console.log(`生成页面: ${page.pageName}`);
+        console.log(`生成页面: ${page.pageName}`);
+    } catch (error) {
+        console.error(`生成页面失败: ${page.pageName}`, error);
+        throw error;
+    }
 }
 
 function generatePageJS(page) {
