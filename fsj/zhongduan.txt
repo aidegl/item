@@ -1,114 +1,83 @@
-
-Welcome to Alibaba Cloud Elastic Compute Service !
-
-Last login: Wed Jan 7 22:44:12 +0800 2026 from 100.104.185.16
-The current terminal create by BT-Panel.
-root@iZf8zal6c69zav3ybcmj74Z:~# pm2 show miniprogram-generator
- Describing process with id 1 - name miniprogram-generator 
-┌───────────────────┬────────────────────────────────────────────────────────────────────┐
-│ status            │ online                                                             │
-│ name              │ miniprogram-generator                                              │
-│ namespace         │ default                                                            │
-│ version           │ 1.0.0                                                              │
-│ restarts          │ 15                                                                 │
-│ uptime            │ 45m                                                                │
-│ script path       │ /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js │
-│ script args       │ N/A                                                                │
-│ error log path    │ /root/.pm2/logs/miniprogram-generator-error.log                    │
-│ out log path      │ /root/.pm2/logs/miniprogram-generator-out.log                      │
-│ pid path          │ /root/.pm2/pids/miniprogram-generator-1.pid                        │
-│ interpreter       │ node                                                               │
-│ interpreter args  │ N/A                                                                │
-│ script id         │ 1                                                                  │
-│ exec cwd          │ /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard           │
-│ exec mode         │ fork_mode                                                          │
-│ node.js version   │ 24.12.0                                                            │
-│ node env          │ N/A                                                                │
-│ watch & reload    │ ✘                                                                  │
-│ unstable restarts │ 0                                                                  │
-│ created at        │ 2026-02-15T09:47:02.190Z                                           │
-└───────────────────┴────────────────────────────────────────────────────────────────────┘
- Actions available 
-┌────────────────────────┐
-│ km:heapdump            │
-│ km:cpu:profiling:start │
-│ km:cpu:profiling:stop  │
-│ km:heap:sampling:start │
-│ km:heap:sampling:stop  │
-└────────────────────────┘
- Trigger via: pm2 trigger miniprogram-generator <action_name>
-
- Code metrics value 
-┌────────────────────────┬───────────┐
-│ Used Heap Size         │ 13.45 MiB │
-│ Heap Usage             │ 89.51 %   │
-│ Heap Size              │ 15.02 MiB │
-│ Event Loop Latency p95 │ 1.50 ms   │
-│ Event Loop Latency     │ 0.52 ms   │
-│ Active handles         │ 4         │
-│ Active requests        │ 0         │
-│ HTTP                   │ 0 req/min │
-│ HTTP P95 Latency       │ 59 ms     │
-│ HTTP Mean Latency      │ 9 ms      │
-└────────────────────────┴───────────┘
- Divergent env variables from local env 
-┌─────┬──────────────────────────────────────────────────────────┐
-│ PWD │ /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard │
-└─────┴──────────────────────────────────────────────────────────┘
-
- Add your own code metrics: http://bit.ly/code-metrics
- Use `pm2 logs miniprogram-generator [--lines 1000]` to display logs
- Use `pm2 env 1` to display environment variables
- Use `pm2 monit` to monitor CPU and Memory usage miniprogram-generator
-root@iZf8zal6c69zav3ybcmj74Z:~# pm2 list
-┌────┬──────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
-│ id │ name                     │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
-├────┼──────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
-│ 0  │ api                      │ default     │ 1.0.0   │ fork    │ 1063876  │ 7D     │ 1    │ online    │ 0%       │ 86.7mb   │ root     │ disabled │
-│ 1  │ miniprogram-generator    │ default     │ 1.0.0   │ fork    │ 1239694  │ 45m    │ 15   │ online    │ 0%       │ 75.3mb   │ root     │ disabled │
-└────┴──────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
-root@iZf8zal6c69zav3ybcmj74Z:~# # 停止所有进程
-pm2 stop all
-
-# 删除所有进程
-pm2 delete all
-
-# 重新启动
-cd /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard
-pm2 start server.js --name miniprogram-generator
-
-# 查看状态
-pm2 list
-pm2 logs miniprogram-generator --lines 20
-[PM2] Applying action stopProcessId on app [all](ids: [ 0, 1 ])
-[PM2] [api](0) ✓
-[PM2] [miniprogram-generator](1) ✓
-┌────┬──────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
-│ id │ name                     │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
-├────┼──────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
-│ 0  │ api                      │ default     │ 1.0.0   │ fork    │ 0        │ 0      │ 1    │ stopped   │ 0%       │ 0b       │ root     │ disabled │
-│ 1  │ miniprogram-generator    │ default     │ 1.0.0   │ fork    │ 0        │ 0      │ 15   │ stopped   │ 0%       │ 0b       │ root     │ disabled │
-└────┴──────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
-[PM2] Applying action deleteProcessId on app [all](ids: [ 0, 1 ])
-[PM2] [api](0) ✓
-[PM2] [miniprogram-generator](1) ✓
-┌────┬───────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
-│ id │ name      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
-└────┴───────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
-[PM2] Starting /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js in fork_mode (1 instance)
-[PM2] Done.
-┌────┬──────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
-│ id │ name                     │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
-├────┼──────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
-│ 0  │ miniprogram-generator    │ default     │ 1.0.0   │ fork    │ 1240930  │ 0s     │ 0    │ online    │ 0%       │ 16.0mb   │ root     │ disabled │
-└────┴──────────────────────────┴────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
-┌────┬──────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
-│ id │ name                     │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
-├────┼──────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
-│ 0  │ miniprogram-generator    │ default     │ 1.0.0   │ fork    │ 1240930  │ 0s     │ 0    │ online    │ 0%       │ 66.5mb   │ root     │ disabled │
-└────┴──────────────────────────┴────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
-[TAILING] Tailing last 20 lines for [miniprogram-generator] process (change the value with --lines option)
-/root/.pm2/logs/miniprogram-generator-error.log last 20 lines:
+0|miniprog |     at listenInCluster (node:net:1997:12)
+0|miniprog |     at Server.listen (node:net:2102:7)
+0|miniprog |     at app.listen (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/node_modules/express/lib/application.js:635:24)
+0|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:318:5)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
+0|miniprog |   code: 'EADDRINUSE',
+0|miniprog |   errno: -98,
+0|miniprog |   syscall: 'listen',
+0|miniprog |   address: '::',
+0|miniprog |   port: 3000
+0|miniprog | }
+0|miniprog | Error: listen EADDRINUSE: address already in use :::3000
+0|miniprog |     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+0|miniprog |     at listenInCluster (node:net:1997:12)
+0|miniprog |     at Server.listen (node:net:2102:7)
+0|miniprog |     at app.listen (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/node_modules/express/lib/application.js:635:24)
+0|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:318:5)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
+0|miniprog |   code: 'EADDRINUSE',
+0|miniprog |   errno: -98,
+0|miniprog |   syscall: 'listen',
+0|miniprog |   address: '::',
+0|miniprog |   port: 3000
+0|miniprog | }
+0|miniprog | Error: listen EADDRINUSE: address already in use :::3000
+0|miniprog |     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+0|miniprog |     at listenInCluster (node:net:1997:12)
+0|miniprog |     at Server.listen (node:net:2102:7)
+0|miniprog |     at app.listen (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/node_modules/express/lib/application.js:635:24)
+0|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:318:5)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
+0|miniprog |   code: 'EADDRINUSE',
+0|miniprog |   errno: -98,
+0|miniprog |   syscall: 'listen',
+0|miniprog |   address: '::',
+0|miniprog |   port: 3000
+0|miniprog | }
+0|miniprog | Error: listen EADDRINUSE: address already in use :::3000
+0|miniprog |     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+0|miniprog |     at listenInCluster (node:net:1997:12)
+0|miniprog |     at Server.listen (node:net:2102:7)
+0|miniprog |     at app.listen (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/node_modules/express/lib/application.js:635:24)
+0|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:318:5)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
+0|miniprog |   code: 'EADDRINUSE',
+0|miniprog |   errno: -98,
+0|miniprog |   syscall: 'listen',
+0|miniprog |   address: '::',
+0|miniprog |   port: 3000
+0|miniprog | }
+0|miniprog | Error: listen EADDRINUSE: address already in use :::3000
+0|miniprog |     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+0|miniprog |     at listenInCluster (node:net:1997:12)
+0|miniprog |     at Server.listen (node:net:2102:7)
+0|miniprog |     at app.listen (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/node_modules/express/lib/application.js:635:24)
+0|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:318:5)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
+0|miniprog |   code: 'EADDRINUSE',
+0|miniprog |   errno: -98,
+0|miniprog |   syscall: 'listen',
 0|miniprog |   address: '::',
 0|miniprog |   port: 3000
 0|miniprog | }
@@ -130,24 +99,107 @@ pm2 logs miniprogram-generator --lines 20
 0|miniprog |   port: 3000
 0|miniprog | }
 
-/root/.pm2/logs/miniprogram-generator-out.log last 20 lines:
-0|miniprog | 服务器运行在 http://localhost:3001
-0|miniprog | 健康检查: http://localhost:3001/health
-0|miniprog | 收到生成请求: 2026-02-15T09:48:31.699Z
+/root/.pm2/logs/miniprogram-generator-out.log last 100 lines:
+0|miniprog | 4. 创建ZIP文件...
+0|miniprog | ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771162385067.zip (5350 bytes)
+0|miniprog | 5. 清理临时文件...
+0|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771162385067
+0|miniprog | 文件下载: miniprogram_1771162385067.zip
+0|miniprog | 下载后删除文件: miniprogram_1771162385067.zip
+0|miniprog | 收到生成请求: 2026-02-15T13:36:58.752Z
+0|miniprog | 接收到的配置: {
+0|miniprog |   "globalConfig": {
+0|miniprog |     "style": "classic",
+0|miniprog |     "navigationBar": {
+0|miniprog |       "backgroundColor": "#000000",
+0|miniprog |       "textColor": "#ffffff"
+0|miniprog |     }
+0|miniprog |   },
+0|miniprog |   "tabBarConfig": {
+0|miniprog |     "style": "classic",
+0|miniprog |     "backgroundColor": "#ffffff",
+0|miniprog |     "selectedColor": "#667eea",
+0|miniprog |     "unselectedColor": "#999999",
+0|miniprog |     "list": []
+0|miniprog |   },
+0|miniprog |   "pages": [
+0|miniprog |     {
+0|miniprog |       "pageId": "52ce58a3-006a-4536-8c5b-e26b6b12e97e",
+0|miniprog |       "pageName": "新页面 1",
+0|miniprog |       "components": [
+0|miniprog |         {
+0|miniprog |           "componentName": "轮播图",
+0|miniprog |           "componentId": "4cd19e4a-7fab-4ba6-99ea-6006c9d0dae8",
+0|miniprog |           "componentItems": [
+0|miniprog |             "image1.png",
+0|miniprog |             "image2.png",
+0|miniprog |             "image3.png"
+0|miniprog |           ],
+0|miniprog |           "properties": {
+0|miniprog |             "height": 200,
+0|miniprog |             "autoplay": true,
+0|miniprog |             "interval": 3000
+0|miniprog |           }
+0|miniprog |         },
+0|miniprog |         {
+0|miniprog |           "componentName": "轮播图",
+0|miniprog |           "componentId": "d8be25dd-f4aa-4c70-93ed-b6808b7781de",
+0|miniprog |           "componentItems": [
+0|miniprog |             "image1.png",
+0|miniprog |             "image2.png",
+0|miniprog |             "image3.png"
+0|miniprog |           ],
+0|miniprog |           "properties": {
+0|miniprog |             "height": 200,
+0|miniprog |             "autoplay": true,
+0|miniprog |             "interval": 3000
+0|miniprog |           }
+0|miniprog |         }
+0|miniprog |       ],
+0|miniprog |       "expanded": true
+0|miniprog |     },
+0|miniprog |     {
+0|miniprog |       "pageId": "1e2d4595-c3ec-4744-bd44-ca3a4a4b8161",
+0|miniprog |       "pageName": "新页面 2",
+0|miniprog |       "components": [
+0|miniprog |         {
+0|miniprog |           "componentName": "轮播图",
+0|miniprog |           "componentId": "101276e5-96c2-40f1-953a-e481817f9a1a",
+0|miniprog |           "componentItems": [
+0|miniprog |             "image1.png",
+0|miniprog |             "image2.png",
+0|miniprog |             "image3.png"
+0|miniprog |           ],
+0|miniprog |           "properties": {
+0|miniprog |             "height": 200,
+0|miniprog |             "autoplay": true,
+0|miniprog |             "interval": 3000
+0|miniprog |           }
+0|miniprog |         }
+0|miniprog |       ],
+0|miniprog |       "expanded": true
+0|miniprog |     }
+0|miniprog |   ]
+0|miniprog | }
+0|miniprog | tabBarConfig.list长度: 0
+0|miniprog | pages长度: 2
 0|miniprog | 1. 复制基础框架代码...
 0|miniprog | 复制: app.js
 0|miniprog | 复制: app.wxss
 0|miniprog | 复制: sitemap.json
 0|miniprog | 复制: project.config.json
+0|miniprog | 复制: images
 0|miniprog | 2. 生成页面代码...
 0|miniprog | 生成页面: 新页面 1
+0|miniprog | 生成页面: 新页面 2
 0|miniprog | 3. 生成app.json...
 0|miniprog | 生成app.json
 0|miniprog | 4. 创建ZIP文件...
-0|miniprog | ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771148911699.zip (3737 bytes)
+0|miniprog | ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771162618753.zip (6704 bytes)
 0|miniprog | 5. 清理临时文件...
-0|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771148911699
-0|miniprog | 文件下载: miniprogram_1771148911699.zip
-0|miniprog | 服务器运行在 http://localhost:3001
-0|miniprog | 健康检查: http://localhost:3001/health
-11
+0|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771162618753
+0|miniprog | 文件下载: miniprogram_1771162618753.zip
+0|miniprog | 下载后删除文件: miniprogram_1771162618753.zip
+
+^C
+root@iZf8zal6c69zav3ybcmj74Z:~# 
