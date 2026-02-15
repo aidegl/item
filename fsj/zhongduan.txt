@@ -150,3 +150,4 @@ pm2 logs miniprogram-generator --lines 20
 0|miniprog | 文件下载: miniprogram_1771148911699.zip
 0|miniprog | 服务器运行在 http://localhost:3001
 0|miniprog | 健康检查: http://localhost:3001/health
+11
