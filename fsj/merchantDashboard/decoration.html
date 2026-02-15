@@ -1499,15 +1499,6 @@
       }
     }
 
-    document.querySelectorAll('.component-item').forEach(item => {
-      item.addEventListener('dragstart', handleDragStart);
-      item.addEventListener('dragend', handleDragEnd);
-    });
-
-    const pageCanvas = document.getElementById('pageCanvas');
-    pageCanvas.addEventListener('dragover', handleDragOver);
-    pageCanvas.addEventListener('drop', handleDrop);
-
     function handleDragStart(e) {
       e.dataTransfer.setData('componentType', e.target.dataset.component);
       e.target.style.opacity = '0.5';
@@ -1619,6 +1610,15 @@
     }
 
     window.onload = function () {
+      document.querySelectorAll('.component-item').forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+      });
+
+      const pageCanvas = document.getElementById('pageCanvas');
+      pageCanvas.addEventListener('dragover', handleDragOver);
+      pageCanvas.addEventListener('drop', handleDrop);
+
       if (pages.length === 0) {
         addPage();
       }
