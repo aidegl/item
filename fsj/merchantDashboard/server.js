@@ -293,7 +293,7 @@ function cleanup(dir) {
 app.post('/api/generate-miniprogram', async (req, res) => {
     try {
         console.log('收到生成请求:', new Date().toISOString());
-        const config = req.body;
+        const config = req.body1;
         console.log('接收到的配置:', JSON.stringify(config, null, 2));
         console.log('tabBarConfig.list长度:', config.tabBarConfig?.list?.length || 0);
         console.log('pages长度:', config.pages?.length || 0);
