@@ -277,23 +277,37 @@ async function generateAppJson(config, outputDir) {
 
 async function createZip(sourceDir, zipPath) {
     return new Promise((resolve, reject) => {
+        console.log(`开始创建ZIP: ${sourceDir} -> ${zipPath}`);
         const output = fs.createWriteStream(zipPath);
         const archive = archiver('zip', {
             zlib: { level: 9 }
         });
 
         output.on('close', () => {
-            console.log(`ZIP文件已创建: ${zipPath} (${archive.pointer()} bytes)`);
+            const fileSize = archive.pointer();
+            console.log(`ZIP文件已创建: ${zipPath} (${fileSize} bytes)`);
+
+            if (fileSize < 1000) {
+                console.error('警告: ZIP文件大小异常小，可能创建失败');
+            }
             resolve();
         });
 
         archive.on('error', (err) => {
+            console.error('ZIP创建错误:', err);
             reject(err);
         });
 
+        archive.on('warning', (err) => {
+            console.warn('ZIP创建警告:', err);
+        });
+
         archive.pipe(output);
+        console.log(`开始添加目录: ${sourceDir}`);
         archive.directory(sourceDir, false);
+        console.log(`目录添加完成，开始finalize`);
         archive.finalize();
+        console.log(`finalize完成`);
     });
 }
 
