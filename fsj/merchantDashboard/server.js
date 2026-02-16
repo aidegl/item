@@ -322,6 +322,33 @@ app.post('/api/generate-miniprogram', async (req, res) => {
     try {
         console.log('收到生成请求:', new Date().toISOString());
         const config = req.body;
+
+        // 自动修复页面ID格式：将带连字符的UUID转换为无连字符格式
+        function fixPageId(pageId) {
+            if (pageId && pageId.includes('-')) {
+                return pageId.replace(/-/g, '');
+            }
+            return pageId;
+        }
+
+        // 修复所有页面ID
+        if (config.pages) {
+            config.pages.forEach(page => {
+                if (page.pageId) {
+                    page.pageId = fixPageId(page.pageId);
+                }
+            });
+        }
+
+        // 修复tabBar中的页面ID
+        if (config.tabBarConfig && config.tabBarConfig.list) {
+            config.tabBarConfig.list.forEach(tab => {
+                if (tab.pageId) {
+                    tab.pageId = fixPageId(tab.pageId);
+                }
+            });
+        }
+
         console.log('接收到的配置:', JSON.stringify(config, null, 2));
         console.log('tabBarConfig.list长度:', config.tabBarConfig?.list?.length || 0);
         console.log('pages长度:', config.pages?.length || 0);
