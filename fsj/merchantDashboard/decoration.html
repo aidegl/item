@@ -1096,10 +1096,15 @@
     }
 
     function selectTabBarItem(index) {
+      console.log('[底部导航] selectTabBarItem 被调用, index:', index);
       selectedTabBarItem = index;
+      console.log('[底部导航] selectedTabBarItem 已更新为:', selectedTabBarItem);
       renderTabBarList();
+      console.log('[底部导航] renderTabBarList 已调用');
       renderTabBarProperties();
+      console.log('[底部导航] renderTabBarProperties 已调用');
       renderTabBar();
+      console.log('[底部导航] renderTabBar 已调用');
       updateActionButtonsVisibility();
     }
 
@@ -1715,8 +1720,12 @@
     }
 
     function selectTabBarItemFromPreview(index) {
+      console.log('[底部导航] 点击底部导航项, index:', index);
+      console.log('[底部导航] 切换到底部导航栏视图');
       selectView('tabbar');
+      console.log('[底部导航] 选中底部导航项');
       selectTabBarItem(index);
+      console.log('[底部导航] 完成');
     }
 
     function handlePageCanvasClick() {
@@ -1733,14 +1742,22 @@
     }
 
     function renderTabBarList() {
+      console.log('[底部导航] renderTabBarList 被调用');
+      console.log('[底部导航] tabBarConfig.list:', tabBarConfig.list);
+      console.log('[底部导航] selectedTabBarItem:', selectedTabBarItem);
       const tabBarList = document.getElementById('pageTree');
-      tabBarList.innerHTML = tabBarConfig.list.map((tab, index) => `
-        <div class="page-item ${selectedTabBarItem === index ? 'active' : ''}" onclick="selectTabBarItem(${index})" ondblclick="editTabBarItemName(${index}, event)">
+      tabBarList.innerHTML = tabBarConfig.list.map((tab, index) => {
+        const isActive = selectedTabBarItem === index;
+        console.log(`[底部导航] 渲染导航项 ${index}: ${tab.name}, active: ${isActive}`);
+        return `
+        <div class="page-item ${isActive ? 'active' : ''}" onclick="selectTabBarItem(${index})" ondblclick="editTabBarItemName(${index}, event)">
           <div class="page-item-content">
             <span class="page-name">${tab.name}</span>
           </div>
         </div>
-      `).join('');
+        `;
+      }).join('');
+      console.log('[底部导航] renderTabBarList 完成');
     }
 
     function editTabBarItemName(index, event) {
