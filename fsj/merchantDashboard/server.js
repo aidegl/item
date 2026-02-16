@@ -244,11 +244,8 @@ function generatePageJSON(page) {
 }
 
 async function generateAppJson(config, outputDir) {
-    const pages = Array.isArray(config.pages) ? config.pages.filter(p => p && p.pageId) : [];
-    const pageIdSet = new Set(pages.map(p => p.pageId));
-
     const appJson = {
-        pages: pages.map(p => `pages/${p.pageId}/index`),
+        pages: config.pages.map(p => `pages/${p.pageId}/index`),
         window: {
             backgroundTextStyle: 'light',
             navigationBarBackgroundColor: config.globalConfig.navigationBar.backgroundColor,
@@ -258,28 +255,20 @@ async function generateAppJson(config, outputDir) {
         sitemapLocation: 'sitemap.json'
     };
 
-    const tabBarList = config.tabBarConfig && Array.isArray(config.tabBarConfig.list)
-        ? config.tabBarConfig.list
-        : [];
-
-    const validTabBarItems = tabBarList.filter(tab => tab && tab.pageId && pageIdSet.has(tab.pageId));
-
-    if (validTabBarItems.length >= 2) {
+    if (config.tabBarConfig.list.length > 0) {
         appJson.tabBar = {
             color: config.tabBarConfig.unselectedColor || '#999999',
             selectedColor: config.tabBarConfig.selectedColor || '#667eea',
             backgroundColor: config.tabBarConfig.backgroundColor || '#ffffff',
             borderStyle: config.tabBarConfig.borderStyle || 'black',
-            list: validTabBarItems.map(tab => ({
+            list: config.tabBarConfig.list.map(tab => ({
                 pagePath: `pages/${tab.pageId}/index`,
                 text: tab.name,
                 iconPath: `images/${tab.unselectedIcon}`,
                 selectedIconPath: `images/${tab.selectedIcon}`
             }))
         };
-        console.log('生成tabBar配置, 有效导航项数量:', validTabBarItems.length);
-    } else {
-        console.log('未生成tabBar配置或有效导航项数量少于2');
+        console.log('生成tabBar配置');
     }
 
     fs.writeFileSync(path.join(outputDir, 'app.json'), JSON.stringify(appJson, null, 2));
