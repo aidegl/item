@@ -124,8 +124,8 @@ async function generatePage(page, outputDir) {
 }
 
 function generatePageJS(page) {
-    const componentsData = page.components.map((comp, index) => {
-        return `  component${index}: ${JSON.stringify(comp.componentItems)},`;
+    const componentsData = page.components.map(comp => {
+        return `  ${comp.componentName}: ${JSON.stringify(comp.componentItems)},`;
     }).join('\n');
 
     return `Page({
@@ -156,44 +156,31 @@ ${componentsData}
 }
 
 function generatePageWXML(page) {
-    console.log(`生成WXML - 页面: ${page.pageName}, 组件数量: ${page.components.length}`);
-    const componentsHTML = page.components.map((comp, index) => {
-        console.log(`生成组件HTML: ${comp.componentName}, 项目数量: ${comp.componentItems ? comp.componentItems.length : 0}`);
-        return generateComponentHTML(comp, index);
+    const componentsHTML = page.components.map(comp => {
+        return generateComponentHTML(comp);
     }).join('\n');
 
-    const wxml = `<view class="page">
+    return `<view class="page">
 ${componentsHTML}
 </view>`;
-    console.log(`WXML生成完成: ${wxml.substring(0, 200)}...`);
-    return wxml;
 }
 
-function generateComponentHTML(component, index) {
-    const dataKey = `component${index}`;
+function generateComponentHTML(component) {
     switch (component.componentName) {
         case '轮播图':
             return `  <swiper class="carousel" indicator-dots autoplay interval="3000">
-    <block wx:for="{{${dataKey}}}" wx:key="index">
-      <swiper-item><image src="{{item}}" mode="aspectFill"></image></swiper-item>
-    </block>
+    ${component.componentItems.map(item => `    <swiper-item><image src="${item}" mode="aspectFill"></image></swiper-item>`).join('\n')}
   </swiper>`;
         case '功能列表':
             return `  <view class="function-list">
     <view class="function-grid">
-      <block wx:for="{{${dataKey}}}" wx:key="index">
-        <view class="function-item"><text>{{item}}</text></view>
-      </block>
+      ${component.componentItems.map(item => `      <view class="function-item"><text>${item}</text></view>`).join('\n')}
     </view>
   </view>`;
         case '图片':
-            return `  <block wx:if="{{${dataKey}.length > 0}}">
-    <image class="single-image" src="{{${dataKey}[0]}}" mode="widthFix"></image>
-  </block>`;
+            return `  <image class="single-image" src="${component.componentItems[0]}" mode="widthFix"></image>`;
         case '文本':
-            return `  <block wx:if="{{${dataKey}.length > 0}}">
-    <text class="custom-text" style="font-size: ${component.properties.fontSize || 16}px; color: ${component.properties.color || '#333'};">{{${dataKey}[0]}}</text>
-  </block>`;
+            return `  <text class="custom-text" style="font-size: ${component.properties.fontSize || 16}px; color: ${component.properties.color || '#333'};">${component.componentItems[0]}</text>`;
         default:
             return `  <view class="component">${component.componentName}</view>`;
     }
@@ -257,11 +244,6 @@ function generatePageJSON(page) {
 }
 
 async function generateAppJson(config, outputDir) {
-    console.log('生成app.json - 页面列表:');
-    config.pages.forEach((page, index) => {
-        console.log(`  ${index + 1}. ${page.pageName} (ID: ${page.pageId})`);
-    });
-
     const appJson = {
         pages: config.pages.map(p => `pages/${p.pageId}/index`),
         window: {
@@ -273,14 +255,7 @@ async function generateAppJson(config, outputDir) {
         sitemapLocation: 'sitemap.json'
     };
 
-    console.log('生成的页面路径:', appJson.pages);
-
-    if (config.tabBarConfig.list.length >= 2) {
-        console.log('生成tabBar配置 - 导航项列表:');
-        config.tabBarConfig.list.forEach((tab, index) => {
-            console.log(`  ${index + 1}. ${tab.name} (页面ID: ${tab.pageId})`);
-        });
-
+    if (config.tabBarConfig.list.length > 0) {
         appJson.tabBar = {
             color: config.tabBarConfig.unselectedColor || '#999999',
             selectedColor: config.tabBarConfig.selectedColor || '#667eea',
@@ -293,7 +268,6 @@ async function generateAppJson(config, outputDir) {
                 selectedIconPath: `images/${tab.selectedIcon}`
             }))
         };
-        console.log('生成的tabBar页面路径:', appJson.tabBar.list.map(t => t.pagePath));
         console.log('生成tabBar配置');
     }
 
@@ -348,33 +322,6 @@ app.post('/api/generate-miniprogram', async (req, res) => {
     try {
         console.log('收到生成请求:', new Date().toISOString());
         const config = req.body;
-
-        // 自动修复页面ID格式：将带连字符的UUID转换为无连字符格式
-        function fixPageId(pageId) {
-            if (pageId && pageId.includes('-')) {
-                return pageId.replace(/-/g, '');
-            }
-            return pageId;
-        }
-
-        // 修复所有页面ID
-        if (config.pages) {
-            config.pages.forEach(page => {
-                if (page.pageId) {
-                    page.pageId = fixPageId(page.pageId);
-                }
-            });
-        }
-
-        // 修复tabBar中的页面ID
-        if (config.tabBarConfig && config.tabBarConfig.list) {
-            config.tabBarConfig.list.forEach(tab => {
-                if (tab.pageId) {
-                    tab.pageId = fixPageId(tab.pageId);
-                }
-            });
-        }
-
         console.log('接收到的配置:', JSON.stringify(config, null, 2));
         console.log('tabBarConfig.list长度:', config.tabBarConfig?.list?.length || 0);
         console.log('pages长度:', config.pages?.length || 0);
