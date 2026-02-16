@@ -1548,6 +1548,11 @@
 
     function renderTabBar() {
       const tabBar = document.getElementById('tabBar');
+      if (tabBarConfig.list.length < 2) {
+        tabBar.style.display = 'none'; // 如果少于2个tab项，隐藏底部导航栏
+        return;
+      }
+      tabBar.style.display = 'flex';
       tabBar.className = 'tab-bar ' + tabBarConfig.style;
       tabBar.innerHTML = tabBarConfig.list.map((tab, index) => `
         <div class="tab-item ${currentPage && currentPage.pageId === tab.pageId ? 'active' : ''}" onclick="selectTabBarItemFromPreview(${index})">
@@ -1652,9 +1657,15 @@
       console.log('newTab:', newTab);
       tabBarConfig.list.push(newTab);
       console.log('tabBarConfig.list after push:', tabBarConfig.list);
+
+      // 如果这是第二个tab项，显示提示信息
+      if (tabBarConfig.list.length === 2) {
+        alert('已达到最低数量要求（2个），底部导航栏将在生成的小程序中生效！');
+      }
+
       selectedTabBarItem = tabBarConfig.list.length - 1;
       renderTabBarList();
-      renderTabBar();
+      renderTabBar();  // 更新预览区域的底部导航栏显示
       renderTabBarProperties();
       saveConfig();
     }
