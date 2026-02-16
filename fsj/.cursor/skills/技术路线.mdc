@@ -649,38 +649,6 @@ wx.request({
 });
 ```
 
-### 商家ID传递机制（增强版）
-
-#### URL参数获取
-从装修页面URL中提取商家ID:
-```javascript
-// 在decoration.html中
-const urlParams = new URLSearchParams(window.location.search);
-const merchantId = urlParams.get('mRowid');
-```
-
-#### 传递给后端
-生成小程序时将商家ID包含在配置中:
-```javascript
-// 在decoration.html的publishCode函数中
-const config = {
-  merchantId: merchantId,
-  // 其他配置...
-};
-```
-
-#### 小程序全局存储
-在生成的app.js中添加全局商家ID:
-```javascript
-// 在生成的app.js中
-App({
-  globalData: {
-    merchantId: '{{merchantId}}'
-  },
-  // 其他代码...
-});
-```
-
 ### 开发规范
 
 #### 前端规范
