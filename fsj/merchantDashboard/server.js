@@ -91,40 +91,16 @@ async function copyBaseFramework(outputDir) {
 }
 
 function generateAppJs(merchantId, outputDir) {
-    const appJsContent = `const { initMerchantData } = require('./utils/initMerchant');
-
-App({
-  onLaunch() {
-    console.log('小程序启动');
-    const merchantId = this.globalData.merchantId;
-    this.initMerchantData(merchantId);
-  },
-
-  onShow() {
-    console.log('小程序显示');
-  },
-
-  onHide() {
-    console.log('小程序隐藏');
-  },
-
-  globalData: {
-    userInfo: null,
-    merchantData: null,
-    merchantId: '${merchantId || ''}'
-  },
-
-  async initMerchantData(merchantId) {
-    const data = await initMerchantData(merchantId);
-    if (data) {
-      this.globalData.merchantData = data;
-      console.log('全局商家数据初始化成功：', data);
-    } else {
-      console.warn('全局商家数据初始化失败');
+    const sourceAppJsPath = path.join(__dirname, 'wxApp', 'app.js');
+    let appJsContent = fs.readFileSync(sourceAppJsPath, 'utf-8');
+    
+    if (merchantId) {
+        appJsContent = appJsContent.replace(
+            /merchantId: '\{商家ID\}'/g,
+            `merchantId: '${merchantId}'`
+        );
     }
-  }
-});`;
-
+    
     fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
     console.log('生成app.js, 商家ID:', merchantId || '');
 }

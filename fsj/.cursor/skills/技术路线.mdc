@@ -449,6 +449,116 @@ const result = await arrayAPI.getData({
 - **详细日志**：完整的请求和响应日志输出
 - **错误处理**：统一的异常捕获和错误返回
 
+
+##### imageMapper（图片映射工具）
+- **文件路径**：wxApp/utils/imageMapper.js
+- **功能**：将明道云返回的图片数据转换为小程序可用的格式
+- **核心方法**：
+  - processImageData(apiResponse) - 处理明道云API返回的图片数据
+  - getImageUrl(imageMap, rowid) - 根据rowid获取图片URL
+- **参数**：
+  - piResponse：明道云API返回的完整响应对象
+  - imageMap：图片映射数组
+  - owid：行ID
+- **返回**：
+  - processImageData：返回格式化后的图片映射数组 [{ rowid, url }]
+  - getImageUrl：返回图片URL字符串
+- **使用场景**：小程序初始化时加载图片映射，页面渲染时根据rowid获取图片URL
+
+##### 图片映射数据结构
+
+**明道云API返回格式**：
+`json
+{
+  "data": {
+    "rows": [
+      {
+        "rowid": "4c661940-1d8d-4f95-a6ab-4661effea87c",
+        "img": "[{\"file_id\":\"xxx\",\"large_thumbnail_full_path\":\"https://p1.mingdaoyun.cn/xxx.png\"}]"
+      }
+    ]
+  },
+  "success": true
+}
+`
+
+**处理后的小程序格式**：
+`javascript
+[
+  {
+    rowid: '4c661940-1d8d-4f95-a6ab-4661effea87c',
+    url: 'https://p1.mingdaoyun.cn/xxx.png'
+  }
+]
+`
+
+##### 图片映射使用示例
+
+**小程序初始化时加载图片映射**：
+`javascript
+const { processImageData, getImageUrl } = require('./utils/imageMapper');
+
+App({
+  globalData: {
+    imageMap: []
+  },
+
+  onLaunch() {
+    const merchantId = this.globalData.merchantId;
+    this.initMerchantData(merchantId);
+  },
+
+  async initMerchantData(merchantId) {
+    const rows = await initMerchantData(merchantId);
+    if (rows && Array.isArray(rows)) {
+      const apiResponse = {
+        data: {
+          rows: rows
+        }
+      };
+      
+      this.globalData.imageMap = processImageData(apiResponse);
+      console.log('[全局] 图片映射已加载，共', this.globalData.imageMap.length, '张图片');
+    }
+  },
+
+  getImageUrl(rowid) {
+    return getImageUrl(this.globalData.imageMap, rowid);
+  }
+});
+`
+
+**页面中使用图片**：
+`javascript
+Page({
+  onLoad(options) {
+    const app = getApp();
+    
+    // 根据rowid获取图片URL
+    const imageUrl = app.getImageUrl('4c661940-1d8d-4f95-a6ab-4661effea87c');
+    
+    this.setData({
+      image: imageUrl
+    });
+  }
+});
+`
+
+##### 图片映射处理逻辑
+
+1. **数据提取**：从明道云API响应中提取 data.rows 数组
+2. **字段映射**：提取每行的 owid 和 img 字段
+3. **JSON解析**：将 img 字符串解析为JSON数组
+4. **URL提取**：取第一个图片对象的 large_thumbnail_full_path 字段
+5. **格式转换**：转换为 { rowid, url } 格式的数组
+6. **全局存储**：存储到 pp.globalData.imageMap 供全局使用
+
+##### 图片映射优势
+
+- **统一管理**：所有图片集中在明道云管理，便于维护
+- **按需加载**：通过rowid按需获取图片，避免重复请求
+- **性能优化**：使用大图缩略图，减少加载时间
+- **易于扩展**：新增图片只需在明道云添加，无需修改代码
 #### 认证方式
 - 使用商户密钥（appKey）和签名（sign）
 - 通过URL参数传递商家ID（mRowid）
@@ -840,6 +950,174 @@ wx.request({
 │              └──────────┘                              │
 └─────────────────────────────────────────────────────────┘
 ```
+
+### 小程序打包与明道云调用实现方案（实战版）
+
+#### 一、商家ID获取与传递（a# 前缀处理）
+- 明道云传入参数：`mRowid=a#698826f3b35652a8d4f60e21`
+- 装修页 `decoration.html` 中通过 JS 解析 URL：
+  - 提取 `mRowid` 参数；
+  - 去掉 `a#` 前缀，仅保留真实商家ID：`698826f3b35652a8d4f60e21`
+- 存储策略：
+  - `window.merchantId = parsedId`
+  - `localStorage.setItem('merchantId', parsedId)`
+- 打包时，从 `localStorage`/全局变量中取出“去掉 a# 的商家ID”，写入打包请求 JSON：
+  ```javascript
+  const config = {
+    merchantId: parsedMerchantId, // 无 a# 前缀
+    globalConfig,
+    tabBarConfig,
+    pages
+  };
+  ```
+
+#### 二、后端打包服务（Node + Express）
+- 运行目录：`/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard`
+- 技术栈：
+  - `Node.js + Express` 提供 HTTP API 和健康检查；
+  - `archiver` 打包小程序 ZIP；
+  - `fs.cpSync` 复制基础 `wxApp` 框架代码。
+- 关键常量：
+  - 监听端口：`PORT = 3001`
+  - 基础框架目录：`wxApp/`
+  - 输出目录：`output/`
+- 生成流程：
+  1. `POST /api/generate-miniprogram` 接收前端配置（含 `merchantId`）；
+  2. 调用 `copyBaseFramework(outputDir)` 复制 `wxApp` 的基础代码（app.wxss、utils、images、components 等）；
+  3. 调用 `generateAppJs(merchantId, outputDir)` 生成带商家ID及初始化逻辑的 `app.js`；
+  4. 遍历配置中的 `pages` 调用 `generatePage(...)` 生成每个页面的 `index.js / index.wxml / index.wxss / index.json`；
+  5. 调用 `generateAppJson(config, outputDir)` 生成 `app.json`；
+  6. 使用 `createZip(sourceDir, zipPath)` 打包为 ZIP，返回下载地址 `/download/miniprogram_xxx.zip`。
+
+#### 三、小程序端全局加载明道云商家数据
+
+##### 1. Mingdao API 小程序适配
+- 位置：`wxApp/utils/MingdaoYunArrayAPI.js`、`wxApp/utils/MingdaoYunQueryAPI.js`
+- 适配点：
+  - 替换 `fetch + AbortController` 为 `wx.request`；
+  - 保持原有方法签名不变（如 `async getData(params)`）；
+  - 统一返回 `{success, data, error_msg, error_code}`；
+  - 请求域名使用小程序后台配置的合法域名（如 `https://api.mingdao.com`）。
+
+##### 2. 初始化工具：initMerchant.js
+- 位置：`wxApp/utils/initMerchant.js`
+- 职责：
+  - 根据 `merchantId` 构造明道云筛选条件：
+    - `mid == merchantId`
+    - `use == 1`
+  - 通过 `MingDaoYunArrayAPI.getData({ worksheetId: 'scgl', filters, pageSize, pageIndex })` 拉取商家数据；
+  - 成功时返回商家数据列表，失败时返回 `null` 并打印错误日志。
+
+##### 3. app.js 中统一初始化商家数据
+- 由后端生成的 `generateAppJs(merchantId, outputDir)` 模板示例：
+  ```javascript
+  const { initMerchantData } = require('./utils/initMerchant');
+
+  App({
+    onLaunch() {
+      console.log('小程序启动');
+      const merchantId = this.globalData.merchantId;
+      this.initMerchantData(merchantId);
+    },
+
+    onShow() {
+      console.log('小程序显示');
+    },
+
+    onHide() {
+      console.log('小程序隐藏');
+    },
+
+    globalData: {
+      userInfo: null,
+      merchantData: null,
+      merchantId: '698826f3b35652a8d4f60e21' // 去掉 a# 后的ID
+    },
+
+    async initMerchantData(merchantId) {
+      const data = await initMerchantData(merchantId);
+      if (data) {
+        this.globalData.merchantData = data;
+        console.log('全局商家数据初始化成功：', data);
+      } else {
+        console.warn('全局商家数据初始化失败');
+      }
+    }
+  });
+  ```
+- 设计思路：
+  - 所有页面共享 `app.globalData.merchantData`；
+  - 避免每个页面都单独 `require('../../utils/initMerchant.js')`，减少路径、模块加载错误。
+
+##### 4. 页面层使用商家数据
+- 页面 `onLoad` 只负责读取全局数据，不再直接调用明道云接口：
+  ```javascript
+  Page({
+    data: {
+      // 组件数据...
+    },
+
+    onLoad(options) {
+      console.log('页面加载', options);
+      const app = getApp();
+      const appMerchantId = app && app.globalData && app.globalData.merchantId;
+      console.log('商家ID:', appMerchantId);
+      console.log('全局商家数据:', app.globalData.merchantData);
+      // 根据 merchantData 渲染页面或做逻辑处理
+    }
+  });
+  ```
+- 好处：
+  - 明道云接口调用集中在 app.js；
+  - 页面只依赖 `getApp()`，无需关心明道云细节和合法域名配置。
+
+#### 四、健康检查与 502 排查
+
+##### 1. 健康检查接口
+- 后端 `server.js` 中提供：
+  ```javascript
+  app.get('/health', (req, res) => {
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+  ```
+- Nginx 将 `https://100000whys.cn/health` 反向代理到 `http://127.0.0.1:3001/health`；
+- 若 `/health` 返回 200 且 `status: "ok"`，说明：
+  - Node 服务在线；
+  - 端口监听正常；
+  - Nginx → Node 链路畅通。
+
+##### 2. 常见 502 原因及解决
+- 场景一：pm2 进程挂掉（如 `Cannot find module 'express'`）
+  - 表现：`/health` 返回 Nginx 502 页面；
+  - 排查步骤：
+    1. `pm2 status` 查看 `miniprog` / `miniprogram-generator` 状态；
+    2. `pm2 logs miniprog --lines 80` 查看错误；
+    3. 若报 `Cannot find module 'express'`：
+       ```bash
+       cd /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard
+       npm install --production
+       # 或至少 npm install express
+       pm2 restart miniprog
+       ```
+    4. 本机测试：`curl http://127.0.0.1:3001/health`，确认返回 JSON。
+- 场景二：端口被其他进程占用（`EADDRINUSE: address already in use :::3001`）
+  - 表现：日志中有端口占用错误；
+  - 解决：
+    - 先通过 `pm2 status` 找到冲突的旧服务（如早期的 `miniprog`）；
+    - `pm2 delete 旧进程名` 释放端口；
+    - 再 `pm2 restart miniprogram-generator`。
+
+##### 3. 运维建议
+- 依赖安装：
+  - 每次更新 `server.js` 或部署新环境后，务必在对应目录执行 `npm install --production`；
+  - 避免在错误目录安装依赖（以误导 pm2）。
+- 监控建议：
+  - 重要操作后手动访问 `/health`，确认状态为 200；
+  - 看到 502 时优先检查 pm2 状态和错误日志文件。
 
 ### 开发优先级
 

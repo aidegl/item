@@ -1,164 +1,162 @@
-/root/.pm2/logs/miniprog-out.log last 80 lines:
-1|miniprog | 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771231609876/pages/default-page-1
-1|miniprog | 生成JS文件...
-1|miniprog | JS文件生成成功
-1|miniprog | 生成WXML文件...
-1|miniprog | WXML文件生成成功
-1|miniprog | 生成WXSS文件...
-1|miniprog | WXSS文件生成成功
-1|miniprog | 生成JSON文件...
-1|miniprog | JSON文件生成成功
-1|miniprog | 生成页面: 新页面 1
-1|miniprog | 3. 生成app.json...
-1|miniprog | 生成app.json
-1|miniprog | 4. 创建ZIP文件...
-1|miniprog | 开始创建ZIP: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771231609876 -> /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771231609876.zip
-1|miniprog | 开始添加目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771231609876
-1|miniprog | 目录添加完成，开始finalize
-1|miniprog | finalize完成
-1|miniprog | ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771231609876.zip (11205 bytes)
-1|miniprog | 5. 清理临时文件...
-1|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771231609876
-1|miniprog | 文件下载: miniprogram_1771231609876.zip
-1|miniprog | 收到生成请求: 2026-02-16T09:11:05.704Z
-1|miniprog | 接收到的配置: {
-1|miniprog |   "merchantId": "698826f3b35652a8d4f60e21",
-1|miniprog |   "globalConfig": {
-1|miniprog |     "style": "classic",
-1|miniprog |     "navigationBar": {
-1|miniprog |       "backgroundColor": "#000000",
-1|miniprog |       "textColor": "#ffffff"
-1|miniprog |     }
-1|miniprog |   },
-1|miniprog |   "tabBarConfig": {
-1|miniprog |     "style": "classic",
-1|miniprog |     "backgroundColor": "#ffffff",
-1|miniprog |     "selectedColor": "#667eea",
-1|miniprog |     "unselectedColor": "#999999",
-1|miniprog |     "list": []
-1|miniprog |   },
-1|miniprog |   "pages": [
-1|miniprog |     {
-1|miniprog |       "pageId": "default-page-1",
-1|miniprog |       "pageName": "新页面 1",
-1|miniprog |       "components": []
-1|miniprog |     }
-1|miniprog |   ]
-1|miniprog | }
-1|miniprog | tabBarConfig.list长度: 0
-1|miniprog | pages长度: 1
-1|miniprog | 商家ID: 698826f3b35652a8d4f60e21
-1|miniprog | 1. 复制基础框架代码...
-1|miniprog | 复制: app.js
-1|miniprog | 复制: app.wxss
-1|miniprog | 复制: sitemap.json
-1|miniprog | 复制: project.config.json
-1|miniprog | 复制: utils
-1|miniprog | 复制: images
-1|miniprog | 1.5. 生成app.js...
-1|miniprog | 生成app.js, 商家ID: 698826f3b35652a8d4f60e21
-1|miniprog | 2. 生成页面代码...
-1|miniprog | 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771233065705/pages/default-page-1
-1|miniprog | 生成JS文件...
-1|miniprog | JS文件生成成功
-1|miniprog | 生成WXML文件...
-1|miniprog | WXML文件生成成功
-1|miniprog | 生成WXSS文件...
-1|miniprog | WXSS文件生成成功
-1|miniprog | 生成JSON文件...
-1|miniprog | JSON文件生成成功
-1|miniprog | 生成页面: 新页面 1
-1|miniprog | 3. 生成app.json...
-1|miniprog | 生成app.json
-1|miniprog | 4. 创建ZIP文件...
-1|miniprog | 开始创建ZIP: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771233065705 -> /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771233065705.zip
-1|miniprog | 开始添加目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771233065705
-1|miniprog | 目录添加完成，开始finalize
-1|miniprog | finalize完成
-1|miniprog | ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771233065705.zip (11812 bytes)
-1|miniprog | 5. 清理临时文件...
-1|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771233065705
-1|miniprog | 文件下载: miniprogram_1771233065705.zip
+0|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771219424622
+0|miniprog | 生成完成，下载URL: /download/miniprogram_1771219424622.zip
+0|miniprog | 文件下载: miniprogram_1771219424622.zip
+0|miniprog | 服务器运行在 http://localhost:3001
+0|miniprog | 健康检查: http://localhost:3001/health
+0|miniprog | 收到生成请求: 2026-02-16T09:48:33.712Z
+0|miniprog | 接收到的配置: {
+0|miniprog |   "merchantId": "698826f3b35652a8d4f60e21",
+0|miniprog |   "globalConfig": {
+0|miniprog |     "style": "classic",
+0|miniprog |     "navigationBar": {
+0|miniprog |       "backgroundColor": "#000000",
+0|miniprog |       "textColor": "#ffffff"
+0|miniprog |     }
+0|miniprog |   },
+0|miniprog |   "tabBarConfig": {
+0|miniprog |     "style": "classic",
+0|miniprog |     "backgroundColor": "#ffffff",
+0|miniprog |     "selectedColor": "#667eea",
+0|miniprog |     "unselectedColor": "#999999",
+0|miniprog |     "list": []
+0|miniprog |   },
+0|miniprog |   "pages": [
+0|miniprog |     {
+0|miniprog |       "pageId": "default-page-1",
+0|miniprog |       "pageName": "新页面 1",
+0|miniprog |       "components": [
+0|miniprog |         {
+0|miniprog |           "componentName": "轮播图",
+0|miniprog |           "componentId": "930a9e3a-310b-432a-a25d-319330d96559",
+0|miniprog |           "componentItems": [
+0|miniprog |             "image1.png",
+0|miniprog |             "image2.png",
+0|miniprog |             "image3.png"
+0|miniprog |           ],
+0|miniprog |           "properties": {
+0|miniprog |             "height": 200,
+0|miniprog |             "autoplay": true,
+0|miniprog |             "interval": 3000
+0|miniprog |           }
+0|miniprog |         }
+0|miniprog |       ],
+0|miniprog |       "expanded": true
+0|miniprog |     }
+0|miniprog |   ]
+0|miniprog | }
+0|miniprog | tabBarConfig.list长度: 0
+0|miniprog | pages长度: 1
+0|miniprog | 商家ID: 698826f3b35652a8d4f60e21
+0|miniprog | 1. 复制基础框架代码...
+0|miniprog | 复制: app.js
+0|miniprog | 复制: app.wxss
+0|miniprog | 复制: sitemap.json
+0|miniprog | 复制: project.config.json
+0|miniprog | 复制: utils
+0|miniprog | 复制: images
+0|miniprog | 1.5. 生成app.js...
+0|miniprog | 生成app.js, 商家ID: 698826f3b35652a8d4f60e21
+0|miniprog | 2. 生成页面代码...
+0|miniprog | 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771235313713/pages/default-page-1
+0|miniprog | 生成JS文件...
+0|miniprog | JS文件生成成功
+0|miniprog | 生成WXML文件...
+0|miniprog | WXML文件生成成功
+0|miniprog | 生成WXSS文件...
+0|miniprog | WXSS文件生成成功
+0|miniprog | 生成JSON文件...
+0|miniprog | JSON文件生成成功
+0|miniprog | 生成页面: 新页面 1
+0|miniprog | 3. 生成app.json...
+0|miniprog | 生成app.json
+0|miniprog | 4. 创建ZIP文件...
+0|miniprog | 开始创建ZIP: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771235313713 -> /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771235313713.zip
+0|miniprog | 开始添加目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771235313713
+0|miniprog | 目录添加完成，开始finalize
+0|miniprog | finalize完成
+0|miniprog | ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771235313713.zip (12062 bytes)
+0|miniprog | 5. 清理临时文件...
+0|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771235313713
+0|miniprog | 文件下载: miniprogram_1771235313713.zip
 
-/root/.pm2/logs/miniprog-error.log last 80 lines:
-1|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:443:5)
-1|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-1|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
-1|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
-1|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
-1|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
-1|miniprog |   code: 'EADDRINUSE',
-1|miniprog |   errno: -98,
-1|miniprog |   syscall: 'listen',
-1|miniprog |   address: '::',
-1|miniprog |   port: 3001
-1|miniprog | }
-1|miniprog | Error: listen EADDRINUSE: address already in use :::3001
-1|miniprog |     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
-1|miniprog |     at listenInCluster (node:net:1997:12)
-1|miniprog |     at Server.listen (node:net:2102:7)
-1|miniprog |     at app.listen (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/node_modules/express/lib/application.js:635:24)
-1|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:443:5)
-1|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-1|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
-1|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
-1|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
-1|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
-1|miniprog |   code: 'EADDRINUSE',
-1|miniprog |   errno: -98,
-1|miniprog |   syscall: 'listen',
-1|miniprog |   address: '::',
-1|miniprog |   port: 3001
-1|miniprog | }
-1|miniprog | Error: listen EADDRINUSE: address already in use :::3001
-1|miniprog |     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
-1|miniprog |     at listenInCluster (node:net:1997:12)
-1|miniprog |     at Server.listen (node:net:2102:7)
-1|miniprog |     at app.listen (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/node_modules/express/lib/application.js:635:24)
-1|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:443:5)
-1|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-1|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
-1|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
-1|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
-1|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
-1|miniprog |   code: 'EADDRINUSE',
-1|miniprog |   errno: -98,
-1|miniprog |   syscall: 'listen',
-1|miniprog |   address: '::',
-1|miniprog |   port: 3001
-1|miniprog | }
-1|miniprog | Error: listen EADDRINUSE: address already in use :::3001
-1|miniprog |     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
-1|miniprog |     at listenInCluster (node:net:1997:12)
-1|miniprog |     at Server.listen (node:net:2102:7)
-1|miniprog |     at app.listen (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/node_modules/express/lib/application.js:635:24)
-1|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:443:5)
-1|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-1|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
-1|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
-1|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
-1|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
-1|miniprog |   code: 'EADDRINUSE',
-1|miniprog |   errno: -98,
-1|miniprog |   syscall: 'listen',
-1|miniprog |   address: '::',
-1|miniprog |   port: 3001
-1|miniprog | }
-1|miniprog | Error: listen EADDRINUSE: address already in use :::3001
-1|miniprog |     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
-1|miniprog |     at listenInCluster (node:net:1997:12)
-1|miniprog |     at Server.listen (node:net:2102:7)
-1|miniprog |     at app.listen (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/node_modules/express/lib/application.js:635:24)
-1|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:443:5)
-1|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-1|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
-1|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
-1|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
-1|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23) {
-1|miniprog |   code: 'EADDRINUSE',
-1|miniprog |   errno: -98,
-1|miniprog |   syscall: 'listen',
-1|miniprog |   address: '::',
-1|miniprog |   port: 3001
-1|miniprog | }
-
+/root/.pm2/logs/miniprogram-generator-error.log last 80 lines:
+0|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog |   code: 'MODULE_NOT_FOUND',
+0|miniprog |   requireStack: [
+0|miniprog |     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog |   ]
+0|miniprog | }
+0|miniprog | Error: Cannot find module 'express'
+0|miniprog | Require stack:
+0|miniprog | - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
+0|miniprog |     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+0|miniprog |     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|miniprog |     at require (node:internal/modules/helpers:152:16)
+0|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog |   code: 'MODULE_NOT_FOUND',
+0|miniprog |   requireStack: [
+0|miniprog |     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog |   ]
+0|miniprog | }
+0|miniprog | Error: Cannot find module 'express'
+0|miniprog | Require stack:
+0|miniprog | - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
+0|miniprog |     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+0|miniprog |     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|miniprog |     at require (node:internal/modules/helpers:152:16)
+0|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog |   code: 'MODULE_NOT_FOUND',
+0|miniprog |   requireStack: [
+0|miniprog |     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog |   ]
+0|miniprog | }
+0|miniprog | Error: Cannot find module 'express'
+0|miniprog | Require stack:
+0|miniprog | - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
+0|miniprog |     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+0|miniprog |     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|miniprog |     at require (node:internal/modules/helpers:152:16)
+0|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog |   code: 'MODULE_NOT_FOUND',
+0|miniprog |   requireStack: [
+0|miniprog |     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog |   ]
+0|miniprog | }
+0|miniprog | Error: Cannot find module 'express'
+0|miniprog | Require stack:
+0|miniprog | - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
+0|miniprog |     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+0|miniprog |     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|miniprog |     at require (node:internal/modules/helpers:152:16)
+0|miniprog |     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog |     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog |     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog |     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog |     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog |     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog |   code: 'MODULE_NOT_FOUND',
+0|miniprog |   requireStack: [
+0|miniprog |     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog |   ]
+0|miniprog | }
