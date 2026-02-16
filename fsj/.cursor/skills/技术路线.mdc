@@ -252,178 +252,6 @@ JSON成象是指将JSON数据转换为小程序页面的组件，每个组件都
 5. 商家下载代码包
 6. 使用微信开发者工具导入并上传
 
-##### 全局设置
-- **主题色**：设置小程序全局主题颜色，影响按钮、链接等元素
-- **导航栏设置**：
-  - 背景色：导航栏背景颜色
-  - 文字色：导航栏文字颜色
-- **应用范围**：全局设置会应用到所有页面和组件
-
-##### 全局设置数据结构
-```json
-{
-  "style": "classic",
-  "themeColor": "#667eea",
-  "navigationBar": {
-    "backgroundColor": "#000000",
-    "textColor": "#ffffff"
-  }
-}
-```
-
-##### 全局设置实现
-```javascript
-// 前端数据结构
-let globalConfig = {
-  style: 'classic',
-  themeColor: '#667eea',
-  navigationBar: {
-    backgroundColor: '#000000',
-    textColor: '#ffffff'
-  }
-};
-
-// 渲染全局设置列表
-function renderGlobalSettings() {
-  const pageTree = document.getElementById('pageTree');
-  pageTree.innerHTML = `
-    <div class="global-setting-item" onclick="selectGlobalSetting('theme')">
-      <div class="global-setting-icon">🎨</div>
-      <div class="global-setting-info">
-        <div class="global-setting-name">主题色</div>
-        <div class="global-setting-value" style="background-color: ${globalConfig.themeColor}"></div>
-      </div>
-    </div>
-    <div class="global-setting-item" onclick="selectGlobalSetting('navigation')">
-      <div class="global-setting-icon">📱</div>
-      <div class="global-setting-info">
-        <div class="global-setting-name">导航栏</div>
-        <div class="global-setting-value">
-          背景色: ${globalConfig.navigationBar.backgroundColor}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// 渲染全局设置属性面板
-function renderGlobalProperties() {
-  const propertiesContent = document.getElementById('propertiesContent');
-  propertiesContent.innerHTML = `
-    <div class="property-group">
-      <label>主题色</label>
-      <input type="color" value="${globalConfig.themeColor}" onchange="updateGlobalConfig('themeColor', this.value)" />
-      <div class="color-preview" style="background-color: ${globalConfig.themeColor}"></div>
-    </div>
-    <div class="property-group">
-      <label>导航栏背景色</label>
-      <input type="color" value="${globalConfig.navigationBar.backgroundColor}" onchange="updateGlobalConfig('navigationBar.backgroundColor', this.value)" />
-    </div>
-    <div class="property-group">
-      <label>导航栏文字色</label>
-      <input type="color" value="${globalConfig.navigationBar.textColor}" onchange="updateGlobalConfig('navigationBar.textColor', this.value)" />
-    </div>
-  `;
-}
-
-// 更新全局配置
-function updateGlobalConfig(key, value) {
-  if (key.includes('.')) {
-    const parts = key.split('.');
-    globalConfig[parts[0]][parts[1]] = value;
-  } else {
-    globalConfig[key] = value;
-  }
-  renderGlobalSettings();
-  renderGlobalProperties();
-  saveConfig();
-}
-```
-
-##### 全局设置打包逻辑
-```javascript
-// 后端生成app.js时应用主题色
-function generateAppJs(merchantId, config, outputDir) {
-  const sourceAppJsPath = path.join(__dirname, 'wxApp', 'app.js');
-  let appJsContent = fs.readFileSync(sourceAppJsPath, 'utf-8');
-
-  if (merchantId) {
-    appJsContent = appJsContent.replace(
-      /merchantId: '\{商家ID\}'/g,
-      `merchantId: '${merchantId}'`
-    );
-  }
-
-  if (config && config.globalConfig && config.globalConfig.themeColor) {
-    appJsContent = appJsContent.replace(
-      /themeColor: '\{主题色\}'/g,
-      `themeColor: '${config.globalConfig.themeColor}'`
-    );
-  }
-
-  fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
-}
-
-// 小程序app.js模板
-App({
-  globalData: {
-    merchantId: '{商家ID}',
-    themeColor: '{主题色}',  // 全局主题色
-    imageMap: []
-  },
-
-  onLaunch() {
-    const merchantId = this.globalData.merchantId;
-    this.initMerchantData(merchantId);
-  }
-});
-```
-
-##### 全局设置CSS样式
-```css
-.global-setting-item {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  border-bottom: 1px solid var(--border-color);
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.global-setting-item:hover {
-  background-color: var(--bg-color);
-}
-
-.global-setting-icon {
-  font-size: 20px;
-  margin-right: 12px;
-}
-
-.global-setting-info {
-  flex: 1;
-}
-
-.global-setting-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-main);
-  margin-bottom: 4px;
-}
-
-.global-setting-value {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.color-preview {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  border: 1px solid var(--border-color);
-  margin-top: 8px;
-}
-```
-
 ### 后端架构（宝塔部署）
 
 #### 技术栈
@@ -631,7 +459,8 @@ const result = await arrayAPI.getData({
 - **参数**：
   - piResponse：明道云API返回的完整响应对象
   - imageMap：图片映射数组
-  - owid：行ID
+  - 
+owid：行ID
 - **返回**：
   - processImageData：返回格式化后的图片映射数组 [{ rowid, url }]
   - getImageUrl：返回图片URL字符串
@@ -719,7 +548,8 @@ Page({
 ##### 图片映射处理逻辑
 
 1. **数据提取**：从明道云API响应中提取 data.rows 数组
-2. **字段映射**：提取每行的 owid 和 img 字段
+2. **字段映射**：提取每行的 
+owid 和 img 字段
 3. **JSON解析**：将 img 字符串解析为JSON数组
 4. **URL提取**：取第一个图片对象的 large_thumbnail_full_path 字段
 5. **格式转换**：转换为 { rowid, url } 格式的数组

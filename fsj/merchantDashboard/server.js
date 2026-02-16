@@ -91,7 +91,7 @@ async function copyBaseFramework(outputDir) {
     }
 }
 
-function generateAppJs(merchantId, config, outputDir) {
+function generateAppJs(merchantId, outputDir) {
     const sourceAppJsPath = path.join(__dirname, 'wxApp', 'app.js');
     let appJsContent = fs.readFileSync(sourceAppJsPath, 'utf-8');
 
@@ -102,15 +102,8 @@ function generateAppJs(merchantId, config, outputDir) {
         );
     }
 
-    if (config && config.globalConfig && config.globalConfig.themeColor) {
-        appJsContent = appJsContent.replace(
-            /themeColor: '\{主题色\}'/g,
-            `themeColor: '${config.globalConfig.themeColor}'`
-        );
-    }
-
     fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
-    console.log('生成app.js, 商家ID:', merchantId || '', '主题色:', config?.globalConfig?.themeColor || '');
+    console.log('生成app.js, 商家ID:', merchantId || '');
 }
 
 async function generatePage(page, outputDir, merchantId) {
@@ -422,7 +415,7 @@ app.post('/api/generate-miniprogram', async (req, res) => {
         await copyBaseFramework(uniqueDir);
 
         console.log('1.5. 生成app.js...');
-        generateAppJs(merchantId, config, uniqueDir);
+        generateAppJs(merchantId, uniqueDir);
 
         console.log('2. 生成页面代码...');
         for (const page of config.pages) {
