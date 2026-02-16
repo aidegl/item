@@ -63,7 +63,7 @@ function cleanupOldFiles() {
 setInterval(cleanupOldFiles, 60 * 60 * 1000);
 cleanupOldFiles();
 
-async function copyBaseFramework(outputDir, merchantId) {
+async function copyBaseFramework(outputDir) {
     const baseDir = path.join(__dirname, 'wxApp');
     const filesToCopy = [
         'app.wxss',
@@ -87,41 +87,16 @@ async function copyBaseFramework(outputDir, merchantId) {
             console.log(`复制: ${item}`);
         }
     }
-
-    const appJsContent = generateAppJs(merchantId);
-    fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
-    console.log('生成app.js');
 }
 
-function generateAppJs(merchantId) {
-    return `App({
-  globalData: {
-    merchantId: '${merchantId}'
-  },
-
-  onLaunch(options) {
-    console.log('小程序启动');
-    console.log('商家ID:', this.globalData.merchantId);
-  },
-
-  onShow(options) {
-    console.log('小程序显示');
-  },
-
-  onHide() {
-    console.log('小程序隐藏');
-  }
-});`;
-}
-
-async function generatePage(page, outputDir, merchantId) {
+async function generatePage(page, outputDir) {
     try {
         const pageDir = path.join(outputDir, 'pages', page.pageId);
         console.log(`创建页面目录: ${pageDir}`);
         fs.mkdirSync(pageDir, { recursive: true });
 
         console.log(`生成JS文件...`);
-        const jsContent = generatePageJS(page, merchantId);
+        const jsContent = generatePageJS(page);
         fs.writeFileSync(path.join(pageDir, 'index.js'), jsContent);
         console.log(`JS文件生成成功`);
 
@@ -147,6 +122,30 @@ async function generatePage(page, outputDir, merchantId) {
     }
 }
 
+function generateAppJs(outputDir, merchantId) {
+    const appJsContent = `App({
+  globalData: {
+    merchantId: '${merchantId}'
+  },
+
+  onLaunch(options) {
+    console.log('小程序启动');
+    console.log('商家ID:', this.globalData.merchantId);
+  },
+
+  onShow(options) {
+    console.log('小程序显示');
+  },
+
+  onHide() {
+    console.log('小程序隐藏');
+  }
+});`;
+
+    fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
+    console.log('app.js生成成功，商家ID:', merchantId);
+}
+
 function generatePageJS(page, merchantId) {
     const componentsData = page.components.map(comp => {
         return `  ${comp.componentName}: ${JSON.stringify(comp.componentItems)},`;
@@ -162,22 +161,6 @@ ${componentsData}
     const app = getApp();
     const merchantId = app.globalData.merchantId || '${merchantId}';
     console.log('商家ID:', merchantId);
-    
-    this.loadMerchantData(merchantId);
-  },
-
-  loadMerchantData(merchantId) {
-    wx.request({
-      url: 'https://api.example.com/merchant/data',
-      data: {
-        merchantId: merchantId
-      },
-      success: (res) => {
-        this.setData({
-          merchantData: res.data
-        });
-      }
-    });
   },
 
   onReady() {
@@ -366,8 +349,8 @@ app.post('/api/generate-miniprogram', async (req, res) => {
         console.log('收到生成请求:', new Date().toISOString());
         const config = req.body;
         const merchantId = config.merchantId || '';
-        console.log('商家ID:', merchantId);
         console.log('接收到的配置:', JSON.stringify(config, null, 2));
+        console.log('商家ID:', merchantId);
         console.log('tabBarConfig.list长度:', config.tabBarConfig?.list?.length || 0);
         console.log('pages长度:', config.pages?.length || 0);
 
@@ -376,21 +359,24 @@ app.post('/api/generate-miniprogram', async (req, res) => {
         fs.mkdirSync(uniqueDir, { recursive: true });
 
         console.log('1. 复制基础框架代码...');
-        await copyBaseFramework(uniqueDir, merchantId);
+        await copyBaseFramework(uniqueDir);
 
-        console.log('2. 生成页面代码...');
+        console.log('2. 生成app.js（嵌入商家ID）...');
+        await generateAppJs(uniqueDir, merchantId);
+
+        console.log('3. 生成页面代码...');
         for (const page of config.pages) {
             await generatePage(page, uniqueDir, merchantId);
         }
 
-        console.log('3. 生成app.json...');
+        console.log('4. 生成app.json...');
         await generateAppJson(config, uniqueDir);
 
-        console.log('4. 创建ZIP文件...');
+        console.log('5. 创建ZIP文件...');
         const zipPath = path.join(OUTPUT_DIR, `miniprogram_${timestamp}.zip`);
         await createZip(uniqueDir, zipPath);
 
-        console.log('5. 清理临时文件...');
+        console.log('6. 清理临时文件...');
         cleanup(uniqueDir);
 
         const downloadUrl = `/download/miniprogram_${timestamp}.zip`;
@@ -401,11 +387,12 @@ app.post('/api/generate-miniprogram', async (req, res) => {
             timestamp: timestamp
         });
 
+        console.log('生成完成，下载URL:', downloadUrl);
     } catch (error) {
         console.error('生成失败:', error);
         res.status(500).json({
             success: false,
-            message: '生成失败: ' + error.message
+            message: error.message
         });
     }
 });
