@@ -257,6 +257,11 @@ function generatePageJSON(page) {
 }
 
 async function generateAppJson(config, outputDir) {
+    console.log('生成app.json - 页面列表:');
+    config.pages.forEach((page, index) => {
+        console.log(`  ${index + 1}. ${page.pageName} (ID: ${page.pageId})`);
+    });
+
     const appJson = {
         pages: config.pages.map(p => `pages/${p.pageId}/index`),
         window: {
@@ -268,7 +273,14 @@ async function generateAppJson(config, outputDir) {
         sitemapLocation: 'sitemap.json'
     };
 
+    console.log('生成的页面路径:', appJson.pages);
+
     if (config.tabBarConfig.list.length >= 2) {
+        console.log('生成tabBar配置 - 导航项列表:');
+        config.tabBarConfig.list.forEach((tab, index) => {
+            console.log(`  ${index + 1}. ${tab.name} (页面ID: ${tab.pageId})`);
+        });
+
         appJson.tabBar = {
             color: config.tabBarConfig.unselectedColor || '#999999',
             selectedColor: config.tabBarConfig.selectedColor || '#667eea',
@@ -281,6 +293,7 @@ async function generateAppJson(config, outputDir) {
                 selectedIconPath: `images/${tab.selectedIcon}`
             }))
         };
+        console.log('生成的tabBar页面路径:', appJson.tabBar.list.map(t => t.pagePath));
         console.log('生成tabBar配置');
     }
 
