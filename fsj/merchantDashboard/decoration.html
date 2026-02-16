@@ -1111,8 +1111,14 @@
 
     function showImagePicker(inputId, inputElement) {
       console.log('[图片选择器] 显示图片列表, inputId:', inputId);
+      console.log('[图片选择器] window.userImages:', window.userImages);
 
       const imageListDiv = document.getElementById(inputId + '-imageList');
+
+      if (!imageListDiv) {
+        console.error('[图片选择器] 找不到图片列表容器:', inputId + '-imageList');
+        return;
+      }
 
       if (!window.userImages || window.userImages.length === 0) {
         console.warn('[图片选择器] 没有用户图片数据');
@@ -1120,6 +1126,8 @@
         imageListDiv.style.display = 'block';
         return;
       }
+
+      console.log('[图片选择器] 开始渲染', window.userImages.length, '张图片');
 
       imageListDiv.innerHTML = window.userImages.map(img => `
         <div class="image-item" onclick="selectImage('${inputId}', '${img.rowid}', '${img.mingcheng}', '${img.url}')" data-rowid="${img.rowid}">
@@ -1131,6 +1139,7 @@
         </div>
       `).join('');
 
+      console.log('[图片选择器] 渲染完成，显示图片列表');
       imageListDiv.style.display = 'block';
     }
 
