@@ -11,81 +11,74 @@ class MingDaoYunQueryAPI {
     console.log("[组件日志] 接收的worksheetId值：", worksheetId);
     console.log(`[执行日志] ${new Date().toLocaleString()} - 执行了getData函数，入参：`, { rowid, worksheetId });
  
-    try {
-      const requestBody = {
-        "appKey": this.appKey,
-        "sign": this.sign,
-        "worksheetId": worksheetId,
-        "rowId": rowid,
-        "getSystemControl": "false"
-      };
-
-      console.log("[组件日志] 准备调用明道云接口，请求体：", requestBody);
-
-      const postOnce = async () => {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        try {
-          const headers = {
-            "Content-Type": "application/json"
-          };
-          console.log("[组件日志] 准备发起请求，请求头：", headers);
-
-          const response = await fetch(this.baseUrl, {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(requestBody),
-            signal: controller.signal
-          });
-          const mdResult = await response.json();
-          return mdResult;
-        } finally {
-          clearTimeout(timeoutId);
-        }
-      };
-
-      let mdResult;
+    return new Promise((resolve) => {
       try {
-        mdResult = await postOnce();
-      } catch (e) {
-        console.error(`[明道云日志] ${new Date().toLocaleString()} - 调用${this.baseUrl}接口失败，错误信息：`, e);
-        mdResult = await postOnce();
+        const requestBody = {
+          "appKey": this.appKey,
+          "sign": this.sign,
+          "worksheetId": worksheetId,
+          "rowId": rowid,
+          "getSystemControl": "false"
+        };
+
+        console.log("[组件日志] 准备调用明道云接口，请求体：", requestBody);
+
+        wx.request({
+          url: this.baseUrl,
+          method: "POST",
+          data: requestBody,
+          header: {
+            "Content-Type": "application/json"
+          },
+          timeout: 5000,
+          success: (res) => {
+            const mdResult = res.data || {};
+            console.log("[组件日志] 明道云接口原始返回结果：", mdResult);
+
+            let outputData = null;
+            let success = false;
+            let error_msg = "";
+            let error_code = 0;
+
+            if (mdResult.success) {
+              outputData = mdResult.data;
+              success = true;
+              error_code = mdResult.error_code || 1;
+            } else {
+              error_msg = mdResult.error_msg || "明道云接口调用失败";
+              error_code = mdResult.error_code || 10101;
+            }
+
+            console.log("[组件日志] 组件出参data：", outputData);
+            console.log(`[执行日志] ${new Date().toLocaleString()} - 执行了getData函数，返回数据：`, { success, error_code, error_msg });
+
+            resolve({
+              success: success,
+              data: outputData,
+              error_msg: error_msg,
+              error_code: error_code
+            });
+          },
+          fail: (err) => {
+            console.error(`[明道云日志] ${new Date().toLocaleString()} - 调用${this.baseUrl}接口失败，错误信息：`, err);
+            resolve({
+              success: false,
+              data: null,
+              error_msg: `网络/解析错误：${err.errMsg || "请求失败"}`,
+              error_code: 99999
+            });
+          }
+        });
+      } catch (error) {
+        console.error("[组件日志] 调用异常：", error.message);
+        resolve({
+          success: false,
+          data: null,
+          error_msg: `网络/解析错误：${error.message}`,
+          error_code: 99999
+        });
       }
-
-      console.log("[组件日志] 明道云接口原始返回结果：", mdResult);
-
-      let outputData = null;
-      let success = false;
-      let error_msg = "";
-      let error_code = 0;
-
-      if (mdResult.success) {
-        outputData = mdResult.data;
-        success = true;
-        error_code = mdResult.error_code || 1;
-      } else {
-        error_msg = mdResult.error_msg || "明道云接口调用失败";
-        error_code = mdResult.error_code || 10101;
-      }
-
-      console.log("[组件日志] 组件出参data：", outputData);
-      console.log(`[执行日志] ${new Date().toLocaleString()} - 执行了getData函数，返回数据：`, { success, error_code, error_msg });
-
-      return {
-        success: success,
-        data: outputData,
-        error_msg: error_msg,
-        error_code: error_code
-      };
-    } catch (error) {
-      console.error("[组件日志] 调用异常：", error.message);
-      return {
-        success: false,
-        data: null,
-        error_msg: `网络/解析错误：${error.message}`,
-        error_code: 99999
-      };
-    }
+    });
   }
 }
 
