@@ -966,6 +966,14 @@
     let sidebarView = 'pages';
     let selectedTabBarItem = null;
 
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        userId: params.get('userId') || '',
+        mRowid: params.get('mRowid') || ''
+      };
+    }
+
     function toggleDropdown() {
       const dropdown = document.getElementById('sidebarDropdown');
       dropdown.classList.toggle('open');
@@ -1813,18 +1821,15 @@
     }
 
     async function publishCode() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const merchantId = urlParams.get('mRowid') || '';
-
       const config = {
-        merchantId: merchantId,
+        merchantId: window.merchantId || localStorage.getItem('merchantId') || '',
         globalConfig: globalConfig,
         tabBarConfig: tabBarConfig,
         pages: pages
       };
 
       console.log('[decoration.html] 发布代码:', config);
-      console.log('[decoration.html] 商家ID:', merchantId);
+      console.log('[decoration.html] 当前商家ID:', config.merchantId);
 
       try {
         const response = await fetch('/api/generate-miniprogram', {
@@ -1979,6 +1984,21 @@
     }
 
     window.onload = function () {
+      const params = getUrlParams();
+      if (params.mRowid) {
+        window.merchantId = params.mRowid;
+        localStorage.setItem('merchantId', params.mRowid);
+        console.log('[decoration.html] 商家ID:', window.merchantId);
+      } else {
+        const storedMerchantId = localStorage.getItem('merchantId') || '';
+        if (storedMerchantId) {
+          window.merchantId = storedMerchantId;
+          console.log('[decoration.html] 从localStorage恢复商家ID:', window.merchantId);
+        } else {
+          console.warn('[decoration.html] 未获取到商家ID');
+        }
+      }
+
       if (pages.length === 0) {
         addPage();
       }
