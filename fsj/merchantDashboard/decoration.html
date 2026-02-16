@@ -137,19 +137,93 @@
       align-items: center;
     }
 
-    .sidebar-header h2 {
+    .sidebar-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-dropdown {
+      position: relative;
+    }
+
+    .dropdown-trigger {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .dropdown-trigger:hover {
+      background: var(--bg-color);
+    }
+
+    .dropdown-trigger span:first-child {
       font-size: 16px;
       font-weight: 600;
       color: var(--text-main);
     }
 
+    .dropdown-arrow {
+      font-size: 10px;
+      color: var(--text-secondary);
+      transition: transform 0.2s;
+    }
+
+    .sidebar-dropdown.open .dropdown-arrow {
+      transform: rotate(180deg);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 4px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      min-width: 140px;
+      z-index: 1000;
+      display: none;
+    }
+
+    .sidebar-dropdown.open .dropdown-menu {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+
+    .dropdown-item:hover {
+      background: var(--primary-color);
+      color: #fff;
+    }
+
+    .dropdown-item:first-child {
+      border-radius: 8px 8px 0 0;
+    }
+
+    .dropdown-item:last-child {
+      border-radius: 0 0 8px 8px;
+    }
+
     .sidebar-header .btn-add {
-      padding: 6px 12px;
-      font-size: 12px;
+      padding: 8px 12px;
+      font-size: 16px;
+      font-weight: bold;
     }
 
     .page-tree {
-      height: 250px;
+      height: 300px;
       overflow-y: auto;
       padding: 8px;
     }
@@ -210,6 +284,15 @@
 
     .page-item.active .toggle-arrow {
       color: var(--primary-color);
+    }
+
+    .page-item.dragging {
+      opacity: 0.6;
+      background: #e0e7ff;
+    }
+
+    .page-item.drag-over {
+      border-top: 2px solid var(--primary-color);
     }
 
     .page-children {
@@ -361,86 +444,28 @@
       flex-shrink: 0;
     }
 
-    .tabbar-panel {
-      width: 320px;
-      background: var(--card-bg);
-      border-left: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .tabbar-header {
-      padding: 16px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .tabbar-header h2 {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .tabbar-header .btn-add {
-      padding: 6px 12px;
-      font-size: 12px;
-    }
-
-    .tabbar-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-    }
-
-    .tabbar-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px;
-      background: var(--bg-color);
-      border-radius: 8px;
-      margin-bottom: 8px;
-    }
-
-    .tabbar-item-info {
-      flex: 1;
-    }
-
-    .tabbar-item-name {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-main);
-      margin-bottom: 4px;
-    }
-
-    .tabbar-item-page {
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-
-    .tabbar-item-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .tabbar-item-actions .btn-small {
-      padding: 4px 8px;
-      font-size: 11px;
-    }
-
     .properties-header {
       padding: 16px;
       border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .properties-header h2 {
       font-size: 16px;
       font-weight: 600;
       color: var(--text-main);
+    }
+
+    .properties-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .properties-actions .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
     }
 
     .properties-content {
@@ -559,7 +584,6 @@
       font-size: 12px;
       font-weight: 500;
       color: #000;
-      border-bottom: 1px solid #f0f0f0;
     }
 
     .phone-status-bar .status-left {
@@ -580,13 +604,16 @@
       background: rgba(255, 255, 255, 0.9);
       border-radius: 16px;
       display: flex;
-      justify-content: space-around;
+      justify-content: space-between;
       align-items: center;
-      position: absolute;
-      top: 44px;
-      right: 16px;
-      z-index: 100;
+      padding: 0 12px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .phone-capsule .capsule-dots {
+      display: flex;
+      gap: 4px;
+      align-items: center;
     }
 
     .phone-capsule .capsule-dot {
@@ -594,6 +621,60 @@
       height: 4px;
       background: #000;
       border-radius: 50%;
+    }
+
+    .phone-capsule .capsule-circle {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .phone-capsule .capsule-circle-dot {
+      width: 6px;
+      height: 6px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    .phone-navbar {
+      height: 44px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      position: absolute;
+      top: 44px;
+      left: 0;
+      right: 0;
+      z-index: 99;
+    }
+
+    .phone-navbar .navbar-back {
+      width: 87px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      cursor: pointer;
+      color: #181818;
+      padding-left: 4px;
+    }
+
+    .phone-navbar .navbar-back svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .phone-navbar .navbar-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #181818;
+      flex: 1;
+      text-align: center;
     }
 
     .phone-screen {
@@ -711,7 +792,6 @@
   <div class="header">
     <h1>门店装修</h1>
     <div class="header-actions">
-      <button class="btn btn-secondary" onclick="loadConfig()">加载配置</button>
       <button class="btn" onclick="saveConfig()">保存配置</button>
       <button class="btn" onclick="publishCode()">发布新版本</button>
     </div>
@@ -721,8 +801,19 @@
     <div class="left-panel">
       <div class="sidebar">
         <div class="sidebar-header">
-          <h2>页面</h2>
-          <button class="btn btn-add" onclick="addPage()">+ 新增页面</button>
+          <div class="sidebar-title-group">
+            <div class="sidebar-dropdown" id="sidebarDropdown">
+              <div class="dropdown-trigger" onclick="toggleDropdown()">
+                <span id="sidebarTitle">页面</span>
+                <span class="dropdown-arrow">▼</span>
+              </div>
+              <div class="dropdown-menu" id="dropdownMenu">
+                <div class="dropdown-item" onclick="selectView('pages', event)">页面</div>
+                <div class="dropdown-item" onclick="selectView('tabbar', event)">底部导航栏</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-add" onclick="addPage()">+</button>
         </div>
         <div class="page-tree" id="pageTree">
         </div>
@@ -804,12 +895,27 @@
             <span>🔋</span>
           </div>
         </div>
-        <div class="phone-capsule">
-          <div class="capsule-dot"></div>
-          <div class="capsule-dot"></div>
+        <div class="phone-navbar" id="phoneNavbar">
+          <div class="navbar-back" id="navbarBack" style="visibility: hidden;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 18L9 12L15 6" stroke="black" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div class="navbar-title" id="navbarTitle">页面标题</div>
+          <div class="phone-capsule">
+            <div class="capsule-dots">
+              <div class="capsule-dot"></div>
+              <div class="capsule-dot"></div>
+              <div class="capsule-dot"></div>
+            </div>
+            <div class="capsule-circle">
+              <div class="capsule-circle-dot"></div>
+            </div>
+          </div>
         </div>
         <div class="phone-screen" id="phoneScreen">
-          <div class="page-canvas" id="pageCanvas">
+          <div class="page-canvas" id="pageCanvas" onclick="handlePageCanvasClick()">
           </div>
         </div>
         <div class="tab-bar classic" id="tabBar">
@@ -817,20 +923,13 @@
       </div>
     </div>
 
-    <div class="tabbar-panel">
-      <div class="tabbar-header">
-        <h2>底部导航栏</h2>
-        <button class="btn btn-add" onclick="addTabBarItem()">+ 添加导航项</button>
-      </div>
-      <div class="tabbar-content">
-        <div class="tabbar-list" id="tabBarList">
-        </div>
-      </div>
-    </div>
-
     <div class="properties-panel">
       <div class="properties-header">
-        <h2>属性设置</h2>
+        <h2>设置</h2>
+        <div class="properties-actions">
+          <button class="btn btn-small" onclick="copySelected()">复制</button>
+          <button class="btn btn-small btn-danger" onclick="deleteSelected()">删除</button>
+        </div>
       </div>
       <div class="properties-content" id="propertiesContent">
         <div class="empty-state">
@@ -844,7 +943,13 @@
   <script>
     let currentPage = null;
     let selectedComponent = null;
-    let pages = [];
+    let pages = [
+      {
+        pageId: 'default-page-1',
+        pageName: '新页面 1',
+        components: []
+      }
+    ];
     let globalConfig = {
       style: 'classic',
       navigationBar: {
@@ -857,8 +962,166 @@
       backgroundColor: '#ffffff',
       selectedColor: '#667eea',
       unselectedColor: '#999999',
-      list: []
+      list: [
+        {
+          name: '导航项 1',
+          selectedIcon: 'home-active.png',
+          unselectedIcon: 'home.png',
+          pageId: 'default-page-1'
+        }
+      ]
     };
+
+    let sidebarView = 'pages';
+    let selectedTabBarItem = null;
+
+    function toggleDropdown() {
+      const dropdown = document.getElementById('sidebarDropdown');
+      dropdown.classList.toggle('open');
+    }
+
+    function selectTabBarItem(index) {
+      selectedTabBarItem = index;
+      renderTabBarList();
+      renderTabBarProperties();
+    }
+
+    function renderTabBarProperties() {
+      const propertiesContent = document.getElementById('propertiesContent');
+
+      if (selectedTabBarItem === null || !tabBarConfig.list[selectedTabBarItem]) {
+        propertiesContent.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🎯</div>
+            <div class="empty-text">请选择一个导航项进行编辑</div>
+          </div>
+        `;
+        return;
+      }
+
+      const tab = tabBarConfig.list[selectedTabBarItem];
+      propertiesContent.innerHTML = `
+        <div class="property-group">
+          <label>选中图标</label>
+          <input type="text" value="${tab.selectedIcon}" onchange="updateTabBarItemProperty('selectedIcon', this.value)">
+        </div>
+        <div class="property-group">
+          <label>未选中图标</label>
+          <input type="text" value="${tab.unselectedIcon}" onchange="updateTabBarItemProperty('unselectedIcon', this.value)">
+        </div>
+        <div class="property-group">
+          <label>关联页面</label>
+          <select onchange="updateTabBarItemProperty('pageId', this.value)">
+            <option value="">未选择</option>
+            ${pages.map(p => `
+              <option value="${p.pageId}" ${tab.pageId === p.pageId ? 'selected' : ''}>${p.pageName}</option>
+            `).join('')}
+          </select>
+        </div>
+      `;
+    }
+
+    function updateTabBarItemProperty(key, value) {
+      if (selectedTabBarItem !== null && tabBarConfig.list[selectedTabBarItem]) {
+        tabBarConfig.list[selectedTabBarItem][key] = value;
+        renderTabBarList();
+        renderTabBar();
+        saveConfig();
+      }
+    }
+
+    function copySelected() {
+      if (sidebarView === 'pages' && currentPage) {
+        copyPage(currentPage.pageId);
+      } else if (sidebarView === 'tabbar' && selectedTabBarItem !== null) {
+        copyTabBarItem(selectedTabBarItem);
+      }
+    }
+
+    function deleteSelected() {
+      if (sidebarView === 'pages' && currentPage) {
+        deletePage(currentPage.pageId);
+      } else if (sidebarView === 'tabbar' && selectedTabBarItem !== null) {
+        deleteTabBarItem(selectedTabBarItem);
+      }
+    }
+
+    function copyTabBarItem(index) {
+      const tab = tabBarConfig.list[index];
+      const newTab = {
+        name: tab.name + ' 副本',
+        selectedIcon: tab.selectedIcon,
+        unselectedIcon: tab.unselectedIcon,
+        pageId: tab.pageId
+      };
+      tabBarConfig.list.splice(index + 1, 0, newTab);
+      renderTabBarList();
+      renderTabBar();
+      saveConfig();
+    }
+
+    function selectView(view, event) {
+      console.log('selectView called:', view);
+      if (event) {
+        event.stopPropagation();
+        console.log('Event stopped');
+      }
+
+      const dropdown = document.getElementById('sidebarDropdown');
+      if (dropdown) {
+        dropdown.classList.remove('open');
+        console.log('Dropdown closed immediately');
+      }
+
+      sidebarView = view;
+      updateSidebarView();
+    }
+
+    function updateSidebarView() {
+      console.log('updateSidebarView called, sidebarView:', sidebarView);
+      const title = document.getElementById('sidebarTitle');
+      const pageTree = document.getElementById('pageTree');
+      const addButton = document.querySelector('.btn-add');
+
+      if (sidebarView === 'pages') {
+        console.log('Switching to pages view');
+        title.textContent = '页面';
+        pageTree.style.display = 'block';
+        pageTree.innerHTML = '';
+        renderPageTree();
+        addButton.style.display = 'block';
+        addButton.onclick = addPage;
+        selectedTabBarItem = null;
+        renderProperties();
+      } else {
+        console.log('Switching to tabbar view');
+        title.textContent = '底部导航栏';
+        pageTree.style.display = 'block';
+        pageTree.innerHTML = '';
+        renderTabBarList();
+        addButton.style.display = 'block';
+        addButton.onclick = addTabBarItem;
+        currentPage = null;
+        selectedComponent = null;
+
+        if (tabBarConfig.list.length > 0 && selectedTabBarItem === null) {
+          selectedTabBarItem = 0;
+          renderTabBarList();
+          renderTabBarProperties();
+        } else {
+          renderTabBarProperties();
+        }
+      }
+
+      console.log('updateSidebarView completed');
+    }
+
+    document.addEventListener('click', function (event) {
+      const dropdown = document.getElementById('sidebarDropdown');
+      if (dropdown && !dropdown.contains(event.target)) {
+        dropdown.classList.remove('open');
+      }
+    });
 
     function generateUUID() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -878,17 +1141,20 @@
 
         const pageItem = document.createElement('div');
         pageItem.className = 'page-item' + (currentPage && currentPage.pageId === page.pageId ? ' active' : '');
+        pageItem.draggable = true;
         pageItem.innerHTML = `
           <div class="page-item-content">
             <span class="toggle-arrow ${isExpanded ? 'expanded' : ''} ${hasChildren ? '' : 'hidden'}" onclick="event.stopPropagation(); togglePageExpand('${page.pageId}')">▶</span>
             <span class="page-name">${page.pageName}</span>
           </div>
-          <div class="page-actions">
-            <button class="page-action-btn" onclick="event.stopPropagation(); copyPage('${page.pageId}')">复制</button>
-            <button class="page-action-btn" onclick="event.stopPropagation(); deletePage('${page.pageId}')">删除</button>
-          </div>
         `;
         pageItem.onclick = () => selectPage(page);
+        pageItem.ondblclick = (e) => editPageName(page.pageId, e);
+        pageItem.ondragstart = (e) => handlePageDragStart(e, index);
+        pageItem.ondragover = (e) => handlePageDragOver(e, index);
+        pageItem.ondragleave = (e) => handlePageDragLeave(e);
+        pageItem.ondrop = (e) => handlePageDrop(e, index);
+        pageItem.ondragend = (e) => handlePageDragEnd(e);
         pageTree.appendChild(pageItem);
 
         if (hasChildren && isExpanded) {
@@ -954,6 +1220,70 @@
 
     let draggedComponent = null;
     let draggedPageIndex = null;
+    let draggedPageIdForSort = null;
+    let draggedPageIndexForSort = null;
+
+    function handlePageDragStart(e, index) {
+      draggedPageIdForSort = pages[index].pageId;
+      draggedPageIndexForSort = index;
+      e.currentTarget.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handlePageDragOver(e, targetIndex) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const target = e.currentTarget;
+      if (target && targetIndex !== draggedPageIndexForSort) {
+        target.classList.add('drag-over');
+      }
+    }
+
+    function handlePageDragLeave(e) {
+      const target = e.currentTarget;
+      if (target) {
+        target.classList.remove('drag-over');
+      }
+    }
+
+    function handlePageDrop(e, targetIndex) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const target = e.currentTarget;
+      if (target) {
+        target.classList.remove('drag-over');
+      }
+
+      if (draggedPageIdForSort === null || draggedPageIndexForSort === null) {
+        return;
+      }
+
+      if (draggedPageIndexForSort === targetIndex) {
+        return;
+      }
+
+      const pageToMove = pages[draggedPageIndexForSort];
+      pages.splice(draggedPageIndexForSort, 1);
+      pages.splice(targetIndex, 0, pageToMove);
+
+      draggedPageIdForSort = null;
+      draggedPageIndexForSort = null;
+
+      renderPageTree();
+      renderPreview();
+      if (typeof saveConfig === 'function') {
+        saveConfig();
+      }
+    }
+
+    function handlePageDragEnd(e) {
+      e.currentTarget.classList.remove('dragging');
+      const dragOverItems = document.querySelectorAll('.page-item.drag-over');
+      dragOverItems.forEach(item => item.classList.remove('drag-over'));
+      draggedPageIdForSort = null;
+      draggedPageIndexForSort = null;
+    }
 
     function handleChildDragStart(e, pageId, index) {
       draggedComponent = e.target.dataset.componentId;
@@ -1065,6 +1395,45 @@
       const pageCanvas = document.getElementById('pageCanvas');
       pageCanvas.innerHTML = '';
 
+      const navbarTitle = document.getElementById('navbarTitle');
+      const navbarBack = document.getElementById('navbarBack');
+      const tabBar = document.getElementById('tabBar');
+      const phoneScreen = document.getElementById('phoneScreen');
+
+      if (currentPage) {
+        navbarTitle.textContent = currentPage.pageName;
+        const isHomePage = tabBarConfig.list.some(tab => tab.pageId === currentPage.pageId);
+        if (isHomePage) {
+          navbarBack.style.visibility = 'hidden';
+          if (tabBar) {
+            tabBar.style.display = '';
+            renderTabBar();
+          }
+          if (phoneScreen) {
+            phoneScreen.style.height = 'calc(100% - 60px - 44px)';
+          }
+        } else {
+          navbarBack.style.visibility = 'visible';
+          if (tabBar) {
+            tabBar.style.display = 'none';
+            tabBar.innerHTML = '';
+          }
+          if (phoneScreen) {
+            phoneScreen.style.height = 'calc(100% - 44px)';
+          }
+        }
+      } else {
+        navbarTitle.textContent = '页面标题';
+        navbarBack.style.visibility = 'hidden';
+        if (tabBar) {
+          tabBar.style.display = '';
+          renderTabBar();
+        }
+        if (phoneScreen) {
+          phoneScreen.style.height = 'calc(100% - 60px - 44px)';
+        }
+      }
+
       if (!currentPage || currentPage.components.length === 0) {
         pageCanvas.innerHTML = `
           <div class="component-placeholder">
@@ -1082,8 +1451,6 @@
         wrapper.innerHTML = renderComponentPreview(component);
         pageCanvas.appendChild(wrapper);
       });
-
-      renderTabBar();
     }
 
     function renderComponentPreview(component) {
@@ -1174,100 +1541,106 @@
     function renderTabBar() {
       const tabBar = document.getElementById('tabBar');
       tabBar.className = 'tab-bar ' + tabBarConfig.style;
-      tabBar.innerHTML = tabBarConfig.list.map(tab => `
-        <div class="tab-item ${currentPage && currentPage.pageId === tab.pageId ? 'active' : ''}">
+      tabBar.innerHTML = tabBarConfig.list.map((tab, index) => `
+        <div class="tab-item ${currentPage && currentPage.pageId === tab.pageId ? 'active' : ''}" onclick="selectTabBarItemFromPreview(${index})">
           <div class="tab-icon">${tab.name === '首页' ? '🏠' : tab.name === '分类' ? '📂' : '👤'}</div>
           <div>${tab.name}</div>
         </div>
       `).join('');
     }
 
+    function selectTabBarItemFromPreview(index) {
+      selectView('tabbar');
+      selectTabBarItem(index);
+    }
+
+    function handlePageCanvasClick() {
+      if (sidebarView === 'tabbar' && selectedTabBarItem !== null) {
+        const tab = tabBarConfig.list[selectedTabBarItem];
+        if (tab && tab.pageId) {
+          const page = pages.find(p => p.pageId === tab.pageId);
+          if (page) {
+            selectView('pages');
+            selectPage(page);
+          }
+        }
+      }
+    }
+
     function renderTabBarList() {
-      const tabBarList = document.getElementById('tabBarList');
+      const tabBarList = document.getElementById('pageTree');
       tabBarList.innerHTML = tabBarConfig.list.map((tab, index) => `
-        <div class="tabbar-item">
-          <div class="tabbar-item-info">
-            <div class="tabbar-item-name">${tab.name}</div>
-            <div class="tabbar-item-page">页面: ${pages.find(p => p.pageId === tab.pageId)?.pageName || '未选择'}</div>
-          </div>
-          <div class="tabbar-item-actions">
-            <button class="btn btn-small" onclick="editTabBarItem(${index})">编辑</button>
-            <button class="btn btn-small btn-danger" onclick="deleteTabBarItem(${index})">删除</button>
+        <div class="page-item ${selectedTabBarItem === index ? 'active' : ''}" onclick="selectTabBarItem(${index})" ondblclick="editTabBarItemName(${index}, event)">
+          <div class="page-item-content">
+            <span class="page-name">${tab.name}</span>
           </div>
         </div>
       `).join('');
     }
 
+    function editTabBarItemName(index, event) {
+      event.stopPropagation();
+      const tab = tabBarConfig.list[index];
+      const pageItem = event.currentTarget;
+      const nameSpan = pageItem.querySelector('.page-name');
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = tab.name;
+      input.className = 'page-name-input';
+      input.style.cssText = 'font-size: 14px; font-weight: 500; color: var(--text-main); border: 1px solid var(--primary-color); border-radius: 4px; padding: 4px 8px; width: 100%; box-sizing: border-box;';
+
+      const saveName = () => {
+        const newName = input.value.trim();
+        if (newName && newName !== tab.name) {
+          tab.name = newName;
+          renderTabBarList();
+          renderTabBar();
+          saveConfig();
+        } else {
+          renderTabBarList();
+        }
+      };
+
+      input.addEventListener('blur', saveName);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveName();
+        } else if (e.key === 'Escape') {
+          renderTabBarList();
+        }
+      });
+
+      nameSpan.replaceWith(input);
+      input.focus();
+      input.select();
+    }
+
     function addTabBarItem() {
-      if (pages.length === 0) {
-        alert('请先创建页面！');
-        return;
-      }
+      console.log('addTabBarItem called');
+      console.log('tabBarConfig.list:', tabBarConfig.list);
 
-      const usedPageIds = tabBarConfig.list.map(tab => tab.pageId);
-      const availablePages = pages.filter(p => !usedPageIds.includes(p.pageId));
-
-      if (availablePages.length === 0) {
-        alert('所有页面都已经被使用，请先创建新页面！');
-        return;
-      }
-
-      const name = prompt('请输入导航项名称：', '新导航');
-      if (!name) return;
-
-      let pageOptions = availablePages.map((p, i) => `${i + 1}. ${p.pageName}`).join('\n');
-      const pageChoice = prompt(`请选择关联的页面：\n${pageOptions}\n\n请输入序号（1-${availablePages.length}）：`);
-
-      if (!pageChoice) return;
-
-      const pageIndex = parseInt(pageChoice) - 1;
-      if (isNaN(pageIndex) || pageIndex < 0 || pageIndex >= availablePages.length) {
-        alert('请输入有效的序号！');
+      if (tabBarConfig.list.length >= 6) {
+        alert('最多只能创建6个导航项！');
         return;
       }
 
       const newTab = {
-        name: name,
+        name: `导航项 ${tabBarConfig.list.length + 1}`,
         selectedIcon: 'home-active.png',
         unselectedIcon: 'home.png',
-        pageId: availablePages[pageIndex].pageId
+        pageId: null
       };
 
+      console.log('newTab:', newTab);
       tabBarConfig.list.push(newTab);
+      console.log('tabBarConfig.list after push:', tabBarConfig.list);
+
+      selectedTabBarItem = tabBarConfig.list.length - 1;
       renderTabBarList();
       renderTabBar();
-      saveConfig();
-    }
-
-    function editTabBarItem(index) {
-      const tab = tabBarConfig.list[index];
-      const name = prompt('请输入导航项名称：', tab.name);
-      if (!name) return;
-
-      const usedPageIds = tabBarConfig.list
-        .filter((_, i) => i !== index)
-        .map(t => t.pageId);
-
-      const availablePages = pages.filter(p => !usedPageIds.includes(p.pageId));
-
-      let pageOptions = availablePages.map((p, i) => `${i + 1}. ${p.pageName}`).join('\n');
-      const currentPageIndex = availablePages.findIndex(p => p.pageId === tab.pageId);
-      const currentPageIndexDisplay = currentPageIndex >= 0 ? currentPageIndex + 1 : 0;
-
-      const pageChoice = prompt(`请选择关联的页面（当前：${pages.find(p => p.pageId === tab.pageId)?.pageName || '未选择'}）：\n${pageOptions}\n\n请输入序号（1-${availablePages.length}）：`, currentPageIndexDisplay.toString());
-
-      if (pageChoice === null) return;
-
-      const pageIndex = parseInt(pageChoice) - 1;
-      if (isNaN(pageIndex) || pageIndex < 0 || pageIndex >= availablePages.length) {
-        alert('请输入有效的序号！');
-        return;
-      }
-
-      tab.name = name;
-      tab.pageId = availablePages[pageIndex].pageId;
-      renderTabBarList();
-      renderTabBar();
+      renderTabBarProperties();
       saveConfig();
     }
 
@@ -1275,9 +1648,52 @@
       if (!confirm('确定要删除这个导航项吗？')) return;
 
       tabBarConfig.list.splice(index, 1);
+      selectedTabBarItem = null;
       renderTabBarList();
       renderTabBar();
+      renderTabBarProperties();
       saveConfig();
+    }
+
+    function editPageName(pageId, event) {
+      event.stopPropagation();
+      const page = pages.find(p => p.pageId === pageId);
+      if (!page) return;
+
+      const pageItem = event.currentTarget;
+      const nameSpan = pageItem.querySelector('.page-name');
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = page.pageName;
+      input.className = 'page-name-input';
+      input.style.cssText = 'font-size: 14px; font-weight: 500; color: var(--text-main); border: 1px solid var(--primary-color); border-radius: 4px; padding: 4px 8px; width: 100%; box-sizing: border-box;';
+
+      const saveName = () => {
+        const newName = input.value.trim();
+        if (newName && newName !== page.pageName) {
+          page.pageName = newName;
+          renderPageTree();
+          renderPreview();
+          saveConfig();
+        } else {
+          renderPageTree();
+        }
+      };
+
+      input.addEventListener('blur', saveName);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveName();
+        } else if (e.key === 'Escape') {
+          renderPageTree();
+        }
+      });
+
+      nameSpan.replaceWith(input);
+      input.focus();
+      input.select();
     }
 
     function selectComponent(component) {
@@ -1289,6 +1705,16 @@
 
     function renderProperties() {
       const propertiesContent = document.getElementById('propertiesContent');
+
+      if (currentPage && !selectedComponent) {
+        propertiesContent.innerHTML = `
+          <div class="property-group">
+            <label>页面名称</label>
+            <input type="text" value="${currentPage.pageName}" onchange="updatePageProperty('pageName', this.value)">
+          </div>
+        `;
+        return;
+      }
 
       if (!selectedComponent) {
         propertiesContent.innerHTML = `
@@ -1389,6 +1815,15 @@
       }
     }
 
+    function updatePageProperty(key, value) {
+      if (currentPage) {
+        currentPage[key] = value;
+        renderPageTree();
+        renderPreview();
+        saveConfig();
+      }
+    }
+
     function updateComponentItems(value) {
       try {
         if (selectedComponent) {
@@ -1441,7 +1876,6 @@
 
       console.log('[decoration.html] 保存配置:', config);
       localStorage.setItem('decorationConfig', JSON.stringify(config));
-      alert('配置已保存！');
     }
 
     function loadConfig() {
@@ -1452,6 +1886,17 @@
           globalConfig = data.globalConfig || globalConfig;
           tabBarConfig = data.tabBarConfig || tabBarConfig;
           pages = data.pages || [];
+
+          if (pages.length === 0) {
+            pages = [
+              {
+                pageId: 'default-page-1',
+                pageName: '新页面 1',
+                components: []
+              }
+            ];
+            tabBarConfig.list[0].pageId = 'default-page-1';
+          }
 
           if (pages.length > 0) {
             currentPage = pages[0];
@@ -1636,9 +2081,13 @@
       if (pages.length === 0) {
         addPage();
       }
+      if (!currentPage && pages.length > 0) {
+        currentPage = pages[0];
+      }
       renderPageTree();
       renderPreview();
       renderTabBar();
+      renderProperties();
     };
   </script>
 </body>
