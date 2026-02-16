@@ -223,7 +223,7 @@
     }
 
     .page-tree {
-      height: 300px;
+      height: 250px;
       overflow-y: auto;
       padding: 8px;
     }
@@ -284,15 +284,6 @@
 
     .page-item.active .toggle-arrow {
       color: var(--primary-color);
-    }
-
-    .page-item.dragging {
-      opacity: 0.6;
-      background: #e0e7ff;
-    }
-
-    .page-item.drag-over {
-      border-top: 2px solid var(--primary-color);
     }
 
     .page-children {
@@ -792,7 +783,6 @@
   <div class="header">
     <h1>门店装修</h1>
     <div class="header-actions">
-      <button class="btn" onclick="clearConfig()">清除配置</button>
       <button class="btn" onclick="saveConfig()">保存配置</button>
       <button class="btn" onclick="publishCode()">发布新版本</button>
     </div>
@@ -897,7 +887,7 @@
           </div>
         </div>
         <div class="phone-navbar" id="phoneNavbar">
-          <div class="navbar-back" id="navbarBack" style="visibility: hidden;">
+          <div class="navbar-back" id="navbarBack" style="display: none;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M15 18L9 12L15 6" stroke="black" stroke-width="2" stroke-linecap="round"
                 stroke-linejoin="round" />
@@ -946,7 +936,7 @@
     let selectedComponent = null;
     let pages = [
       {
-        pageId: 'page1',
+        pageId: 'default-page-1',
         pageName: '新页面 1',
         components: []
       }
@@ -1132,14 +1122,6 @@
       });
     }
 
-    function generatePageId() {
-      let pageCount = 1;
-      while (pages.some(page => page.pageId === `page${pageCount}`)) {
-        pageCount++;
-      }
-      return `page${pageCount}`;
-    }
-
     function renderPageTree() {
       const pageTree = document.getElementById('pageTree');
       pageTree.innerHTML = '';
@@ -1150,7 +1132,6 @@
 
         const pageItem = document.createElement('div');
         pageItem.className = 'page-item' + (currentPage && currentPage.pageId === page.pageId ? ' active' : '');
-        pageItem.draggable = true;
         pageItem.innerHTML = `
           <div class="page-item-content">
             <span class="toggle-arrow ${isExpanded ? 'expanded' : ''} ${hasChildren ? '' : 'hidden'}" onclick="event.stopPropagation(); togglePageExpand('${page.pageId}')">▶</span>
@@ -1159,11 +1140,6 @@
         `;
         pageItem.onclick = () => selectPage(page);
         pageItem.ondblclick = (e) => editPageName(page.pageId, e);
-        pageItem.ondragstart = (e) => handlePageDragStart(e, index);
-        pageItem.ondragover = (e) => handlePageDragOver(e, index);
-        pageItem.ondragleave = (e) => handlePageDragLeave(e);
-        pageItem.ondrop = (e) => handlePageDrop(e, index);
-        pageItem.ondragend = (e) => handlePageDragEnd(e);
         pageTree.appendChild(pageItem);
 
         if (hasChildren && isExpanded) {
@@ -1229,70 +1205,6 @@
 
     let draggedComponent = null;
     let draggedPageIndex = null;
-    let draggedPageIdForSort = null;
-    let draggedPageIndexForSort = null;
-
-    function handlePageDragStart(e, index) {
-      draggedPageIdForSort = pages[index].pageId;
-      draggedPageIndexForSort = index;
-      e.currentTarget.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    }
-
-    function handlePageDragOver(e, targetIndex) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      const target = e.currentTarget;
-      if (target && targetIndex !== draggedPageIndexForSort) {
-        target.classList.add('drag-over');
-      }
-    }
-
-    function handlePageDragLeave(e) {
-      const target = e.currentTarget;
-      if (target) {
-        target.classList.remove('drag-over');
-      }
-    }
-
-    function handlePageDrop(e, targetIndex) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const target = e.currentTarget;
-      if (target) {
-        target.classList.remove('drag-over');
-      }
-
-      if (draggedPageIdForSort === null || draggedPageIndexForSort === null) {
-        return;
-      }
-
-      if (draggedPageIndexForSort === targetIndex) {
-        return;
-      }
-
-      const pageToMove = pages[draggedPageIndexForSort];
-      pages.splice(draggedPageIndexForSort, 1);
-      pages.splice(targetIndex, 0, pageToMove);
-
-      draggedPageIdForSort = null;
-      draggedPageIndexForSort = null;
-
-      renderPageTree();
-      renderPreview();
-      if (typeof saveConfig === 'function') {
-        saveConfig();
-      }
-    }
-
-    function handlePageDragEnd(e) {
-      e.currentTarget.classList.remove('dragging');
-      const dragOverItems = document.querySelectorAll('.page-item.drag-over');
-      dragOverItems.forEach(item => item.classList.remove('drag-over'));
-      draggedPageIdForSort = null;
-      draggedPageIndexForSort = null;
-    }
 
     function handleChildDragStart(e, pageId, index) {
       draggedComponent = e.target.dataset.componentId;
@@ -1363,7 +1275,7 @@
 
     function addPage() {
       const newPage = {
-        pageId: generatePageId(),
+        pageId: generateUUID(),
         pageName: '新页面 ' + (pages.length + 1),
         components: []
       };
@@ -1376,7 +1288,7 @@
       const page = pages.find(p => p.pageId === pageId);
       if (page) {
         const newPage = {
-          pageId: generatePageId(),
+          pageId: generateUUID(),
           pageName: page.pageName + ' (副本)',
           components: JSON.parse(JSON.stringify(page.components))
         };
@@ -1406,41 +1318,14 @@
 
       const navbarTitle = document.getElementById('navbarTitle');
       const navbarBack = document.getElementById('navbarBack');
-      const tabBar = document.getElementById('tabBar');
-      const phoneScreen = document.getElementById('phoneScreen');
 
       if (currentPage) {
         navbarTitle.textContent = currentPage.pageName;
         const isHomePage = tabBarConfig.list.some(tab => tab.pageId === currentPage.pageId);
-        if (isHomePage) {
-          navbarBack.style.visibility = 'hidden';
-          if (tabBar) {
-            tabBar.style.display = '';
-            renderTabBar();
-          }
-          if (phoneScreen) {
-            phoneScreen.style.height = 'calc(100% - 60px - 44px)';
-          }
-        } else {
-          navbarBack.style.visibility = 'visible';
-          if (tabBar) {
-            tabBar.style.display = 'none';
-            tabBar.innerHTML = '';
-          }
-          if (phoneScreen) {
-            phoneScreen.style.height = 'calc(100% - 44px)';
-          }
-        }
+        navbarBack.style.display = isHomePage ? 'none' : 'flex';
       } else {
         navbarTitle.textContent = '页面标题';
-        navbarBack.style.visibility = 'hidden';
-        if (tabBar) {
-          tabBar.style.display = '';
-          renderTabBar();
-        }
-        if (phoneScreen) {
-          phoneScreen.style.height = 'calc(100% - 60px - 44px)';
-        }
+        navbarBack.style.display = 'none';
       }
 
       if (!currentPage || currentPage.components.length === 0) {
@@ -1460,6 +1345,8 @@
         wrapper.innerHTML = renderComponentPreview(component);
         pageCanvas.appendChild(wrapper);
       });
+
+      renderTabBar();
     }
 
     function renderComponentPreview(component) {
@@ -1549,11 +1436,6 @@
 
     function renderTabBar() {
       const tabBar = document.getElementById('tabBar');
-      if (tabBarConfig.list.length < 2) {
-        tabBar.style.display = 'none'; // 如果少于2个tab项，隐藏底部导航栏
-        return;
-      }
-      tabBar.style.display = 'flex';
       tabBar.className = 'tab-bar ' + tabBarConfig.style;
       tabBar.innerHTML = tabBarConfig.list.map((tab, index) => `
         <div class="tab-item ${currentPage && currentPage.pageId === tab.pageId ? 'active' : ''}" onclick="selectTabBarItemFromPreview(${index})">
@@ -1640,33 +1522,20 @@
         return;
       }
 
-      // 创建一个新页面
-      const newPage = {
-        pageId: generatePageId(),
-        pageName: `页面 ${pages.length + 1}`,
-        components: []
-      };
-      pages.push(newPage);
-
       const newTab = {
         name: `导航项 ${tabBarConfig.list.length + 1}`,
         selectedIcon: 'home-active.png',
         unselectedIcon: 'home.png',
-        pageId: newPage.pageId
+        pageId: null
       };
 
       console.log('newTab:', newTab);
       tabBarConfig.list.push(newTab);
       console.log('tabBarConfig.list after push:', tabBarConfig.list);
 
-      // 如果这是第二个tab项，显示提示信息
-      if (tabBarConfig.list.length === 2) {
-        alert('已达到最低数量要求（2个），底部导航栏将在生成的小程序中生效！');
-      }
-
       selectedTabBarItem = tabBarConfig.list.length - 1;
       renderTabBarList();
-      renderTabBar();  // 更新预览区域的底部导航栏显示
+      renderTabBar();
       renderTabBarProperties();
       saveConfig();
     }
@@ -1905,31 +1774,6 @@
       localStorage.setItem('decorationConfig', JSON.stringify(config));
     }
 
-    function clearConfig() {
-      if (confirm('确定要清除所有配置吗？这将删除所有页面和底部导航项！')) {
-        localStorage.removeItem('decorationConfig');
-
-        // 重置为初始状态
-        pages = [];
-        tabBarConfig = {
-          style: 'white',
-          selectedColor: '#667eea',
-          unselectedColor: '#999999',
-          backgroundColor: '#ffffff',
-          borderStyle: 'black',
-          list: []
-        };
-        currentPage = null;
-        selectedTabBarItem = null;
-        selectedComponent = null;
-
-        // 创建一个默认页面
-        addPage();
-
-        alert('配置已清除！');
-      }
-    }
-
     function loadConfig() {
       const config = localStorage.getItem('decorationConfig');
       if (config) {
@@ -1939,43 +1783,15 @@
           tabBarConfig = data.tabBarConfig || tabBarConfig;
           pages = data.pages || [];
 
-          // 自动修复旧UUID格式
-          let hasOldUUID = false;
-          pages.forEach(page => {
-            if (page.pageId && page.pageId.includes('-')) {
-              page.pageId = page.pageId.replace(/-/g, '');
-              hasOldUUID = true;
-            }
-          });
-
-          // 修复tabBar中的页面ID
-          if (tabBarConfig.list) {
-            tabBarConfig.list.forEach(tab => {
-              if (tab.pageId && tab.pageId.includes('-')) {
-                tab.pageId = tab.pageId.replace(/-/g, '');
-                hasOldUUID = true;
-              }
-            });
-          }
-
-          // 如果修复了旧格式，自动保存
-          if (hasOldUUID) {
-            console.log('[decoration.html] 检测到旧UUID格式，已自动修复');
-            saveConfig();
-            alert('检测到旧版本的页面数据格式，已自动修复！');
-          }
-
           if (pages.length === 0) {
             pages = [
               {
-                pageId: 'page1',
+                pageId: 'default-page-1',
                 pageName: '新页面 1',
                 components: []
               }
             ];
-            if (tabBarConfig.list.length > 0) {
-              tabBarConfig.list[0].pageId = 'page1';
-            }
+            tabBarConfig.list[0].pageId = 'default-page-1';
           }
 
           if (pages.length > 0) {
@@ -1986,9 +1802,7 @@
           renderPreview();
           renderTabBar();
           renderTabBarList();
-          if (!hasOldUUID) {
-            alert('配置已加载！');
-          }
+          alert('配置已加载！');
         } catch (e) {
           console.error('[decoration.html] 加载配置失败:', e);
           alert('加载配置失败！');
@@ -2006,12 +1820,6 @@
       };
 
       console.log('[decoration.html] 发布代码:', config);
-
-      // 验证tabBar配置
-      if (tabBarConfig.list.length > 0 && tabBarConfig.list.length < 2) {
-        alert('底部导航栏配置错误：\n\n如果启用底部导航栏，至少需要2个导航项。\n\n请添加更多导航项，或者删除现有的导航项。');
-        return;
-      }
 
       try {
         const response = await fetch('/api/generate-miniprogram', {
@@ -2169,13 +1977,9 @@
       if (pages.length === 0) {
         addPage();
       }
-      if (!currentPage && pages.length > 0) {
-        currentPage = pages[0];
-      }
       renderPageTree();
       renderPreview();
       renderTabBar();
-      renderProperties();
     };
   </script>
 </body>
