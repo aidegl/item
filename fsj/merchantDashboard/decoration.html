@@ -516,6 +516,69 @@
       padding: 0;
     }
 
+    .image-picker {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 1000;
+      margin-top: 5px;
+    }
+
+    .image-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .image-item:hover {
+      background-color: var(--bg-color);
+    }
+
+    .image-item img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-right: 12px;
+    }
+
+    .image-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .image-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .image-category {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .no-images {
+      padding: 20px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
     .preview-area {
       flex: 1;
       background: #e5e5e5;
@@ -1017,11 +1080,13 @@
       propertiesContent.innerHTML = `
         <div class="property-group">
           <label>选中图标</label>
-          <input type="text" value="${tab.selectedIcon}" onchange="updateTabBarItemProperty('selectedIcon', this.value)">
+          <input type="text" value="${tab.selectedIcon}" onchange="updateTabBarItemProperty('selectedIcon', this.value)" onfocus="showImagePicker('selectedIcon', this)" oninput="filterImageList(this.value, 'selectedIcon')">
+          <div id="selectedIcon-imageList" class="image-picker" style="display: none;"></div>
         </div>
         <div class="property-group">
           <label>未选中图标</label>
-          <input type="text" value="${tab.unselectedIcon}" onchange="updateTabBarItemProperty('unselectedIcon', this.value)">
+          <input type="text" value="${tab.unselectedIcon}" onchange="updateTabBarItemProperty('unselectedIcon', this.value)" onfocus="showImagePicker('unselectedIcon', this)" oninput="filterImageList(this.value, 'unselectedIcon')">
+          <div id="unselectedIcon-imageList" class="image-picker" style="display: none;"></div>
         </div>
         <div class="property-group">
           <label>关联页面</label>
@@ -1043,6 +1108,87 @@
         saveConfig();
       }
     }
+
+    function showImagePicker(inputId, inputElement) {
+      console.log('[图片选择器] 显示图片列表, inputId:', inputId);
+
+      const imageListDiv = document.getElementById(inputId + '-imageList');
+
+      if (!window.userImages || window.userImages.length === 0) {
+        console.warn('[图片选择器] 没有用户图片数据');
+        imageListDiv.innerHTML = '<div class="no-images">暂无图片数据</div>';
+        imageListDiv.style.display = 'block';
+        return;
+      }
+
+      imageListDiv.innerHTML = window.userImages.map(img => `
+        <div class="image-item" onclick="selectImage('${inputId}', '${img.rowid}', '${img.mingcheng}', '${img.url}')" data-rowid="${img.rowid}">
+          <img src="${img.url}" alt="${img.mingcheng}" />
+          <div class="image-info">
+            <div class="image-name">${img.mingcheng}</div>
+            <div class="image-category">${img.leibie || ''}</div>
+          </div>
+        </div>
+      `).join('');
+
+      imageListDiv.style.display = 'block';
+    }
+
+    function filterImageList(keyword, inputId) {
+      console.log('[图片选择器] 过滤图片, keyword:', keyword);
+
+      const imageListDiv = document.getElementById(inputId + '-imageList');
+
+      if (!keyword) {
+        imageListDiv.querySelectorAll('.image-item').forEach(item => {
+          item.style.display = 'flex';
+        });
+        return;
+      }
+
+      const lowerKeyword = keyword.toLowerCase();
+      imageListDiv.querySelectorAll('.image-item').forEach(item => {
+        const name = item.querySelector('.image-name').textContent.toLowerCase();
+        const category = item.querySelector('.image-category').textContent.toLowerCase();
+
+        if (name.includes(lowerKeyword) || category.includes(lowerKeyword)) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    function selectImage(inputId, rowid, name, url) {
+      console.log('[图片选择器] 选择图片, inputId:', inputId, 'rowid:', rowid, 'name:', name);
+
+      const inputElement = document.querySelector(`input[onfocus*="showImagePicker('${inputId}'"]`);
+
+      if (inputElement) {
+        inputElement.value = name;
+        updateTabBarItemProperty(inputId, name);
+
+        const tab = tabBarConfig.list[selectedTabBarItem];
+        tab[inputId + 'Rowid'] = rowid;
+
+        console.log('[图片选择器] 更新tab配置:', JSON.stringify(tab, null, 2));
+
+        renderTabBarList();
+        renderTabBar();
+        saveConfig();
+
+        const imageListDiv = document.getElementById(inputId + '-imageList');
+        imageListDiv.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.property-group')) {
+        document.querySelectorAll('.image-picker').forEach(picker => {
+          picker.style.display = 'none';
+        });
+      }
+    });
 
     function copySelected() {
       if (sidebarView === 'pages' && currentPage) {
@@ -2080,6 +2226,7 @@
 
             return {
               mingcheng: row.mingcheng || '',
+              leibie: row.leibie || '',
               rowid: row.rowid || '',
               url: url || ''
             };
