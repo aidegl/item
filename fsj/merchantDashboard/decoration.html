@@ -1939,11 +1939,30 @@
           tabBarConfig = data.tabBarConfig || tabBarConfig;
           pages = data.pages || [];
 
-          // 检测是否有旧的UUID格式（包含连字符）
-          const hasOldUUID = pages.some(page => page.pageId && page.pageId.includes('-'));
+          // 自动修复旧UUID格式
+          let hasOldUUID = false;
+          pages.forEach(page => {
+            if (page.pageId && page.pageId.includes('-')) {
+              page.pageId = page.pageId.replace(/-/g, '');
+              hasOldUUID = true;
+            }
+          });
+
+          // 修复tabBar中的页面ID
+          if (tabBarConfig.list) {
+            tabBarConfig.list.forEach(tab => {
+              if (tab.pageId && tab.pageId.includes('-')) {
+                tab.pageId = tab.pageId.replace(/-/g, '');
+                hasOldUUID = true;
+              }
+            });
+          }
+
+          // 如果修复了旧格式，自动保存
           if (hasOldUUID) {
-            alert('检测到旧版本的页面数据格式！\n\n请点击"清除配置"按钮清除旧数据，然后重新创建页面。\n\n旧数据格式可能导致生成的小程序代码无法正常运行。');
-            return;
+            console.log('[decoration.html] 检测到旧UUID格式，已自动修复');
+            saveConfig();
+            alert('检测到旧版本的页面数据格式，已自动修复！');
           }
 
           if (pages.length === 0) {
@@ -1965,7 +1984,9 @@
           renderPreview();
           renderTabBar();
           renderTabBarList();
-          alert('配置已加载！');
+          if (!hasOldUUID) {
+            alert('配置已加载！');
+          }
         } catch (e) {
           console.error('[decoration.html] 加载配置失败:', e);
           alert('加载配置失败！');
@@ -1983,13 +2004,6 @@
       };
 
       console.log('[decoration.html] 发布代码:', config);
-
-      // 验证数据格式
-      const hasOldUUID = pages.some(page => page.pageId && page.pageId.includes('-'));
-      if (hasOldUUID) {
-        alert('检测到旧版本的页面数据格式！\n\n请点击"清除配置"按钮清除旧数据，然后重新创建页面。\n\n旧数据格式会导致生成的小程序代码无法正常运行。');
-        return;
-      }
 
       // 验证tabBar配置
       if (tabBarConfig.list.length > 0 && tabBarConfig.list.length < 2) {
