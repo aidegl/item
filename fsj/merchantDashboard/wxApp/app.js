@@ -18,7 +18,6 @@ App({
 
   globalData: {
     userInfo: null,
-    merchantData: null,
     merchantId: '{商家ID}',
     imageMap: []
   },
@@ -30,9 +29,6 @@ App({
     
     if (rows && Array.isArray(rows)) {
       console.log('[初始化] 商家数据加载成功，共', rows.length, '条记录');
-      console.log('[初始化] 商家数据详情:', JSON.stringify(rows, null, 2));
-      
-      this.globalData.merchantData = rows;
       
       const apiResponse = {
         data: {
