@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const https = require('https');
 
 const app = express();
 const PORT = 3001;
@@ -93,14 +94,14 @@ async function copyBaseFramework(outputDir) {
 function generateAppJs(merchantId, outputDir) {
     const sourceAppJsPath = path.join(__dirname, 'wxApp', 'app.js');
     let appJsContent = fs.readFileSync(sourceAppJsPath, 'utf-8');
-    
+
     if (merchantId) {
         appJsContent = appJsContent.replace(
             /merchantId: '\{商家ID\}'/g,
             `merchantId: '${merchantId}'`
         );
     }
-    
+
     fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
     console.log('生成app.js, 商家ID:', merchantId || '');
 }
@@ -262,6 +263,64 @@ function generatePageJSON(page) {
 }`;
 }
 
+async function downloadImage(url, filepath) {
+    return new Promise((resolve, reject) => {
+        https.get(url, (response) => {
+            if (response.statusCode === 200) {
+                const fileStream = fs.createWriteStream(filepath);
+                response.pipe(fileStream);
+                fileStream.on('finish', () => {
+                    fileStream.close();
+                    console.log(`图片下载成功: ${filepath}`);
+                    resolve();
+                });
+            } else {
+                console.error(`图片下载失败: ${url}, 状态码: ${response.statusCode}`);
+                reject(new Error(`图片下载失败: ${response.statusCode}`));
+            }
+        }).on('error', (err) => {
+            console.error(`图片下载错误: ${url}`, err);
+            reject(err);
+        });
+    });
+}
+
+async function downloadTabBarIcons(config, outputDir) {
+    const imagesDir = path.join(outputDir, 'images');
+
+    if (!fs.existsSync(imagesDir)) {
+        fs.mkdirSync(imagesDir, { recursive: true });
+        console.log('创建images目录');
+    }
+
+    const iconPromises = [];
+
+    for (const tab of config.tabBarConfig.list) {
+        if (tab.selectedIconRowid && config.userImages) {
+            const selectedImage = config.userImages.find(img => img.rowid === tab.selectedIconRowid);
+            if (selectedImage && selectedImage.url) {
+                const filename = `${tab.selectedIconRowid}.png`;
+                const filepath = path.join(imagesDir, filename);
+                iconPromises.push(downloadImage(selectedImage.url, filepath));
+                tab.selectedIcon = filename;
+            }
+        }
+
+        if (tab.unselectedIconRowid && config.userImages) {
+            const unselectedImage = config.userImages.find(img => img.rowid === tab.unselectedIconRowid);
+            if (unselectedImage && unselectedImage.url) {
+                const filename = `${tab.unselectedIconRowid}.png`;
+                const filepath = path.join(imagesDir, filename);
+                iconPromises.push(downloadImage(unselectedImage.url, filepath));
+                tab.unselectedIcon = filename;
+            }
+        }
+    }
+
+    await Promise.all(iconPromises);
+    console.log('所有图标下载完成');
+}
+
 async function generateAppJson(config, outputDir) {
     const appJson = {
         pages: config.pages.map(p => `pages/${p.pageId}/index`),
@@ -361,6 +420,11 @@ app.post('/api/generate-miniprogram', async (req, res) => {
         console.log('2. 生成页面代码...');
         for (const page of config.pages) {
             await generatePage(page, uniqueDir, merchantId);
+        }
+
+        console.log('2.5. 下载tabBar图标...');
+        if (config.tabBarConfig && config.tabBarConfig.list && config.tabBarConfig.list.length > 0) {
+            await downloadTabBarIcons(config, uniqueDir);
         }
 
         console.log('3. 生成app.json...');
