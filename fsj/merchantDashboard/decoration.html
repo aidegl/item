@@ -1690,10 +1690,13 @@
       tabBar.innerHTML = tabBarConfig.list.map((tab, index) => {
         const selectedIconUrl = getImageUrlByRowid(tab.selectedIconRowid);
         const unselectedIconUrl = getImageUrlByRowid(tab.unselectedIconRowid);
+        const isActive = currentPage && currentPage.pageId === tab.pageId;
+        const iconUrl = isActive ? selectedIconUrl : unselectedIconUrl;
+        const defaultIcon = tab.name === '首页' ? '🏠' : tab.name === '分类' ? '📂' : '👤';
 
         return `
-        <div class="tab-item ${currentPage && currentPage.pageId === tab.pageId ? 'active' : ''}" onclick="selectTabBarItemFromPreview(${index})">
-          <div class="tab-icon">${selectedIconUrl ? `<img src="${selectedIconUrl}" class="tab-icon-img" />` : (tab.name === '首页' ? '🏠' : tab.name === '分类' ? '📂' : '👤')}</div>
+        <div class="tab-item ${isActive ? 'active' : ''}" onclick="selectTabBarItemFromPreview(${index})">
+          <div class="tab-icon">${iconUrl ? `<img src="${iconUrl}" class="tab-icon-img" />` : defaultIcon}</div>
           <div>${tab.name}</div>
         </div>
         `;
