@@ -255,7 +255,7 @@ async function generateAppJson(config, outputDir) {
         sitemapLocation: 'sitemap.json'
     };
 
-    if (config.tabBarConfig.list.length > 0) {
+    if (config.tabBarConfig.list.length >= 2) {
         appJson.tabBar = {
             color: config.tabBarConfig.unselectedColor || '#999999',
             selectedColor: config.tabBarConfig.selectedColor || '#667eea',
