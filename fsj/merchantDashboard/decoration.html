@@ -538,6 +538,48 @@
       margin-top: 5px;
     }
 
+    .global-setting-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .global-setting-item:hover {
+      background-color: var(--bg-color);
+    }
+
+    .global-setting-icon {
+      font-size: 20px;
+      margin-right: 12px;
+    }
+
+    .global-setting-info {
+      flex: 1;
+    }
+
+    .global-setting-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .global-setting-value {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .color-preview {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      margin-top: 8px;
+    }
+
     .image-item {
       display: flex;
       align-items: center;
@@ -887,6 +929,7 @@
               <div class="dropdown-menu" id="dropdownMenu">
                 <div class="dropdown-item" onclick="selectView('pages', event)">页面</div>
                 <div class="dropdown-item" onclick="selectView('tabbar', event)">底部导航栏</div>
+                <div class="dropdown-item" onclick="selectView('global', event)">全局设置</div>
               </div>
             </div>
           </div>
@@ -1034,6 +1077,7 @@
     ];
     let globalConfig = {
       style: 'classic',
+      themeColor: '#667eea',
       navigationBar: {
         backgroundColor: '#000000',
         textColor: '#ffffff'
@@ -1339,7 +1383,7 @@
         addButton.onclick = addPage;
         selectedTabBarItem = null;
         renderProperties();
-      } else {
+      } else if (sidebarView === 'tabbar') {
         console.log('Switching to tabbar view');
         title.textContent = '底部导航栏';
         pageTree.style.display = 'block';
@@ -1357,6 +1401,17 @@
         } else {
           renderTabBarProperties();
         }
+      } else if (sidebarView === 'global') {
+        console.log('Switching to global view');
+        title.textContent = '全局设置';
+        pageTree.style.display = 'block';
+        pageTree.innerHTML = '';
+        renderGlobalSettings();
+        addButton.style.display = 'none';
+        currentPage = null;
+        selectedComponent = null;
+        selectedTabBarItem = null;
+        renderGlobalProperties();
       }
 
       console.log('updateSidebarView completed');
@@ -1723,7 +1778,7 @@
       console.log('[底部导航] 点击底部导航项, index:', index);
       console.log('[底部导航] 切换到底部导航栏视图');
       selectView('tabbar');
-      
+
       const tab = tabBarConfig.list[index];
       if (tab && tab.pageId) {
         const page = pages.find(p => p.pageId === tab.pageId);
@@ -1733,7 +1788,7 @@
           console.log('[底部导航] currentPage 已更新为:', page.pageName);
         }
       }
-      
+
       console.log('[底部导航] 选中底部导航项');
       selectTabBarItem(index);
       console.log('[底部导航] 完成');
@@ -1769,6 +1824,65 @@
         `;
       }).join('');
       console.log('[底部导航] renderTabBarList 完成');
+    }
+
+    function renderGlobalSettings() {
+      console.log('[全局设置] renderGlobalSettings 被调用');
+      const pageTree = document.getElementById('pageTree');
+      pageTree.innerHTML = `
+        <div class="global-setting-item" onclick="selectGlobalSetting('theme')">
+          <div class="global-setting-icon">🎨</div>
+          <div class="global-setting-info">
+            <div class="global-setting-name">主题色</div>
+            <div class="global-setting-value" style="background-color: ${globalConfig.themeColor}"></div>
+          </div>
+        </div>
+        <div class="global-setting-item" onclick="selectGlobalSetting('navigation')">
+          <div class="global-setting-icon">📱</div>
+          <div class="global-setting-info">
+            <div class="global-setting-name">导航栏</div>
+            <div class="global-setting-value">
+              背景色: ${globalConfig.navigationBar.backgroundColor}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGlobalProperties() {
+      console.log('[全局设置] renderGlobalProperties 被调用');
+      const propertiesContent = document.getElementById('propertiesContent');
+      propertiesContent.innerHTML = `
+        <div class="property-group">
+          <label>主题色</label>
+          <input type="color" value="${globalConfig.themeColor}" onchange="updateGlobalConfig('themeColor', this.value)" />
+          <div class="color-preview" style="background-color: ${globalConfig.themeColor}"></div>
+        </div>
+        <div class="property-group">
+          <label>导航栏背景色</label>
+          <input type="color" value="${globalConfig.navigationBar.backgroundColor}" onchange="updateGlobalConfig('navigationBar.backgroundColor', this.value)" />
+        </div>
+        <div class="property-group">
+          <label>导航栏文字色</label>
+          <input type="color" value="${globalConfig.navigationBar.textColor}" onchange="updateGlobalConfig('navigationBar.textColor', this.value)" />
+        </div>
+      `;
+    }
+
+    function updateGlobalConfig(key, value) {
+      console.log('[全局设置] updateGlobalConfig 被调用, key:', key, 'value:', value);
+      if (key.includes('.')) {
+        const parts = key.split('.');
+        if (parts.length === 2) {
+          globalConfig[parts[0]][parts[1]] = value;
+        }
+      } else {
+        globalConfig[key] = value;
+      }
+      console.log('[全局设置] 更新后的 globalConfig:', JSON.stringify(globalConfig, null, 2));
+      renderGlobalSettings();
+      renderGlobalProperties();
+      saveConfig();
     }
 
     function editTabBarItemName(index, event) {
