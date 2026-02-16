@@ -1116,6 +1116,10 @@
       }
 
       const tab = tabBarConfig.list[selectedTabBarItem];
+
+      const selectedIconName = tab.selectedIcon || (tab.selectedIconRowid ? getImageNameByRowid(tab.selectedIconRowid) : '');
+      const unselectedIconName = tab.unselectedIcon || (tab.unselectedIconRowid ? getImageNameByRowid(tab.unselectedIconRowid) : '');
+
       propertiesContent.innerHTML = `
         <div class="property-group">
           <label>导航项名称</label>
@@ -1123,12 +1127,12 @@
         </div>
         <div class="property-group">
           <label>选中图标</label>
-          <input type="text" value="${tab.selectedIcon}" onchange="updateTabBarItemProperty('selectedIcon', this.value)" onfocus="showImagePicker('selectedIcon', this)" oninput="filterImageList(this.value, 'selectedIcon')">
+          <input type="text" value="${selectedIconName}" onchange="updateTabBarItemProperty('selectedIcon', this.value)" onfocus="showImagePicker('selectedIcon', this)" oninput="filterImageList(this.value, 'selectedIcon')">
           <div id="selectedIcon-imageList" class="image-picker" style="display: none;"></div>
         </div>
         <div class="property-group">
           <label>未选中图标</label>
-          <input type="text" value="${tab.unselectedIcon}" onchange="updateTabBarItemProperty('unselectedIcon', this.value)" onfocus="showImagePicker('unselectedIcon', this)" oninput="filterImageList(this.value, 'unselectedIcon')">
+          <input type="text" value="${unselectedIconName}" onchange="updateTabBarItemProperty('unselectedIcon', this.value)" onfocus="showImagePicker('unselectedIcon', this)" oninput="filterImageList(this.value, 'unselectedIcon')">
           <div id="unselectedIcon-imageList" class="image-picker" style="display: none;"></div>
         </div>
         <div class="property-group">
@@ -1141,6 +1145,15 @@
           </select>
         </div>
       `;
+    }
+
+    function getImageNameByRowid(rowid) {
+      if (!rowid || !window.userImages || window.userImages.length === 0) {
+        return '';
+      }
+
+      const image = window.userImages.find(img => img.rowid === rowid);
+      return image ? image.mingcheng : '';
     }
 
     function updateTabBarItemProperty(key, value) {
@@ -1230,9 +1243,9 @@
 
       if (inputElement) {
         inputElement.value = name;
-        
+        updateTabBarItemProperty(inputId, name);
+
         const tab = tabBarConfig.list[selectedTabBarItem];
-        tab[inputId] = name;
         tab[inputId + 'Rowid'] = rowid;
 
         console.log('[图片选择器] 更新tab配置:', JSON.stringify(tab, null, 2));
