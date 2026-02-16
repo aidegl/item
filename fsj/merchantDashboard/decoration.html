@@ -1131,6 +1131,14 @@
       });
     }
 
+    function generatePageId() {
+      return 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0,
+          v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
     function renderPageTree() {
       const pageTree = document.getElementById('pageTree');
       pageTree.innerHTML = '';
@@ -1354,7 +1362,7 @@
 
     function addPage() {
       const newPage = {
-        pageId: generateUUID(),
+        pageId: generatePageId(),
         pageName: '新页面 ' + (pages.length + 1),
         components: []
       };
@@ -1367,7 +1375,7 @@
       const page = pages.find(p => p.pageId === pageId);
       if (page) {
         const newPage = {
-          pageId: generateUUID(),
+          pageId: generatePageId(),
           pageName: page.pageName + ' (副本)',
           components: JSON.parse(JSON.stringify(page.components))
         };
@@ -1626,17 +1634,24 @@
         return;
       }
 
+      // 创建一个新页面
+      const newPage = {
+        pageId: generatePageId(),
+        pageName: `页面 ${pages.length + 1}`,
+        components: []
+      };
+      pages.push(newPage);
+
       const newTab = {
         name: `导航项 ${tabBarConfig.list.length + 1}`,
         selectedIcon: 'home-active.png',
         unselectedIcon: 'home.png',
-        pageId: null
+        pageId: newPage.pageId
       };
 
       console.log('newTab:', newTab);
       tabBarConfig.list.push(newTab);
       console.log('tabBarConfig.list after push:', tabBarConfig.list);
-
       selectedTabBarItem = tabBarConfig.list.length - 1;
       renderTabBarList();
       renderTabBar();
