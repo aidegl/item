@@ -551,6 +551,10 @@
       background-color: var(--bg-color);
     }
 
+    .image-item.selected {
+      background-color: var(--bg-color);
+    }
+
     .image-item img {
       width: 25px;
       height: 25px;
@@ -1043,18 +1047,18 @@
       list: [
         {
           name: '首页',
-          selectedIconRowid: '4c661940-1d8d-4f95-a6ab-4661effea87c',
-          unselectedIconRowid: '5f96392a-bd0e-4d78-a14c-803493ddf484',
           selectedIcon: '',
+          selectedIconRowid: '4c661940-1d8d-4f95-a6ab-4661effea87c',
           unselectedIcon: '',
+          unselectedIconRowid: '5f96392a-bd0e-4d78-a14c-803493ddf484',
           pageId: 'default-page-1'
         },
         {
           name: '我的',
-          selectedIconRowid: '67467570-f4ec-4aad-a374-dbbeecd43d22',
-          unselectedIconRowid: '736e427c-e162-4e98-b5dd-a877c70b6c3d',
           selectedIcon: '',
+          selectedIconRowid: '67467570-f4ec-4aad-a374-dbbeecd43d22',
           unselectedIcon: '',
+          unselectedIconRowid: '736e427c-e162-4e98-b5dd-a877c70b6c3d',
           pageId: 'default-page-2'
         }
       ]
@@ -1168,15 +1172,27 @@
 
       console.log('[图片选择器] 开始渲染', window.userImages.length, '张图片');
 
-      imageListDiv.innerHTML = window.userImages.map(img => `
-        <div class="image-item" onclick="selectImage('${inputId}', '${img.rowid}', '${img.mingcheng}', '${img.url}')" data-rowid="${img.rowid}">
+      const currentTab = tabBarConfig.list[selectedTabBarItem] || null;
+
+      imageListDiv.innerHTML = window.userImages.map(img => {
+        const isSelected =
+          currentTab &&
+          (
+            (inputId === 'selectedIcon' && img.rowid === currentTab.selectedIconRowid) ||
+            (inputId === 'unselectedIcon' && img.rowid === currentTab.unselectedIconRowid)
+          );
+        const selectedClass = isSelected ? ' selected' : '';
+
+        return `
+        <div class="image-item${selectedClass}" onclick="selectImage('${inputId}', '${img.rowid}', '${img.mingcheng}', '${img.url}')" data-rowid="${img.rowid}">
           <img src="${img.url}" alt="${img.mingcheng}" />
           <div class="image-info">
             <div class="image-name">${img.mingcheng}</div>
             <div class="image-category">${img.leibie || ''}</div>
           </div>
         </div>
-      `).join('');
+        `;
+      }).join('');
 
       console.log('[图片选择器] 渲染完成，显示图片列表');
       imageListDiv.style.display = 'block';
@@ -2101,18 +2117,18 @@
               tabBarConfig.list = [
                 {
                   name: '首页',
-                  selectedIconRowid: '4c661940-1d8d-4f95-a6ab-4661effea87c',
-                  unselectedIconRowid: '5f96392a-bd0e-4d78-a14c-803493ddf484',
                   selectedIcon: '',
+                  selectedIconRowid: '4c661940-1d8d-4f95-a6ab-4661effea87c',
                   unselectedIcon: '',
+                  unselectedIconRowid: '5f96392a-bd0e-4d78-a14c-803493ddf484',
                   pageId: 'default-page-1'
                 },
                 {
                   name: '我的',
-                  selectedIconRowid: '67467570-f4ec-4aad-a374-dbbeecd43d22',
-                  unselectedIconRowid: '736e427c-e162-4e98-b5dd-a877c70b6c3d',
                   selectedIcon: '',
+                  selectedIconRowid: '67467570-f4ec-4aad-a374-dbbeecd43d22',
                   unselectedIcon: '',
+                  unselectedIconRowid: '736e427c-e162-4e98-b5dd-a877c70b6c3d',
                   pageId: 'default-page-2'
                 }
               ];
