@@ -1715,14 +1715,7 @@
     }
 
     function selectTabBarItemFromPreview(index) {
-      const tab = tabBarConfig.list[index];
-      if (tab && tab.pageId) {
-        const page = pages.find(p => p.pageId === tab.pageId);
-        if (page) {
-          selectView('pages');
-          selectPage(page);
-        }
-      }
+      selectView('tabbar');
       selectTabBarItem(index);
     }
 
