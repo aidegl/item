@@ -91,22 +91,37 @@ async function copyBaseFramework(outputDir) {
 }
 
 function generateAppJs(merchantId, outputDir) {
-    const appJsContent = `App({
-  globalData: {
-    merchantId: '${merchantId || ''}'
-  },
+    const appJsContent = `const { initMerchantData } = require('./utils/initMerchant');
 
-  onLaunch(options) {
+App({
+  onLaunch() {
     console.log('小程序启动');
-    console.log('商家ID:', this.globalData.merchantId);
+    const merchantId = this.globalData.merchantId;
+    this.initMerchantData(merchantId);
   },
 
-  onShow(options) {
+  onShow() {
     console.log('小程序显示');
   },
 
   onHide() {
     console.log('小程序隐藏');
+  },
+
+  globalData: {
+    userInfo: null,
+    merchantData: null,
+    merchantId: '${merchantId || ''}'
+  },
+
+  async initMerchantData(merchantId) {
+    const data = await initMerchantData(merchantId);
+    if (data) {
+      this.globalData.merchantData = data;
+      console.log('全局商家数据初始化成功：', data);
+    } else {
+      console.warn('全局商家数据初始化失败');
+    }
   }
 });`;
 
@@ -153,31 +168,16 @@ function generatePageJS(page, merchantId) {
         return `  ${comp.componentName}: ${JSON.stringify(comp.componentItems)},`;
     }).join('\n');
 
-    return `const { initMerchantData } = require('../../utils/initMerchant.js');
-
-Page({
+    return `Page({
   data: {
 ${componentsData}
-    merchantData: null
   },
 
-  async onLoad(options) {
+  onLoad(options) {
     console.log('${page.pageName}页面加载', options);
     const app = getApp();
     const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
     console.log('商家ID:', appMerchantId);
-
-    try {
-      const data = await initMerchantData(appMerchantId);
-      if (data) {
-        console.log('商家数据加载成功：', data);
-        this.setData({ merchantData: data });
-      } else {
-        console.warn('商家数据为空或加载失败');
-      }
-    } catch (e) {
-      console.error('商家数据加载异常：', e);
-    }
   },
 
   onReady() {
