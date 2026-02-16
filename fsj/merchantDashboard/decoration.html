@@ -946,7 +946,7 @@
     let selectedComponent = null;
     let pages = [
       {
-        pageId: 'default-page-1',
+        pageId: 'page1',
         pageName: '新页面 1',
         components: []
       }
@@ -1133,11 +1133,11 @@
     }
 
     function generatePageId() {
-      return 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0,
-          v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
+      let pageCount = 1;
+      while (pages.some(page => page.pageId === `page${pageCount}`)) {
+        pageCount++;
+      }
+      return `page${pageCount}`;
     }
 
     function renderPageTree() {
@@ -1968,12 +1968,14 @@
           if (pages.length === 0) {
             pages = [
               {
-                pageId: 'default-page-1',
+                pageId: 'page1',
                 pageName: '新页面 1',
                 components: []
               }
             ];
-            tabBarConfig.list[0].pageId = 'default-page-1';
+            if (tabBarConfig.list.length > 0) {
+              tabBarConfig.list[0].pageId = 'page1';
+            }
           }
 
           if (pages.length > 0) {
