@@ -19,6 +19,7 @@ App({
   globalData: {
     userInfo: null,
     merchantId: '{商家ID}',
+    themeColor: '{主题色}',
     imageMap: []
   },
 
