@@ -130,11 +130,14 @@
     }
 
     .sidebar-header {
-      padding: 16px;
+      height: 56px;
+      padding: 0 16px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-sizing: border-box;
+      flex-shrink: 0;
     }
 
     .sidebar-title-group {
@@ -436,11 +439,14 @@
     }
 
     .properties-header {
-      padding: 16px;
+      height: 56px;
+      padding: 0 16px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-sizing: border-box;
+      flex-shrink: 0;
     }
 
     .properties-header h2 {
@@ -963,7 +969,7 @@
           </div>
         </div>
         <div class="phone-navbar" id="phoneNavbar">
-          <div class="navbar-back" id="navbarBack" style="display: none;">
+          <div class="navbar-back" id="navbarBack">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M15 18L9 12L15 6" stroke="black" stroke-width="2" stroke-linecap="round"
                 stroke-linejoin="round" />
@@ -994,8 +1000,8 @@
       <div class="properties-header">
         <h2>设置</h2>
         <div class="properties-actions">
-          <button class="btn btn-small" onclick="copySelected()">复制</button>
-          <button class="btn btn-small btn-danger" onclick="deleteSelected()">删除</button>
+          <button class="btn btn-small" id="copyButton" onclick="copySelected()">复制</button>
+          <button class="btn btn-small btn-danger" id="deleteButton" onclick="deleteSelected()">删除</button>
         </div>
       </div>
       <div class="properties-content" id="propertiesContent">
@@ -1085,6 +1091,7 @@
       selectedTabBarItem = index;
       renderTabBarList();
       renderTabBarProperties();
+      updateActionButtonsVisibility();
     }
 
     function renderTabBarProperties() {
@@ -1233,6 +1240,7 @@
       } else if (sidebarView === 'tabbar' && selectedTabBarItem !== null) {
         copyTabBarItem(selectedTabBarItem);
       }
+      updateActionButtonsVisibility();
     }
 
     function deleteSelected() {
@@ -1241,6 +1249,7 @@
       } else if (sidebarView === 'tabbar' && selectedTabBarItem !== null) {
         deleteTabBarItem(selectedTabBarItem);
       }
+      updateActionButtonsVisibility();
     }
 
     function copyTabBarItem(index) {
@@ -1272,6 +1281,7 @@
 
       sidebarView = view;
       updateSidebarView();
+      updateActionButtonsVisibility();
     }
 
     function updateSidebarView() {
@@ -1477,6 +1487,7 @@
       renderPageTree();
       renderPreview();
       renderProperties();
+      updateActionButtonsVisibility();
     }
 
     function addPage() {
@@ -1769,6 +1780,61 @@
       renderTabBar();
       renderTabBarProperties();
       saveConfig();
+    }
+
+    function updateActionButtonsVisibility() {
+      const copyButton = document.getElementById('copyButton');
+      const deleteButton = document.getElementById('deleteButton');
+      if (!copyButton || !deleteButton) return;
+
+      if (sidebarView === 'pages') {
+        if (!currentPage) {
+          copyButton.style.display = 'none';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        if (currentPage.pageId === 'default-page-1') {
+          copyButton.style.display = 'inline-block';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        if (currentPage.pageId === 'default-page-2') {
+          copyButton.style.display = 'none';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        copyButton.style.display = 'inline-block';
+        deleteButton.style.display = 'inline-block';
+        return;
+      }
+
+      if (sidebarView === 'tabbar') {
+        if (selectedTabBarItem === null || !tabBarConfig.list[selectedTabBarItem]) {
+          copyButton.style.display = 'none';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        const tab = tabBarConfig.list[selectedTabBarItem];
+
+        if (tab.pageId === 'default-page-1' || tab.name === '首页') {
+          copyButton.style.display = 'inline-block';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        if (tab.pageId === 'default-page-2' || tab.name === '我的') {
+          copyButton.style.display = 'none';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        copyButton.style.display = 'inline-block';
+        deleteButton.style.display = 'inline-block';
+      }
     }
 
     function editPageName(pageId, event) {
@@ -2263,6 +2329,7 @@
       renderTabBar();
 
       loadUserImages();
+      updateActionButtonsVisibility();
     };
 
     async function loadUserImages() {
