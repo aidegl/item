@@ -30,8 +30,8 @@ async function initMerchantData(merchantId) {
     });
     
     if (result.success) {
-      console.log('商家数据加载成功：', result.data);
-      return result.data;
+      console.log('商家数据加载成功，共', result.data.rows.length, '条记录');
+      return result.data.rows;
     } else {
       console.error('商家数据加载失败：', result.error_msg);
       return null;
