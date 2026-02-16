@@ -974,6 +974,21 @@
       };
     }
 
+    function parseMerchantId(raw) {
+      if (!raw) {
+        return '';
+      }
+      let value = raw.replace(/%23/g, '#');
+      if (value.includes('#')) {
+        const parts = value.split('#');
+        return parts[parts.length - 1];
+      }
+      if (value.length > 2) {
+        return value.substring(2);
+      }
+      return value;
+    }
+
     function toggleDropdown() {
       const dropdown = document.getElementById('sidebarDropdown');
       dropdown.classList.toggle('open');
@@ -1986,9 +2001,11 @@
     window.onload = function () {
       const params = getUrlParams();
       if (params.mRowid) {
-        window.merchantId = params.mRowid;
-        localStorage.setItem('merchantId', params.mRowid);
-        console.log('[decoration.html] 商家ID:', window.merchantId);
+        const parsedId = parseMerchantId(params.mRowid);
+        window.merchantId = parsedId;
+        localStorage.setItem('merchantId', parsedId);
+        console.log('[decoration.html] 商家ID原始值:', params.mRowid);
+        console.log('[decoration.html] 商家ID解析后:', window.merchantId);
       } else {
         const storedMerchantId = localStorage.getItem('merchantId') || '';
         if (storedMerchantId) {
