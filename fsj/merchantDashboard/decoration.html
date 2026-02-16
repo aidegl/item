@@ -1528,10 +1528,10 @@
       if (currentPage) {
         navbarTitle.textContent = currentPage.pageName;
         const isHomePage = tabBarConfig.list.some(tab => tab.pageId === currentPage.pageId);
-        navbarBack.style.display = isHomePage ? 'none' : 'flex';
+        navbarBack.style.visibility = isHomePage ? 'hidden' : 'visible';
       } else {
         navbarTitle.textContent = '页面标题';
-        navbarBack.style.display = 'none';
+        navbarBack.style.visibility = 'hidden';
       }
 
       if (!currentPage || currentPage.components.length === 0) {
