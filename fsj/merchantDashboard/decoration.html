@@ -1099,6 +1099,7 @@
       selectedTabBarItem = index;
       renderTabBarList();
       renderTabBarProperties();
+      renderTabBar();
       updateActionButtonsVisibility();
     }
 
@@ -1520,6 +1521,7 @@
       renderPageTree();
       renderPreview();
       renderProperties();
+      renderTabBar();
       updateActionButtonsVisibility();
     }
 
@@ -1713,7 +1715,14 @@
     }
 
     function selectTabBarItemFromPreview(index) {
-      selectView('tabbar');
+      const tab = tabBarConfig.list[index];
+      if (tab && tab.pageId) {
+        const page = pages.find(p => p.pageId === tab.pageId);
+        if (page) {
+          selectView('pages');
+          selectPage(page);
+        }
+      }
       selectTabBarItem(index);
     }
 
