@@ -810,6 +810,16 @@
     .tab-item .tab-icon {
       font-size: 20px;
       margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tab-icon-img {
+      width: 24px;
+      height: 24px;
+      object-fit: cover;
+      border-radius: 4px;
     }
 
     .tab-bar.classic .tab-item {
@@ -1618,12 +1628,26 @@
     function renderTabBar() {
       const tabBar = document.getElementById('tabBar');
       tabBar.className = 'tab-bar ' + tabBarConfig.style;
-      tabBar.innerHTML = tabBarConfig.list.map((tab, index) => `
+      tabBar.innerHTML = tabBarConfig.list.map((tab, index) => {
+        const selectedIconUrl = getImageUrlByRowid(tab.selectedIconRowid);
+        const unselectedIconUrl = getImageUrlByRowid(tab.unselectedIconRowid);
+
+        return `
         <div class="tab-item ${currentPage && currentPage.pageId === tab.pageId ? 'active' : ''}" onclick="selectTabBarItemFromPreview(${index})">
-          <div class="tab-icon">${tab.name === '首页' ? '🏠' : tab.name === '分类' ? '📂' : '👤'}</div>
+          <div class="tab-icon">${selectedIconUrl ? `<img src="${selectedIconUrl}" class="tab-icon-img" />` : (tab.name === '首页' ? '🏠' : tab.name === '分类' ? '📂' : '👤')}</div>
           <div>${tab.name}</div>
         </div>
-      `).join('');
+        `;
+      }).join('');
+    }
+
+    function getImageUrlByRowid(rowid) {
+      if (!rowid || !window.userImages || window.userImages.length === 0) {
+        return null;
+      }
+
+      const image = window.userImages.find(img => img.rowid === rowid);
+      return image ? image.url : null;
     }
 
     function selectTabBarItemFromPreview(index) {
