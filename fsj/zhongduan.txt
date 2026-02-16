@@ -103,4 +103,4 @@ root@iZf8zal6c69zav3ybcmj74Z:~# pm2 logs miniprogram-generator --lines 50
 0|miniprog | 5. 清理临时文件...
 0|miniprog | 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771211959051
 0|miniprog | 文件下载: miniprogram_1771211959051.zip
-111222333
+111222333444
