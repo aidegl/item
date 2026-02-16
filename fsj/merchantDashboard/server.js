@@ -153,16 +153,31 @@ function generatePageJS(page, merchantId) {
         return `  ${comp.componentName}: ${JSON.stringify(comp.componentItems)},`;
     }).join('\n');
 
-    return `Page({
+    return `const { initMerchantData } = require('../../utils/initMerchant.js');
+
+Page({
   data: {
 ${componentsData}
+    merchantData: null
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     console.log('${page.pageName}页面加载', options);
     const app = getApp();
     const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
     console.log('商家ID:', appMerchantId);
+
+    try {
+      const data = await initMerchantData(appMerchantId);
+      if (data) {
+        console.log('商家数据加载成功：', data);
+        this.setData({ merchantData: data });
+      } else {
+        console.warn('商家数据为空或加载失败');
+      }
+    } catch (e) {
+      console.error('商家数据加载异常：', e);
+    }
   },
 
   onReady() {
