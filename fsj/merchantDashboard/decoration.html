@@ -2026,11 +2026,13 @@
         merchantId: window.merchantId || localStorage.getItem('merchantId') || '',
         globalConfig: globalConfig,
         tabBarConfig: tabBarConfig,
-        pages: pages
+        pages: pages,
+        userImages: window.userImages || []
       };
 
       console.log('[decoration.html] 发布代码:', config);
       console.log('[decoration.html] 当前商家ID:', config.merchantId);
+      console.log('[decoration.html] 用户图片数量:', config.userImages.length);
 
       try {
         const response = await fetch('/api/generate-miniprogram', {
