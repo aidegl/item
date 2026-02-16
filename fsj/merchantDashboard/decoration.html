@@ -1013,7 +1013,12 @@
     let pages = [
       {
         pageId: 'default-page-1',
-        pageName: '新页面 1',
+        pageName: '首页',
+        components: []
+      },
+      {
+        pageId: 'default-page-2',
+        pageName: '我的',
         components: []
       }
     ];
@@ -1031,10 +1036,16 @@
       unselectedColor: '#999999',
       list: [
         {
-          name: '导航项 1',
+          name: '首页',
           selectedIcon: 'home-active.png',
           unselectedIcon: 'home.png',
           pageId: 'default-page-1'
+        },
+        {
+          name: '我的',
+          selectedIcon: 'home-active.png',
+          unselectedIcon: 'home.png',
+          pageId: 'default-page-2'
         }
       ]
     };
@@ -1996,11 +2007,51 @@
             pages = [
               {
                 pageId: 'default-page-1',
-                pageName: '新页面 1',
+                pageName: '首页',
+                components: []
+              },
+              {
+                pageId: 'default-page-2',
+                pageName: '我的',
                 components: []
               }
             ];
-            tabBarConfig.list[0].pageId = 'default-page-1';
+
+            if (!tabBarConfig || !Array.isArray(tabBarConfig.list)) {
+              tabBarConfig = {
+                style: 'classic',
+                backgroundColor: '#ffffff',
+                selectedColor: '#667eea',
+                unselectedColor: '#999999',
+                list: []
+              };
+            }
+
+            if (!tabBarConfig.list || tabBarConfig.list.length === 0) {
+              tabBarConfig.list = [
+                {
+                  name: '首页',
+                  selectedIcon: 'home-active.png',
+                  unselectedIcon: 'home.png',
+                  pageId: 'default-page-1'
+                },
+                {
+                  name: '我的',
+                  selectedIcon: 'home-active.png',
+                  unselectedIcon: 'home.png',
+                  pageId: 'default-page-2'
+                }
+              ];
+            } else {
+              if (tabBarConfig.list[0]) {
+                tabBarConfig.list[0].pageId = 'default-page-1';
+                tabBarConfig.list[0].name = tabBarConfig.list[0].name || '首页';
+              }
+              if (tabBarConfig.list[1]) {
+                tabBarConfig.list[1].pageId = 'default-page-2';
+                tabBarConfig.list[1].name = tabBarConfig.list[1].name || '我的';
+              }
+            }
           }
 
           if (pages.length > 0) {
