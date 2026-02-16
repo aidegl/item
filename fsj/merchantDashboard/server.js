@@ -124,8 +124,8 @@ async function generatePage(page, outputDir) {
 }
 
 function generatePageJS(page) {
-    const componentsData = page.components.map(comp => {
-        return `  ${comp.componentName}: ${JSON.stringify(comp.componentItems)},`;
+    const componentsData = page.components.map((comp, index) => {
+        return `  component${index}: ${JSON.stringify(comp.componentItems)},`;
     }).join('\n');
 
     return `Page({
@@ -156,31 +156,44 @@ ${componentsData}
 }
 
 function generatePageWXML(page) {
-    const componentsHTML = page.components.map(comp => {
-        return generateComponentHTML(comp);
+    console.log(`生成WXML - 页面: ${page.pageName}, 组件数量: ${page.components.length}`);
+    const componentsHTML = page.components.map((comp, index) => {
+        console.log(`生成组件HTML: ${comp.componentName}, 项目数量: ${comp.componentItems ? comp.componentItems.length : 0}`);
+        return generateComponentHTML(comp, index);
     }).join('\n');
 
-    return `<view class="page">
+    const wxml = `<view class="page">
 ${componentsHTML}
 </view>`;
+    console.log(`WXML生成完成: ${wxml.substring(0, 200)}...`);
+    return wxml;
 }
 
-function generateComponentHTML(component) {
+function generateComponentHTML(component, index) {
+    const dataKey = `component${index}`;
     switch (component.componentName) {
         case '轮播图':
             return `  <swiper class="carousel" indicator-dots autoplay interval="3000">
-    ${component.componentItems.map(item => `    <swiper-item><image src="${item}" mode="aspectFill"></image></swiper-item>`).join('\n')}
+    <block wx:for="{{${dataKey}}}" wx:key="index">
+      <swiper-item><image src="{{item}}" mode="aspectFill"></image></swiper-item>
+    </block>
   </swiper>`;
         case '功能列表':
             return `  <view class="function-list">
     <view class="function-grid">
-      ${component.componentItems.map(item => `      <view class="function-item"><text>${item}</text></view>`).join('\n')}
+      <block wx:for="{{${dataKey}}}" wx:key="index">
+        <view class="function-item"><text>{{item}}</text></view>
+      </block>
     </view>
   </view>`;
         case '图片':
-            return `  <image class="single-image" src="${component.componentItems[0]}" mode="widthFix"></image>`;
+            return `  <block wx:if="{{${dataKey}.length > 0}}">
+    <image class="single-image" src="{{${dataKey}[0]}}" mode="widthFix"></image>
+  </block>`;
         case '文本':
-            return `  <text class="custom-text" style="font-size: ${component.properties.fontSize || 16}px; color: ${component.properties.color || '#333'};">${component.componentItems[0]}</text>`;
+            return `  <block wx:if="{{${dataKey}.length > 0}}">
+    <text class="custom-text" style="font-size: ${component.properties.fontSize || 16}px; color: ${component.properties.color || '#333'};">{{${dataKey}[0]}}</text>
+  </block>`;
         default:
             return `  <view class="component">${component.componentName}</view>`;
     }
