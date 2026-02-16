@@ -10,8 +10,10 @@
   <script>
     (function () {
       var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
+      var merchantId = new URLSearchParams(window.location.search).get('mRowid') || '';
 
       console.log('[decoration.html] 资源版本号:', v);
+      console.log('[decoration.html] 商家ID:', merchantId);
 
       var scripts = ['../mingdao/MingdaoArray.js', 'decoration.js'];
       scripts.forEach(function (src) {
@@ -1814,6 +1816,7 @@
 
     async function publishCode() {
       const config = {
+        merchantId: merchantId,
         globalConfig: globalConfig,
         tabBarConfig: tabBarConfig,
         pages: pages

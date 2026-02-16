@@ -417,6 +417,220 @@ async function generateAppJson(config, outputDir) {
 }
 ```
 
+### 商家ID传递机制
+
+#### URL参数传递
+- 商家后台URL：`https://100000whys.cn/project/fsj/merchantDashboard/decoration.html?mRowid={商家ID}`
+- mRowid参数：明道云中的商家唯一标识符
+- 示例：`?mRowid=123456`
+
+#### 商家ID存储流程
+1. **前端获取商家ID**
+   ```javascript
+   const urlParams = new URLSearchParams(window.location.search);
+   const merchantId = urlParams.get('mRowid');
+   ```
+
+2. **存储到全局变量**
+   ```javascript
+   window.merchantId = merchantId;
+   localStorage.setItem('merchantId', merchantId);
+   ```
+
+3. **打包时传递给后端**
+   ```javascript
+   const config = {
+     merchantId: merchantId,
+     globalConfig: globalConfig,
+     tabBarConfig: tabBarConfig,
+     pages: pages
+   };
+   ```
+
+#### 小程序全局数据存储
+
+##### app.js中存储商家ID
+```javascript
+App({
+  globalData: {
+    merchantId: '' // 商家ID
+  },
+
+  onLaunch(options) {
+    // 从app.json或配置中获取商家ID
+    const merchantId = this.globalData.merchantId;
+    console.log('商家ID:', merchantId);
+  }
+});
+```
+
+##### 页面中获取商家ID
+```javascript
+const app = getApp();
+Page({
+  onLoad(options) {
+    const merchantId = app.globalData.merchantId;
+    console.log('当前商家ID:', merchantId);
+    
+    // 使用商家ID调用相关数据
+    this.loadMerchantData(merchantId);
+  },
+
+  loadMerchantData(merchantId) {
+    // 调用API获取该商家的数据
+    wx.request({
+      url: 'https://api.example.com/merchant/data',
+      data: {
+        merchantId: merchantId
+      },
+      success: (res) => {
+        console.log('商家数据:', res.data);
+        this.setData({
+          merchantData: res.data
+        });
+      }
+    });
+  }
+});
+```
+
+#### 后端生成代码时嵌入商家ID
+
+##### 修改generatePageJS函数
+```javascript
+function generatePageJS(page, merchantId) {
+    const components = page.components || [];
+    const data = components.map(comp => {
+        const items = comp.componentItems || [];
+        const props = comp.properties || {};
+        return `    ${comp.componentName}: ${JSON.stringify({ items, ...props })}`;
+    }).join(',\n');
+
+    return `Page({
+  data: {
+${data}
+  },
+
+  onLoad(options) {
+    console.log('页面加载:', options);
+    // 获取商家ID
+    const app = getApp();
+    const merchantId = app.globalData.merchantId || '${merchantId}';
+    console.log('商家ID:', merchantId);
+    
+    // 加载商家数据
+    this.loadMerchantData(merchantId);
+  },
+
+  loadMerchantData(merchantId) {
+    wx.request({
+      url: 'https://api.example.com/merchant/data',
+      data: {
+        merchantId: merchantId
+      },
+      success: (res) => {
+        this.setData({
+          merchantData: res.data
+        });
+      }
+    });
+  }
+});`;
+}
+```
+
+##### 修改generateAppJson函数
+```javascript
+async function generateAppJson(config, outputDir) {
+    const appJson = {
+        pages: config.pages.map(p => `pages/${p.pageId}/index`),
+        window: {
+            backgroundTextStyle: 'light',
+            navigationBarBackgroundColor: config.globalConfig.navigationBar.backgroundColor,
+            navigationBarTitleText: '小程序',
+            navigationBarTextStyle: config.globalConfig.navigationBar.textColor === '#ffffff' ? 'white' : 'black'
+        },
+        sitemapLocation: 'sitemap.json'
+    };
+
+    if (config.tabBarConfig.list.length > 0) {
+        appJson.tabBar = {
+            color: config.tabBarConfig.unselectedColor || '#999999',
+            selectedColor: config.tabBarConfig.selectedColor || '#667eea',
+            backgroundColor: config.tabBarConfig.backgroundColor || '#ffffff',
+            borderStyle: config.tabBarConfig.borderStyle || 'black',
+            list: config.tabBarConfig.list.map(tab => ({
+                pagePath: `pages/${tab.pageId}/index`,
+                text: tab.name,
+                iconPath: `images/${tab.unselectedIcon}`,
+                selectedIconPath: `images/${tab.selectedIcon}`
+            }))
+        };
+        console.log('生成tabBar配置');
+    }
+
+    fs.writeFileSync(path.join(outputDir, 'app.json'), JSON.stringify(appJson, null, 2));
+    console.log('生成app.json');
+}
+```
+
+##### 生成app.js时嵌入商家ID
+```javascript
+function generateAppJs(merchantId) {
+    return `App({
+  globalData: {
+    merchantId: '${merchantId}'
+  },
+
+  onLaunch(options) {
+    console.log('小程序启动');
+    console.log('商家ID:', this.globalData.merchantId);
+  },
+
+  onShow(options) {
+    console.log('小程序显示');
+  },
+
+  onHide() {
+    console.log('小程序隐藏');
+  }
+});`;
+}
+```
+
+#### API调用示例
+
+##### 小程序中调用商家数据
+```javascript
+const app = getApp();
+
+// 获取商家商品列表
+wx.request({
+  url: 'https://api.example.com/products',
+  data: {
+    merchantId: app.globalData.merchantId
+  },
+  success: (res) => {
+    this.setData({
+      products: res.data
+    });
+  }
+});
+
+// 获取商家订单列表
+wx.request({
+  url: 'https://api.example.com/orders',
+  data: {
+    merchantId: app.globalData.merchantId
+  },
+  success: (res) => {
+    this.setData({
+      orders: res.data
+    });
+  }
+});
+```
+
 ### 开发规范
 
 #### 前端规范
