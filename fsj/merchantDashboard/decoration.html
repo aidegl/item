@@ -1092,6 +1092,10 @@
       const tab = tabBarConfig.list[selectedTabBarItem];
       propertiesContent.innerHTML = `
         <div class="property-group">
+          <label>导航项名称</label>
+          <input type="text" value="${tab.name}" onchange="updateTabBarItemProperty('name', this.value)" />
+        </div>
+        <div class="property-group">
           <label>选中图标</label>
           <input type="text" value="${tab.selectedIcon}" onchange="updateTabBarItemProperty('selectedIcon', this.value)" onfocus="showImagePicker('selectedIcon', this)" oninput="filterImageList(this.value, 'selectedIcon')">
           <div id="selectedIcon-imageList" class="image-picker" style="display: none;"></div>
