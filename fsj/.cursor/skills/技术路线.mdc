@@ -417,7 +417,25 @@ async function generateAppJson(config, outputDir) {
 }
 ```
 
-### 商家ID传递机制
+App({
+  globalData: {
+    merchantId: '123456'
+  },
+
+  onLaunch(options) {
+    console.log('小程序启动');
+    console.log('商家ID:', this.globalData.merchantId);  // 这里会输出商家ID
+  }
+});App({
+  globalData: {
+    merchantId: '123456'
+  },
+
+  onLaunch(options) {
+    console.log('小程序启动');
+    console.log('商家ID:', this.globalData.merchantId);  // 这里会输出商家ID
+  }
+});### 商家ID传递机制
 
 #### URL参数传递
 - 商家后台URL：`https://100000whys.cn/project/fsj/merchantDashboard/decoration.html?mRowid={商家ID}`
@@ -628,6 +646,38 @@ wx.request({
       orders: res.data
     });
   }
+});
+```
+
+### 商家ID传递机制（增强版）
+
+#### URL参数获取
+从装修页面URL中提取商家ID:
+```javascript
+// 在decoration.html中
+const urlParams = new URLSearchParams(window.location.search);
+const merchantId = urlParams.get('mRowid');
+```
+
+#### 传递给后端
+生成小程序时将商家ID包含在配置中:
+```javascript
+// 在decoration.html的publishCode函数中
+const config = {
+  merchantId: merchantId,
+  // 其他配置...
+};
+```
+
+#### 小程序全局存储
+在生成的app.js中添加全局商家ID:
+```javascript
+// 在生成的app.js中
+App({
+  globalData: {
+    merchantId: '{{merchantId}}'
+  },
+  // 其他代码...
 });
 ```
 
