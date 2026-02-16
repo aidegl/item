@@ -2073,8 +2073,25 @@
         if (result.success && result.data && result.data.rows) {
           console.log('[图片导入] 成功获取', result.data.rows.length, '条记录');
 
-          window.userImages = result.data.rows;
-          console.log('[图片导入] 用户图片数据:', JSON.stringify(window.userImages, null, 2));
+          const processedImages = result.data.rows.map(row => {
+            const imgArray = JSON.parse(row.img);
+            const firstImage = imgArray[0];
+            const url = firstImage.large_thumbnail_full_path;
+
+            return {
+              mingcheng: row.mingcheng || '',
+              rowid: row.rowid || '',
+              url: url || ''
+            };
+          });
+
+          window.userImages = processedImages;
+          console.log('[图片导入] 处理后的用户图片数据:', JSON.stringify(window.userImages, null, 2));
+
+          console.log('[图片导入] 全局数据:', JSON.stringify({
+            merchantId: window.merchantId,
+            userImages: window.userImages
+          }, null, 2));
 
           renderUserImages();
         } else {
@@ -2094,7 +2111,7 @@
       }
 
       window.userImages.forEach((image, index) => {
-        console.log('[图片导入] 图片', index + 1, ':', image.rowid, image.img);
+        console.log('[图片导入] 图片', index + 1, ':', image.mingcheng, image.rowid, image.url);
       });
     }
   </script>
