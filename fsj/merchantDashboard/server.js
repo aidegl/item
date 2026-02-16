@@ -63,10 +63,9 @@ function cleanupOldFiles() {
 setInterval(cleanupOldFiles, 60 * 60 * 1000);
 cleanupOldFiles();
 
-async function copyBaseFramework(outputDir) {
+async function copyBaseFramework(outputDir, merchantId) {
     const baseDir = path.join(__dirname, 'wxApp');
     const filesToCopy = [
-        'app.js',
         'app.wxss',
         'sitemap.json',
         'project.config.json',
@@ -88,16 +87,41 @@ async function copyBaseFramework(outputDir) {
             console.log(`复制: ${item}`);
         }
     }
+
+    const appJsContent = generateAppJs(merchantId);
+    fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
+    console.log('生成app.js');
 }
 
-async function generatePage(page, outputDir) {
+function generateAppJs(merchantId) {
+    return `App({
+  globalData: {
+    merchantId: '${merchantId}'
+  },
+
+  onLaunch(options) {
+    console.log('小程序启动');
+    console.log('商家ID:', this.globalData.merchantId);
+  },
+
+  onShow(options) {
+    console.log('小程序显示');
+  },
+
+  onHide() {
+    console.log('小程序隐藏');
+  }
+});`;
+}
+
+async function generatePage(page, outputDir, merchantId) {
     try {
         const pageDir = path.join(outputDir, 'pages', page.pageId);
         console.log(`创建页面目录: ${pageDir}`);
         fs.mkdirSync(pageDir, { recursive: true });
 
         console.log(`生成JS文件...`);
-        const jsContent = generatePageJS(page);
+        const jsContent = generatePageJS(page, merchantId);
         fs.writeFileSync(path.join(pageDir, 'index.js'), jsContent);
         console.log(`JS文件生成成功`);
 
@@ -123,7 +147,7 @@ async function generatePage(page, outputDir) {
     }
 }
 
-function generatePageJS(page) {
+function generatePageJS(page, merchantId) {
     const componentsData = page.components.map(comp => {
         return `  ${comp.componentName}: ${JSON.stringify(comp.componentItems)},`;
     }).join('\n');
@@ -135,6 +159,25 @@ ${componentsData}
 
   onLoad(options) {
     console.log('${page.pageName}页面加载');
+    const app = getApp();
+    const merchantId = app.globalData.merchantId || '${merchantId}';
+    console.log('商家ID:', merchantId);
+    
+    this.loadMerchantData(merchantId);
+  },
+
+  loadMerchantData(merchantId) {
+    wx.request({
+      url: 'https://api.example.com/merchant/data',
+      data: {
+        merchantId: merchantId
+      },
+      success: (res) => {
+        this.setData({
+          merchantData: res.data
+        });
+      }
+    });
   },
 
   onReady() {
@@ -322,6 +365,8 @@ app.post('/api/generate-miniprogram', async (req, res) => {
     try {
         console.log('收到生成请求:', new Date().toISOString());
         const config = req.body;
+        const merchantId = config.merchantId || '';
+        console.log('商家ID:', merchantId);
         console.log('接收到的配置:', JSON.stringify(config, null, 2));
         console.log('tabBarConfig.list长度:', config.tabBarConfig?.list?.length || 0);
         console.log('pages长度:', config.pages?.length || 0);
@@ -331,11 +376,11 @@ app.post('/api/generate-miniprogram', async (req, res) => {
         fs.mkdirSync(uniqueDir, { recursive: true });
 
         console.log('1. 复制基础框架代码...');
-        await copyBaseFramework(uniqueDir);
+        await copyBaseFramework(uniqueDir, merchantId);
 
         console.log('2. 生成页面代码...');
         for (const page of config.pages) {
-            await generatePage(page, uniqueDir);
+            await generatePage(page, uniqueDir, merchantId);
         }
 
         console.log('3. 生成app.json...');
