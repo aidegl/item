@@ -2022,7 +2022,81 @@
       renderPageTree();
       renderPreview();
       renderTabBar();
+
+      loadUserImages();
     };
+
+    async function loadUserImages() {
+      console.log('[图片导入] 开始加载用户上传的图片');
+
+      const api = new MingDaoYunArrayAPI();
+
+      const filters = [
+        {
+          'controlId': 'mid',
+          'dataType': 2,
+          'spliceType': 2,
+          'filterType': 2,
+          'value': window.merchantId
+        },
+        {
+          'controlId': 'shangjia',
+          'dataType': 2,
+          'spliceType': 2,
+          'filterType': 24,
+          'value': 'e26e5792-65c6-483e-8dde-fb7c0a667f84'
+        }
+      ];
+
+      const requestParams = {
+        worksheetId: 'scgl',
+        filters: filters,
+        pageSize: 50,
+        pageIndex: 1
+      };
+
+      console.log('[图片导入] 请求参数:', JSON.stringify(requestParams, null, 2));
+      console.log('[图片导入] 请求体:', JSON.stringify({
+        appKey: api.appKey,
+        sign: api.sign,
+        worksheetId: 'scgl',
+        filters: filters,
+        pageSize: 50,
+        pageIndex: 1
+      }, null, 2));
+
+      try {
+        const result = await api.getData(requestParams);
+
+        console.log('[图片导入] API返回结果:', JSON.stringify(result, null, 2));
+
+        if (result.success && result.data && result.data.rows) {
+          console.log('[图片导入] 成功获取', result.data.rows.length, '条记录');
+
+          window.userImages = result.data.rows;
+          console.log('[图片导入] 用户图片数据:', JSON.stringify(window.userImages, null, 2));
+
+          renderUserImages();
+        } else {
+          console.error('[图片导入] 获取图片失败:', result.error_msg);
+        }
+      } catch (error) {
+        console.error('[图片导入] 调用异常:', error);
+      }
+    }
+
+    function renderUserImages() {
+      console.log('[图片导入] 开始渲染用户图片');
+
+      if (!window.userImages || window.userImages.length === 0) {
+        console.warn('[图片导入] 没有用户图片数据');
+        return;
+      }
+
+      window.userImages.forEach((image, index) => {
+        console.log('[图片导入] 图片', index + 1, ':', image.rowid, image.img);
+      });
+    }
   </script>
 </body>
 
