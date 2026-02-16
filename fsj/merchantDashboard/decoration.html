@@ -1230,9 +1230,9 @@
 
       if (inputElement) {
         inputElement.value = name;
-        updateTabBarItemProperty(inputId, name);
-
+        
         const tab = tabBarConfig.list[selectedTabBarItem];
+        tab[inputId] = name;
         tab[inputId + 'Rowid'] = rowid;
 
         console.log('[图片选择器] 更新tab配置:', JSON.stringify(tab, null, 2));
