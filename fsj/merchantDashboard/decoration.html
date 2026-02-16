@@ -792,6 +792,7 @@
   <div class="header">
     <h1>门店装修</h1>
     <div class="header-actions">
+      <button class="btn" onclick="clearConfig()">清除配置</button>
       <button class="btn" onclick="saveConfig()">保存配置</button>
       <button class="btn" onclick="publishCode()">发布新版本</button>
     </div>
@@ -1904,6 +1905,31 @@
       localStorage.setItem('decorationConfig', JSON.stringify(config));
     }
 
+    function clearConfig() {
+      if (confirm('确定要清除所有配置吗？这将删除所有页面和底部导航项！')) {
+        localStorage.removeItem('decorationConfig');
+
+        // 重置为初始状态
+        pages = [];
+        tabBarConfig = {
+          style: 'white',
+          selectedColor: '#667eea',
+          unselectedColor: '#999999',
+          backgroundColor: '#ffffff',
+          borderStyle: 'black',
+          list: []
+        };
+        currentPage = null;
+        selectedTabBarItem = null;
+        selectedComponent = null;
+
+        // 创建一个默认页面
+        addPage();
+
+        alert('配置已清除！');
+      }
+    }
+
     function loadConfig() {
       const config = localStorage.getItem('decorationConfig');
       if (config) {
@@ -1912,6 +1938,13 @@
           globalConfig = data.globalConfig || globalConfig;
           tabBarConfig = data.tabBarConfig || tabBarConfig;
           pages = data.pages || [];
+
+          // 检测是否有旧的UUID格式（包含连字符）
+          const hasOldUUID = pages.some(page => page.pageId && page.pageId.includes('-'));
+          if (hasOldUUID) {
+            alert('检测到旧版本的页面数据格式！\n\n请点击"清除配置"按钮清除旧数据，然后重新创建页面。\n\n旧数据格式可能导致生成的小程序代码无法正常运行。');
+            return;
+          }
 
           if (pages.length === 0) {
             pages = [
@@ -1950,6 +1983,19 @@
       };
 
       console.log('[decoration.html] 发布代码:', config);
+
+      // 验证数据格式
+      const hasOldUUID = pages.some(page => page.pageId && page.pageId.includes('-'));
+      if (hasOldUUID) {
+        alert('检测到旧版本的页面数据格式！\n\n请点击"清除配置"按钮清除旧数据，然后重新创建页面。\n\n旧数据格式会导致生成的小程序代码无法正常运行。');
+        return;
+      }
+
+      // 验证tabBar配置
+      if (tabBarConfig.list.length > 0 && tabBarConfig.list.length < 2) {
+        alert('底部导航栏配置错误：\n\n如果启用底部导航栏，至少需要2个导航项。\n\n请添加更多导航项，或者删除现有的导航项。');
+        return;
+      }
 
       try {
         const response = await fetch('/api/generate-miniprogram', {
