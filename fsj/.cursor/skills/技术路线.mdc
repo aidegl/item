@@ -238,6 +238,21 @@ JSON成象是指将JSON数据转换为小程序页面的组件，每个组件都
 - 右侧：属性面板（选中组件的属性设置）
 - 底部：预览区域（实时预览小程序页面效果）
 
+##### 视图切换
+- **页面视图**：显示页面列表和组件库
+- **底部导航栏视图**：显示底部导航项列表和属性配置
+- **全局设置视图**：显示全局样式配置（主题色、导航栏样式等）
+
+##### 全局设置功能
+- **主题色选择**：设置小程序全局主题色（影响按钮、链接等元素）
+- **导航栏配置**：
+  - 背景色设置
+  - 文字色设置
+- **底部导航栏配置**：
+  - 背景色设置
+  - 选中色设置
+  - 未选中色设置
+
 ##### 组件拖拉拽
 - 从组件库拖拽组件到页面
 - 支持组件排序（拖动排序）
@@ -584,7 +599,7 @@ owid 和 img 字段
   "商家ID": "123456",
   "配置名称": "首页配置",
   "全局配置": {
-    "风格": "风格1",
+    "主题色": "#667eea",
     "导航栏": {
       "背景色": "#000000",
       "文字色": "#ffffff"
@@ -775,13 +790,18 @@ async function generateAppJson(config, outputDir) {
             navigationBarTitleText: '小程序',
             navigationBarTextStyle: config.globalConfig.navigationBar.textColor === '#ffffff' ? 'white' : 'black'
         },
+        globalStyle: {
+            navigationBarTextStyle: config.globalConfig.navigationBar.textColor === '#ffffff' ? 'white' : 'black',
+            navigationBarTitleText: '小程序',
+            navigationBarBackgroundColor: config.globalConfig.navigationBar.backgroundColor
+        },
         sitemapLocation: 'sitemap.json'
     };
 
     if (config.tabBarConfig.list.length > 0) {
         appJson.tabBar = {
             color: config.tabBarConfig.unselectedColor || '#999999',
-            selectedColor: config.tabBarConfig.selectedColor || '#667eea',
+            selectedColor: config.tabBarConfig.selectedColor || config.globalConfig.themeColor || '#667eea',
             backgroundColor: config.tabBarConfig.backgroundColor || '#ffffff',
             borderStyle: config.tabBarConfig.borderStyle || 'black',
             list: config.tabBarConfig.list.map(tab => ({
@@ -797,6 +817,16 @@ async function generateAppJson(config, outputDir) {
     fs.writeFileSync(path.join(outputDir, 'app.json'), JSON.stringify(appJson, null, 2));
     console.log('生成app.json');
 }
+```
+
+**配置说明**：
+- **window**：所有页面的默认导航栏配置
+- **globalStyle**：小程序全局样式（微信基础库2.9.0+支持）
+  - 优先级高于window配置
+  - 主题色通过 `globalConfig.themeColor` 传递
+- **tabBar**：底部导航栏配置
+  - 选中色优先使用 `globalConfig.themeColor`
+  - 未选中色使用 `tabBarConfig.unselectedColor`
 ```
 
 ##### 生成app.js时嵌入商家ID

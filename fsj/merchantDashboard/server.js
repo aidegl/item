@@ -330,13 +330,18 @@ async function generateAppJson(config, outputDir) {
             navigationBarTitleText: '小程序',
             navigationBarTextStyle: config.globalConfig.navigationBar.textColor === '#ffffff' ? 'white' : 'black'
         },
+        globalStyle: {
+            navigationBarTextStyle: config.globalConfig.navigationBar.textColor === '#ffffff' ? 'white' : 'black',
+            navigationBarTitleText: '小程序',
+            navigationBarBackgroundColor: config.globalConfig.navigationBar.backgroundColor
+        },
         sitemapLocation: 'sitemap.json'
     };
 
     if (config.tabBarConfig.list.length > 0) {
         appJson.tabBar = {
             color: config.tabBarConfig.unselectedColor || '#999999',
-            selectedColor: config.tabBarConfig.selectedColor || '#667eea',
+            selectedColor: config.tabBarConfig.selectedColor || config.globalConfig.themeColor || '#667eea',
             backgroundColor: config.tabBarConfig.backgroundColor || '#ffffff',
             borderStyle: config.tabBarConfig.borderStyle || 'black',
             list: config.tabBarConfig.list.map(tab => ({
