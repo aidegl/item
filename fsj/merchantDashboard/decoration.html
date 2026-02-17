@@ -36,6 +36,8 @@
     :root {
       --primary-color: #0557e1ff;
       --primary-hover: #044ac3;
+      --admin-primary-color: #0557e1ff;
+      --admin-primary-hover: #044ac3;
       --bg-color: #f8fafc;
       --card-bg: #ffffff;
       --text-main: #1e293b;
@@ -91,7 +93,7 @@
 
     .btn {
       padding: 8px 20px;
-      background: var(--primary-color);
+      background: var(--admin-primary-color);
       color: #fff;
       border: none;
       border-radius: var(--border-radius);
@@ -103,7 +105,7 @@
     }
 
     .btn:hover {
-      background: var(--primary-hover);
+      background: var(--admin-primary-hover);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
@@ -220,7 +222,7 @@
     }
 
     .dropdown-item:hover {
-      background: var(--primary-color);
+      background: var(--admin-primary-color);
       color: #fff;
     }
 
@@ -295,11 +297,11 @@
 
     .page-item.active {
       background: #e0e7ff;
-      color: var(--primary-color);
+      color: var(--admin-primary-color);
     }
 
     .page-item.active .toggle-arrow {
-      color: var(--primary-color);
+      color: var(--admin-primary-color);
     }
 
     .page-children {
@@ -333,7 +335,7 @@
     }
 
     .page-child-item.drag-over {
-      border-top: 2px solid var(--primary-color);
+      border-top: 2px solid var(--admin-primary-color);
     }
 
     .page-child-item:hover {
@@ -342,7 +344,7 @@
 
     .page-child-item.selected {
       background: #e0e7ff;
-      color: var(--primary-color);
+      color: var(--admin-primary-color);
     }
 
     .page-child-item .child-icon {
@@ -379,7 +381,7 @@
     }
 
     .page-item .page-action-btn:hover {
-      background: var(--primary-color);
+      background: var(--admin-primary-color);
       color: #fff;
     }
 
@@ -422,7 +424,7 @@
     }
 
     .component-item:hover {
-      border-color: var(--primary-color);
+      border-color: var(--admin-primary-color);
       transform: translateY(-2px);
     }
 
@@ -499,6 +501,70 @@
       flex: 1;
     }
 
+    .page-select {
+      position: relative;
+      width: 100%;
+    }
+
+    .select-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 42px;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      background: #fff;
+      font-size: 14px;
+      color: var(--text-main);
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .select-arrow {
+      font-size: 10px;
+      color: var(--text-secondary);
+      transition: transform 0.2s;
+    }
+
+    .page-select.open .select-arrow {
+      transform: rotate(180deg);
+    }
+
+    .select-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      display: none;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .page-select.open .select-menu {
+      display: block;
+    }
+
+    .select-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+
+    .select-item:hover {
+      background: var(--admin-primary-color);
+      color: #fff;
+    }
+
     .theme-token-btn {
       margin-top: 0;
       height: 42px;
@@ -516,8 +582,8 @@
 
     .theme-token-btn:hover {
       color: #fff;
-      background: var(--primary-color);
-      border-color: var(--primary-color);
+      background: var(--admin-primary-color);
+      border-color: var(--admin-primary-color);
     }
 
     .property-group label {
@@ -546,7 +612,7 @@
     .property-group select:focus,
     .property-group textarea:focus {
       outline: none;
-      border-color: var(--primary-color);
+      border-color: var(--admin-primary-color);
       box-shadow: 0 0 0 3px rgba(5, 87, 225, 0.1);
     }
 
@@ -597,7 +663,7 @@
 
     .color-text-input:focus {
       outline: none;
-      border-color: var(--primary-color);
+      border-color: var(--admin-primary-color);
     }
 
     .color-picker-popup {
@@ -656,12 +722,12 @@
     }
 
     .color-picker-popup-footer .btn-confirm {
-      background: var(--primary-color);
+      background: var(--admin-primary-color);
       color: white;
     }
 
     .color-picker-popup-footer .btn-confirm:hover {
-      background: var(--primary-hover);
+      background: var(--admin-primary-hover);
     }
 
     .color-picker-container {
@@ -1200,9 +1266,10 @@
         components: []
       }
     ];
+    currentPage = pages[0];
     let globalConfig = {
       style: 'classic',
-      themeColor: '#667eea',
+      themeColor: '#0557e1ff',
       navigationBar: {
         backgroundColor: '#ffffff',
         textColor: '#181818'
@@ -1234,7 +1301,7 @@
     };
 
     let sidebarView = 'pages';
-    let selectedTabBarItem = null;
+    let selectedTabBarItem = 0;
 
     function getUrlParams() {
       const params = new URLSearchParams(window.location.search);
@@ -1264,16 +1331,56 @@
       dropdown.classList.toggle('open');
     }
 
+    function toggleTabBarPageDropdown(event) {
+      if (event) {
+        event.stopPropagation();
+      }
+      const dropdown = document.getElementById('tabBarPageSelect');
+      if (dropdown) {
+        dropdown.classList.toggle('open');
+      }
+    }
+
+    function selectTabBarPageIdFromEvent(event) {
+      event.stopPropagation();
+      const target = event.currentTarget;
+      if (!target) {
+        return;
+      }
+      const pageId = target.getAttribute('data-page-id') || '';
+      const pageName = target.getAttribute('data-page-name') || '未选择';
+      updateTabBarItemProperty('pageId', pageId);
+      const label = document.getElementById('tabBarPageSelectLabel');
+      if (label) {
+        label.textContent = pageName;
+      }
+      const dropdown = document.getElementById('tabBarPageSelect');
+      if (dropdown) {
+        dropdown.classList.remove('open');
+      }
+    }
+
     function selectTabBarItem(index) {
       console.log('[底部导航] selectTabBarItem 被调用, index:', index);
       selectedTabBarItem = index;
       console.log('[底部导航] selectedTabBarItem 已更新为:', selectedTabBarItem);
+      const tab = tabBarConfig.list[index];
+      if (tab && tab.pageId) {
+        const page = pages.find(p => p.pageId === tab.pageId);
+        if (page) {
+          currentPage = page;
+        }
+      }
       renderTabBarList();
       console.log('[底部导航] renderTabBarList 已调用');
       renderTabBarProperties();
       console.log('[底部导航] renderTabBarProperties 已调用');
       renderTabBar();
       console.log('[底部导航] renderTabBar 已调用');
+      if (sidebarView === 'pages') {
+        renderPageTree();
+      }
+      renderPreview();
       updateActionButtonsVisibility();
     }
 
@@ -1291,6 +1398,8 @@
       }
 
       const tab = tabBarConfig.list[selectedTabBarItem];
+      const selectedPage = pages.find(p => p.pageId === tab.pageId);
+      const selectedPageName = selectedPage ? selectedPage.pageName : '未选择';
 
       const selectedIconName = tab.selectedIcon || (tab.selectedIconRowid ? getImageNameByRowid(tab.selectedIconRowid) : '');
       const unselectedIconName = tab.unselectedIcon || (tab.unselectedIconRowid ? getImageNameByRowid(tab.unselectedIconRowid) : '');
@@ -1312,12 +1421,18 @@
         </div>
         <div class="property-group">
           <label>关联页面</label>
-          <select onchange="updateTabBarItemProperty('pageId', this.value)">
-            <option value="">未选择</option>
-            ${pages.map(p => `
-              <option value="${p.pageId}" ${tab.pageId === p.pageId ? 'selected' : ''}>${p.pageName}</option>
-            `).join('')}
-          </select>
+          <div class="page-select" id="tabBarPageSelect">
+            <div class="select-trigger" onclick="toggleTabBarPageDropdown(event)">
+              <span id="tabBarPageSelectLabel">${selectedPageName}</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-menu">
+              <div class="select-item" data-page-id="" data-page-name="未选择" onclick="selectTabBarPageIdFromEvent(event)">未选择</div>
+              ${pages.map(p => `
+                <div class="select-item" data-page-id="${p.pageId}" data-page-name="${p.pageName}" onclick="selectTabBarPageIdFromEvent(event)">${p.pageName}</div>
+              `).join('')}
+            </div>
+          </div>
         </div>
       `;
     }
@@ -1845,10 +1960,21 @@
         pageTree.style.visibility = 'visible';
         pageTree.style.pointerEvents = 'auto';
         pageTree.innerHTML = '';
+        if (tabBarConfig.list.length > 0) {
+          if (selectedTabBarItem === null) {
+            selectedTabBarItem = 0;
+          }
+          const selectedTab = tabBarConfig.list[selectedTabBarItem];
+          if (selectedTab && selectedTab.pageId) {
+            const targetPage = pages.find(p => p.pageId === selectedTab.pageId);
+            if (targetPage) {
+              currentPage = targetPage;
+            }
+          }
+        }
         renderPageTree();
         addButton.style.display = 'block';
         addButton.onclick = addPage;
-        selectedTabBarItem = null;
         renderProperties();
       } else if (sidebarView === 'tabbar') {
         console.log('Switching to tabbar view');
@@ -1877,7 +2003,11 @@
         pageTree.style.visibility = 'hidden';
         pageTree.style.pointerEvents = 'none';
         addButton.style.display = 'none';
+        if (!currentPage && pages.length > 0) {
+          currentPage = pages[0];
+        }
         renderGlobalProperties();
+        renderTabBar();
       }
 
       console.log('updateSidebarView completed');
@@ -1887,6 +2017,10 @@
       const dropdown = document.getElementById('sidebarDropdown');
       if (dropdown && !dropdown.contains(event.target)) {
         dropdown.classList.remove('open');
+      }
+      const pageSelect = document.getElementById('tabBarPageSelect');
+      if (pageSelect && !pageSelect.contains(event.target)) {
+        pageSelect.classList.remove('open');
       }
     });
 
@@ -2307,7 +2441,7 @@
       input.type = 'text';
       input.value = tab.name;
       input.className = 'page-name-input';
-      input.style.cssText = 'font-size: 14px; font-weight: 500; color: var(--text-main); border: 1px solid var(--primary-color); border-radius: 4px; padding: 4px 8px; width: 100%; box-sizing: border-box;';
+      input.style.cssText = 'font-size: 14px; font-weight: 500; color: var(--text-main); border: 1px solid var(--admin-primary-color); border-radius: 4px; padding: 4px 8px; width: 100%; box-sizing: border-box;';
 
       const saveName = () => {
         const newName = input.value.trim();
@@ -2441,7 +2575,7 @@
       input.type = 'text';
       input.value = page.pageName;
       input.className = 'page-name-input';
-      input.style.cssText = 'font-size: 14px; font-weight: 500; color: var(--text-main); border: 1px solid var(--primary-color); border-radius: 4px; padding: 4px 8px; width: 100%; box-sizing: border-box;';
+      input.style.cssText = 'font-size: 14px; font-weight: 500; color: var(--text-main); border: 1px solid var(--admin-primary-color); border-radius: 4px; padding: 4px 8px; width: 100%; box-sizing: border-box;';
 
       const saveName = () => {
         const newName = input.value.trim();
