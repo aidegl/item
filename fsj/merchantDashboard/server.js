@@ -6,6 +6,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const https = require('https');
 const Jimp = require('jimp');
+const { registerComponent, getComponent } = require('./components/componentRegistry');
 
 const app = express();
 const PORT = 3001;
@@ -187,74 +188,25 @@ ${componentsHTML}
 }
 
 function generateComponentHTML(component) {
-    switch (component.componentName) {
-        case '轮播图':
-            return `  <swiper class="carousel" indicator-dots autoplay interval="3000">
-    ${component.componentItems.map(item => `    <swiper-item><image src="${item}" mode="aspectFill"></image></swiper-item>`).join('\n')}
-  </swiper>`;
-        case '功能列表':
-            return `  <view class="function-list">
-    <view class="function-grid">
-      ${component.componentItems.map(item => `      <view class="function-item"><text>${item}</text></view>`).join('\n')}
-    </view>
-  </view>`;
-        case '图片':
-            return `  <image class="single-image" src="${component.componentItems[0]}" mode="widthFix"></image>`;
-        case '文本':
-            return `  <text class="custom-text" style="font-size: ${component.properties.fontSize || 16}px; color: ${component.properties.color || '#333'};">${component.componentItems[0]}</text>`;
-        default:
-            return `  <view class="component">${component.componentName}</view>`;
+    const comp = getComponent(component.componentName);
+    if (comp && comp.generateHTML) {
+        return comp.generateHTML(component);
     }
+    return `  <view class="component">${component.componentName}</view>`;
 }
 
 function generatePageWXSS(page) {
+    const componentsCSS = page.components.map(comp => {
+        const comp = getComponent(comp.componentName);
+        return comp && comp.generateCSS ? comp.generateCSS() : '';
+    }).filter(css => css).join('\n\n');
+
     return `.page {
   min-height: 100vh;
   background: #f5f5f5;
 }
 
-.carousel {
-  width: 100%;
-  height: 200px;
-}
-
-.carousel image {
-  width: 100%;
-  height: 100%;
-}
-
-.function-list {
-  background: #fff;
-  padding: 10px;
-  margin: 10px;
-  border-radius: 8px;
-}
-
-.function-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.function-item {
-  text-align: center;
-  padding: 10px;
-}
-
-.function-item text {
-  font-size: 12px;
-  color: #666;
-}
-
-.single-image {
-  width: 100%;
-  display: block;
-}
-
-.custom-text {
-  padding: 10px;
-  display: block;
-}`;
+${componentsCSS}`;
 }
 
 function generatePageJSON(page) {
@@ -570,4 +522,15 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
     console.log(`服务器运行在 http://localhost:${PORT}`);
     console.log(`健康检查: http://localhost:${PORT}/health`);
+
+    registerComponent('轮播图', require('./components/carousel'));
+    registerComponent('功能列表', require('./components/function-list'));
+    registerComponent('图片', require('./components/image'));
+    registerComponent('文本', require('./components/text'));
+    registerComponent('商品网格', require('./components/product-grid'));
+    registerComponent('公告', require('./components/notice'));
+    registerComponent('标签页面', require('./components/tabs'));
+    registerComponent('内容列表', require('./components/content-list'));
+
+    console.log('组件注册完成');
 });
