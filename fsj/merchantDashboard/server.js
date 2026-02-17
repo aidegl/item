@@ -380,7 +380,8 @@ async function generateAppJson(config, outputDir) {
     }
 
     fs.writeFileSync(path.join(outputDir, 'app.json'), JSON.stringify(appJson, null, 2));
-    console.log('生成app.json');
+    console.log('生成app.json，内容如下:');
+    console.log(JSON.stringify(appJson, null, 2));
 }
 
 async function createZip(sourceDir, zipPath) {
