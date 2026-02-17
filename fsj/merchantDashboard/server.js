@@ -321,28 +321,53 @@ async function downloadTabBarIcons(config, outputDir) {
     console.log('所有图标下载完成');
 }
 
+function resolveThemeColor(value, themeColor) {
+    if (!value) {
+        return value;
+    }
+    if (value === '{主题色}') {
+        return themeColor || value;
+    }
+    return value;
+}
+
 async function generateAppJson(config, outputDir) {
+    const themeColor = config.globalConfig && config.globalConfig.themeColor ? config.globalConfig.themeColor : '#667eea';
+    const navBackgroundColor = resolveThemeColor(config.globalConfig.navigationBar.backgroundColor, themeColor) || '#ffffff';
+    const navTextColor = resolveThemeColor(config.globalConfig.navigationBar.textColor, themeColor) || '#181818';
+    const navigationBarTextStyle = navTextColor && navTextColor.toLowerCase() === '#ffffff' ? 'white' : 'black';
+
     const appJson = {
         pages: config.pages.map(p => `pages/${p.pageId}/index`),
         window: {
             backgroundTextStyle: 'light',
-            navigationBarBackgroundColor: config.globalConfig.navigationBar.backgroundColor,
+            navigationBarBackgroundColor: navBackgroundColor,
             navigationBarTitleText: '小程序',
-            navigationBarTextStyle: config.globalConfig.navigationBar.textColor === '#ffffff' ? 'white' : 'black'
+            navigationBarTextStyle: navigationBarTextStyle
         },
         globalStyle: {
-            navigationBarTextStyle: config.globalConfig.navigationBar.textColor === '#ffffff' ? 'white' : 'black',
+            navigationBarTextStyle: navigationBarTextStyle,
             navigationBarTitleText: '小程序',
-            navigationBarBackgroundColor: config.globalConfig.navigationBar.backgroundColor
+            navigationBarBackgroundColor: navBackgroundColor
         },
         sitemapLocation: 'sitemap.json'
     };
 
     if (config.tabBarConfig.list.length > 0) {
+        const tabBarBackgroundColorRaw = config.tabBarConfig.backgroundColor || '#ffffff';
+        const tabBarBackgroundColor = resolveThemeColor(tabBarBackgroundColorRaw, themeColor) || '#ffffff';
+        const unselectedColorRaw = config.tabBarConfig.unselectedColor || '#999999';
+        const unselectedColor = resolveThemeColor(unselectedColorRaw, themeColor) || '#999999';
+        const selectedColorRaw = config.tabBarConfig.selectedColor;
+        let selectedColor = resolveThemeColor(selectedColorRaw, themeColor);
+        if (!selectedColor) {
+            selectedColor = themeColor || '#667eea';
+        }
+
         appJson.tabBar = {
-            color: config.tabBarConfig.unselectedColor || '#999999',
-            selectedColor: config.tabBarConfig.selectedColor || config.globalConfig.themeColor || '#667eea',
-            backgroundColor: config.tabBarConfig.backgroundColor || '#ffffff',
+            color: unselectedColor,
+            selectedColor: selectedColor,
+            backgroundColor: tabBarBackgroundColor,
             borderStyle: config.tabBarConfig.borderStyle || 'black',
             list: config.tabBarConfig.list.map(tab => ({
                 pagePath: `pages/${tab.pageId}/index`,
