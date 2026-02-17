@@ -424,7 +424,7 @@ async function generateAppJson(config, outputDir) {
             color: unselectedColor,
             selectedColor: selectedColor,
             backgroundColor: tabBarBackgroundColor,
-            borderStyle: config.tabBarConfig.borderStyle || 'black',
+            borderStyle: 'white',
             list: config.tabBarConfig.list.map(tab => ({
                 pagePath: `pages/${tab.pageId}/index`,
                 text: tab.name,
