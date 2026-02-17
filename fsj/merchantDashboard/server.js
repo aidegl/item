@@ -5,6 +5,7 @@ const fs = require('fs');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const https = require('https');
+const Jimp = require('jimp');
 
 const app = express();
 const PORT = 3001;
@@ -295,13 +296,37 @@ async function downloadTabBarIcons(config, outputDir) {
 
     const iconPromises = [];
 
+    const themeColorRaw = config.globalConfig && config.globalConfig.themeColor ? config.globalConfig.themeColor : '#667eea';
+    const themeColor = normalizeColorForAppJson(themeColorRaw) || '#667eea';
+
+    const unselectedColorResolved = resolveThemeColor(config.tabBarConfig.unselectedColor || '#999999', themeColor);
+    const unselectedColor = normalizeColorForAppJson(unselectedColorResolved) || '#999999';
+
+    const selectedColorResolved = resolveThemeColor(config.tabBarConfig.selectedColor, themeColor);
+    let selectedColor = normalizeColorForAppJson(selectedColorResolved);
+    if (!selectedColor) {
+        selectedColor = themeColor || '#667eea';
+    }
+
     for (const tab of config.tabBarConfig.list) {
         if (tab.selectedIconRowid && config.userImages) {
             const selectedImage = config.userImages.find(img => img.rowid === tab.selectedIconRowid);
             if (selectedImage && selectedImage.url) {
                 const filename = `${tab.selectedIconRowid}.png`;
                 const filepath = path.join(imagesDir, filename);
-                iconPromises.push(downloadImage(selectedImage.url, filepath));
+                iconPromises.push(
+                    downloadImage(selectedImage.url, filepath)
+                        .then(async () => {
+                            try {
+                                const image = await Jimp.read(filepath);
+                                image.color([{ apply: 'mix', params: [selectedColor, 100] }]);
+                                await image.writeAsync(filepath);
+                                console.log(`选中图标已叠加颜色 ${selectedColor}: ${filepath}`);
+                            } catch (err) {
+                                console.error('选中图标叠加颜色失败:', filepath, selectedColor, err);
+                            }
+                        })
+                );
                 tab.selectedIcon = filename;
             }
         }
@@ -311,7 +336,19 @@ async function downloadTabBarIcons(config, outputDir) {
             if (unselectedImage && unselectedImage.url) {
                 const filename = `${tab.unselectedIconRowid}.png`;
                 const filepath = path.join(imagesDir, filename);
-                iconPromises.push(downloadImage(unselectedImage.url, filepath));
+                iconPromises.push(
+                    downloadImage(unselectedImage.url, filepath)
+                        .then(async () => {
+                            try {
+                                const image = await Jimp.read(filepath);
+                                image.color([{ apply: 'mix', params: [unselectedColor, 100] }]);
+                                await image.writeAsync(filepath);
+                                console.log(`未选中图标已叠加颜色 ${unselectedColor}: ${filepath}`);
+                            } catch (err) {
+                                console.error('未选中图标叠加颜色失败:', filepath, unselectedColor, err);
+                            }
+                        })
+                );
                 tab.unselectedIcon = filename;
             }
         }
