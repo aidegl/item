@@ -1514,6 +1514,7 @@
       const navbar = document.getElementById('phoneNavbar');
       const navbarTitle = document.getElementById('navbarTitle');
       const navbarBack = document.getElementById('navbarBack');
+      const statusBar = document.querySelector('.phone-status-bar');
       if (navbar && globalConfig && globalConfig.navigationBar) {
         navbar.style.backgroundColor = globalConfig.navigationBar.backgroundColor;
       }
@@ -1526,6 +1527,10 @@
         if (path) {
           path.setAttribute('stroke', globalConfig.navigationBar.textColor);
         }
+      }
+      if (statusBar && globalConfig && globalConfig.navigationBar) {
+        statusBar.style.backgroundColor = globalConfig.navigationBar.backgroundColor;
+        statusBar.style.color = globalConfig.navigationBar.textColor;
       }
 
       const tabBar = document.getElementById('tabBar');
