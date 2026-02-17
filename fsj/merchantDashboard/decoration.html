@@ -574,37 +574,17 @@
 
     .color-picker-popup-body {
       padding: 16px;
-    }
-
-    .color-picker-row {
       display: flex;
-      align-items: center;
-      gap: 12px;
+      justify-content: center;
     }
 
     .popup-color-input {
-      width: 50px;
-      height: 50px;
+      width: 100%;
+      height: 150px;
       border: 1px solid var(--border-color);
       border-radius: 4px;
       cursor: pointer;
       padding: 0;
-      flex-shrink: 0;
-    }
-
-    .popup-text-input {
-      flex: 1;
-      padding: 8px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      font-size: 14px;
-      color: var(--text-main);
-      font-family: monospace;
-    }
-
-    .popup-text-input:focus {
-      outline: none;
-      border-color: var(--primary-color);
     }
 
     .color-picker-popup-footer {
@@ -636,6 +616,25 @@
 
     .color-picker-popup-footer .btn-confirm:hover {
       background: var(--primary-hover);
+    }
+
+    .color-picker-container {
+      position: relative;
+      width: 36px;
+      height: 36px;
+    }
+
+    .color-picker-input-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      padding: 0;
+      border: none;
+      margin: 0;
     }
 
     .image-picker {
@@ -1285,56 +1284,72 @@
         <div class="property-group">
           <label>主题色</label>
           <div class="color-picker-wrapper">
-            <div class="color-picker-preview" style="background-color: ${globalConfig.themeColor};" onclick="toggleColorPicker(event, 'themeColor', '${globalConfig.themeColor}')"></div>
+            <div class="color-picker-container">
+              <div class="color-picker-preview" style="background-color: ${globalConfig.themeColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-themeColor" value="${globalConfig.themeColor}" oninput="updateGlobalProperty('themeColor', this.value)" onchange="updateGlobalProperty('themeColor', this.value)" class="color-picker-input-overlay" />
+            </div>
             <input type="text" value="${globalConfig.themeColor}" onchange="updateGlobalProperty('themeColor', this.value)" onkeypress="handleColorInputKeypress(event, 'themeColor', this.value)" class="color-text-input" placeholder="#000000" />
-            <input type="color" id="colorPicker-themeColor" value="${globalConfig.themeColor}" onchange="updateGlobalProperty('themeColor', this.value)" class="color-picker-input" style="display: none;" />
           </div>
         </div>
         <div class="property-group">
           <label>导航栏背景色</label>
           <div class="color-picker-wrapper">
-            <div class="color-picker-preview" style="background-color: ${globalConfig.navigationBar.backgroundColor};" onclick="toggleColorPicker(event, 'navigationBar.backgroundColor', '${globalConfig.navigationBar.backgroundColor}')"></div>
+            <div class="color-picker-container">
+              <div class="color-picker-preview" style="background-color: ${globalConfig.navigationBar.backgroundColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-navigationBar.backgroundColor" value="${globalConfig.navigationBar.backgroundColor}" oninput="updateGlobalProperty('navigationBar.backgroundColor', this.value)" onchange="updateGlobalProperty('navigationBar.backgroundColor', this.value)" class="color-picker-input-overlay" />
+            </div>
             <input type="text" value="${globalConfig.navigationBar.backgroundColor}" onchange="updateGlobalProperty('navigationBar.backgroundColor', this.value)" onkeypress="handleColorInputKeypress(event, 'navigationBar.backgroundColor', this.value)" class="color-text-input" placeholder="#000000" />
-            <input type="color" id="colorPicker-navigationBar.backgroundColor" value="${globalConfig.navigationBar.backgroundColor}" onchange="updateGlobalProperty('navigationBar.backgroundColor', this.value)" class="color-picker-input" style="display: none;" />
           </div>
         </div>
         <div class="property-group">
           <label>导航栏文字色</label>
           <div class="color-picker-wrapper">
-            <div class="color-picker-preview" style="background-color: ${globalConfig.navigationBar.textColor};" onclick="toggleColorPicker(event, 'navigationBar.textColor', '${globalConfig.navigationBar.textColor}')"></div>
+            <div class="color-picker-container">
+              <div class="color-picker-preview" style="background-color: ${globalConfig.navigationBar.textColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-navigationBar.textColor" value="${globalConfig.navigationBar.textColor}" oninput="updateGlobalProperty('navigationBar.textColor', this.value)" onchange="updateGlobalProperty('navigationBar.textColor', this.value)" class="color-picker-input-overlay" />
+            </div>
             <input type="text" value="${globalConfig.navigationBar.textColor}" onchange="updateGlobalProperty('navigationBar.textColor', this.value)" onkeypress="handleColorInputKeypress(event, 'navigationBar.textColor', this.value)" class="color-text-input" placeholder="#000000" />
-            <input type="color" id="colorPicker-navigationBar.textColor" value="${globalConfig.navigationBar.textColor}" onchange="updateGlobalProperty('navigationBar.textColor', this.value)" class="color-picker-input" style="display: none;" />
           </div>
         </div>
         <div class="property-group">
           <label>底部导航栏背景色</label>
           <div class="color-picker-wrapper">
-            <div class="color-picker-preview" style="background-color: ${tabBarConfig.backgroundColor};" onclick="toggleColorPicker(event, 'tabBar.backgroundColor', '${tabBarConfig.backgroundColor}')"></div>
+            <div class="color-picker-container">
+              <div class="color-picker-preview" style="background-color: ${tabBarConfig.backgroundColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-tabBar.backgroundColor" value="${tabBarConfig.backgroundColor}" oninput="updateTabBarProperty('backgroundColor', this.value)" onchange="updateTabBarProperty('backgroundColor', this.value)" class="color-picker-input-overlay" />
+            </div>
             <input type="text" value="${tabBarConfig.backgroundColor}" onchange="updateTabBarProperty('backgroundColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'backgroundColor', this.value)" class="color-text-input" placeholder="#000000" />
-            <input type="color" id="colorPicker-tabBar.backgroundColor" value="${tabBarConfig.backgroundColor}" onchange="updateTabBarProperty('backgroundColor', this.value)" class="color-picker-input" style="display: none;" />
           </div>
         </div>
         <div class="property-group">
           <label>底部导航栏选中色</label>
           <div class="color-picker-wrapper">
-            <div class="color-picker-preview" style="background-color: ${tabBarConfig.selectedColor};" onclick="toggleColorPicker(event, 'tabBar.selectedColor', '${tabBarConfig.selectedColor}')"></div>
+            <div class="color-picker-container">
+              <div class="color-picker-preview" style="background-color: ${tabBarConfig.selectedColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-tabBar.selectedColor" value="${tabBarConfig.selectedColor}" oninput="updateTabBarProperty('selectedColor', this.value)" onchange="updateTabBarProperty('selectedColor', this.value)" class="color-picker-input-overlay" />
+            </div>
             <input type="text" value="${tabBarConfig.selectedColor}" onchange="updateTabBarProperty('selectedColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'selectedColor', this.value)" class="color-text-input" placeholder="#000000" />
-            <input type="color" id="colorPicker-tabBar.selectedColor" value="${tabBarConfig.selectedColor}" onchange="updateTabBarProperty('selectedColor', this.value)" class="color-picker-input" style="display: none;" />
           </div>
         </div>
         <div class="property-group">
           <label>底部导航栏未选中色</label>
           <div class="color-picker-wrapper">
-            <div class="color-picker-preview" style="background-color: ${tabBarConfig.unselectedColor};" onclick="toggleColorPicker(event, 'tabBar.unselectedColor', '${tabBarConfig.unselectedColor}')"></div>
+            <div class="color-picker-container">
+              <div class="color-picker-preview" style="background-color: ${tabBarConfig.unselectedColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-tabBar.unselectedColor" value="${tabBarConfig.unselectedColor}" oninput="updateTabBarProperty('unselectedColor', this.value)" onchange="updateTabBarProperty('unselectedColor', this.value)" class="color-picker-input-overlay" />
+            </div>
             <input type="text" value="${tabBarConfig.unselectedColor}" onchange="updateTabBarProperty('unselectedColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'unselectedColor', this.value)" class="color-text-input" placeholder="#000000" />
-            <input type="color" id="colorPicker-tabBar.unselectedColor" value="${tabBarConfig.unselectedColor}" onchange="updateTabBarProperty('unselectedColor', this.value)" class="color-picker-input" style="display: none;" />
           </div>
         </div>
       `;
     }
 
     function toggleColorPicker(event, key, currentValue) {
-      showColorPickerPopup(event, key, currentValue);
+      const pickerId = 'colorPicker-' + key;
+      const picker = document.getElementById(pickerId);
+      if (picker) {
+        picker.click();
+      }
     }
 
     function handleColorInputKeypress(event, key, value) {
@@ -1382,8 +1397,10 @@
       // 更新预览块、输入框和颜色选择器
       const pickerId = 'colorPicker-' + key;
       const picker = document.getElementById(pickerId);
-      const preview = picker ? picker.previousElementSibling.previousElementSibling : null;
-      const textInput = picker ? picker.previousElementSibling : null;
+      // picker 是 input-overlay，preview 是 picker 的前一个兄弟 (在同一个 container 内)
+      const preview = picker ? picker.previousElementSibling : null;
+      // textInput 是 container (picker父级) 的后一个兄弟
+      const textInput = picker ? picker.parentElement.nextElementSibling : null;
 
       if (picker) {
         picker.value = value;
@@ -1411,8 +1428,10 @@
       // 更新预览块、输入框和颜色选择器
       const pickerId = 'colorPicker-' + key;
       const picker = document.getElementById(pickerId);
-      const preview = picker ? picker.previousElementSibling.previousElementSibling : null;
-      const textInput = picker ? picker.previousElementSibling : null;
+      // picker 是 input-overlay，preview 是 picker 的前一个兄弟 (在同一个 container 内)
+      const preview = picker ? picker.previousElementSibling : null;
+      // textInput 是 container (picker父级) 的后一个兄弟
+      const textInput = picker ? picker.parentElement.nextElementSibling : null;
 
       if (picker) {
         picker.value = value;
@@ -2771,6 +2790,7 @@
     // 自定义颜色选择器弹窗
     let currentColorPickerKey = null;
     let currentColorPickerValue = '';
+    let currentPreviewElement = null;
 
     function showColorPickerPopup(event, key, currentValue) {
       event.preventDefault();
@@ -2778,18 +2798,17 @@
 
       currentColorPickerKey = key;
       currentColorPickerValue = currentValue;
+      currentPreviewElement = event.target;
 
       const popup = document.getElementById('colorPickerPopup');
       const colorInput = document.getElementById('popupColorInput');
-      const textInput = document.getElementById('popupTextInput');
 
       colorInput.value = currentValue;
-      textInput.value = currentValue;
 
       // 计算弹窗位置
       const rect = event.target.getBoundingClientRect();
       const popupWidth = 300;
-      const popupHeight = 200;
+      const popupHeight = 150;
 
       let left = rect.left;
       let top = rect.bottom + 5;
@@ -2827,10 +2846,10 @@
       document.removeEventListener('click', hideColorPickerPopupOutside);
     }
 
-    function confirmColorPicker() {
-      const colorInput = document.getElementById('popupColorInput');
-      const textInput = document.getElementById('popupTextInput');
-      const value = textInput.value || colorInput.value;
+    function applyColorPickerValue(value) {
+      if (!currentColorPickerKey) {
+        return;
+      }
 
       if (currentColorPickerKey.startsWith('tabBar.')) {
         const key = currentColorPickerKey.replace('tabBar.', '');
@@ -2838,25 +2857,25 @@
       } else {
         updateGlobalProperty(currentColorPickerKey, value);
       }
+    }
+
+    function confirmColorPicker() {
+      const colorInput = document.getElementById('popupColorInput');
+      const value = colorInput.value;
+
+      applyColorPickerValue(value);
 
       hideColorPickerPopup();
     }
 
-    function cancelColorPicker() {
-      hideColorPickerPopup();
+    function onColorInputInput(event) {
+      const value = event.target.value;
+      applyColorPickerValue(value);
     }
 
     function onColorInputChange(event) {
-      const textInput = document.getElementById('popupTextInput');
-      textInput.value = event.target.value;
-    }
-
-    function onTextInputChange(event) {
-      const colorInput = document.getElementById('popupColorInput');
       const value = event.target.value;
-      if (isValidColor(value)) {
-        colorInput.value = value;
-      }
+      applyColorPickerValue(value);
     }
   </script>
 
@@ -2866,14 +2885,11 @@
       <span>选择颜色</span>
     </div>
     <div class="color-picker-popup-body">
-      <div class="color-picker-row">
-        <input type="color" id="popupColorInput" class="popup-color-input" onchange="onColorInputChange(event)" />
-        <input type="text" id="popupTextInput" class="popup-text-input" placeholder="#000000"
-          oninput="onTextInputChange(event)" />
-      </div>
+      <input type="color" id="popupColorInput" class="popup-color-input" oninput="onColorInputInput(event)"
+        onchange="onColorInputChange(event)" />
     </div>
     <div class="color-picker-popup-footer">
-      <button class="btn btn-cancel" onclick="cancelColorPicker()">取消</button>
+      <button class="btn btn-cancel" onclick="hideColorPickerPopup()">取消</button>
       <button class="btn btn-confirm" onclick="confirmColorPicker()">确定</button>
     </div>
   </div>
