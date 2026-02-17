@@ -1,0 +1,350 @@
+# 组件开发技能
+
+## 📋 概述
+
+本技能文档专门用于指导如何在门店装修系统中开发新的小程序组件。通过遵循本文档的开发流程和最佳实践，可以大大提升组件开发效率。
+
+## 🎯 组件架构
+
+### 技术栈
+- **前端**：HTML5 + CSS3 + JavaScript（decoration.html）
+- **后端**：Node.js + Express（server.js）
+- **小程序**：微信小程序原生组件
+
+### 核心文件
+```
+merchantDashboard/
+├── decoration.html          # 前端页面（组件库、属性配置）
+├── server.js              # 后端服务（组件代码生成）
+├── components/            # 组件目录（模块化）
+│   ├── componentRegistry.js  # 组件注册表
+│   ├── carousel.js           # 轮播图组件
+│   ├── function-list.js      # 功能列表组件
+│   ├── image.js             # 图片组件
+│   ├── text.js              # 文本组件
+│   ├── product-grid.js      # 商品网格组件
+│   ├── notice.js            # 公告组件
+│   ├── tabs.js              # 标签页面组件
+│   └── content-list.js       # 内容列表组件
+└── wxApp/                # 小程序基础框架
+```
+
+## 🚀 快速开始
+
+### 步骤 1：创建组件文件
+
+在 `components/` 目录下创建新组件文件 `new-component.js`：
+
+```javascript
+module.exports = {
+  name: '新组件',
+  type: 'new-component',
+  
+  // 生成 WXML 代码
+  generateHTML(component) {
+    return `  <view class="new-component">
+    ${component.componentItems.map(item => `      <view>${item}</view>`).join('\n')}
+  </view>`;
+  },
+  
+  // 生成样式
+  generateCSS() {
+    return `.new-component {
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.new-component view {
+  padding: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}`;
+  },
+  
+  // 默认属性
+  getDefaultProperties() {
+    return {
+      property1: '默认值1',
+      property2: '默认值2'
+    };
+  },
+  
+  // 默认内容
+  getDefaultItems() {
+    return ['默认内容1', '默认内容2'];
+  },
+  
+  // 属性标签映射
+  getPropertyLabels() {
+    return {
+      property1: '属性1',
+      property2: '属性2'
+    };
+  }
+};
+```
+
+### 步骤 2：注册组件
+
+在 `server.js` 的 `app.listen` 回调中注册新组件：
+
+```javascript
+app.listen(PORT, () => {
+    console.log(`服务器运行在 http://localhost:${PORT}`);
+    console.log(`健康检查: http://localhost:${PORT}/health`);
+    
+    registerComponent('轮播图', require('./components/carousel'));
+    registerComponent('功能列表', require('./components/function-list'));
+    registerComponent('图片', require('./components/image'));
+    registerComponent('文本', require('./components/text'));
+    registerComponent('商品网格', require('./components/product-grid'));
+    registerComponent('公告', require('./components/notice'));
+    registerComponent('标签页面', require('./components/tabs'));
+    registerComponent('内容列表', require('./components/content-list'));
+    registerComponent('新组件', require('./components/new-component'));  // 新增
+    
+    console.log('组件注册完成');
+});
+```
+
+### 步骤 3：添加前端组件库
+
+在 `decoration.html` 中添加新组件到组件库：
+
+```javascript
+// 在组件库渲染函数中添加新组件
+function renderComponentLibrary() {
+  const components = [
+    { name: '轮播图', icon: '🎠', type: 'carousel' },
+    { name: '功能列表', icon: '📱', type: 'function-list' },
+    { name: '图片', icon: '🖼️', type: 'image' },
+    { name: '文本', icon: '📝', type: 'text' },
+    { name: '新组件', icon: '🆕', type: 'new-component' }  // 新增
+  ];
+}
+```
+
+### 步骤 4：添加前端默认内容
+
+在 `decoration.html` 的 `getDefaultItems` 函数中添加默认内容：
+
+```javascript
+function getDefaultItems(type) {
+  const defaults = {
+    'carousel': ['image1.png', 'image2.png', 'image3.png'],
+    'function-list': ['圈子', '想法', '团送'],
+    'new-component': ['默认内容1', '默认内容2']  // 新增
+  };
+  return defaults[type] || [];
+}
+```
+
+### 步骤 5：添加前端默认属性
+
+在 `decoration.html` 的 `getDefaultProperties` 函数中添加默认属性：
+
+```javascript
+function getDefaultProperties(type) {
+  const properties = {
+    'carousel': {
+      height: 200,
+      autoplay: true,
+      interval: 3000
+    },
+    'new-component': {  // 新增
+      property1: '默认值1',
+      property2: '默认值2'
+    }
+  };
+  return properties[type] || {};
+}
+```
+
+### 步骤 6：添加前端属性标签
+
+在 `decoration.html` 的 `getPropertyLabel` 函数中添加属性标签：
+
+```javascript
+function getPropertyLabel(key) {
+  const labels = {
+    'height': '高度',
+    'autoplay': '自动播放',
+    'newProperty': '新属性'  // 新增
+  };
+  return labels[key] || key;
+}
+```
+
+### 步骤 7：添加前端预览
+
+在 `decoration.html` 的 `renderComponentPreview` 函数中添加预览逻辑：
+
+```javascript
+function renderComponentPreview(component) {
+  switch (component.componentName) {
+    case '新组件':
+      return `
+        <div style="background: #f0f0f0; padding: 10px; border-radius: 8px;">
+          ${component.componentItems.map(item => `<div>${item}</div>`).join('')}
+        </div>
+      `;
+    default:
+      return `<div style="padding: 20px; text-align: center; color: #999;">${component.componentName}</div>`;
+  }
+}
+```
+```
+
+## 📝 组件开发最佳实践
+
+### 1. 命名规范
+
+- **组件名称**：使用中文名称，如'轮播图'、'功能列表'
+- **组件类型**：使用小写英文，如'carousel'、'function-list'
+- **CSS类名**：使用kebab-case，如'carousel'、'function-list'
+
+### 2. 属性设计
+
+- **必需属性**：组件必须的配置项
+- **可选属性**：提供默认值的配置项
+- **布尔属性**：使用checkbox渲染
+- **数字属性**：使用number input，提供合理的min/max
+- **颜色属性**：使用color picker
+- **文本属性**：使用text input
+
+### 3. 数据结构
+
+```javascript
+// 组件数据结构
+{
+  componentName: '组件名称',
+  componentId: 'comp1',
+  componentItems: ['item1', 'item2'],  // 组件内容数组
+  properties: {  // 组件属性对象
+    property1: 'value1',
+    property2: 'value2'
+  }
+}
+```
+
+### 4. 响应式设计
+
+- 小程序宽度：750rpx（屏幕宽度的100%）
+- 图片适配：使用mode属性（aspectFill、widthFix等）
+- 文字大小：使用rpx单位
+
+### 5. 性能优化
+
+- 避免过多的DOM节点
+- 图片使用懒加载
+- 列表使用虚拟滚动（如果数据量大）
+
+## 🎨 现有组件参考
+
+### 轮播图（carousel）
+- **功能**：自动播放的图片轮播
+- **属性**：height、autoplay、interval
+- **数据**：图片URL数组
+- **WXML**：swiper + swiper-item + image
+
+### 功能列表（function-list）
+- **功能**：网格布局的功能入口
+- **属性**：columns（列数）
+- **数据**：功能名称数组
+- **WXML**：view + grid布局
+
+### 图片（image）
+- **功能**：单张图片展示
+- **属性**：height、borderRadius
+- **数据**：图片URL
+- **WXML**：image组件
+
+### 文本（text）
+- **功能**：自定义文本内容
+- **属性**：fontSize、color、textAlign
+- **数据**：文本内容
+- **WXML**：text组件
+
+### 商品网格（product-grid）
+- **功能**：商品列表展示
+- **属性**：columns、showPrice
+- **数据**：商品对象数组
+- **WXML**：view + grid布局
+
+### 公告（notice）
+- **功能**：滚动公告提示
+- **属性**：backgroundColor、textColor、icon
+- **数据**：公告文本
+- **WXML**：view + marquee
+
+### 标签页面（tabs）
+- **功能**：标签切换
+- **属性**：无
+- **数据**：标签名称数组
+- **WXML**：view + tabs
+
+### 内容列表（content-list）
+- **功能**：图文列表
+- **属性**：无
+- **数据**：内容对象数组（title、desc）
+- **WXML**：view + list
+
+## 🔧 常见问题
+
+### Q1: 组件预览不显示？
+**A**: 检查 `renderComponentPreview` 函数中是否添加了对应的case分支。
+
+### Q2: 打包后组件不工作？
+**A**: 检查 `generateComponentHTML` 函数中是否添加了对应的case分支。
+
+### Q3: 样式不生效？
+**A**: 检查 `generatePageWXSS` 函数中是否添加了对应的CSS样式。
+
+### Q4: 属性无法编辑？
+**A**: 检查 `getPropertyLabel` 函数中是否添加了属性标签。
+
+## 📚 开发经验总结
+
+### 经验 1：组件复用
+
+- 提取公共样式到全局WXSS
+- 相似功能的组件可以继承基础组件
+- 使用组件化思维，避免重复代码
+
+### 经验 2：数据验证
+
+- 前端输入验证：在 `updateComponentProperty` 中添加
+- 后端数据验证：在 `generateComponentHTML` 中检查
+- 提供友好的错误提示
+
+### 经验 3：用户体验
+
+- 提供合理的默认值
+- 属性修改实时预览
+- 组件拖拽流畅
+
+### 经验 4：性能考虑
+
+- 图片使用CDN
+- 避免大量数据一次性加载
+- 使用小程序的懒加载特性
+
+## 🎯 下一步
+
+完成组件开发后：
+1. 在前端测试组件预览
+2. 在后端测试代码生成
+3. 打包小程序验证效果
+4. 记录遇到的问题和解决方案
+5. 更新本文档
+
+## 📞 获取帮助
+
+- 查看技术路线文档：`技术路线.mdc`
+- 查看现有组件代码：`decoration.html`、`server.js`
+- 参考微信小程序文档：https://developers.weixin.qq.com/miniprogram/dev/framework/
+
+---
+
+**最后更新**：2026-02-17
+**维护者**：开发团队
