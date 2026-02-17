@@ -331,10 +331,32 @@ function resolveThemeColor(value, themeColor) {
     return value;
 }
 
+function normalizeColorForAppJson(color) {
+    if (!color || typeof color !== 'string') {
+        return color;
+    }
+    let c = color.trim();
+    if (/^#([0-9a-fA-F]{8})$/.test(c)) {
+        c = '#' + c.slice(1, 7);
+    } else if (/^#([0-9a-fA-F]{3})$/.test(c)) {
+        const r = c[1];
+        const g = c[2];
+        const b = c[3];
+        c = `#${r}${r}${g}${g}${b}${b}`;
+    }
+    return c;
+}
+
 async function generateAppJson(config, outputDir) {
-    const themeColor = config.globalConfig && config.globalConfig.themeColor ? config.globalConfig.themeColor : '#667eea';
-    const navBackgroundColor = resolveThemeColor(config.globalConfig.navigationBar.backgroundColor, themeColor) || '#ffffff';
-    const navTextColor = resolveThemeColor(config.globalConfig.navigationBar.textColor, themeColor) || '#181818';
+    const themeColorRaw = config.globalConfig && config.globalConfig.themeColor ? config.globalConfig.themeColor : '#667eea';
+    const themeColor = normalizeColorForAppJson(themeColorRaw) || '#667eea';
+
+    const navBackgroundColorRaw = resolveThemeColor(config.globalConfig.navigationBar.backgroundColor, themeColor);
+    const navBackgroundColor = normalizeColorForAppJson(navBackgroundColorRaw) || '#ffffff';
+
+    const navTextColorRaw = resolveThemeColor(config.globalConfig.navigationBar.textColor, themeColor);
+    const navTextColor = normalizeColorForAppJson(navTextColorRaw) || '#181818';
+
     const navigationBarTextStyle = navTextColor && navTextColor.toLowerCase() === '#ffffff' ? 'white' : 'black';
 
     const appJson = {
@@ -349,12 +371,14 @@ async function generateAppJson(config, outputDir) {
     };
 
     if (config.tabBarConfig.list.length > 0) {
-        const tabBarBackgroundColorRaw = config.tabBarConfig.backgroundColor || '#ffffff';
-        const tabBarBackgroundColor = resolveThemeColor(tabBarBackgroundColorRaw, themeColor) || '#ffffff';
-        const unselectedColorRaw = config.tabBarConfig.unselectedColor || '#999999';
-        const unselectedColor = resolveThemeColor(unselectedColorRaw, themeColor) || '#999999';
-        const selectedColorRaw = config.tabBarConfig.selectedColor;
-        let selectedColor = resolveThemeColor(selectedColorRaw, themeColor);
+        const tabBarBackgroundColorResolved = resolveThemeColor(config.tabBarConfig.backgroundColor || '#ffffff', themeColor);
+        const tabBarBackgroundColor = normalizeColorForAppJson(tabBarBackgroundColorResolved) || '#ffffff';
+
+        const unselectedColorResolved = resolveThemeColor(config.tabBarConfig.unselectedColor || '#999999', themeColor);
+        const unselectedColor = normalizeColorForAppJson(unselectedColorResolved) || '#999999';
+
+        const selectedColorResolved = resolveThemeColor(config.tabBarConfig.selectedColor, themeColor);
+        let selectedColor = normalizeColorForAppJson(selectedColorResolved);
         if (!selectedColor) {
             selectedColor = themeColor || '#667eea';
         }
