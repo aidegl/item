@@ -326,36 +326,87 @@ async function copyBaseFramework(outputDir) {
     }
 }
 
+function resolveThemeColor(value, themeColor) {
+    if (!value) {
+        return value;
+    }
+    if (value === '{主题色}') {
+        return themeColor;
+    }
+    return value;
+}
+
+function normalizeColorForAppJson(color) {
+    if (!color || typeof color !== 'string') {
+        return color;
+    }
+    let c = color.trim();
+    if (/^#([0-9a-fA-F]{8})$/.test(c)) {
+        c = '#' + c.slice(1, 7);
+    } else if (/^#([0-9a-fA-F]{3})$/.test(c)) {
+        const r = c[1];
+        const g = c[2];
+        const b = c[3];
+        c = `#${r}${r}${g}${g}${b}${b}`;
+    }
+    return c;
+}
+
 // 根据JSON配置生成页面代码
 async function generatePage(page, outputDir) {
     const pageDir = path.join(outputDir, 'pages', page.pageId);
     fs.mkdirSync(pageDir, { recursive: true });
     
-    // 读取模板并渲染
     const jsContent = renderTemplate('page-template.js', page);
     const wxmlContent = renderTemplate('page-template.wxml', page);
     const wxssContent = renderTemplate('page-template.wxss', page);
     
-    // 写入文件
     fs.writeFileSync(path.join(pageDir, 'index.js'), jsContent);
     fs.writeFileSync(path.join(pageDir, 'index.wxml'), wxmlContent);
     fs.writeFileSync(path.join(pageDir, 'index.wxss'), wxssContent);
 }
 
-// 生成app.json
+// 生成app.json（带主题色占位符解析和颜色规范化）
 async function generateAppJson(config, outputDir) {
+    const themeColorRaw = config.globalConfig.themeColor || '#667eea';
+    const themeColor = normalizeColorForAppJson(themeColorRaw) || '#667eea';
+
+    const navBgRaw = resolveThemeColor(config.globalConfig.navigationBar.backgroundColor, themeColor);
+    const navBg = normalizeColorForAppJson(navBgRaw) || '#ffffff';
+
+    const navTextRaw = resolveThemeColor(config.globalConfig.navigationBar.textColor, themeColor);
+    const navText = normalizeColorForAppJson(navTextRaw) || '#181818';
+
+    const navigationBarTextStyle = navText && navText.toLowerCase() === '#ffffff' ? 'white' : 'black';
+
     const appJson = {
         pages: config.pages.map(p => `pages/${p.pageId}/index`),
         window: {
             backgroundTextStyle: 'light',
-            navigationBarBackgroundColor: config.globalConfig.navigationBar.backgroundColor,
+            navigationBarBackgroundColor: navBg,
             navigationBarTitleText: '小程序',
-            navigationBarTextStyle: config.globalConfig.navigationBar.textColor === '#ffffff' ? 'white' : 'black'
+            navigationBarTextStyle
         },
-        tabBar: {
-            color: config.tabBarConfig.unselectedColor || '#999999',
-            selectedColor: config.tabBarConfig.selectedColor || '#667eea',
-            backgroundColor: config.tabBarConfig.backgroundColor || '#ffffff',
+        sitemapLocation: 'sitemap.json'
+    };
+
+    if (config.tabBarConfig.list.length > 0) {
+        const tabBgResolved = resolveThemeColor(config.tabBarConfig.backgroundColor || '#ffffff', themeColor);
+        const tabBg = normalizeColorForAppJson(tabBgResolved) || '#ffffff';
+
+        const unselectedResolved = resolveThemeColor(config.tabBarConfig.unselectedColor || '#999999', themeColor);
+        const unselected = normalizeColorForAppJson(unselectedResolved) || '#999999';
+
+        const selectedResolved = resolveThemeColor(config.tabBarConfig.selectedColor, themeColor);
+        let selected = normalizeColorForAppJson(selectedResolved);
+        if (!selected) {
+            selected = themeColor;
+        }
+
+        appJson.tabBar = {
+            color: unselected,
+            selectedColor: selected,
+            backgroundColor: tabBg,
             borderStyle: config.tabBarConfig.borderStyle || 'black',
             list: config.tabBarConfig.list.map(tab => ({
                 pagePath: `pages/${tab.pageId}/index`,
@@ -363,13 +414,20 @@ async function generateAppJson(config, outputDir) {
                 iconPath: `images/${tab.unselectedIcon}`,
                 selectedIconPath: `images/${tab.selectedIcon}`
             }))
-        },
-        sitemapLocation: 'sitemap.json'
-    };
+        };
+    }
     
     fs.writeFileSync(path.join(outputDir, 'app.json'), JSON.stringify(appJson, null, 2));
 }
 ```
+
+**实现要点总结：**
+- 以 `globalConfig.themeColor` 作为全局主题色单一数据源
+- 支持在导航栏和底部导航栏颜色字段中使用占位符 `{主题色}`，生成时统一替换为主题色
+- 写入 `app.json` 前，对所有颜色进行规范化：
+  - 将 `#RRGGBBAA` 转换为 `#RRGGBB`
+  - 将 `#RGB` 转换为 `#RRGGBB`
+- `app.json` 顶层不再使用 `globalStyle` 字段，统一通过 `window` 和 `tabBar` 配置全局样式
 
 ### 明道云集成
 
