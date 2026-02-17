@@ -955,8 +955,15 @@
     .tab-icon-img {
       width: 24px;
       height: 24px;
-      object-fit: cover;
+      display: inline-block;
       border-radius: 4px;
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-position: center;
+      background-color: currentColor;
     }
 
     .tab-bar.classic .tab-item {
@@ -2148,10 +2155,11 @@
         const iconUrl = isActive ? selectedIconUrl : unselectedIconUrl;
         const defaultIcon = tab.name === '首页' ? '🏠' : tab.name === '分类' ? '📂' : '👤';
         const textColor = isActive ? activeColor : inactiveColor;
+        const iconStyle = iconUrl ? `style="color: ${textColor}; -webkit-mask-image: url('${iconUrl}'); mask-image: url('${iconUrl}');"` : '';
 
         return `
         <div class="tab-item ${isActive ? 'active' : ''}" style="color: ${textColor};" onclick="selectTabBarItemFromPreview(${index})">
-          <div class="tab-icon">${iconUrl ? `<img src="${iconUrl}" class="tab-icon-img" />` : defaultIcon}</div>
+          <div class="tab-icon">${iconUrl ? `<span class="tab-icon-img" ${iconStyle}></span>` : defaultIcon}</div>
           <div>${tab.name}</div>
         </div>
         `;
