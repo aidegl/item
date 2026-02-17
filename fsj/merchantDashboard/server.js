@@ -345,11 +345,6 @@ async function generateAppJson(config, outputDir) {
             navigationBarTitleText: '小程序',
             navigationBarTextStyle: navigationBarTextStyle
         },
-        globalStyle: {
-            navigationBarTextStyle: navigationBarTextStyle,
-            navigationBarTitleText: '小程序',
-            navigationBarBackgroundColor: navBackgroundColor
-        },
         sitemapLocation: 'sitemap.json'
     };
 
