@@ -197,8 +197,8 @@ function generateComponentHTML(component) {
 
 function generatePageWXSS(page) {
     const componentsCSS = page.components.map(comp => {
-        const comp = getComponent(comp.componentName);
-        return comp && comp.generateCSS ? comp.generateCSS() : '';
+        const component = getComponent(comp.componentName);
+        return component && component.generateCSS ? component.generateCSS() : '';
     }).filter(css => css).join('\n\n');
 
     return `.page {
@@ -519,18 +519,18 @@ app.get('/health', (req, res) => {
     });
 });
 
+registerComponent('轮播图', require('./components/carousel'));
+registerComponent('功能列表', require('./components/function-list'));
+registerComponent('图片', require('./components/image'));
+registerComponent('文本', require('./components/text'));
+registerComponent('商品网格', require('./components/product-grid'));
+registerComponent('公告', require('./components/notice'));
+registerComponent('标签页面', require('./components/tabs'));
+registerComponent('内容列表', require('./components/content-list'));
+
+console.log('组件注册完成');
+
 app.listen(PORT, () => {
     console.log(`服务器运行在 http://localhost:${PORT}`);
     console.log(`健康检查: http://localhost:${PORT}/health`);
-
-    registerComponent('轮播图', require('./components/carousel'));
-    registerComponent('功能列表', require('./components/function-list'));
-    registerComponent('图片', require('./components/image'));
-    registerComponent('文本', require('./components/text'));
-    registerComponent('商品网格', require('./components/product-grid'));
-    registerComponent('公告', require('./components/notice'));
-    registerComponent('标签页面', require('./components/tabs'));
-    registerComponent('内容列表', require('./components/content-list'));
-
-    console.log('组件注册完成');
 });
