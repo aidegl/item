@@ -9,6 +9,19 @@
   <title>门店装修</title>
   <script>
     (function () {
+      var params = new URLSearchParams(window.location.search);
+      var hasV = params.has('v');
+      var alreadyRedirected = sessionStorage.getItem('decoration_v_redirected') === '1';
+      if (!hasV && !alreadyRedirected) {
+        params.set('v', Date.now().toString());
+        sessionStorage.setItem('decoration_v_redirected', '1');
+        window.location.replace(window.location.pathname + '?' + params.toString());
+        return;
+      }
+    })();
+  </script>
+  <script>
+    (function () {
       var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
 
       console.log('[decoration.html] 资源版本号:', v);
@@ -1285,63 +1298,66 @@
           <label>主题色</label>
           <div class="color-picker-wrapper">
             <div class="color-picker-container">
-              <div class="color-picker-preview" style="background-color: ${globalConfig.themeColor}; width: 100%; height: 100%;"></div>
-              <input type="color" id="colorPicker-themeColor" value="${globalConfig.themeColor}" oninput="updateGlobalProperty('themeColor', this.value)" onchange="updateGlobalProperty('themeColor', this.value)" class="color-picker-input-overlay" />
+              <div class="color-picker-preview" data-color-key="themeColor" style="background-color: ${globalConfig.themeColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-themeColor" data-color-key="themeColor" value="${globalConfig.themeColor}" oninput="updateGlobalProperty('themeColor', this.value)" onchange="updateGlobalProperty('themeColor', this.value)" class="color-picker-input-overlay" />
             </div>
-            <input type="text" value="${globalConfig.themeColor}" onchange="updateGlobalProperty('themeColor', this.value)" onkeypress="handleColorInputKeypress(event, 'themeColor', this.value)" class="color-text-input" placeholder="#000000" />
+            <input type="text" data-color-key="themeColor" value="${globalConfig.themeColor}" oninput="updateGlobalProperty('themeColor', this.value)" onchange="updateGlobalProperty('themeColor', this.value)" onkeypress="handleColorInputKeypress(event, 'themeColor', this.value)" class="color-text-input" placeholder="#000000" />
           </div>
         </div>
         <div class="property-group">
           <label>导航栏背景色</label>
           <div class="color-picker-wrapper">
             <div class="color-picker-container">
-              <div class="color-picker-preview" style="background-color: ${globalConfig.navigationBar.backgroundColor}; width: 100%; height: 100%;"></div>
-              <input type="color" id="colorPicker-navigationBar.backgroundColor" value="${globalConfig.navigationBar.backgroundColor}" oninput="updateGlobalProperty('navigationBar.backgroundColor', this.value)" onchange="updateGlobalProperty('navigationBar.backgroundColor', this.value)" class="color-picker-input-overlay" />
+              <div class="color-picker-preview" data-color-key="navigationBar.backgroundColor" style="background-color: ${globalConfig.navigationBar.backgroundColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-navigationBar.backgroundColor" data-color-key="navigationBar.backgroundColor" value="${globalConfig.navigationBar.backgroundColor}" oninput="updateGlobalProperty('navigationBar.backgroundColor', this.value)" onchange="updateGlobalProperty('navigationBar.backgroundColor', this.value)" class="color-picker-input-overlay" />
             </div>
-            <input type="text" value="${globalConfig.navigationBar.backgroundColor}" onchange="updateGlobalProperty('navigationBar.backgroundColor', this.value)" onkeypress="handleColorInputKeypress(event, 'navigationBar.backgroundColor', this.value)" class="color-text-input" placeholder="#000000" />
+            <input type="text" data-color-key="navigationBar.backgroundColor" value="${globalConfig.navigationBar.backgroundColor}" oninput="updateGlobalProperty('navigationBar.backgroundColor', this.value)" onchange="updateGlobalProperty('navigationBar.backgroundColor', this.value)" onkeypress="handleColorInputKeypress(event, 'navigationBar.backgroundColor', this.value)" class="color-text-input" placeholder="#000000" />
           </div>
         </div>
         <div class="property-group">
           <label>导航栏文字色</label>
           <div class="color-picker-wrapper">
             <div class="color-picker-container">
-              <div class="color-picker-preview" style="background-color: ${globalConfig.navigationBar.textColor}; width: 100%; height: 100%;"></div>
-              <input type="color" id="colorPicker-navigationBar.textColor" value="${globalConfig.navigationBar.textColor}" oninput="updateGlobalProperty('navigationBar.textColor', this.value)" onchange="updateGlobalProperty('navigationBar.textColor', this.value)" class="color-picker-input-overlay" />
+              <div class="color-picker-preview" data-color-key="navigationBar.textColor" style="background-color: ${globalConfig.navigationBar.textColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-navigationBar.textColor" data-color-key="navigationBar.textColor" value="${globalConfig.navigationBar.textColor}" oninput="updateGlobalProperty('navigationBar.textColor', this.value)" onchange="updateGlobalProperty('navigationBar.textColor', this.value)" class="color-picker-input-overlay" />
             </div>
-            <input type="text" value="${globalConfig.navigationBar.textColor}" onchange="updateGlobalProperty('navigationBar.textColor', this.value)" onkeypress="handleColorInputKeypress(event, 'navigationBar.textColor', this.value)" class="color-text-input" placeholder="#000000" />
+            <input type="text" data-color-key="navigationBar.textColor" value="${globalConfig.navigationBar.textColor}" oninput="updateGlobalProperty('navigationBar.textColor', this.value)" onchange="updateGlobalProperty('navigationBar.textColor', this.value)" onkeypress="handleColorInputKeypress(event, 'navigationBar.textColor', this.value)" class="color-text-input" placeholder="#000000" />
           </div>
         </div>
         <div class="property-group">
           <label>底部导航栏背景色</label>
           <div class="color-picker-wrapper">
             <div class="color-picker-container">
-              <div class="color-picker-preview" style="background-color: ${tabBarConfig.backgroundColor}; width: 100%; height: 100%;"></div>
-              <input type="color" id="colorPicker-tabBar.backgroundColor" value="${tabBarConfig.backgroundColor}" oninput="updateTabBarProperty('backgroundColor', this.value)" onchange="updateTabBarProperty('backgroundColor', this.value)" class="color-picker-input-overlay" />
+              <div class="color-picker-preview" data-color-key="backgroundColor" style="background-color: ${tabBarConfig.backgroundColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-tabBar.backgroundColor" data-color-key="backgroundColor" value="${tabBarConfig.backgroundColor}" oninput="updateTabBarProperty('backgroundColor', this.value)" onchange="updateTabBarProperty('backgroundColor', this.value)" class="color-picker-input-overlay" />
             </div>
-            <input type="text" value="${tabBarConfig.backgroundColor}" onchange="updateTabBarProperty('backgroundColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'backgroundColor', this.value)" class="color-text-input" placeholder="#000000" />
+            <input type="text" data-color-key="backgroundColor" value="${tabBarConfig.backgroundColor}" oninput="updateTabBarProperty('backgroundColor', this.value)" onchange="updateTabBarProperty('backgroundColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'backgroundColor', this.value)" class="color-text-input" placeholder="#000000" />
           </div>
         </div>
         <div class="property-group">
           <label>底部导航栏选中色</label>
           <div class="color-picker-wrapper">
             <div class="color-picker-container">
-              <div class="color-picker-preview" style="background-color: ${tabBarConfig.selectedColor}; width: 100%; height: 100%;"></div>
-              <input type="color" id="colorPicker-tabBar.selectedColor" value="${tabBarConfig.selectedColor}" oninput="updateTabBarProperty('selectedColor', this.value)" onchange="updateTabBarProperty('selectedColor', this.value)" class="color-picker-input-overlay" />
+              <div class="color-picker-preview" data-color-key="selectedColor" style="background-color: ${tabBarConfig.selectedColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-tabBar.selectedColor" data-color-key="selectedColor" value="${tabBarConfig.selectedColor}" oninput="updateTabBarProperty('selectedColor', this.value)" onchange="updateTabBarProperty('selectedColor', this.value)" class="color-picker-input-overlay" />
             </div>
-            <input type="text" value="${tabBarConfig.selectedColor}" onchange="updateTabBarProperty('selectedColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'selectedColor', this.value)" class="color-text-input" placeholder="#000000" />
+            <input type="text" data-color-key="selectedColor" value="${tabBarConfig.selectedColor}" oninput="updateTabBarProperty('selectedColor', this.value)" onchange="updateTabBarProperty('selectedColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'selectedColor', this.value)" class="color-text-input" placeholder="#000000" />
           </div>
         </div>
         <div class="property-group">
           <label>底部导航栏未选中色</label>
           <div class="color-picker-wrapper">
             <div class="color-picker-container">
-              <div class="color-picker-preview" style="background-color: ${tabBarConfig.unselectedColor}; width: 100%; height: 100%;"></div>
-              <input type="color" id="colorPicker-tabBar.unselectedColor" value="${tabBarConfig.unselectedColor}" oninput="updateTabBarProperty('unselectedColor', this.value)" onchange="updateTabBarProperty('unselectedColor', this.value)" class="color-picker-input-overlay" />
+              <div class="color-picker-preview" data-color-key="unselectedColor" style="background-color: ${tabBarConfig.unselectedColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-tabBar.unselectedColor" data-color-key="unselectedColor" value="${tabBarConfig.unselectedColor}" oninput="updateTabBarProperty('unselectedColor', this.value)" onchange="updateTabBarProperty('unselectedColor', this.value)" class="color-picker-input-overlay" />
             </div>
-            <input type="text" value="${tabBarConfig.unselectedColor}" onchange="updateTabBarProperty('unselectedColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'unselectedColor', this.value)" class="color-text-input" placeholder="#000000" />
+            <input type="text" data-color-key="unselectedColor" value="${tabBarConfig.unselectedColor}" oninput="updateTabBarProperty('unselectedColor', this.value)" onchange="updateTabBarProperty('unselectedColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'unselectedColor', this.value)" class="color-text-input" placeholder="#000000" />
           </div>
         </div>
       `;
+      syncColorInputs();
+      applyGlobalStyles();
+      renderTabBar();
     }
 
     function toggleColorPicker(event, key, currentValue) {
@@ -1380,38 +1396,57 @@
       }
 
       if (key.includes('.')) {
-        const parts = key.split('.');
-        const obj = globalConfig;
-        for (let i = 0; i < parts.length - 1; i++) {
-          if (!obj[parts[i]]) {
-            obj[parts[i]] = {};
-          }
-          obj = obj[parts[i]];
+        const [parent, child] = key.split('.');
+        if (!globalConfig[parent]) {
+          globalConfig[parent] = {};
         }
-        obj[parts[parts.length - 1]] = value;
+        globalConfig[parent][child] = value;
       } else {
         globalConfig[key] = value;
       }
       saveConfig();
 
       // 更新预览块、输入框和颜色选择器
-      const pickerId = 'colorPicker-' + key;
-      const picker = document.getElementById(pickerId);
-      // picker 是 input-overlay，preview 是 picker 的前一个兄弟 (在同一个 container 内)
-      const preview = picker ? picker.previousElementSibling : null;
-      // textInput 是 container (picker父级) 的后一个兄弟
-      const textInput = picker ? picker.parentElement.nextElementSibling : null;
+      let picker = document.querySelector(`.color-picker-input-overlay[data-color-key="${key}"]`);
+      let preview = document.querySelector(`.color-picker-preview[data-color-key="${key}"]`);
+      let textInput = document.querySelector(`.color-text-input[data-color-key="${key}"]`);
 
-      if (picker) {
-        picker.value = value;
+      if (!picker) {
+        picker = document.getElementById(`colorPicker-${key}`);
+        if (picker) {
+          picker.setAttribute('data-color-key', key);
+        }
       }
-      if (preview) {
-        preview.style.backgroundColor = value;
+      if (!preview && picker) {
+        const wrapper = picker.closest('.color-picker-wrapper');
+        if (wrapper) {
+          preview = wrapper.querySelector('.color-picker-preview');
+          if (preview) {
+            preview.setAttribute('data-color-key', key);
+          }
+        }
       }
-      if (textInput) {
-        textInput.value = value;
+      if (!textInput && picker) {
+        const wrapper = picker.closest('.color-picker-wrapper');
+        if (wrapper) {
+          textInput = wrapper.querySelector('.color-text-input');
+          if (textInput) {
+            textInput.setAttribute('data-color-key', key);
+          }
+        }
       }
 
+      console.log('[颜色更新] global', key, value, {
+        picker: !!picker,
+        preview: !!preview,
+        textInput: !!textInput
+      });
+
+      if (picker) picker.value = value;
+      if (preview) preview.style.backgroundColor = value;
+      if (textInput) textInput.value = value;
+
+      applyGlobalStyles();
       renderTabBar();
     }
 
@@ -1426,24 +1461,135 @@
       saveConfig();
 
       // 更新预览块、输入框和颜色选择器
-      const pickerId = 'colorPicker-' + key;
-      const picker = document.getElementById(pickerId);
-      // picker 是 input-overlay，preview 是 picker 的前一个兄弟 (在同一个 container 内)
-      const preview = picker ? picker.previousElementSibling : null;
-      // textInput 是 container (picker父级) 的后一个兄弟
-      const textInput = picker ? picker.parentElement.nextElementSibling : null;
+      let picker = document.querySelector(`.color-picker-input-overlay[data-color-key="${key}"]`);
+      let preview = document.querySelector(`.color-picker-preview[data-color-key="${key}"]`);
+      let textInput = document.querySelector(`.color-text-input[data-color-key="${key}"]`);
 
-      if (picker) {
-        picker.value = value;
+      if (!picker) {
+        picker = document.getElementById(`colorPicker-tabBar.${key}`);
+        if (picker) {
+          picker.setAttribute('data-color-key', key);
+        }
       }
-      if (preview) {
-        preview.style.backgroundColor = value;
+      if (!preview && picker) {
+        const wrapper = picker.closest('.color-picker-wrapper');
+        if (wrapper) {
+          preview = wrapper.querySelector('.color-picker-preview');
+          if (preview) {
+            preview.setAttribute('data-color-key', key);
+          }
+        }
       }
-      if (textInput) {
-        textInput.value = value;
+      if (!textInput && picker) {
+        const wrapper = picker.closest('.color-picker-wrapper');
+        if (wrapper) {
+          textInput = wrapper.querySelector('.color-text-input');
+          if (textInput) {
+            textInput.setAttribute('data-color-key', key);
+          }
+        }
       }
 
+      console.log('[颜色更新] tabbar', key, value, {
+        picker: !!picker,
+        preview: !!preview,
+        textInput: !!textInput
+      });
+
+      if (picker) picker.value = value;
+      if (preview) preview.style.backgroundColor = value;
+      if (textInput) textInput.value = value;
+
+      applyGlobalStyles();
       renderTabBar();
+    }
+
+    function applyGlobalStyles() {
+      const root = document.documentElement;
+      if (globalConfig && globalConfig.themeColor) {
+        root.style.setProperty('--primary-color', globalConfig.themeColor);
+        root.style.setProperty('--primary-hover', globalConfig.themeColor);
+      }
+
+      const navbar = document.getElementById('phoneNavbar');
+      const navbarTitle = document.getElementById('navbarTitle');
+      const navbarBack = document.getElementById('navbarBack');
+      if (navbar && globalConfig && globalConfig.navigationBar) {
+        navbar.style.backgroundColor = globalConfig.navigationBar.backgroundColor;
+      }
+      if (navbarTitle && globalConfig && globalConfig.navigationBar) {
+        navbarTitle.style.color = globalConfig.navigationBar.textColor;
+      }
+      if (navbarBack && globalConfig && globalConfig.navigationBar) {
+        navbarBack.style.color = globalConfig.navigationBar.textColor;
+        const path = navbarBack.querySelector('path');
+        if (path) {
+          path.setAttribute('stroke', globalConfig.navigationBar.textColor);
+        }
+      }
+
+      const tabBar = document.getElementById('tabBar');
+      if (tabBar && tabBarConfig) {
+        tabBar.style.backgroundColor = tabBarConfig.backgroundColor;
+      }
+    }
+
+    function syncColorInputs() {
+      const globalKeys = [
+        'themeColor',
+        'navigationBar.backgroundColor',
+        'navigationBar.textColor'
+      ];
+      const tabBarKeys = [
+        'backgroundColor',
+        'selectedColor',
+        'unselectedColor'
+      ];
+
+      globalKeys.forEach(key => {
+        let value = '';
+        if (key.includes('.')) {
+          const parts = key.split('.');
+          let obj = globalConfig;
+          for (let i = 0; i < parts.length; i++) {
+            obj = obj ? obj[parts[i]] : '';
+          }
+          value = obj || '';
+        } else {
+          value = globalConfig ? globalConfig[key] : '';
+        }
+
+        const picker = document.querySelector(`.color-picker-input-overlay[data-color-key="${key}"]`);
+        const preview = document.querySelector(`.color-picker-preview[data-color-key="${key}"]`);
+        const textInput = document.querySelector(`.color-text-input[data-color-key="${key}"]`);
+
+        if (picker && value) {
+          picker.value = value;
+        }
+        if (preview && value) {
+          preview.style.backgroundColor = value;
+        }
+        if (textInput && value) {
+          textInput.value = value;
+        }
+      });
+
+      tabBarKeys.forEach(key => {
+        const value = tabBarConfig ? tabBarConfig[key] : '';
+        const picker = document.querySelector(`.color-picker-input-overlay[data-color-key="${key}"]`);
+        const preview = document.querySelector(`.color-picker-preview[data-color-key="${key}"]`);
+        const textInput = document.querySelector(`.color-text-input[data-color-key="${key}"]`);
+
+        if (picker && value) {
+          picker.value = value;
+        }
+        if (preview && value) {
+          preview.style.backgroundColor = value;
+        }
+        if (textInput && value) {
+          textInput.value = value;
+        }
+      });
     }
 
     function updateTabBarItemProperty(key, value) {
@@ -1987,15 +2133,19 @@
     function renderTabBar() {
       const tabBar = document.getElementById('tabBar');
       tabBar.className = 'tab-bar ' + tabBarConfig.style;
+      tabBar.style.backgroundColor = tabBarConfig.backgroundColor;
+      const activeColor = tabBarConfig.selectedColor || '#667eea';
+      const inactiveColor = tabBarConfig.unselectedColor || '#999999';
       tabBar.innerHTML = tabBarConfig.list.map((tab, index) => {
         const selectedIconUrl = getImageUrlByRowid(tab.selectedIconRowid);
         const unselectedIconUrl = getImageUrlByRowid(tab.unselectedIconRowid);
         const isActive = currentPage && currentPage.pageId === tab.pageId;
         const iconUrl = isActive ? selectedIconUrl : unselectedIconUrl;
         const defaultIcon = tab.name === '首页' ? '🏠' : tab.name === '分类' ? '📂' : '👤';
+        const textColor = isActive ? activeColor : inactiveColor;
 
         return `
-        <div class="tab-item ${isActive ? 'active' : ''}" onclick="selectTabBarItemFromPreview(${index})">
+        <div class="tab-item ${isActive ? 'active' : ''}" style="color: ${textColor};" onclick="selectTabBarItemFromPreview(${index})">
           <div class="tab-icon">${iconUrl ? `<img src="${iconUrl}" class="tab-icon-img" />` : defaultIcon}</div>
           <div>${tab.name}</div>
         </div>
