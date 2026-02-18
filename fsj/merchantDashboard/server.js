@@ -388,10 +388,13 @@ async function generateAppJson(config, outputDir) {
     const themeColorRaw = config.globalConfig && config.globalConfig.themeColor ? config.globalConfig.themeColor : '#667eea';
     const themeColor = normalizeColorForAppJson(themeColorRaw) || '#667eea';
 
-    const navBackgroundColorRaw = resolveThemeColor(config.globalConfig.navigationBar.backgroundColor, themeColor);
+    const globalConfig = config.globalConfig || {};
+    const navigationBar = globalConfig.navigationBar || {};
+
+    const navBackgroundColorRaw = resolveThemeColor(navigationBar.backgroundColor, themeColor);
     const navBackgroundColor = normalizeColorForAppJson(navBackgroundColorRaw) || '#ffffff';
 
-    const navTextColorRaw = resolveThemeColor(config.globalConfig.navigationBar.textColor, themeColor);
+    const navTextColorRaw = resolveThemeColor(navigationBar.textColor, themeColor);
     const navTextColor = normalizeColorForAppJson(navTextColorRaw) || '#181818';
 
     const navigationBarTextStyle = navTextColor && navTextColor.toLowerCase() === '#ffffff' ? 'white' : 'black';
