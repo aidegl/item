@@ -2706,6 +2706,12 @@
           </div>
         </div>
         <div class="property-group">
+          <label>排序规则</label>
+          <select class="data-binding-select" onchange="updateComponentSorting(this.value)">
+            ${getSortingOptionsHtml(selectedComponent)}
+          </select>
+        </div>
+        <div class="property-group">
           <button class="btn" style="width: 100%; background: #ff4d4f;" onclick="deleteComponent()">删除组件</button>
         </div>
       `;
@@ -2737,6 +2743,35 @@
         const selected = currentKey === opt.value ? 'selected' : '';
         return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
       }).join('');
+    }
+
+    function getSortingOptionsHtml(component) {
+      const type = component.dataSourceType || 'common';
+      const currentSorting = component.sorting || 'weight';
+
+      if (type === 'common') {
+        const commonSortingOptions = [
+          { value: 'weight', label: '权重' },
+          { value: 'publishTimeAsc', label: '发布时间正序' },
+          { value: 'publishTimeDesc', label: '发布时间倒序' },
+          { value: 'updateTimeAsc', label: '更新时间正序' },
+          { value: 'updateTimeDesc', label: '更新时间倒序' }
+        ];
+
+        return commonSortingOptions.map(opt => {
+          const selected = currentSorting === opt.value ? 'selected' : '';
+          return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+        }).join('');
+      } else {
+        const customSortingOptions = [
+          { value: 'algorithm', label: '算法推荐' }
+        ];
+
+        return customSortingOptions.map(opt => {
+          const selected = currentSorting === opt.value ? 'selected' : '';
+          return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+        }).join('');
+      }
     }
 
     function getPropertyLabel(key) {
@@ -2791,6 +2826,14 @@
     function updateComponentDataSourceKey(value) {
       if (selectedComponent) {
         selectedComponent.dataSourceKey = value;
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateComponentSorting(value) {
+      if (selectedComponent) {
+        selectedComponent.sorting = value;
         renderPreview();
         saveConfig();
       }
