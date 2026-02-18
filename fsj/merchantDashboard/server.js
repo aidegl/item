@@ -145,6 +145,9 @@ function generateAppJs(merchantId, outputDir) {
 
 async function generatePage(page, outputDir, merchantId) {
     try {
+        console.log('========== 开始生成页面 ==========');
+        console.log('页面信息:', JSON.stringify(page, null, 2));
+
         const pageDir = path.join(outputDir, 'pages', page.pageId);
         console.log(`创建页面目录: ${pageDir}`);
         fs.mkdirSync(pageDir, { recursive: true });
