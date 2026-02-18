@@ -173,6 +173,8 @@ function generatePageJS(page, merchantId) {
         return `  ${comp.componentName}: ${JSON.stringify(comp.componentItems)},`;
     }).join('\n');
 
+    const componentNames = components.map(comp => comp.componentName).join(', ');
+
     return `Page({
   data: {
 ${componentsData}
@@ -183,6 +185,11 @@ ${componentsData}
     const app = getApp();
     const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
     console.log('商家ID:', appMerchantId);
+    
+    console.log('=== 组件数据 ===');
+    console.log('组件列表:', [${components.map(comp => `'${comp.componentName}'`).join(', ')}]);
+    ${components.map(comp => `    console.log('${comp.componentName}数据:', this.data.${comp.componentName});`).join('\n')}
+    console.log('=== 组件数据结束 ===');
   },
 
   onReady() {
