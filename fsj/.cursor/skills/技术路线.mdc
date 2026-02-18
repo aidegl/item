@@ -515,14 +515,31 @@ async function generateAppJson(config, outputDir) {
 
 - 明道云集成
   - MingdaoYunArrayAPI / AddAPI / QueryAPI / UpdateAPI 封装完成，统一返回 `{success, data, error_msg, error_code}`
-  - 小程序启动时加载商家配置与图片映射 `imageMap`，并写入 `app.globalData`
-  - 图片映射工具 imageMapper 实现，从明道云行数据解析图片 URL 列表
+  - 图片处理采用打包时下载方案，所有图片在打包时下载到 `images` 目录
+  - 小程序直接引用本地图片文件，无需运行时获取
+  - 明道云数据调用方法已整理为 skill 文件（`明道云数据调用.md`），供需要动态加载数据时参考
 
 - 数据绑定 UI（组件级）
   - 属性面板中原来的组件内容 textarea 改为通用的「数据绑定」双下拉样式
   - 左侧下拉：数据来源类型（通用 / 自定义），默认选中「通用」
   - 右侧下拉：具体数据源（商品 / 文章 / 知识库 / 自定义数据）
   - 组件配置中新增 `dataSourceType` / `dataSourceKey` 字段，并写入保存的 JSON 配置
+  - 排序规则配置：
+    - **通用数据来源**：提供标准排序选项
+      - 权重（按内容权重排序，适用于推荐场景）
+      - 发布时间正序（从旧到新）
+      - 发布时间倒序（从新到旧）
+      - 更新时间正序（从旧到新）
+      - 更新时间倒序（从新到旧）
+    - **自定义数据来源**：提供算法推荐排序选项
+      - 算法推荐（基于 `nrsf` 表的权重计算）
+      - 商家可配置各类因子权重（评论因子、收藏因子、主页因子等）
+      - 支持自定义排序规则（基于商家设定的因子权重组合）
+  - **已实现**：
+    - 在 `decoration.html` 中添加排序规则下拉框UI
+    - 实现 `getSortingOptionsHtml` 函数，根据数据来源类型动态生成排序选项
+    - 实现 `updateComponentSorting` 函数，保存排序规则到组件配置的 `sorting` 字段
+    - 排序规则会根据数据来源类型自动切换显示对应的选项
 
 #### 待开发功能（按最小单元拆分）
 
@@ -660,117 +677,7 @@ const result = await arrayAPI.getData({
 - **错误处理**：统一的异常捕获和错误返回
 
 
-##### imageMapper（图片映射工具）
-- **文件路径**：wxApp/utils/imageMapper.js
-- **功能**：将明道云返回的图片数据转换为小程序可用的格式
-- **核心方法**：
-  - processImageData(apiResponse) - 处理明道云API返回的图片数据
-  - getImageUrl(imageMap, rowid) - 根据rowid获取图片URL
-- **参数**：
-  - piResponse：明道云API返回的完整响应对象
-  - imageMap：图片映射数组
-  - 
-owid：行ID
-- **返回**：
-  - processImageData：返回格式化后的图片映射数组 [{ rowid, url }]
-  - getImageUrl：返回图片URL字符串
-- **使用场景**：小程序初始化时加载图片映射，页面渲染时根据rowid获取图片URL
 
-##### 图片映射数据结构
-
-**明道云API返回格式**：
-`json
-{
-  "data": {
-    "rows": [
-      {
-        "rowid": "4c661940-1d8d-4f95-a6ab-4661effea87c",
-        "img": "[{\"file_id\":\"xxx\",\"large_thumbnail_full_path\":\"https://p1.mingdaoyun.cn/xxx.png\"}]"
-      }
-    ]
-  },
-  "success": true
-}
-`
-
-**处理后的小程序格式**：
-`javascript
-[
-  {
-    rowid: '4c661940-1d8d-4f95-a6ab-4661effea87c',
-    url: 'https://p1.mingdaoyun.cn/xxx.png'
-  }
-]
-`
-
-##### 图片映射使用示例
-
-**小程序初始化时加载图片映射**：
-`javascript
-const { processImageData, getImageUrl } = require('./utils/imageMapper');
-
-App({
-  globalData: {
-    imageMap: []
-  },
-
-  onLaunch() {
-    const merchantId = this.globalData.merchantId;
-    this.initMerchantData(merchantId);
-  },
-
-  async initMerchantData(merchantId) {
-    const rows = await initMerchantData(merchantId);
-    if (rows && Array.isArray(rows)) {
-      const apiResponse = {
-        data: {
-          rows: rows
-        }
-      };
-      
-      this.globalData.imageMap = processImageData(apiResponse);
-      console.log('[全局] 图片映射已加载，共', this.globalData.imageMap.length, '张图片');
-    }
-  },
-
-  getImageUrl(rowid) {
-    return getImageUrl(this.globalData.imageMap, rowid);
-  }
-});
-`
-
-**页面中使用图片**：
-`javascript
-Page({
-  onLoad(options) {
-    const app = getApp();
-    
-    // 根据rowid获取图片URL
-    const imageUrl = app.getImageUrl('4c661940-1d8d-4f95-a6ab-4661effea87c');
-    
-    this.setData({
-      image: imageUrl
-    });
-  }
-});
-`
-
-##### 图片映射处理逻辑
-
-1. **数据提取**：从明道云API响应中提取 data.rows 数组
-2. **字段映射**：提取每行的 
-owid 和 img 字段
-3. **JSON解析**：将 img 字符串解析为JSON数组
-4. **URL提取**：取第一个图片对象的 large_thumbnail_full_path 字段
-5. **格式转换**：转换为 { rowid, url } 格式的数组
-6. **全局存储**：存储到 pp.globalData.imageMap 供全局使用
-
-##### 图片映射优势
-
-- **统一管理**：所有图片集中在明道云管理，便于维护
-- **按需加载**：通过rowid按需获取图片，避免重复请求
-- **性能优化**：使用大图缩略图，减少加载时间
-- **易于扩展**：新增图片只需在明道云添加，无需修改代码
 #### 认证方式
 - 使用商户密钥（appKey）和签名（sign）
 - 通过URL参数传递商家ID（mRowid）
@@ -1215,88 +1122,6 @@ wx.request({
   4. 遍历配置中的 `pages` 调用 `generatePage(...)` 生成每个页面的 `index.js / index.wxml / index.wxss / index.json`；
   5. 调用 `generateAppJson(config, outputDir)` 生成 `app.json`；
   6. 使用 `createZip(sourceDir, zipPath)` 打包为 ZIP，返回下载地址 `/download/miniprogram_xxx.zip`。
-
-#### 三、小程序端全局加载明道云商家数据
-
-##### 1. Mingdao API 小程序适配
-- 位置：`wxApp/utils/MingdaoYunArrayAPI.js`、`wxApp/utils/MingdaoYunQueryAPI.js`
-- 适配点：
-  - 替换 `fetch + AbortController` 为 `wx.request`；
-  - 保持原有方法签名不变（如 `async getData(params)`）；
-  - 统一返回 `{success, data, error_msg, error_code}`；
-  - 请求域名使用小程序后台配置的合法域名（如 `https://api.mingdao.com`）。
-
-##### 2. 初始化工具：initMerchant.js
-- 位置：`wxApp/utils/initMerchant.js`
-- 职责：
-  - 根据 `merchantId` 构造明道云筛选条件：
-    - `mid == merchantId`
-    - `use == 1`
-  - 通过 `MingDaoYunArrayAPI.getData({ worksheetId: 'scgl', filters, pageSize, pageIndex })` 拉取商家数据；
-  - 成功时返回商家数据列表，失败时返回 `null` 并打印错误日志。
-
-##### 3. app.js 中统一初始化商家数据
-- 由后端生成的 `generateAppJs(merchantId, outputDir)` 模板示例：
-  ```javascript
-  const { initMerchantData } = require('./utils/initMerchant');
-
-  App({
-    onLaunch() {
-      console.log('小程序启动');
-      const merchantId = this.globalData.merchantId;
-      this.initMerchantData(merchantId);
-    },
-
-    onShow() {
-      console.log('小程序显示');
-    },
-
-    onHide() {
-      console.log('小程序隐藏');
-    },
-
-    globalData: {
-      userInfo: null,
-      merchantData: null,
-      merchantId: '698826f3b35652a8d4f60e21' // 去掉 a# 后的ID
-    },
-
-    async initMerchantData(merchantId) {
-      const data = await initMerchantData(merchantId);
-      if (data) {
-        this.globalData.merchantData = data;
-        console.log('全局商家数据初始化成功：', data);
-      } else {
-        console.warn('全局商家数据初始化失败');
-      }
-    }
-  });
-  ```
-- 设计思路：
-  - 所有页面共享 `app.globalData.merchantData`；
-  - 避免每个页面都单独 `require('../../utils/initMerchant.js')`，减少路径、模块加载错误。
-
-##### 4. 页面层使用商家数据
-- 页面 `onLoad` 只负责读取全局数据，不再直接调用明道云接口：
-  ```javascript
-  Page({
-    data: {
-      // 组件数据...
-    },
-
-    onLoad(options) {
-      console.log('页面加载', options);
-      const app = getApp();
-      const appMerchantId = app && app.globalData && app.globalData.merchantId;
-      console.log('商家ID:', appMerchantId);
-      console.log('全局商家数据:', app.globalData.merchantData);
-      // 根据 merchantData 渲染页面或做逻辑处理
-    }
-  });
-  ```
-- 好处：
-  - 明道云接口调用集中在 app.js；
-  - 页面只依赖 `getApp()`，无需关心明道云细节和合法域名配置。
 
 #### 四、健康检查与 502 排查
 
