@@ -1,8 +1,7 @@
 {
   "description": "小程序配置",
   "packOptions": {
-    "ignore": [],
-    "include": []
+    "ignore": []
   },
   "setting": {
     "urlCheck": false,
@@ -37,19 +36,11 @@
     "packNpmRelationList": [],
     "minifyWXSS": true,
     "disableUseStrict": false,
-    "minifyWXML": true,
-    "compileWorklet": false,
-    "localPlugins": false,
-    "useCompilerPlugins": false,
-    "condition": false,
-    "swc": false,
-    "disableSWC": true
+    "minifyWXML": true
   },
   "compileType": "miniprogram",
   "libVersion": "2.19.4",
-  "appid": "wx8899213e89e3cd45",
+  "appid": "touristappid",
   "projectname": "miniprogram",
-  "condition": {},
-  "simulatorPluginLibVersion": {},
-  "editorSetting": {}
+  "condition": {}
 }

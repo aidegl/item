@@ -14,6 +14,6 @@ App({
 
   globalData: {
     userInfo: null,
-    merchantId: '75cf2e-0f73-4137-9e99-116d92c45a47'
+    merchantId: '698826f3b35652a8d4f60e21'
   }
 });

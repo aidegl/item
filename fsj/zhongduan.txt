@@ -3,221 +3,648 @@ Welcome to Alibaba Cloud Elastic Compute Service !
 
 Last login: Wed Jan 7 22:44:12 +0800 2026 from 100.104.185.16
 The current terminal create by BT-Panel.
-root@iZf8zal6c69zav3ybcmj74Z:~# # 1. 查看PM2运行的服务状态
+root@iZf8zal6c69zav3ybcmj74Z:~# # 1. 检查 node_modules 是否存在
+cd /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard
+ls -la | grep node_modules
+
+# 2. 检查 PM2 服务状态
 pm2 list
 
-# 2. 查看PM2服务的日志（这里可以看到打包和数据加载的详细日志）
-pm2 logs miniprogram-generator-3001 --lines 100
-
-# 3. 如果需要实时查看日志
-pm2 logs miniprogram-generator-3001
+# 3. 查看服务器启动日志（查找"组件注册"和"服务器运行在"）
+pm2 logs miniprogram-generator-3001 --lines 500 | grep -E "组件注册|服务器运行|收到生成请求|接收到的配置"
+drwxr-xr-x 161 root root   4096 Feb 18 23:22 node_modules
 ┌────┬───────────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
 │ id │ name                          │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
 ├────┼───────────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
-│ 0  │ miniprogram-generator-3001    │ default     │ 1.0.0   │ fork    │ 1335490  │ 48m    │ 0    │ online    │ 0%       │ 91.9mb   │ root     │ disabled │
+│ 0  │ miniprogram-generator-3001    │ default     │ 1.0.0   │ fork    │ 1338151  │ 66s    │ 0    │ online    │ 0%       │ 84.2mb   │ root     │ disabled │
 └────┴───────────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
-[TAILING] Tailing last 100 lines for [miniprogram-generator-3001] process (change the value with --lines option)
-/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/logs/err.log last 100 lines:
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-18 23:21:04 +08:00:   requireStack: [
-0|miniprog | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-18 23:21:04 +08:00:   ]
-0|miniprog | 2026-02-18 23:21:04 +08:00: }
-0|miniprog | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
-0|miniprog | 2026-02-18 23:21:04 +08:00: Require stack:
-0|miniprog | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-18 23:21:04 +08:00:   requireStack: [
-0|miniprog | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-18 23:21:04 +08:00:   ]
-0|miniprog | 2026-02-18 23:21:04 +08:00: }
-0|miniprog | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
-0|miniprog | 2026-02-18 23:21:04 +08:00: Require stack:
-0|miniprog | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-18 23:21:04 +08:00:   requireStack: [
-0|miniprog | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-18 23:21:04 +08:00:   ]
-0|miniprog | 2026-02-18 23:21:04 +08:00: }
-0|miniprog | 2026-02-18 23:21:05 +08:00: Error: Cannot find module 'express'
-0|miniprog | 2026-02-18 23:21:05 +08:00: Require stack:
-0|miniprog | 2026-02-18 23:21:05 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-18 23:21:05 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-18 23:21:05 +08:00:   requireStack: [
-0|miniprog | 2026-02-18 23:21:05 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-18 23:21:05 +08:00:   ]
-0|miniprog | 2026-02-18 23:21:05 +08:00: }
-0|miniprog | 2026-02-18 23:21:05 +08:00: Error: Cannot find module 'express'
-0|miniprog | 2026-02-18 23:21:05 +08:00: Require stack:
-0|miniprog | 2026-02-18 23:21:05 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-18 23:21:05 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-18 23:21:05 +08:00:   requireStack: [
-0|miniprog | 2026-02-18 23:21:05 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-18 23:21:05 +08:00:   ]
-0|miniprog | 2026-02-18 23:21:05 +08:00: }
-0|miniprog | 2026-02-18 23:21:05 +08:00: Error: Cannot find module 'express'
-0|miniprog | 2026-02-18 23:21:05 +08:00: Require stack:
-0|miniprog | 2026-02-18 23:21:05 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-18 23:21:05 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-18 23:21:05 +08:00:   requireStack: [
-0|miniprog | 2026-02-18 23:21:05 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-18 23:21:05 +08:00:   ]
-0|miniprog | 2026-02-18 23:21:05 +08:00: }
-
-/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/logs/out.log last 100 lines:
-0|miniprog | 2026-02-19 00:03:52 +08:00: 2. 生成页面代码...
-0|miniprog | 2026-02-19 00:03:52 +08:00: ========== 开始生成页面 ==========
-0|miniprog | 2026-02-19 00:03:52 +08:00: 页面信息: {
-0|miniprog | 2026-02-19 00:03:52 +08:00:   "pageId": "default-page-1",
-0|miniprog | 2026-02-19 00:03:52 +08:00:   "pageName": "首页",
-0|miniprog | 2026-02-19 00:03:52 +08:00:   "components": []
-0|miniprog | 2026-02-19 00:03:52 +08:00: }
-0|miniprog | 2026-02-19 00:03:52 +08:00: 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/pages/default-page-1
-0|miniprog | 2026-02-19 00:03:52 +08:00: 加载组件数据...
-0|miniprog | 2026-02-19 00:03:52 +08:00: 开始加载组件数据...
-0|miniprog | 2026-02-19 00:03:52 +08:00: 页面组件列表: []
-0|miniprog | 2026-02-19 00:03:52 +08:00: 
-0|miniprog | 2026-02-19 00:03:52 +08:00: 组件数据加载完成
-0|miniprog | 2026-02-19 00:03:52 +08:00: 最终组件数据: []
-0|miniprog | 2026-02-19 00:03:52 +08:00: 生成JS文件...
-0|miniprog | 2026-02-19 00:03:52 +08:00: JS文件生成成功
-0|miniprog | 2026-02-19 00:03:52 +08:00: 生成WXML文件...
-0|miniprog | 2026-02-19 00:03:52 +08:00: WXML文件生成成功
-0|miniprog | 2026-02-19 00:03:52 +08:00: 生成WXSS文件...
-0|miniprog | 2026-02-19 00:03:52 +08:00: WXSS文件生成成功
-0|miniprog | 2026-02-19 00:03:52 +08:00: 生成JSON文件...
-0|miniprog | 2026-02-19 00:03:52 +08:00: JSON文件生成成功
-0|miniprog | 2026-02-19 00:03:52 +08:00: 生成页面: 首页
-0|miniprog | 2026-02-19 00:03:52 +08:00: ========== 开始生成页面 ==========
-0|miniprog | 2026-02-19 00:03:52 +08:00: 页面信息: {
-0|miniprog | 2026-02-19 00:03:52 +08:00:   "pageId": "default-page-2",
-0|miniprog | 2026-02-19 00:03:52 +08:00:   "pageName": "我的",
-0|miniprog | 2026-02-19 00:03:52 +08:00:   "components": []
-0|miniprog | 2026-02-19 00:03:52 +08:00: }
-0|miniprog | 2026-02-19 00:03:52 +08:00: 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/pages/default-page-2
-0|miniprog | 2026-02-19 00:03:52 +08:00: 加载组件数据...
-0|miniprog | 2026-02-19 00:03:52 +08:00: 开始加载组件数据...
-0|miniprog | 2026-02-19 00:03:52 +08:00: 页面组件列表: []
-0|miniprog | 2026-02-19 00:03:52 +08:00: 
-0|miniprog | 2026-02-19 00:03:52 +08:00: 组件数据加载完成
-0|miniprog | 2026-02-19 00:03:52 +08:00: 最终组件数据: []
-0|miniprog | 2026-02-19 00:03:52 +08:00: 生成JS文件...
-0|miniprog | 2026-02-19 00:03:52 +08:00: JS文件生成成功
-0|miniprog | 2026-02-19 00:03:52 +08:00: 生成WXML文件...
-0|miniprog | 2026-02-19 00:03:52 +08:00: WXML文件生成成功
-0|miniprog | 2026-02-19 00:03:52 +08:00: 生成WXSS文件...
-0|miniprog | 2026-02-19 00:03:52 +08:00: WXSS文件生成成功
-0|miniprog | 2026-02-19 00:03:52 +08:00: 生成JSON文件...
-0|miniprog | 2026-02-19 00:03:52 +08:00: JSON文件生成成功
-0|miniprog | 2026-02-19 00:03:52 +08:00: 生成页面: 我的
-0|miniprog | 2026-02-19 00:03:52 +08:00: 2.5. 下载tabBar图标...
-0|miniprog | 2026-02-19 00:03:52 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/736e427c-e162-4e98-b5dd-a877c70b6c3d.png
-0|miniprog | 2026-02-19 00:03:52 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/4c661940-1d8d-4f95-a6ab-4661effea87c.png
-0|miniprog | 2026-02-19 00:03:52 +08:00: 未选中图标已叠加颜色 #999999: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/736e427c-e162-4e98-b5dd-a877c70b6c3d.png
-0|miniprog | 2026-02-19 00:03:52 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/5f96392a-bd0e-4d78-a14c-803493ddf484.png
-0|miniprog | 2026-02-19 00:03:52 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/67467570-f4ec-4aad-a374-dbbeecd43d22.png
-0|miniprog | 2026-02-19 00:03:53 +08:00: 选中图标已叠加颜色 #0557e1: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/4c661940-1d8d-4f95-a6ab-4661effea87c.png
-0|miniprog | 2026-02-19 00:03:53 +08:00: 未选中图标已叠加颜色 #999999: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/5f96392a-bd0e-4d78-a14c-803493ddf484.png
-0|miniprog | 2026-02-19 00:03:53 +08:00: 选中图标已叠加颜色 #0557e1: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/67467570-f4ec-4aad-a374-dbbeecd43d22.png
-0|miniprog | 2026-02-19 00:03:53 +08:00: 所有图标下载完成
-0|miniprog | 2026-02-19 00:03:53 +08:00: 3. 生成app.json...
-0|miniprog | 2026-02-19 00:03:53 +08:00: 生成tabBar配置
-0|miniprog | 2026-02-19 00:03:53 +08:00: 生成app.json，内容如下:
-0|miniprog | 2026-02-19 00:03:53 +08:00: {
-0|miniprog | 2026-02-19 00:03:53 +08:00:   "pages": [
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "pages/default-page-1/index",
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "pages/default-page-2/index"
-0|miniprog | 2026-02-19 00:03:53 +08:00:   ],
-0|miniprog | 2026-02-19 00:03:53 +08:00:   "window": {
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "backgroundTextStyle": "light",
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "navigationBarBackgroundColor": "#ffffff",
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "navigationBarTitleText": "小程序",
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "navigationBarTextStyle": "black"
-0|miniprog | 2026-02-19 00:03:53 +08:00:   },
-0|miniprog | 2026-02-19 00:03:53 +08:00:   "sitemapLocation": "sitemap.json",
-0|miniprog | 2026-02-19 00:03:53 +08:00:   "tabBar": {
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "color": "#999999",
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "selectedColor": "#0557e1",
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "backgroundColor": "#ffffff",
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "borderStyle": "white",
-0|miniprog | 2026-02-19 00:03:53 +08:00:     "list": [
-0|miniprog | 2026-02-19 00:03:53 +08:00:       {
-0|miniprog | 2026-02-19 00:03:53 +08:00:         "pagePath": "pages/default-page-1/index",
-0|miniprog | 2026-02-19 00:03:53 +08:00:         "text": "首页",
-0|miniprog | 2026-02-19 00:03:53 +08:00:         "iconPath": "images/5f96392a-bd0e-4d78-a14c-803493ddf484.png",
-0|miniprog | 2026-02-19 00:03:53 +08:00:         "selectedIconPath": "images/4c661940-1d8d-4f95-a6ab-4661effea87c.png"
-0|miniprog | 2026-02-19 00:03:53 +08:00:       },
-0|miniprog | 2026-02-19 00:03:53 +08:00:       {
-0|miniprog | 2026-02-19 00:03:53 +08:00:         "pagePath": "pages/default-page-2/index",
-0|miniprog | 2026-02-19 00:03:53 +08:00:         "text": "我的",
-0|miniprog | 2026-02-19 00:03:53 +08:00:         "iconPath": "images/736e427c-e162-4e98-b5dd-a877c70b6c3d.png",
-0|miniprog | 2026-02-19 00:03:53 +08:00:         "selectedIconPath": "images/67467570-f4ec-4aad-a374-dbbeecd43d22.png"
-0|miniprog | 2026-02-19 00:03:53 +08:00:       }
-0|miniprog | 2026-02-19 00:03:53 +08:00:     ]
-0|miniprog | 2026-02-19 00:03:53 +08:00:   }
-0|miniprog | 2026-02-19 00:03:53 +08:00: }
-0|miniprog | 2026-02-19 00:03:53 +08:00: 4. 创建ZIP文件...
-0|miniprog | 2026-02-19 00:03:53 +08:00: 开始创建ZIP: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804 -> /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804.zip
-0|miniprog | 2026-02-19 00:03:53 +08:00: 开始添加目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804
-0|miniprog | 2026-02-19 00:03:53 +08:00: 目录添加完成，开始finalize
-0|miniprog | 2026-02-19 00:03:53 +08:00: finalize完成
-0|miniprog | 2026-02-19 00:03:53 +08:00: ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804.zip (24256 bytes)
-0|miniprog | 2026-02-19 00:03:53 +08:00: 5. 清理临时文件...
-0|miniprog | 2026-02-19 00:03:53 +08:00: 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804
-0|miniprog | 2026-02-19 00:03:56 +08:00: 文件下载: miniprogram_1771430632804.zip
-
+0|miniprog | 2026-02-19 00:28:39 +08:00: [组件注册] 轮播图
+0|miniprog | 2026-02-19 00:28:39 +08:00: [组件注册] 功能列表
+0|miniprog | 2026-02-19 00:28:39 +08:00: [组件注册] 图片
+0|miniprog | 2026-02-19 00:28:39 +08:00: [组件注册] 文本
+0|miniprog | 2026-02-19 00:28:39 +08:00: [组件注册] 商品网格
+0|miniprog | 2026-02-19 00:28:39 +08:00: [组件注册] 公告
+0|miniprog | 2026-02-19 00:28:39 +08:00: [组件注册] 标签页面
+0|miniprog | 2026-02-19 00:28:39 +08:00: [组件注册] 内容列表
+0|miniprog | 2026-02-19 00:28:39 +08:00: 组件注册完成
+0|miniprog | 2026-02-19 00:28:39 +08:00: 服务器运行在 http://localhost:3001
+0|miniprog | 2026-02-19 00:29:19 +08:00: 收到生成请求: 2026-02-18T16:29:19.348Z
+0|miniprog | 2026-02-19 00:29:19 +08:00: 接收到的配置: {
+0|miniprog | 2026-02-19 00:33:17 +08:00: [组件注册] 轮播图
+0|miniprog | 2026-02-19 00:33:17 +08:00: [组件注册] 功能列表
+0|miniprog | 2026-02-19 00:33:17 +08:00: [组件注册] 图片
+0|miniprog | 2026-02-19 00:33:17 +08:00: [组件注册] 文本
+0|miniprog | 2026-02-19 00:33:17 +08:00: [组件注册] 商品网格
+0|miniprog | 2026-02-19 00:33:17 +08:00: [组件注册] 公告
+0|miniprog | 2026-02-19 00:33:17 +08:00: [组件注册] 标签页面
+0|miniprog | 2026-02-19 00:33:17 +08:00: [组件注册] 内容列表
+0|miniprog | 2026-02-19 00:33:17 +08:00: 组件注册完成
+0|miniprog | 2026-02-19 00:33:17 +08:00: 服务器运行在 http://localhost:3001
+^C
+root@iZf8zal6c69zav3ybcmj74Z:/www/wwwroot/100000whys.cn/project/fsj/merchantDrd# # 查看完整的接收到的配置（增加输出行数）行数）
+pm2 logs miniprogram-generator-3001 --lines 1000 | grep -A 200 "接收到的配置"
+0|miniprog | 2026-02-19 00:18:49 +08:00: 接收到的配置: {
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "merchantId": "75cf2e-0f73-4137-9e99-116d92c45a47",
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "globalConfig": {
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "style": "classic",
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "themeColor": "#0557e1",
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "navigationBar": {
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "backgroundColor": "#ffffff",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "textColor": "#181818"
+0|miniprog | 2026-02-19 00:18:49 +08:00:     }
+0|miniprog | 2026-02-19 00:18:49 +08:00:   },
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "tabBarConfig": {
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "style": "classic",
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "backgroundColor": "#ffffff",
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "selectedColor": "{主题色}",
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "unselectedColor": "#999999",
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "list": [
+0|miniprog | 2026-02-19 00:18:49 +08:00:       {
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "name": "首页",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "selectedIcon": "",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "selectedIconRowid": "4c661940-1d8d-4f95-a6ab-4661effea87c",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "unselectedIcon": "",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "unselectedIconRowid": "5f96392a-bd0e-4d78-a14c-803493ddf484",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "pageId": "default-page-1"
+0|miniprog | 2026-02-19 00:18:49 +08:00:       },
+0|miniprog | 2026-02-19 00:18:49 +08:00:       {
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "name": "我的",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "selectedIcon": "",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "selectedIconRowid": "67467570-f4ec-4aad-a374-dbbeecd43d22",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "unselectedIcon": "",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "unselectedIconRowid": "736e427c-e162-4e98-b5dd-a877c70b6c3d",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "pageId": "default-page-2"
+0|miniprog | 2026-02-19 00:18:49 +08:00:       }
+0|miniprog | 2026-02-19 00:18:49 +08:00:     ]
+0|miniprog | 2026-02-19 00:18:49 +08:00:   },
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "pages": [
+0|miniprog | 2026-02-19 00:18:49 +08:00:     {
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "pageId": "default-page-1",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "pageName": "首页",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "components": [
+0|miniprog | 2026-02-19 00:18:49 +08:00:         {
+0|miniprog | 2026-02-19 00:18:49 +08:00:           "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:18:49 +08:00:           "componentId": "8776fb4f-4617-42d8-9ee4-9f5da8d4fe58",
+0|miniprog | 2026-02-19 00:18:49 +08:00:           "componentItems": [
+0|miniprog | 2026-02-19 00:18:49 +08:00:             "image1.png",
+0|miniprog | 2026-02-19 00:18:49 +08:00:             "image2.png",
+0|miniprog | 2026-02-19 00:18:49 +08:00:             "image3.png"
+0|miniprog | 2026-02-19 00:18:49 +08:00:           ],
+0|miniprog | 2026-02-19 00:18:49 +08:00:           "properties": {
+0|miniprog | 2026-02-19 00:18:49 +08:00:             "height": 200,
+0|miniprog | 2026-02-19 00:18:49 +08:00:             "autoplay": true,
+0|miniprog | 2026-02-19 00:18:49 +08:00:             "interval": 3000
+0|miniprog | 2026-02-19 00:18:49 +08:00:           }
+0|miniprog | 2026-02-19 00:18:49 +08:00:         }
+0|miniprog | 2026-02-19 00:18:49 +08:00:       ],
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "expanded": true
+0|miniprog | 2026-02-19 00:18:49 +08:00:     },
+0|miniprog | 2026-02-19 00:18:49 +08:00:     {
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "pageId": "default-page-2",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "pageName": "我的",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "components": []
+0|miniprog | 2026-02-19 00:18:49 +08:00:     }
+0|miniprog | 2026-02-19 00:18:49 +08:00:   ],
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "userImages": [
+0|miniprog | 2026-02-19 00:18:49 +08:00:     {
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "mingcheng": "我的0",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "rowid": "736e427c-e162-4e98-b5dd-a877c70b6c3d",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260217/00eM1z2v1d5ocUeDfkdE1h0J3j7rct7Ueb673k4maBeN0QaMaMfW0a5Gckdd7T7r.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:18:49 +08:00:     },
+0|miniprog | 2026-02-19 00:18:49 +08:00:     {
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "mingcheng": "我的1",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "rowid": "67467570-f4ec-4aad-a374-dbbeecd43d22",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260217/3J7N7O6xascv2s3YeVfN3K685xdPeu2jdefF4U4teRab83fLaE4X1HfH6TeU1u1x.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:18:49 +08:00:     },
+0|miniprog | 2026-02-19 00:18:49 +08:00:     {
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "mingcheng": "首页1",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "rowid": "4c661940-1d8d-4f95-a6ab-4661effea87c",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260216/d76P0e0w563t8Lc1bc9s5yaDcB1p9Ya69M125t4wagcH8L1vaXb6dGbZ0Pbg4Heu.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:18:49 +08:00:     },
+0|miniprog | 2026-02-19 00:18:49 +08:00:     {
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "mingcheng": "首页0",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "rowid": "5f96392a-bd0e-4d78-a14c-803493ddf484",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260216/avck7ueYcze2eAcleY8GbN5DfSbR7q5x3sduaCbIbabj0ybNbI1q9u0wfX29ex1b.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:18:49 +08:00:     }
+0|miniprog | 2026-02-19 00:18:49 +08:00:   ]
+0|miniprog | 2026-02-19 00:18:49 +08:00: }
+0|miniprog | 2026-02-19 00:18:49 +08:00: tabBarConfig.list长度: 2
+0|miniprog | 2026-02-19 00:18:49 +08:00: pages长度: 2
+0|miniprog | 2026-02-19 00:18:49 +08:00: 商家ID: 75cf2e-0f73-4137-9e99-116d92c45a47
+0|miniprog | 2026-02-19 00:18:49 +08:00: 1. 复制基础框架代码...
+0|miniprog | 2026-02-19 00:18:49 +08:00: 复制: app.js
+0|miniprog | 2026-02-19 00:18:49 +08:00: 复制: app.wxss
+0|miniprog | 2026-02-19 00:18:49 +08:00: 复制: sitemap.json
+0|miniprog | 2026-02-19 00:18:49 +08:00: 复制: project.config.json
+0|miniprog | 2026-02-19 00:18:49 +08:00: 复制: utils
+0|miniprog | 2026-02-19 00:18:49 +08:00: 制: images
+0|miniprog | 2026-02-19 00:18:49 +08:00: 1.5. 生成app.js...
+0|miniprog | 2026-02-19 00:18:49 +08:00: 生成app.js, 商家ID: 75cf2e-0f73-4137-9e99-116d92c45a47
+0|miniprog | 2026-02-19 00:18:49 +08:00: 2. 生成页面代码...
+0|miniprog | 2026-02-19 00:18:49 +08:00: ========== 开始生成页面 ==========
+0|miniprog | 2026-02-19 00:18:49 +08:00: 页面信息: {
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "pageId": "default-page-1",
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "pageName": "首页",
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "components": [
+0|miniprog | 2026-02-19 00:18:49 +08:00:     {
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "componentId": "8776fb4f-4617-42d8-9ee4-9f5da8d4fe58",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "componentItems": [
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "image1.png",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "image2.png",
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "image3.png"
+0|miniprog | 2026-02-19 00:18:49 +08:00:       ],
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "properties": {
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "height": 200,
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "autoplay": true,
+0|miniprog | 2026-02-19 00:18:49 +08:00:         "interval": 3000
+0|miniprog | 2026-02-19 00:18:49 +08:00:       }
+0|miniprog | 2026-02-19 00:18:49 +08:00:     }
+0|miniprog | 2026-02-19 00:18:49 +08:00:   ],
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "expanded": true
+0|miniprog | 2026-02-19 00:18:49 +08:00: }
+0|miniprog | 2026-02-19 00:18:49 +08:00: 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771431529660/pages/default-page-1
+0|miniprog | 2026-02-19 00:18:49 +08:00: 加载组件数据...
+0|miniprog | 2026-02-19 00:18:49 +08:00: 开始加载组件数据...
+0|miniprog | 2026-02-19 00:18:49 +08:00: 页面组件列表: [
+0|miniprog | 2026-02-19 00:18:49 +08:00:   {
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "componentId": "8776fb4f-4617-42d8-9ee4-9f5da8d4fe58",
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "componentItems": [
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "image1.png",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "image2.png",
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "image3.png"
+0|miniprog | 2026-02-19 00:18:49 +08:00:     ],
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "properties": {
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "height": 200,
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "autoplay": true,
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "interval": 3000
+0|miniprog | 2026-02-19 00:18:49 +08:00:     }
+0|miniprog | 2026-02-19 00:18:49 +08:00:   }
+0|miniprog | 2026-02-19 00:18:49 +08:00: ]
+0|miniprog | 2026-02-19 00:18:49 +08:00: 
+0|miniprog | 2026-02-19 00:18:49 +08:00: 处理组件: 轮播图
+0|miniprog | 2026-02-19 00:18:49 +08:00: 组件对象: 找到
+0|miniprog | 2026-02-19 00:18:49 +08:00: 组件有loadData方法: true
+0|miniprog | 2026-02-19 00:18:49 +08:00: 开始加载 轮播图 数据...
+0|miniprog | 2026-02-19 00:18:49 +08:00: 加载轮播图数据...
+0|miniprog | 2026-02-19 00:18:49 +08:00: [组件日志] 动作名称：调用明道云getFilterRows接口，接收的worksheetId值： lunbotu
+0|miniprog | 2026-02-19 00:18:49 +08:00: [组件日志] 接收的filters值： []
+0|miniprog | 2026-02-19 00:18:49 +08:00: [执行日志] 2/19/2026, 12:18:49 AM - 执行了getData函数，入参： { worksheetId: 'lunbotu', filters: [], pageSize: 50, pageIndex: 1 }
+0|miniprog | 2026-02-19 00:18:49 +08:00: [组件日志] 准备调用明道云接口，请求体： {
+0|miniprog | 2026-02-19 00:18:49 +08:00:   appKey: 'b37a969f03b3cf0b',
+0|miniprog | 2026-02-19 00:18:49 +08:00:   sign: 'MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==',
+0|miniprog | 2026-02-19 00:18:49 +08:00:   worksheetId: 'lunbotu',
+0|miniprog | 2026-02-19 00:18:49 +08:00:   viewId: '',
+0|miniprog | 2026-02-19 00:18:49 +08:00:   pageSize: 50,
+0|miniprog | 2026-02-19 00:18:49 +08:00:   pageIndex: 1,
+0|miniprog | 2026-02-19 00:18:49 +08:00:   keyWords: '',
+0|miniprog | 2026-02-19 00:18:49 +08:00:   listType: 0,
+0|miniprog | 2026-02-19 00:18:49 +08:00:   controls: [],
+0|miniprog | 2026-02-19 00:18:49 +08:00:   filters: [],
+0|miniprog | 2026-02-19 00:18:49 +08:00:   sortId: '',
+0|miniprog | 2026-02-19 00:18:49 +08:00:   isAsc: 'false',
+0|miniprog | 2026-02-19 00:18:49 +08:00:   notGetTotal: 'false',
+0|miniprog | 2026-02-19 00:18:49 +08:00:   useControlId: 'false',
+0|miniprog | 2026-02-19 00:18:49 +08:00:   getSystemControl: 'false'
+0|miniprog | 2026-02-19 00:18:49 +08:00: }
+0|miniprog | 2026-02-19 00:18:49 +08:00: 轮播图API返回结果: {
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "success": false,
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "data": null,
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "error_msg": "络/解析错误：wx is not defined",
+0|miniprog | 2026-02-19 00:18:49 +08:00:   "error_code": 99999
+0|miniprog | 2026-02-19 00:18:49 +08:00: }
+0|miniprog | 2026-02-19 00:18:49 +08:00: 轮播图数据加载失败: result.success=false, result.data=false
+0|miniprog | 2026-02-19 00:18:49 +08:00: 轮播图 数据加载完成: []
+0|miniprog | 2026-02-19 00:18:49 +08:00: 
+0|miniprog | 2026-02-19 00:18:49 +08:00: 组件数据加载完成
+0|miniprog | 2026-02-19 00:18:49 +08:00: 最终组件数据: [
+0|miniprog | 2026-02-19 00:18:49 +08:00:   {
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "componentId": "8776fb4f-4617-42d8-9ee4-9f5da8d4fe58",
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "componentItems": [],
+0|miniprog | 2026-02-19 00:18:49 +08:00:     "properties": {
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "height": 200,
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "autoplay": true,
+0|miniprog | 2026-02-19 00:18:49 +08:00:       "interval": 3000
+0|miniprog | 2026-02-19 00:18:49 +08:00:     }
+0|miniprog | 2026-02-19 00:18:49 +08:00:   }
+0|miniprog | 2026-02-19 00:18:49 +08:00: ]
+0|miniprog | 2026-02-19 00:18:49 +08:00: 生成JS文件...
+0|miniprog | 2026-02-19 00:18:49 +08:00: JS文件生成成功
+0|miniprog | 2026-02-19 00:18:49 +08:00: 生成WXML文件...
+0|miniprog | 2026-02-19 00:18:49 +08:00: WXML文件生成成功
+0|miniprog | 2026-02-19 00:18:49 +08:00: 生成WXSS文件...
+0|miniprog | 2026-02-19 00:18:49 +08:00: WXSS文件生成成功
+0|miniprog | 2026-02-19 00:18:49 +08:00: 生成JSON文件...
+0|miniprog | 2026-02-19 00:18:49 +08:00: JSON文件生成成功
+0|miniprog | 2026-02-19 00:18:49 +08:00: 生成页面: 首页
+0|miniprog | 2026-02-19 00:18:49 +08:00: ========== 开始生成页面 ==========
+--
+0|miniprog | 2026-02-19 00:24:30 +08:00: 接收到的配置: {
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "merchantId": "698826f3b35652a8d4f60e21",
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "globalConfig": {
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "style": "classic",
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "themeColor": "#0557e1",
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "navigationBar": {
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "backgroundColor": "#ffffff",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "textColor": "#181818"
+0|miniprog | 2026-02-19 00:24:30 +08:00:     }
+0|miniprog | 2026-02-19 00:24:30 +08:00:   },
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "tabBarConfig": {
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "style": "classic",
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "backgroundColor": "#ffffff",
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "selectedColor": "{主题色}",
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "unselectedColor": "#999999",
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "list": [
+0|miniprog | 2026-02-19 00:24:30 +08:00:       {
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "name": "首页",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "selectedIcon": "",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "selectedIconRowid": "4c661940-1d8d-4f95-a6ab-4661effea87c",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "unselectedIcon": "",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "unselectedIconRowid": "5f96392a-bd0e-4d78-a14c-803493ddf484",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "pageId": "default-page-1"
+0|miniprog | 2026-02-19 00:24:30 +08:00:       },
+0|miniprog | 2026-02-19 00:24:30 +08:00:       {
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "name": "我的",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "selectedIcon": "",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "selectedIconRowid": "67467570-f4ec-4aad-a374-dbbeecd43d22",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "unselectedIcon": "",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "unselectedIconRowid": "736e427c-e162-4e98-b5dd-a877c70b6c3d",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "pageId": "default-page-2"
+0|miniprog | 2026-02-19 00:24:30 +08:00:       }
+0|miniprog | 2026-02-19 00:24:30 +08:00:     ]
+0|miniprog | 2026-02-19 00:24:30 +08:00:   },
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "pages": [
+0|miniprog | 2026-02-19 00:24:30 +08:00:     {
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "pageId": "default-page-1",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "pageName": "首页",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "components": [
+0|miniprog | 2026-02-19 00:24:30 +08:00:         {
+0|miniprog | 2026-02-19 00:24:30 +08:00:           "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:24:30 +08:00:           "componentId": "e2e1f9eb-8cba-46ab-942a-dff5c1d5bed3",
+0|miniprog | 2026-02-19 00:24:30 +08:00:           "componentItems": [
+0|miniprog | 2026-02-19 00:24:30 +08:00:             "image1.png",
+0|miniprog | 2026-02-19 00:24:30 +08:00:             "image2.png",
+0|miniprog | 2026-02-19 00:24:30 +08:00:             "image3.png"
+0|miniprog | 2026-02-19 00:24:30 +08:00:           ],
+0|miniprog | 2026-02-19 00:24:30 +08:00:           "properties": {
+0|miniprog | 2026-02-19 00:24:30 +08:00:             "height": 200,
+0|miniprog | 2026-02-19 00:24:30 +08:00:             "autoplay": true,
+0|miniprog | 2026-02-19 00:24:30 +08:00:             "interval": 3000
+0|miniprog | 2026-02-19 00:24:30 +08:00:           }
+0|miniprog | 2026-02-19 00:24:30 +08:00:         }
+0|miniprog | 2026-02-19 00:24:30 +08:00:       ],
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "expanded": true
+0|miniprog | 2026-02-19 00:24:30 +08:00:     },
+0|miniprog | 2026-02-19 00:24:30 +08:00:     {
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "pageId": "default-page-2",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "pageName": "我的",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "components": []
+0|miniprog | 2026-02-19 00:24:30 +08:00:     }
+0|miniprog | 2026-02-19 00:24:30 +08:00:   ],
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "userImages": [
+0|miniprog | 2026-02-19 00:24:30 +08:00:     {
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "mingcheng": "我的0",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "rowid": "736e427c-e162-4e98-b5dd-a877c70b6c3d",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260217/00eM1z2v1d5ocUeDfkdE1h0J3j7rct7Ueb673k4maBeN0QaMaMfW0a5Gckdd7T7r.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:24:30 +08:00:     },
+0|miniprog | 2026-02-19 00:24:30 +08:00:     {
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "mingcheng": "我的1",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "rowid": "67467570-f4ec-4aad-a374-dbbeecd43d22",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260217/3J7N7O6xascv2s3YeVfN3K685xdPeu2jdefF4U4teRab83fLaE4X1HfH6TeU1u1x.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:24:30 +08:00:     },
+0|miniprog | 2026-02-19 00:24:30 +08:00:     {
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "mingcheng": "首页1",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "rowid": "4c661940-1d8d-4f95-a6ab-4661effea87c",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260216/d76P0e0w563t8Lc1bc9s5yaDcB1p9Ya69M125t4wagcH8L1vaXb6dGbZ0Pbg4Heu.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:24:30 +08:00:     },
+0|miniprog | 2026-02-19 00:24:30 +08:00:     {
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "mingcheng": "首页0",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "rowid": "5f96392a-bd0e-4d78-a14c-803493ddf484",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260216/avck7ueYcze2eAcleY8GbN5DfSbR7q5x3sduaCbIbabj0ybNbI1q9u0wfX29ex1b.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:24:30 +08:00:     }
+0|miniprog | 2026-02-19 00:24:30 +08:00:   ]
+0|miniprog | 2026-02-19 00:24:30 +08:00: }
+0|miniprog | 2026-02-19 00:24:30 +08:00: tabBarConfig.list长度: 2
+0|miniprog | 2026-02-19 00:24:30 +08:00: pages长度: 2
+0|miniprog | 2026-02-19 00:24:30 +08:00: 商家ID: 698826f3b35652a8d4f60e21
+0|miniprog | 2026-02-19 00:24:30 +08:00: 1. 复制基础框架代码...
+0|miniprog | 2026-02-19 00:24:30 +08:00: 复制: app.js
+0|miniprog | 2026-02-19 00:24:30 +08:00: 复制: app.wxss
+0|miniprog | 2026-02-19 00:24:30 +08:00: 复制: sitemap.json
+0|miniprog | 2026-02-19 00:24:30 +08:00: 复制: project.config.json
+0|miniprog | 2026-02-19 00:24:30 +08:00: 复制: utils
+0|miniprog | 2026-02-19 00:24:30 +08:00: 复制: images
+0|miniprog | 2026-02-19 00:24:30 +08:00: 1.5. 生成app.js...
+0|miniprog | 2026-02-19 00:24:30 +08:00: 生成app.js, 商家ID: 698826f3b35652a8d4f60e21
+0|miniprog | 2026-02-19 00:24:30 +08:00: 2. 生成页面代码...
+0|miniprog | 2026-02-19 00:24:30 +08:00: ========== 开始生成页面 ==========
+0|miniprog | 2026-02-19 00:24:30 +08:00: 页面信息: {
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "pageId": "default-page-1",
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "pageName": "首页",
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "components": [
+0|miniprog | 2026-02-19 00:24:30 +08:00:     {
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "componentId": "e2e1f9eb-8cba-46ab-942a-dff5c1d5bed3",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "componentItems": [
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "image1.png",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "image2.png",
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "image3.png"
+0|miniprog | 2026-02-19 00:24:30 +08:00:       ],
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "properties": {
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "height": 200,
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "autoplay": true,
+0|miniprog | 2026-02-19 00:24:30 +08:00:         "interval": 3000
+0|miniprog | 2026-02-19 00:24:30 +08:00:       }
+0|miniprog | 2026-02-19 00:24:30 +08:00:     }
+0|miniprog | 2026-02-19 00:24:30 +08:00:   ],
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "expanded": true
+0|miniprog | 2026-02-19 00:24:30 +08:00: }
+0|miniprog | 2026-02-19 00:24:30 +08:00: 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771431870357/pages/default-page-1
+0|miniprog | 2026-02-19 00:24:30 +08:00: 加载组件数据...
+0|miniprog | 2026-02-19 00:24:30 +08:00: 开始加载组件数据...
+0|miniprog | 2026-02-19 00:24:30 +08:00: 页面组件列表: [
+0|miniprog | 2026-02-19 00:24:30 +08:00:   {
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "componentId": "e2e1f9eb-8cba-46ab-942a-dff5c1d5bed3",
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "componentItems": [
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "image1.png",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "image2.png",
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "image3.png"
+0|miniprog | 2026-02-19 00:24:30 +08:00:     ],
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "properties": {
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "height": 200,
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "autoplay": true,
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "interval": 3000
+0|miniprog | 2026-02-19 00:24:30 +08:00:     }
+0|miniprog | 2026-02-19 00:24:30 +08:00:   }
+0|miniprog | 2026-02-19 00:24:30 +08:00: ]
+0|miniprog | 2026-02-19 00:24:30 +08:00: 
+0|miniprog | 2026-02-19 00:24:30 +08:00: 处理组件: 轮播图
+0|miniprog | 2026-02-19 00:24:30 +08:00: 组件对象: 找到
+0|miniprog | 2026-02-19 00:24:30 +08:00: 组件有loadData方法: true
+0|miniprog | 2026-02-19 00:24:30 +08:00: 开始加载 轮播图 数据...
+0|miniprog | 2026-02-19 00:24:30 +08:00: 加载轮播图数据...
+0|miniprog | 2026-02-19 00:24:30 +08:00: [组件日志] 动作名称：调用明道云getFilterRows接口，接收的worksheetId值： lunbotu
+0|miniprog | 2026-02-19 00:24:30 +08:00: [组件日志] 接收的filters值： []
+0|miniprog | 2026-02-19 00:24:30 +08:00: [执行日志] 2/19/2026, 12:24:30 AM - 执行了getData函数，入参： { worksheetId: 'lunbotu', filters: [], pageSize: 50, pageIndex: 1 }
+0|miniprog | 2026-02-19 00:24:30 +08:00: [组件日志] 准备调用明道云接口，请求体： {
+0|miniprog | 2026-02-19 00:24:30 +08:00:   appKey: 'b37a969f03b3cf0b',
+0|miniprog | 2026-02-19 00:24:30 +08:00:   sign: 'MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==',
+0|miniprog | 2026-02-19 00:24:30 +08:00:   worksheetId: 'lunbotu',
+0|miniprog | 2026-02-19 00:24:30 +08:00:   viewId: '',
+0|miniprog | 2026-02-19 00:24:30 +08:00:   pageSize: 50,
+0|miniprog | 2026-02-19 00:24:30 +08:00:   pageIndex: 1,
+0|miniprog | 2026-02-19 00:24:30 +08:00:   keyWords: '',
+0|miniprog | 2026-02-19 00:24:30 +08:00:   listType: 0,
+0|miniprog | 2026-02-19 00:24:30 +08:00:   controls: [],
+0|miniprog | 2026-02-19 00:24:30 +08:00:   filters: [],
+0|miniprog | 2026-02-19 00:24:30 +08:00:   sortId: '',
+0|miniprog | 2026-02-19 00:24:30 +08:00:   isAsc: 'false',
+0|miniprog | 2026-02-19 00:24:30 +08:00:   notGetTotal: 'false',
+0|miniprog | 2026-02-19 00:24:30 +08:00:   useControlId: 'false',
+0|miniprog | 2026-02-19 00:24:30 +08:00:   getSystemControl: 'false'
+0|miniprog | 2026-02-19 00:24:30 +08:00: }
+0|miniprog | 2026-02-19 00:24:30 +08:00: 轮播图API返回结果: {
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "success": false,
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "data": null,
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "error_msg": "网络/解析错误：wx is not defined",
+0|miniprog | 2026-02-19 00:24:30 +08:00:   "error_code": 99999
+0|miniprog | 2026-02-19 00:24:30 +08:00: }
+0|miniprog | 2026-02-19 00:24:30 +08:00: 轮播图数据加载失败: result.success=false, result.data=false
+0|miniprog | 2026-02-19 00:24:30 +08:00: 轮播图 数据加载完成: []
+0|miniprog | 2026-02-19 00:24:30 +08:00: 
+0|miniprog | 2026-02-19 00:24:30 +08:00: 组件数据加载完成
+0|miniprog | 2026-02-19 00:24:30 +08:00: 最终组件数据: [
+0|miniprog | 2026-02-19 00:24:30 +08:00:   {
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "componentId": "e2e1f9eb-8cba-46ab-942a-dff5c1d5bed3",
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "componentItems": [],
+0|miniprog | 2026-02-19 00:24:30 +08:00:     "properties": {
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "height": 200,
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "autoplay": true,
+0|miniprog | 2026-02-19 00:24:30 +08:00:       "interval": 3000
+0|miniprog | 2026-02-19 00:24:30 +08:00:     }
+0|miniprog | 2026-02-19 00:24:30 +08:00:   }
+0|miniprog | 2026-02-19 00:24:30 +08:00: ]
+0|miniprog | 2026-02-19 00:24:30 +08:00: 生成JS文件...
+0|miniprog | 2026-02-19 00:24:30 +08:00: JS文件生成成功
+0|miniprog | 2026-02-19 00:24:30 +08:00: 生成WXML文件...
+0|miniprog | 2026-02-19 00:24:30 +08:00: WXML文件生成成功
+0|miniprog | 2026-02-19 00:24:30 +08:00: 生成WXSS文件...
+0|miniprog | 2026-02-19 00:24:30 +08:00: WXSS文件生成成功
+0|miniprog | 2026-02-19 00:24:30 +08:00: 生成JSON文件...
+0|miniprog | 2026-02-19 00:24:30 +08:00: JSON文件生成成功
+0|miniprog | 2026-02-19 00:24:30 +08:00: 生成页面: 首页
+0|miniprog | 2026-02-19 00:24:30 +08:00: ========== 开始生成页面 ==========
+--
+0|miniprog | 2026-02-19 00:29:19 +08:00: 接收到的配置: {
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "merchantId": "698826f3b35652a8d4f60e21",
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "globalConfig": {
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "style": "classic",
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "themeColor": "#0557e1",
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "navigationBar": {
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "backgroundColor": "#ffffff",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "textColor": "#181818"
+0|miniprog | 2026-02-19 00:29:19 +08:00:     }
+0|miniprog | 2026-02-19 00:29:19 +08:00:   },
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "tabBarConfig": {
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "style": "classic",
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "backgroundColor": "#ffffff",
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "selectedColor": "{主题色}",
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "unselectedColor": "#999999",
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "list": [
+0|miniprog | 2026-02-19 00:29:19 +08:00:       {
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "name": "首页",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "selectedIcon": "",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "selectedIconRowid": "4c661940-1d8d-4f95-a6ab-4661effea87c",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "unselectedIcon": "",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "unselectedIconRowid": "5f96392a-bd0e-4d78-a14c-803493ddf484",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "pageId": "default-page-1"
+0|miniprog | 2026-02-19 00:29:19 +08:00:       },
+0|miniprog | 2026-02-19 00:29:19 +08:00:       {
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "name": "我的",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "selectedIcon": "",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "selectedIconRowid": "67467570-f4ec-4aad-a374-dbbeecd43d22",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "unselectedIcon": "",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "unselectedIconRowid": "736e427c-e162-4e98-b5dd-a877c70b6c3d",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "pageId": "default-page-2"
+0|miniprog | 2026-02-19 00:29:19 +08:00:       }
+0|miniprog | 2026-02-19 00:29:19 +08:00:     ]
+0|miniprog | 2026-02-19 00:29:19 +08:00:   },
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "pages": [
+0|miniprog | 2026-02-19 00:29:19 +08:00:     {
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "pageId": "default-page-1",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "pageName": "首页",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "components": [
+0|miniprog | 2026-02-19 00:29:19 +08:00:         {
+0|miniprog | 2026-02-19 00:29:19 +08:00:           "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:29:19 +08:00:           "componentId": "8dde7a91-eed8-439d-b1c2-51e68ad9f036",
+0|miniprog | 2026-02-19 00:29:19 +08:00:           "componentItems": [
+0|miniprog | 2026-02-19 00:29:19 +08:00:             "image1.png",
+0|miniprog | 2026-02-19 00:29:19 +08:00:             "image2.png",
+0|miniprog | 2026-02-19 00:29:19 +08:00:             "image3.png"
+0|miniprog | 2026-02-19 00:29:19 +08:00:           ],
+0|miniprog | 2026-02-19 00:29:19 +08:00:           "properties": {
+0|miniprog | 2026-02-19 00:29:19 +08:00:             "height": 200,
+0|miniprog | 2026-02-19 00:29:19 +08:00:             "autoplay": true,
+0|miniprog | 2026-02-19 00:29:19 +08:00:             "interval": 3000
+0|miniprog | 2026-02-19 00:29:19 +08:00:           }
+0|miniprog | 2026-02-19 00:29:19 +08:00:         }
+0|miniprog | 2026-02-19 00:29:19 +08:00:       ],
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "expanded": true
+0|miniprog | 2026-02-19 00:29:19 +08:00:     },
+0|miniprog | 2026-02-19 00:29:19 +08:00:     {
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "pageId": "default-page-2",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "pageName": "我的",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "components": []
+0|miniprog | 2026-02-19 00:29:19 +08:00:     }
+0|miniprog | 2026-02-19 00:29:19 +08:00:   ],
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "userImages": [
+0|miniprog | 2026-02-19 00:29:19 +08:00:     {
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "mingcheng": "我的0",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "rowid": "736e427c-e162-4e98-b5dd-a877c70b6c3d",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260217/00eM1z2v1d5ocUeDfkdE1h0J3j7rct7Ueb673k4maBeN0QaMaMfW0a5Gckdd7T7r.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:29:19 +08:00:     },
+0|miniprog | 2026-02-19 00:29:19 +08:00:     {
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "mingcheng": "我的1",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "rowid": "67467570-f4ec-4aad-a374-dbbeecd43d22",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260217/3J7N7O6xascv2s3YeVfN3K685xdPeu2jdefF4U4teRab83fLaE4X1HfH6TeU1u1x.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:29:19 +08:00:     },
+0|miniprog | 2026-02-19 00:29:19 +08:00:     {
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "mingcheng": "首页1",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "rowid": "4c661940-1d8d-4f95-a6ab-4661effea87c",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260216/d76P0e0w563t8Lc1bc9s5yaDcB1p9Ya69M125t4wagcH8L1vaXb6dGbZ0Pbg4Heu.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:29:19 +08:00:     },
+0|miniprog | 2026-02-19 00:29:19 +08:00:     {
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "mingcheng": "首页0",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "leibie": "图标",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "rowid": "5f96392a-bd0e-4d78-a14c-803493ddf484",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "url": "https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/69884a4cff3b8781d456c298/20260216/avck7ueYcze2eAcleY8GbN5DfSbR7q5x3sduaCbIbabj0ybNbI1q9u0wfX29ex1b.png?imageView2/2/w/1280/h/800"
+0|miniprog | 2026-02-19 00:29:19 +08:00:     }
+0|miniprog | 2026-02-19 00:29:19 +08:00:   ]
+0|miniprog | 2026-02-19 00:29:19 +08:00: }
+0|miniprog | 2026-02-19 00:29:19 +08:00: tabBarConfig.list长度: 2
+0|miniprog | 2026-02-19 00:29:19 +08:00: pages长度: 2
+0|miniprog | 2026-02-19 00:29:19 +08:00: 商家ID: 698826f3b35652a8d4f60e21
+0|miniprog | 2026-02-19 00:29:19 +08:00: 1. 复制基础框架代码...
+0|miniprog | 2026-02-19 00:29:19 +08:00: 复制: app.js
+0|miniprog | 2026-02-19 00:29:19 +08:00: 复制: app.wxss
+0|miniprog | 2026-02-19 00:29:19 +08:00: 复制: sitemap.json
+0|miniprog | 2026-02-19 00:29:19 +08:00: 复制: project.config.json
+0|miniprog | 2026-02-19 00:29:19 +08:00: 复制: utils
+0|miniprog | 2026-02-19 00:29:19 +08:00: 复制: images
+0|miniprog | 2026-02-19 00:29:19 +08:00: 1.5. 生成app.js...
+0|miniprog | 2026-02-19 00:29:19 +08:00: 生成app.js, 商家ID: 698826f3b35652a8d4f60e21
+0|miniprog | 2026-02-19 00:29:19 +08:00: 2. 生成页面代码...
+0|miniprog | 2026-02-19 00:29:19 +08:00: ========== 开始生成页面 ==========
+0|miniprog | 2026-02-19 00:29:19 +08:00: 页面信息: {
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "pageId": "default-page-1",
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "pageName": "首页",
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "components": [
+0|miniprog | 2026-02-19 00:29:19 +08:00:     {
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "componentId": "8dde7a91-eed8-439d-b1c2-51e68ad9f036",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "componentItems": [
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "image1.png",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "image2.png",
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "image3.png"
+0|miniprog | 2026-02-19 00:29:19 +08:00:       ],
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "properties": {
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "height": 200,
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "autoplay": true,
+0|miniprog | 2026-02-19 00:29:19 +08:00:         "interval": 3000
+0|miniprog | 2026-02-19 00:29:19 +08:00:       }
+0|miniprog | 2026-02-19 00:29:19 +08:00:     }
+0|miniprog | 2026-02-19 00:29:19 +08:00:   ],
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "expanded": true
+0|miniprog | 2026-02-19 00:29:19 +08:00: }
+0|miniprog | 2026-02-19 00:29:19 +08:00: 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771432159349/pages/default-page-1
+0|miniprog | 2026-02-19 00:29:19 +08:00: 加载组件数据...
+0|miniprog | 2026-02-19 00:29:19 +08:00: 开始加载组件数据...
+0|miniprog | 2026-02-19 00:29:19 +08:00: 页面组件列表: [
+0|miniprog | 2026-02-19 00:29:19 +08:00:   {
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "componentId": "8dde7a91-eed8-439d-b1c2-51e68ad9f036",
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "componentItems": [
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "image1.png",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "image2.png",
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "image3.png"
+0|miniprog | 2026-02-19 00:29:19 +08:00:     ],
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "properties": {
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "height": 200,
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "autoplay": true,
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "interval": 3000
+0|miniprog | 2026-02-19 00:29:19 +08:00:     }
+0|miniprog | 2026-02-19 00:29:19 +08:00:   }
+0|miniprog | 2026-02-19 00:29:19 +08:00: ]
+0|miniprog | 2026-02-19 00:29:19 +08:00: 
+0|miniprog | 2026-02-19 00:29:19 +08:00: 处理组件: 轮播图
+0|miniprog | 2026-02-19 00:29:19 +08:00: 组件对象: 找到
+0|miniprog | 2026-02-19 00:29:19 +08:00: 组件有loadData方法: true
+0|miniprog | 2026-02-19 00:29:19 +08:00: 开始加载 轮播图 数据...
+0|miniprog | 2026-02-19 00:29:19 +08:00: 加载轮播图数据...
+0|miniprog | 2026-02-19 00:29:19 +08:00: [组件日志] 动作名称：调用明道云getFilterRows接口，接收的worksheetId值： lunbotu
+0|miniprog | 2026-02-19 00:29:19 +08:00: [组件日志] 接收的filters值： []
+0|miniprog | 2026-02-19 00:29:19 +08:00: [执行日志] 2/19/2026, 12:29:19 AM - 执行了getData函数，入参： { worksheetId: 'lunbotu', filters: [], pageSize: 50, pageIndex: 1 }
+0|miniprog | 2026-02-19 00:29:19 +08:00: [组件日志] 准备调用明道云接口，请求体： {
+0|miniprog | 2026-02-19 00:29:19 +08:00:   appKey: 'b37a969f03b3cf0b',
+0|miniprog | 2026-02-19 00:29:19 +08:00:   sign: 'MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==',
+0|miniprog | 2026-02-19 00:29:19 +08:00:   worksheetId: 'lunbotu',
+0|miniprog | 2026-02-19 00:29:19 +08:00:   viewId: '',
+0|miniprog | 2026-02-19 00:29:19 +08:00:   pageSize: 50,
+0|miniprog | 2026-02-19 00:29:19 +08:00:   pageIndex: 1,
+0|miniprog | 2026-02-19 00:29:19 +08:00:   keyWords: '',
+0|miniprog | 2026-02-19 00:29:19 +08:00:   listType: 0,
+0|miniprog | 2026-02-19 00:29:19 +08:00:   controls: [],
+0|miniprog | 2026-02-19 00:29:19 +08:00:   filters: [],
+0|miniprog | 2026-02-19 00:29:19 +08:00:   sortId: '',
+0|miniprog | 2026-02-19 00:29:19 +08:00:   isAsc: 'false',
+0|miniprog | 2026-02-19 00:29:19 +08:00:   notGetTotal: 'false',
+0|miniprog | 2026-02-19 00:29:19 +08:00:   useControlId: 'false',
+0|miniprog | 2026-02-19 00:29:19 +08:00:   getSystemControl: 'false'
+0|miniprog | 2026-02-19 00:29:19 +08:00: }
+0|miniprog | 2026-02-19 00:29:19 +08:00: 轮播图API返回结果: {
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "success": false,
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "data": null,
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "error_msg": "网络/解析错误：wx is not defined",
+0|miniprog | 2026-02-19 00:29:19 +08:00:   "error_code": 99999
+0|miniprog | 2026-02-19 00:29:19 +08:00: }
+0|miniprog | 2026-02-19 00:29:19 +08:00: 轮播图数据加载失败: result.success=false, result.data=false
+0|miniprog | 2026-02-19 00:29:19 +08:00: 轮播图 数据加载完成: []
+0|miniprog | 2026-02-19 00:29:19 +08:00: 
+0|miniprog | 2026-02-19 00:29:19 +08:00: 组件数据加载完成
+0|miniprog | 2026-02-19 00:29:19 +08:00: 最终组件数据: [
+0|miniprog | 2026-02-19 00:29:19 +08:00:   {
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "componentName": "轮播图",
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "componentId": "8dde7a91-eed8-439d-b1c2-51e68ad9f036",
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "componentItems": [],
+0|miniprog | 2026-02-19 00:29:19 +08:00:     "properties": {
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "height": 200,
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "autoplay": true,
+0|miniprog | 2026-02-19 00:29:19 +08:00:       "interval": 3000
+0|miniprog | 2026-02-19 00:29:19 +08:00:     }
+0|miniprog | 2026-02-19 00:29:19 +08:00:   }
+0|miniprog | 2026-02-19 00:29:19 +08:00: ]
+0|miniprog | 2026-02-19 00:29:19 +08:00: 生成JS文件...
+0|miniprog | 2026-02-19 00:29:19 +08:00: JS文件生成成功
+0|miniprog | 2026-02-19 00:29:19 +08:00: 生成WXML文件...
+0|miniprog | 2026-02-19 00:29:19 +08:00: WXML文件生成成功
+0|miniprog | 2026-02-19 00:29:19 +08:00: 生成WXSS文件...
+0|miniprog | 2026-02-19 00:29:19 +08:00: WXSS文件生成成功
+0|miniprog | 2026-02-19 00:29:19 +08:00: 生成JSON文件...
+0|miniprog | 2026-02-19 00:29:19 +08:00: JSON文件生成成功
+0|miniprog | 2026-02-19 00:29:19 +08:00: 生成页面: 首页
+0|miniprog | 2026-02-19 00:29:19 +08:00: ========== 开始生成页面 ==========
