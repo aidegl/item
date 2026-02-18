@@ -1,7 +1,5 @@
 <view class="page">
   <swiper class="carousel" indicator-dots autoplay interval="3000">
-        <swiper-item><image src="undefined" mode="aspectFill"></image></swiper-item>
-    <swiper-item><image src="undefined" mode="aspectFill"></image></swiper-item>
-    <swiper-item><image src="undefined" mode="aspectFill"></image></swiper-item>
+    
   </swiper>
 </view>

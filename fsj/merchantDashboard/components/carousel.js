@@ -86,10 +86,14 @@ module.exports = {
         pageIndex: 1
       });
 
+      console.log('轮播图API返回结果:', JSON.stringify(result, null, 2));
+
       if (result.success && result.data && result.data.rows) {
         const carouselData = result.data.rows.map(row => ({
           url: row.url
         }));
+
+        console.log('轮播图数据映射后:', JSON.stringify(carouselData, null, 2));
 
         for (let i = 0; i < carouselData.length; i++) {
           const filename = `carousel_${i}.png`;
@@ -102,6 +106,7 @@ module.exports = {
         return carouselData;
       }
 
+      console.log('轮播图数据加载失败: result.success=' + result.success + ', result.data=' + !!result.data);
       return [];
     } catch (error) {
       console.error('加载轮播图数据失败:', error);
