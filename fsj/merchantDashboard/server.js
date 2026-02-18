@@ -93,6 +93,41 @@ async function copyBaseFramework(outputDir) {
     }
 }
 
+async function loadComponentData(page, merchantId, outputDir) {
+    try {
+        console.log('开始加载组件数据...');
+        console.log('页面组件列表:', JSON.stringify(page.components, null, 2));
+        const imagesDir = path.join(outputDir, 'images');
+
+        if (!fs.existsSync(imagesDir)) {
+            fs.mkdirSync(imagesDir, { recursive: true });
+        }
+
+        for (const component of page.components || []) {
+            console.log(`\n处理组件: ${component.componentName}`);
+            const comp = getComponent(component.componentName);
+            console.log(`组件对象:`, comp ? '找到' : '未找到');
+
+            if (comp) {
+                console.log(`组件有loadData方法:`, !!comp.loadData);
+            }
+
+            if (comp && comp.loadData) {
+                console.log(`开始加载 ${component.componentName} 数据...`);
+                const data = await comp.loadData(merchantId, outputDir);
+                console.log(`${component.componentName} 数据加载完成:`, JSON.stringify(data, null, 2));
+                component.componentItems = data;
+            } else {
+                console.log(`${component.componentName} 没有loadData方法或组件未找到，使用默认数据`);
+            }
+        }
+        console.log('\n组件数据加载完成');
+        console.log('最终组件数据:', JSON.stringify(page.components, null, 2));
+    } catch (error) {
+        console.error('加载组件数据失败:', error);
+    }
+}
+
 function generateAppJs(merchantId, outputDir) {
     const sourceAppJsPath = path.join(__dirname, 'wxApp', 'app.js');
     let appJsContent = fs.readFileSync(sourceAppJsPath, 'utf-8');
@@ -116,6 +151,9 @@ async function generatePage(page, outputDir, merchantId) {
         const pageDir = path.join(outputDir, 'pages', page.pageId);
         console.log(`创建页面目录: ${pageDir}`);
         fs.mkdirSync(pageDir, { recursive: true });
+
+        console.log(`加载组件数据...`);
+        await loadComponentData(page, merchantId, outputDir);
 
         console.log(`生成JS文件...`);
         const jsContent = generatePageJS(page, merchantId);
@@ -147,32 +185,12 @@ async function generatePage(page, outputDir, merchantId) {
 function generatePageJS(page, merchantId) {
     const components = page.components || [];
     const componentsData = components.map(comp => {
-        return `  ${comp.componentName}: [],`;
+        return `  ${comp.componentName}: ${JSON.stringify(comp.componentItems)},`;
     }).join('\n');
 
     const componentNames = components.map(comp => comp.componentName).join(', ');
 
-    const componentLoaders = components.map(comp => {
-        const loaderName = getComponentLoaderName(comp.componentName);
-        return `      await this.load${comp.componentName}Data();`;
-    }).join('\n');
-
-    const componentLoaderFunctions = components.map(comp => {
-        const loaderName = getComponentLoaderName(comp.componentName);
-        return `
-  async load${comp.componentName}Data() {
-    const ComponentDataLoader = require('../../utils/ComponentDataLoader');
-    const data = await ComponentDataLoader.${loaderName}();
-    this.setData({
-      ${comp.componentName}: data
-    });
-    console.log('${comp.componentName}数据加载完成:', data);
-  },`;
-    }).join('\n');
-
-    return `const ComponentDataLoader = require('../../utils/ComponentDataLoader');
-
-Page({
+    return `Page({
   data: {
 ${componentsData}
   },
@@ -185,17 +203,9 @@ ${componentsData}
     
     console.log('=== 组件数据 ===');
     console.log('组件列表:', [${components.map(comp => `'${comp.componentName}'`).join(', ')}]);
+    ${components.map(comp => `    console.log('${comp.componentName}数据:', this.data.${comp.componentName});`).join('\n')}
     console.log('=== 组件数据结束 ===');
-    
-    this.loadAllComponentData();
   },
-
-  async loadAllComponentData() {
-    console.log('开始加载所有组件数据');
-${componentLoaders}
-    console.log('所有组件数据加载完成');
-  },
-${componentLoaderFunctions}
 
   onReady() {
     console.log('页面渲染完成');
@@ -213,20 +223,6 @@ ${componentLoaderFunctions}
     console.log('页面卸载');
   }
 });`;
-}
-
-function getComponentLoaderName(componentName) {
-    const loaderMap = {
-        '轮播图': 'loadCarouselData',
-        '功能列表': 'loadFunctionListData',
-        '商品网格': 'loadProductGridData',
-        '公告': 'loadAnnouncementData',
-        '内容列表': 'loadContentListData',
-        '图片': 'loadImageData',
-        '文本': 'loadTextData',
-        '标签页面': 'loadTabData'
-    };
-    return loaderMap[componentName] || 'loadCarouselData';
 }
 
 function generatePageWXML(page) {
