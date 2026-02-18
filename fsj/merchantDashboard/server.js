@@ -93,6 +93,29 @@ async function copyBaseFramework(outputDir) {
     }
 }
 
+async function loadComponentData(page, merchantId, outputDir) {
+    try {
+        console.log('开始加载组件数据...');
+        const imagesDir = path.join(outputDir, 'images');
+
+        if (!fs.existsSync(imagesDir)) {
+            fs.mkdirSync(imagesDir, { recursive: true });
+        }
+
+        for (const component of page.components || []) {
+            const comp = getComponent(component.componentName);
+            if (comp && comp.loadData) {
+                console.log(`加载 ${component.componentName} 数据...`);
+                const data = await comp.loadData(merchantId, outputDir);
+                component.componentItems = data;
+            }
+        }
+        console.log('组件数据加载完成');
+    } catch (error) {
+        console.error('加载组件数据失败:', error);
+    }
+}
+
 function generateAppJs(merchantId, outputDir) {
     const sourceAppJsPath = path.join(__dirname, 'wxApp', 'app.js');
     let appJsContent = fs.readFileSync(sourceAppJsPath, 'utf-8');
@@ -113,6 +136,9 @@ async function generatePage(page, outputDir, merchantId) {
         const pageDir = path.join(outputDir, 'pages', page.pageId);
         console.log(`创建页面目录: ${pageDir}`);
         fs.mkdirSync(pageDir, { recursive: true });
+
+        console.log(`加载组件数据...`);
+        await loadComponentData(page, merchantId, outputDir);
 
         console.log(`生成JS文件...`);
         const jsContent = generatePageJS(page, merchantId);
