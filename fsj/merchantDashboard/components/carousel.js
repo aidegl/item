@@ -80,13 +80,7 @@ module.exports = {
       const result = await api.getData({
         worksheetId: 'lunbotu',
         filters: [
-          {
-            controlId: 'use',
-            dataType: 2,
-            spliceType: 1,
-            filterType: 2,
-            value: '1'
-          }
+
         ],
         pageSize: 50,
         pageIndex: 1
@@ -101,6 +95,7 @@ module.exports = {
           const filename = `carousel_${i}.png`;
           const filepath = path.join(imagesDir, filename);
           await downloadImage(carouselData[i].url, filepath);
+          carouselData[i].url = `/images/${filename}`;
         }
 
         console.log(`轮播图加载成功，共 ${carouselData.length} 张图片`);
