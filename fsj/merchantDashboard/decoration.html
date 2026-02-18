@@ -621,6 +621,16 @@
       resize: vertical;
     }
 
+    .data-binding-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .data-binding-row .data-binding-select {
+      flex: 1;
+    }
+
     .property-group .color-picker {
       display: flex;
       align-items: center;
@@ -2684,8 +2694,16 @@
 
       html += `
         <div class="property-group">
-          <label>组件内容</label>
-          <textarea onchange="updateComponentItems(this.value)">${JSON.stringify(selectedComponent.componentItems, null, 2)}</textarea>
+          <label>数据绑定</label>
+          <div class="data-binding-row">
+            <select class="data-binding-select" onchange="updateComponentDataSourceType(this.value)">
+              <option value="common" ${(selectedComponent.dataSourceType || 'common') === 'common' ? 'selected' : ''}>通用</option>
+              <option value="custom" ${selectedComponent.dataSourceType === 'custom' ? 'selected' : ''}>自定义</option>
+            </select>
+            <select class="data-binding-select" onchange="updateComponentDataSourceKey(this.value)">
+              ${getDataSourceOptionsHtml(selectedComponent)}
+            </select>
+          </div>
         </div>
         <div class="property-group">
           <button class="btn" style="width: 100%; background: #ff4d4f;" onclick="deleteComponent()">删除组件</button>
@@ -2693,6 +2711,32 @@
       `;
 
       propertiesContent.innerHTML = html;
+    }
+
+    function getDataSourceOptionsHtml(component) {
+      const type = component.dataSourceType || 'common';
+      const currentKey = component.dataSourceKey || 'product';
+      const commonOptions = [
+        { value: 'product', label: '商品' },
+        { value: 'article', label: '文章' },
+        { value: 'knowledge', label: '知识库' }
+      ];
+
+      if (type === 'common') {
+        return commonOptions.map(opt => {
+          const selected = currentKey === opt.value ? 'selected' : '';
+          return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+        }).join('');
+      }
+
+      const customOptions = [
+        { value: 'custom', label: '自定义数据' }
+      ];
+
+      return customOptions.map(opt => {
+        const selected = currentKey === opt.value ? 'selected' : '';
+        return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+      }).join('');
     }
 
     function getPropertyLabel(key) {
@@ -2732,14 +2776,23 @@
       }
     }
 
-    function updateComponentItems(value) {
-      try {
-        if (selectedComponent) {
-          selectedComponent.componentItems = JSON.parse(value);
-          renderPreview();
+    function updateComponentDataSourceType(value) {
+      if (selectedComponent) {
+        selectedComponent.dataSourceType = value;
+        if (!selectedComponent.dataSourceKey) {
+          selectedComponent.dataSourceKey = value === 'common' ? 'product' : 'custom';
         }
-      } catch (e) {
-        alert('JSON格式错误，请检查输入');
+        renderProperties();
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateComponentDataSourceKey(value) {
+      if (selectedComponent) {
+        selectedComponent.dataSourceKey = value;
+        renderPreview();
+        saveConfig();
       }
     }
 
