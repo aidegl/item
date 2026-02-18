@@ -124,6 +124,7 @@ module.exports = {
           const filename = `function_${i}.png`;
           const filepath = path.join(imagesDir, filename);
           await downloadImage(functionListData[i].icon, filepath);
+          functionListData[i].icon = `/images/${filename}`;
         }
 
         console.log(`功能列表加载成功，共 ${functionListData.length} 个功能`);
