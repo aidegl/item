@@ -255,9 +255,35 @@ module.exports = {
 
   getPropertyLabels() {
     // 返回属性标签映射
+  },
+
+  async loadData(merchantId, outputDir) {
+    // 系统级组件实现此方法，从明道云加载数据
+    // 返回格式化后的数据数组
+    // 可选方法，用户级组件不需要实现
   }
 };
 ```
+
+### 方法说明
+
+#### 必需方法
+- **generateHTML(component)**：生成小程序 WXML 代码
+- **generateCSS()**：生成小程序 WXSS 样式
+- **getDefaultProperties()**：返回默认属性配置对象
+- **getDefaultItems()**：返回默认内容项数组
+- **getPropertyLabels()**：返回属性标签映射对象
+
+#### 可选方法
+- **loadData(merchantId, outputDir)**：系统级组件实现，从明道云加载数据
+  - 在打包时由后端调用
+  - 负责从明道云加载组件数据
+  - 下载相关图片到 `images` 目录
+  - 返回格式化后的数据，供 `generateHTML` 使用
+
+### 组件职责划分
+- **系统级组件**（轮播图、功能列表、商品网格、内容列表）：必须实现 `loadData` 方法
+- **用户级组件**（图片、文本、公告、标签页）：不需要实现 `loadData` 方法
 
 ## 数据绑定与加载
 
