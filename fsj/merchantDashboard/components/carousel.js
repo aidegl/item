@@ -89,9 +89,24 @@ module.exports = {
       console.log('轮播图API返回结果:', JSON.stringify(result, null, 2));
 
       if (result.success && result.data && result.data.rows) {
-        const carouselData = result.data.rows.map(row => ({
-          url: row.url
-        }));
+        const carouselData = result.data.rows.map(row => {
+          let url = '';
+
+          if (row.url) {
+            url = row.url;
+          } else if (row.img) {
+            try {
+              const imgArray = JSON.parse(row.img);
+              if (Array.isArray(imgArray) && imgArray.length > 0) {
+                url = imgArray[0].large_thumbnail_full_path || imgArray[0].url;
+              }
+            } catch (e) {
+              console.error('解析img字段失败:', e);
+            }
+          }
+
+          return { url };
+        }).filter(item => item.url);
 
         console.log('轮播图数据映射后:', JSON.stringify(carouselData, null, 2));
 
