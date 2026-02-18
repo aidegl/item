@@ -5,7 +5,7 @@ module.exports = {
   generateHTML(component) {
     return `  <view class="function-list">
     <view class="function-grid">
-      ${component.componentItems.map(item => `      <view class="function-item"><text>${item}</text></view>`).join('\n')}
+      ${component.componentItems.map(item => `      <view class="function-item"><image src="${item.icon}" mode="aspectFit"></image><text>${item.name}</text></view>`).join('\n')}
     </view>
   </view>`;
   },
@@ -25,8 +25,17 @@ module.exports = {
 }
 
 .function-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   padding: 10px;
+}
+
+.function-item image {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
 }
 
 .function-item text {
@@ -37,17 +46,19 @@ module.exports = {
 
   getDefaultProperties() {
     return {
-      columns: 3
+      columns: 3,
+      iconSize: 48
     };
   },
 
   getDefaultItems() {
-    return ['圈子', '想法', '团送'];
+    return [];
   },
 
   getPropertyLabels() {
     return {
-      columns: '列数'
+      columns: '列数',
+      iconSize: '图标大小'
     };
   }
 };
