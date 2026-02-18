@@ -6,8 +6,13 @@ Page({
   onLoad(options) {
     console.log('我的页面加载', options);
     const app = getApp();
-    const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '698826f3b35652a8d4f60e21';
+    const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '75cf2e-0f73-4137-9e99-116d92c45a47';
     console.log('商家ID:', appMerchantId);
+    
+    console.log('=== 组件数据 ===');
+    console.log('组件列表:', []);
+    
+    console.log('=== 组件数据结束 ===');
   },
 
   onReady() {
