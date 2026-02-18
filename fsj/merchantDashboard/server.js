@@ -96,6 +96,7 @@ async function copyBaseFramework(outputDir) {
 async function loadComponentData(page, merchantId, outputDir) {
     try {
         console.log('开始加载组件数据...');
+        console.log('页面组件列表:', JSON.stringify(page.components, null, 2));
         const imagesDir = path.join(outputDir, 'images');
 
         if (!fs.existsSync(imagesDir)) {
@@ -103,14 +104,25 @@ async function loadComponentData(page, merchantId, outputDir) {
         }
 
         for (const component of page.components || []) {
+            console.log(`\n处理组件: ${component.componentName}`);
             const comp = getComponent(component.componentName);
+            console.log(`组件对象:`, comp ? '找到' : '未找到');
+
+            if (comp) {
+                console.log(`组件有loadData方法:`, !!comp.loadData);
+            }
+
             if (comp && comp.loadData) {
-                console.log(`加载 ${component.componentName} 数据...`);
+                console.log(`开始加载 ${component.componentName} 数据...`);
                 const data = await comp.loadData(merchantId, outputDir);
+                console.log(`${component.componentName} 数据加载完成:`, JSON.stringify(data, null, 2));
                 component.componentItems = data;
+            } else {
+                console.log(`${component.componentName} 没有loadData方法或组件未找到，使用默认数据`);
             }
         }
-        console.log('组件数据加载完成');
+        console.log('\n组件数据加载完成');
+        console.log('最终组件数据:', JSON.stringify(page.components, null, 2));
     } catch (error) {
         console.error('加载组件数据失败:', error);
     }
