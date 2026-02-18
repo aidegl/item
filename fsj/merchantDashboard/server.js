@@ -299,16 +299,19 @@ async function downloadTabBarIcons(config, outputDir) {
     const themeColorRaw = config.globalConfig && config.globalConfig.themeColor ? config.globalConfig.themeColor : '#667eea';
     const themeColor = normalizeColorForAppJson(themeColorRaw) || '#667eea';
 
-    const unselectedColorResolved = resolveThemeColor(config.tabBarConfig.unselectedColor || '#999999', themeColor);
+    const tabBarConfig = config.tabBarConfig || {};
+    const unselectedColorResolved = resolveThemeColor(tabBarConfig.unselectedColor || '#999999', themeColor);
     const unselectedColor = normalizeColorForAppJson(unselectedColorResolved) || '#999999';
 
-    const selectedColorResolved = resolveThemeColor(config.tabBarConfig.selectedColor, themeColor);
+    const selectedColorResolved = resolveThemeColor(tabBarConfig.selectedColor, themeColor);
     let selectedColor = normalizeColorForAppJson(selectedColorResolved);
     if (!selectedColor) {
         selectedColor = themeColor || '#667eea';
     }
 
-    for (const tab of config.tabBarConfig.list) {
+    const tabBarList = tabBarConfig.list || [];
+
+    for (const tab of tabBarList) {
         if (tab.selectedIconRowid && config.userImages) {
             const selectedImage = config.userImages.find(img => img.rowid === tab.selectedIconRowid);
             if (selectedImage && selectedImage.url) {
@@ -410,14 +413,17 @@ async function generateAppJson(config, outputDir) {
         sitemapLocation: 'sitemap.json'
     };
 
-    if (config.tabBarConfig.list.length > 0) {
-        const tabBarBackgroundColorResolved = resolveThemeColor(config.tabBarConfig.backgroundColor || '#ffffff', themeColor);
+    const tabBarConfig = config.tabBarConfig || {};
+    const tabBarList = tabBarConfig.list || [];
+
+    if (tabBarList.length > 0) {
+        const tabBarBackgroundColorResolved = resolveThemeColor(tabBarConfig.backgroundColor || '#ffffff', themeColor);
         const tabBarBackgroundColor = normalizeColorForAppJson(tabBarBackgroundColorResolved) || '#ffffff';
 
-        const unselectedColorResolved = resolveThemeColor(config.tabBarConfig.unselectedColor || '#999999', themeColor);
+        const unselectedColorResolved = resolveThemeColor(tabBarConfig.unselectedColor || '#999999', themeColor);
         const unselectedColor = normalizeColorForAppJson(unselectedColorResolved) || '#999999';
 
-        const selectedColorResolved = resolveThemeColor(config.tabBarConfig.selectedColor, themeColor);
+        const selectedColorResolved = resolveThemeColor(tabBarConfig.selectedColor, themeColor);
         let selectedColor = normalizeColorForAppJson(selectedColorResolved);
         if (!selectedColor) {
             selectedColor = themeColor || '#667eea';
@@ -428,7 +434,7 @@ async function generateAppJson(config, outputDir) {
             selectedColor: selectedColor,
             backgroundColor: tabBarBackgroundColor,
             borderStyle: 'white',
-            list: config.tabBarConfig.list.map(tab => ({
+            list: tabBarList.map(tab => ({
                 pagePath: `pages/${tab.pageId}/index`,
                 text: tab.name,
                 iconPath: `images/${tab.unselectedIcon}`,
