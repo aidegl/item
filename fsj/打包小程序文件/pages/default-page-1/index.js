@@ -1,6 +1,6 @@
 Page({
   data: {
-  轮播图: [],
+
   },
 
   onLoad(options) {
@@ -10,8 +10,8 @@ Page({
     console.log('商家ID:', appMerchantId);
     
     console.log('=== 组件数据 ===');
-    console.log('组件列表:', ['轮播图']);
-        console.log('轮播图数据:', this.data.轮播图);
+    console.log('组件列表:', []);
+    
     console.log('=== 组件数据结束 ===');
   },
 

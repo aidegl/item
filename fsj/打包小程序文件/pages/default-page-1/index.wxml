@@ -1,5 +1,3 @@
 <view class="page">
-  <swiper class="carousel" indicator-dots autoplay interval="3000">
-    
-  </swiper>
+
 </view>
