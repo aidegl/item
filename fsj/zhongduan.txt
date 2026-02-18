@@ -3,299 +3,221 @@ Welcome to Alibaba Cloud Elastic Compute Service !
 
 Last login: Wed Jan 7 22:44:12 +0800 2026 from 100.104.185.16
 The current terminal create by BT-Panel.
-root@iZf8zal6c69zav3ybcmj74Z:~# # 1. 进入项目目录
-cd /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard
+root@iZf8zal6c69zav3ybcmj74Z:~# # 1. 查看PM2运行的服务状态
+pm2 list
 
-# 2. 重新启动服务
-pm2 start ecosystem.config.js
+# 2. 查看PM2服务的日志（这里可以看到打包和数据加载的详细日志）
+pm2 logs miniprogram-generator-3001 --lines 100
 
-# 3. 查看状态
-pm2 status
-
-# 4. 查看日志
+# 3. 如果需要实时查看日志
 pm2 logs miniprogram-generator-3001
-[PM2][WARN] Applications miniprogram-generator-3001 not running, starting...
-[PM2][WARN] Folder does not exist: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/logs
-[PM2] Creating folder: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/logs
-[PM2] App [miniprogram-generator-3001] launched (1 instances)
 ┌────┬───────────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
 │ id │ name                          │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
 ├────┼───────────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
-│ 0  │ miniprogram-generator-3001    │ default     │ 1.0.0   │ fork    │ 1334899  │ 0s     │ 0    │ online    │ 0%       │ 15.5mb   │ root     │ disabled │
+│ 0  │ miniprogram-generator-3001    │ default     │ 1.0.0   │ fork    │ 1335490  │ 48m    │ 0    │ online    │ 0%       │ 91.9mb   │ root     │ disabled │
 └────┴───────────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
-┌────┬───────────────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
-│ id │ name                          │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
-├────┼───────────────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
-│ 0  │ miniprogram-generator-3001    │ default     │ 1.0.0   │ fork    │ 1334917  │ 0s     │ 1    │ online    │ 100%     │ 48.9mb   │ root     │ disabled │
-└────┴───────────────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
-[TAILING] Tailing last 15 lines for [miniprogram-generator-3001] process (change the value with --lines option)
-/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/logs/out.log last 15 lines:
-/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/logs/err.log last 15 lines:
-0|miniprog | 2026-02-18 23:21:03 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-18 23:21:03 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-18 23:21:03 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-18 23:21:03 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-18 23:21:03 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-18 23:21:03 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-18 23:21:03 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-18 23:21:03 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-18 23:21:03 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-18 23:21:03 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-18 23:21:03 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-18 23:21:03 +08:00:   requireStack: [
-0|miniprog | 2026-02-18 23:21:03 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-18 23:21:03 +08:00:   ]
-0|miniprog | 2026-02-18 23:21:03 +08:00: }
+[TAILING] Tailing last 100 lines for [miniprogram-generator-3001] process (change the value with --lines option)
+/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/logs/err.log last 100 lines:
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
+0|miniprog | 2026-02-18 23:21:04 +08:00:   requireStack: [
+0|miniprog | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog | 2026-02-18 23:21:04 +08:00:   ]
+0|miniprog | 2026-02-18 23:21:04 +08:00: }
+0|miniprog | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
+0|miniprog | 2026-02-18 23:21:04 +08:00: Require stack:
+0|miniprog | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
+0|miniprog | 2026-02-18 23:21:04 +08:00:   requireStack: [
+0|miniprog | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog | 2026-02-18 23:21:04 +08:00:   ]
+0|miniprog | 2026-02-18 23:21:04 +08:00: }
+0|miniprog | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
+0|miniprog | 2026-02-18 23:21:04 +08:00: Require stack:
+0|miniprog | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
+0|miniprog | 2026-02-18 23:21:04 +08:00:   requireStack: [
+0|miniprog | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog | 2026-02-18 23:21:04 +08:00:   ]
+0|miniprog | 2026-02-18 23:21:04 +08:00: }
+0|miniprog | 2026-02-18 23:21:05 +08:00: Error: Cannot find module 'express'
+0|miniprog | 2026-02-18 23:21:05 +08:00: Require stack:
+0|miniprog | 2026-02-18 23:21:05 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at require (node:internal/modules/helpers:152:16)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog | 2026-02-18 23:21:05 +08:00:   code: 'MODULE_NOT_FOUND',
+0|miniprog | 2026-02-18 23:21:05 +08:00:   requireStack: [
+0|miniprog | 2026-02-18 23:21:05 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog | 2026-02-18 23:21:05 +08:00:   ]
+0|miniprog | 2026-02-18 23:21:05 +08:00: }
+0|miniprog | 2026-02-18 23:21:05 +08:00: Error: Cannot find module 'express'
+0|miniprog | 2026-02-18 23:21:05 +08:00: Require stack:
+0|miniprog | 2026-02-18 23:21:05 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at require (node:internal/modules/helpers:152:16)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog | 2026-02-18 23:21:05 +08:00:   code: 'MODULE_NOT_FOUND',
+0|miniprog | 2026-02-18 23:21:05 +08:00:   requireStack: [
+0|miniprog | 2026-02-18 23:21:05 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog | 2026-02-18 23:21:05 +08:00:   ]
+0|miniprog | 2026-02-18 23:21:05 +08:00: }
+0|miniprog | 2026-02-18 23:21:05 +08:00: Error: Cannot find module 'express'
+0|miniprog | 2026-02-18 23:21:05 +08:00: Require stack:
+0|miniprog | 2026-02-18 23:21:05 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at require (node:internal/modules/helpers:152:16)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|miniprog | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
+0|miniprog | 2026-02-18 23:21:05 +08:00:   code: 'MODULE_NOT_FOUND',
+0|miniprog | 2026-02-18 23:21:05 +08:00:   requireStack: [
+0|miniprog | 2026-02-18 23:21:05 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
+0|miniprog | 2026-02-18 23:21:05 +08:00:   ]
+0|miniprog | 2026-02-18 23:21:05 +08:00: }
 
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:03 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:04 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: }
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: Error: Cannot find module 'express'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: Require stack:
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:   requireStack: [
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00:   ]
-0|miniprogram-generator-3001  | 2026-02-18 23:21:05 +08:00: }
+/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/logs/out.log last 100 lines:
+0|miniprog | 2026-02-19 00:03:52 +08:00: 2. 生成页面代码...
+0|miniprog | 2026-02-19 00:03:52 +08:00: ========== 开始生成页面 ==========
+0|miniprog | 2026-02-19 00:03:52 +08:00: 页面信息: {
+0|miniprog | 2026-02-19 00:03:52 +08:00:   "pageId": "default-page-1",
+0|miniprog | 2026-02-19 00:03:52 +08:00:   "pageName": "首页",
+0|miniprog | 2026-02-19 00:03:52 +08:00:   "components": []
+0|miniprog | 2026-02-19 00:03:52 +08:00: }
+0|miniprog | 2026-02-19 00:03:52 +08:00: 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/pages/default-page-1
+0|miniprog | 2026-02-19 00:03:52 +08:00: 加载组件数据...
+0|miniprog | 2026-02-19 00:03:52 +08:00: 开始加载组件数据...
+0|miniprog | 2026-02-19 00:03:52 +08:00: 页面组件列表: []
+0|miniprog | 2026-02-19 00:03:52 +08:00: 
+0|miniprog | 2026-02-19 00:03:52 +08:00: 组件数据加载完成
+0|miniprog | 2026-02-19 00:03:52 +08:00: 最终组件数据: []
+0|miniprog | 2026-02-19 00:03:52 +08:00: 生成JS文件...
+0|miniprog | 2026-02-19 00:03:52 +08:00: JS文件生成成功
+0|miniprog | 2026-02-19 00:03:52 +08:00: 生成WXML文件...
+0|miniprog | 2026-02-19 00:03:52 +08:00: WXML文件生成成功
+0|miniprog | 2026-02-19 00:03:52 +08:00: 生成WXSS文件...
+0|miniprog | 2026-02-19 00:03:52 +08:00: WXSS文件生成成功
+0|miniprog | 2026-02-19 00:03:52 +08:00: 生成JSON文件...
+0|miniprog | 2026-02-19 00:03:52 +08:00: JSON文件生成成功
+0|miniprog | 2026-02-19 00:03:52 +08:00: 生成页面: 首页
+0|miniprog | 2026-02-19 00:03:52 +08:00: ========== 开始生成页面 ==========
+0|miniprog | 2026-02-19 00:03:52 +08:00: 页面信息: {
+0|miniprog | 2026-02-19 00:03:52 +08:00:   "pageId": "default-page-2",
+0|miniprog | 2026-02-19 00:03:52 +08:00:   "pageName": "我的",
+0|miniprog | 2026-02-19 00:03:52 +08:00:   "components": []
+0|miniprog | 2026-02-19 00:03:52 +08:00: }
+0|miniprog | 2026-02-19 00:03:52 +08:00: 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/pages/default-page-2
+0|miniprog | 2026-02-19 00:03:52 +08:00: 加载组件数据...
+0|miniprog | 2026-02-19 00:03:52 +08:00: 开始加载组件数据...
+0|miniprog | 2026-02-19 00:03:52 +08:00: 页面组件列表: []
+0|miniprog | 2026-02-19 00:03:52 +08:00: 
+0|miniprog | 2026-02-19 00:03:52 +08:00: 组件数据加载完成
+0|miniprog | 2026-02-19 00:03:52 +08:00: 最终组件数据: []
+0|miniprog | 2026-02-19 00:03:52 +08:00: 生成JS文件...
+0|miniprog | 2026-02-19 00:03:52 +08:00: JS文件生成成功
+0|miniprog | 2026-02-19 00:03:52 +08:00: 生成WXML文件...
+0|miniprog | 2026-02-19 00:03:52 +08:00: WXML文件生成成功
+0|miniprog | 2026-02-19 00:03:52 +08:00: 生成WXSS文件...
+0|miniprog | 2026-02-19 00:03:52 +08:00: WXSS文件生成成功
+0|miniprog | 2026-02-19 00:03:52 +08:00: 生成JSON文件...
+0|miniprog | 2026-02-19 00:03:52 +08:00: JSON文件生成成功
+0|miniprog | 2026-02-19 00:03:52 +08:00: 生成页面: 我的
+0|miniprog | 2026-02-19 00:03:52 +08:00: 2.5. 下载tabBar图标...
+0|miniprog | 2026-02-19 00:03:52 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/736e427c-e162-4e98-b5dd-a877c70b6c3d.png
+0|miniprog | 2026-02-19 00:03:52 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/4c661940-1d8d-4f95-a6ab-4661effea87c.png
+0|miniprog | 2026-02-19 00:03:52 +08:00: 未选中图标已叠加颜色 #999999: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/736e427c-e162-4e98-b5dd-a877c70b6c3d.png
+0|miniprog | 2026-02-19 00:03:52 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/5f96392a-bd0e-4d78-a14c-803493ddf484.png
+0|miniprog | 2026-02-19 00:03:52 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/67467570-f4ec-4aad-a374-dbbeecd43d22.png
+0|miniprog | 2026-02-19 00:03:53 +08:00: 选中图标已叠加颜色 #0557e1: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/4c661940-1d8d-4f95-a6ab-4661effea87c.png
+0|miniprog | 2026-02-19 00:03:53 +08:00: 未选中图标已叠加颜色 #999999: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/5f96392a-bd0e-4d78-a14c-803493ddf484.png
+0|miniprog | 2026-02-19 00:03:53 +08:00: 选中图标已叠加颜色 #0557e1: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804/images/67467570-f4ec-4aad-a374-dbbeecd43d22.png
+0|miniprog | 2026-02-19 00:03:53 +08:00: 所有图标下载完成
+0|miniprog | 2026-02-19 00:03:53 +08:00: 3. 生成app.json...
+0|miniprog | 2026-02-19 00:03:53 +08:00: 生成tabBar配置
+0|miniprog | 2026-02-19 00:03:53 +08:00: 生成app.json，内容如下:
+0|miniprog | 2026-02-19 00:03:53 +08:00: {
+0|miniprog | 2026-02-19 00:03:53 +08:00:   "pages": [
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "pages/default-page-1/index",
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "pages/default-page-2/index"
+0|miniprog | 2026-02-19 00:03:53 +08:00:   ],
+0|miniprog | 2026-02-19 00:03:53 +08:00:   "window": {
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "backgroundTextStyle": "light",
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "navigationBarBackgroundColor": "#ffffff",
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "navigationBarTitleText": "小程序",
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "navigationBarTextStyle": "black"
+0|miniprog | 2026-02-19 00:03:53 +08:00:   },
+0|miniprog | 2026-02-19 00:03:53 +08:00:   "sitemapLocation": "sitemap.json",
+0|miniprog | 2026-02-19 00:03:53 +08:00:   "tabBar": {
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "color": "#999999",
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "selectedColor": "#0557e1",
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "backgroundColor": "#ffffff",
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "borderStyle": "white",
+0|miniprog | 2026-02-19 00:03:53 +08:00:     "list": [
+0|miniprog | 2026-02-19 00:03:53 +08:00:       {
+0|miniprog | 2026-02-19 00:03:53 +08:00:         "pagePath": "pages/default-page-1/index",
+0|miniprog | 2026-02-19 00:03:53 +08:00:         "text": "首页",
+0|miniprog | 2026-02-19 00:03:53 +08:00:         "iconPath": "images/5f96392a-bd0e-4d78-a14c-803493ddf484.png",
+0|miniprog | 2026-02-19 00:03:53 +08:00:         "selectedIconPath": "images/4c661940-1d8d-4f95-a6ab-4661effea87c.png"
+0|miniprog | 2026-02-19 00:03:53 +08:00:       },
+0|miniprog | 2026-02-19 00:03:53 +08:00:       {
+0|miniprog | 2026-02-19 00:03:53 +08:00:         "pagePath": "pages/default-page-2/index",
+0|miniprog | 2026-02-19 00:03:53 +08:00:         "text": "我的",
+0|miniprog | 2026-02-19 00:03:53 +08:00:         "iconPath": "images/736e427c-e162-4e98-b5dd-a877c70b6c3d.png",
+0|miniprog | 2026-02-19 00:03:53 +08:00:         "selectedIconPath": "images/67467570-f4ec-4aad-a374-dbbeecd43d22.png"
+0|miniprog | 2026-02-19 00:03:53 +08:00:       }
+0|miniprog | 2026-02-19 00:03:53 +08:00:     ]
+0|miniprog | 2026-02-19 00:03:53 +08:00:   }
+0|miniprog | 2026-02-19 00:03:53 +08:00: }
+0|miniprog | 2026-02-19 00:03:53 +08:00: 4. 创建ZIP文件...
+0|miniprog | 2026-02-19 00:03:53 +08:00: 开始创建ZIP: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804 -> /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804.zip
+0|miniprog | 2026-02-19 00:03:53 +08:00: 开始添加目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804
+0|miniprog | 2026-02-19 00:03:53 +08:00: 目录添加完成，开始finalize
+0|miniprog | 2026-02-19 00:03:53 +08:00: finalize完成
+0|miniprog | 2026-02-19 00:03:53 +08:00: ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804.zip (24256 bytes)
+0|miniprog | 2026-02-19 00:03:53 +08:00: 5. 清理临时文件...
+0|miniprog | 2026-02-19 00:03:53 +08:00: 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771430632804
+0|miniprog | 2026-02-19 00:03:56 +08:00: 文件下载: miniprogram_1771430632804.zip
+
