@@ -9,7 +9,7 @@ const Jimp = require('jimp');
 const { registerComponent, getComponent } = require('./components/componentRegistry');
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
