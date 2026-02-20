@@ -188,10 +188,34 @@ async function generatePage(page, outputDir, merchantId) {
     }
 }
 
+function getComponentDataKey(component) {
+    const name = component.componentName;
+    const mapping = {
+        '轮播图': 'carouselImages',
+        '功能列表': 'functionList',
+        '图片': 'singleImage',
+        '文本': 'textContent',
+        '商品网格': 'productGrid',
+        '商品列表': 'productList',
+        '公告': 'noticeList',
+        '标签页面': 'tabsData',
+        '内容列表': 'contentList'
+    };
+
+    if (mapping[name]) {
+        return mapping[name];
+    }
+
+    const rawId = component.componentId || '';
+    const safeId = rawId.replace(/[^a-zA-Z0-9_]/g, '');
+    return safeId ? `component_${safeId}` : 'componentData';
+}
+
 function generatePageJS(page, merchantId) {
     const components = page.components || [];
     const componentsData = components.map(comp => {
-        return `  ${comp.componentName}: [],`;
+        const dataKey = getComponentDataKey(comp);
+        return `  ${dataKey}: [],`;
     }).join('\n');
 
     const loadDataCalls = components.map(comp => {
@@ -232,6 +256,7 @@ function generatePageJS(page, merchantId) {
             dataMapping = 'result.data.rows';
         }
 
+        const dataKey = getComponentDataKey(comp);
         return `
   async load${comp.componentName}Data() {
     try {
@@ -241,7 +266,7 @@ function generatePageJS(page, merchantId) {
       
       const data = await this.call${comp.componentName}API(merchantId);
       console.log('${comp.componentName}数据加载成功:', data);
-      this.setData({ ${comp.componentName}: data });
+      this.setData({ ${dataKey}: data });
     } catch (error) {
       console.error('${comp.componentName}数据加载失败:', error);
     }
@@ -314,7 +339,8 @@ ${componentsHTML}
 function generateComponentHTML(component) {
     const comp = getComponent(component.componentName);
     if (comp && comp.generateHTML) {
-        return comp.generateHTML(component);
+        const componentWithKey = { ...component, dataKey: getComponentDataKey(component) };
+        return comp.generateHTML(componentWithKey);
     }
     return `  <view class="component">${component.componentName}</view>`;
 }

@@ -30,9 +30,10 @@ module.exports = {
   type: 'function-list',
 
   generateHTML(component) {
+    const dataKey = component.dataKey || 'functionList';
     return `  <view class="function-list">
     <view class="function-grid">
-      <block wx:for="{{${component.componentName}}}" wx:key="name">
+      <block wx:for="{{${dataKey}}}" wx:key="name">
         <view class="function-item"><image src="{{item.icon}}" mode="aspectFit"></image><text>{{item.name}}</text></view>
       </block>
     </view>
