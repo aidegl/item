@@ -30,8 +30,9 @@ module.exports = {
   type: 'carousel',
 
   generateHTML(component) {
+    const dataKey = component.dataKey || 'carouselImages';
     return `  <swiper class="carousel" indicator-dots autoplay interval="3000">
-    <block wx:for="{{carouselImages}}" wx:key="url">
+    <block wx:for="{{${dataKey}}}" wx:key="url">
       <swiper-item><image src="{{item.url}}" mode="aspectFill"></image></swiper-item>
     </block>
   </swiper>`;
