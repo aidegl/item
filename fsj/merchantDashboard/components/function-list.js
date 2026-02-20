@@ -103,18 +103,12 @@ module.exports = {
 
       const result = await api.getData({
         worksheetId: 'gongnengliebiao',
-        filters: [
-          {
-            controlId: 'use',
-            dataType: 2,
-            spliceType: 1,
-            filterType: 2,
-            value: '1'
-          }
-        ],
+        filters: [],
         pageSize: 50,
         pageIndex: 1
       });
+
+      console.log('功能列表API返回结果:', JSON.stringify(result, null, 2));
 
       if (result.success && result.data && result.data.rows) {
         const functionListData = result.data.rows.map(row => ({
