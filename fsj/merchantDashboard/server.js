@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.0.3';
+const MINIPROGRAM_VERSION = '1.0.4';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -208,14 +208,14 @@ function generatePageJS(page, merchantId) {
         let url = '';
         if (row.url) {
           url = row.url;
-        } else if (row.img) {
+        } else if (row.fengmian) {
           try {
-            const imgArray = JSON.parse(row.img);
+            const imgArray = JSON.parse(row.fengmian);
             if (Array.isArray(imgArray) && imgArray.length > 0) {
               url = imgArray[0].large_thumbnail_full_path || imgArray[0].url;
             }
           } catch (e) {
-            console.error('解析img字段失败:', e);
+            console.error('解析fengmian字段失败:', e);
           }
         }
         return { url };
