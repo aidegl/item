@@ -32,7 +32,9 @@ module.exports = {
   generateHTML(component) {
     return `  <view class="function-list">
     <view class="function-grid">
-      ${component.componentItems.map(item => `      <view class="function-item"><image src="${item.icon}" mode="aspectFit"></image><text>${item.name}</text></view>`).join('\n')}
+      <block wx:for="{{${component.componentName}}}" wx:key="name">
+        <view class="function-item"><image src="{{item.icon}}" mode="aspectFit"></image><text>{{item.name}}</text></view>
+      </block>
     </view>
   </view>`;
   },
