@@ -245,15 +245,7 @@ function generatePageJS(page, merchantId) {
     
     const result = await apiInstance.getData({
       worksheetId: '${worksheetId}',
-      filters: [
-        {
-          controlId: 'use',
-          dataType: 2,
-          spliceType: 1,
-          filterType: 2,
-          value: '1'
-        }
-      ],
+      filters: [],
       pageSize: 50,
       pageIndex: 1
     });
