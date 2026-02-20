@@ -1,5 +1,3 @@
-const https = require('https');
-
 // 明道云API调用组件（批量查询数据）
 class MingDaoYunArrayAPI {
   constructor() {
@@ -55,82 +53,50 @@ class MingDaoYunArrayAPI {
 
         console.log("[组件日志] 准备调用明道云接口，请求体：", requestBody);
 
-        const doRequest = () => {
-          const postData = JSON.stringify(requestBody);
-          
-          const options = {
-            hostname: 'api.mingdao.com',
-            port: 443,
-            path: '/v2/open/worksheet/getFilterRows',
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Content-Length': Buffer.byteLength(postData)
+        wx.request({
+          url: this.baseUrl,
+          method: 'POST',
+          data: requestBody,
+          header: {
+            'Content-Type': 'application/json'
+          },
+          success: (res) => {
+            console.log("[组件日志] 明道云接口原始返回结果：", res.data);
+
+            let outputData = null;
+            let success = false;
+            let error_msg = "";
+            let error_code = 0;
+
+            if (res.data.success) {
+              outputData = res.data.data;
+              success = true;
+              error_code = res.data.error_code || 1;
+            } else {
+              error_msg = res.data.error_msg || "明道云接口调用失败";
+              error_code = res.data.error_code || 10101;
             }
-          };
 
-          const req = https.request(options, (res) => {
-            let data = '';
+            console.log("[组件日志] 组件出参data：", outputData);
+            console.log(`[执行日志] ${new Date().toLocaleString()} - 执行了getData函数，返回数据：`, { success, error_code, error_msg });
 
-            res.on('data', (chunk) => {
-              data += chunk;
+            resolve({
+              success: success,
+              data: outputData,
+              error_msg: error_msg,
+              error_code: error_code
             });
-
-            res.on('end', () => {
-              try {
-                const mdResult = JSON.parse(data);
-                console.log("[组件日志] 明道云接口原始返回结果：", mdResult);
-
-                let outputData = null;
-                let success = false;
-                let error_msg = "";
-                let error_code = 0;
-
-                if (mdResult.success) {
-                  outputData = mdResult.data;
-                  success = true;
-                  error_code = mdResult.error_code || 1;
-                } else {
-                  error_msg = mdResult.error_msg || "明道云接口调用失败";
-                  error_code = mdResult.error_code || 10101;
-                }
-
-                console.log("[组件日志] 组件出参data：", outputData);
-                console.log(`[执行日志] ${new Date().toLocaleString()} - 执行了getData函数，返回数据：`, { success, error_code, error_msg });
-
-                resolve({
-                  success: success,
-                  data: outputData,
-                  error_msg: error_msg,
-                  error_code: error_code
-                });
-              } catch (parseError) {
-                console.error(`[明道云日志] ${new Date().toLocaleString()} - 解析响应失败，错误信息：`, parseError);
-                resolve({
-                  success: false,
-                  data: null,
-                  error_msg: `网络/解析错误：${parseError.message}`,
-                  error_code: 99999
-                });
-              }
-            });
-          });
-
-          req.on('error', (err) => {
+          },
+          fail: (err) => {
             console.error(`[明道云日志] ${new Date().toLocaleString()} - 调用${this.baseUrl}接口失败，错误信息：`, err);
             resolve({
               success: false,
               data: null,
-              error_msg: `网络/解析错误：${err.message}`,
+              error_msg: `网络/解析错误：${err.errMsg}`,
               error_code: 99999
             });
-          });
-
-          req.write(postData);
-          req.end();
-        };
-
-        doRequest();
+          }
+        });
       } catch (error) {
         console.error("[组件日志] 调用异常：", error.message);
         resolve({
