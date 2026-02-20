@@ -295,7 +295,8 @@ ${loadDataCalls}
 
   onUnload() {
     console.log('页面卸载');
-  }${loadMethods}
+  },
+${loadMethods}
 });`;
 }
 
