@@ -152,8 +152,7 @@ async function generatePage(page, outputDir, merchantId) {
         console.log(`创建页面目录: ${pageDir}`);
         fs.mkdirSync(pageDir, { recursive: true });
 
-        console.log(`加载组件数据...`);
-        await loadComponentData(page, merchantId, outputDir);
+        console.log(`跳过组件数据加载（小程序端自行加载）`);
 
         console.log(`生成JS文件...`);
         const jsContent = generatePageJS(page, merchantId);
@@ -185,10 +184,86 @@ async function generatePage(page, outputDir, merchantId) {
 function generatePageJS(page, merchantId) {
     const components = page.components || [];
     const componentsData = components.map(comp => {
-        return `  ${comp.componentName}: ${JSON.stringify(comp.componentItems)},`;
+        return `  ${comp.componentName}: [],`;
     }).join('\n');
 
-    const componentNames = components.map(comp => comp.componentName).join(', ');
+    const loadDataCalls = components.map(comp => {
+        return `    this.load${comp.componentName}Data();`;
+    }).join('\n');
+
+    const loadMethods = components.map(comp => {
+        let worksheetId = '';
+        let dataMapping = '';
+
+        if (comp.componentName === '轮播图') {
+            worksheetId = 'lunbotu';
+            dataMapping = `result.data.rows.map(row => {
+        let url = '';
+        if (row.url) {
+          url = row.url;
+        } else if (row.img) {
+          try {
+            const imgArray = JSON.parse(row.img);
+            if (Array.isArray(imgArray) && imgArray.length > 0) {
+              url = imgArray[0].large_thumbnail_full_path || imgArray[0].url;
+            }
+          } catch (e) {
+            console.error('解析img字段失败:', e);
+          }
+        }
+        return { url };
+      }).filter(item => item.url)`;
+        } else if (comp.componentName === '功能列表') {
+            worksheetId = 'gongnengliebiao';
+            dataMapping = `result.data.rows.map(row => ({
+        icon: row.icon,
+        name: row.name
+      }))`;
+        } else {
+            worksheetId = '';
+            dataMapping = 'result.data.rows';
+        }
+
+        return `
+  async load${comp.componentName}Data() {
+    try {
+      console.log('开始加载${comp.componentName}数据...');
+      const app = getApp();
+      const merchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
+      
+      const data = await this.call${comp.componentName}API(merchantId);
+      console.log('${comp.componentName}数据加载成功:', data);
+      this.setData({ ${comp.componentName}: data });
+    } catch (error) {
+      console.error('${comp.componentName}数据加载失败:', error);
+    }
+  },
+
+  async call${comp.componentName}API(merchantId) {
+    const api = require('../../utils/MingdaoYunArrayAPI');
+    const apiInstance = new api();
+    
+    const result = await apiInstance.getData({
+      worksheetId: '${worksheetId}',
+      filters: [
+        {
+          controlId: 'use',
+          dataType: 2,
+          spliceType: 1,
+          filterType: 2,
+          value: '1'
+        }
+      ],
+      pageSize: 50,
+      pageIndex: 1
+    });
+    
+    if (result.success && result.data && result.data.rows) {
+      return ${dataMapping};
+    }
+    return [];
+  },`;
+    }).join('\n');
 
     return `Page({
   data: {
@@ -201,10 +276,9 @@ ${componentsData}
     const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
     console.log('商家ID:', appMerchantId);
     
-    console.log('=== 组件数据 ===');
-    console.log('组件列表:', [${components.map(comp => `'${comp.componentName}'`).join(', ')}]);
-    ${components.map(comp => `    console.log('${comp.componentName}数据:', this.data.${comp.componentName});`).join('\n')}
-    console.log('=== 组件数据结束 ===');
+    console.log('=== 开始加载组件数据 ===');
+${loadDataCalls}
+    console.log('=== 组件数据加载结束 ===');
   },
 
   onReady() {
@@ -221,7 +295,7 @@ ${componentsData}
 
   onUnload() {
     console.log('页面卸载');
-  }
+  }${loadMethods}
 });`;
 }
 
