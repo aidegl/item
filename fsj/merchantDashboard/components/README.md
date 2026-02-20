@@ -333,41 +333,15 @@ module.exports = {
 
 - **通用数据来源**：商品、文章、知识库
 - **自定义数据来源**：自定义数据
+- 组件配置会保存 `dataSourceType` / `dataSourceKey` / `sorting` 字段，作为明道云接口调用的输入
 
 ### 小程序端数据加载
 
-小程序根据 `componentItems` 中的 rowid 从明道云 `neirong` 表加载数据：
+小程序根据组件配置生成明道云查询参数：
 
-```javascript
-async function loadComponentContent(component) {
-  const rowids = Array.isArray(component.componentItems) 
-    ? component.componentItems 
-    : [component.componentItems];
-  
-  const api = new MingDaoYunArrayAPI();
-  
-  const params = {
-    worksheetId: 'neirong',
-    filters: [
-      {
-        controlId: 'rowid',
-        dataType: 2,
-        spliceType: 2,
-        filterType: 24,
-        value: rowids
-      }
-    ]
-  };
-  
-  const result = await api.getData(params);
-  
-  if (result.success && result.data && result.data.rows) {
-    return result.data.rows;
-  }
-  
-  return [];
-}
-```
+- `dataSourceType` 为 `common` 时，使用通用业务表
+- `dataSourceType` 为 `custom` 时，使用商家自定义表
+- `sorting` 由明道云侧执行排序后返回，前端按返回顺序渲染
 
 ### 排序规则
 
@@ -379,13 +353,19 @@ async function loadComponentContent(component) {
 - 更新时间倒序
 
 **自定义数据来源**：
-- 算法推荐（基于neirong表的权重计算）
+- 算法推荐（由明道云按自定义公式计算并排序）
 
 **实现说明**：
 - 排序规则UI已实现在 `decoration.html` 中
 - 通过 `getSortingOptionsHtml` 函数根据数据来源类型动态生成排序选项
 - 通过 `updateComponentSorting` 函数保存排序规则到组件配置的 `sorting` 字段
 - 排序规则会根据数据来源类型自动切换显示对应的选项
+
+### WXML 数据字段约定
+
+- 小程序页面数据字段统一使用英文 key，避免 WXML 解析中文变量名报错
+- 轮播图：`carouselImages`
+- 功能列表：`functionList`
 
 ## 组件使用流程
 
