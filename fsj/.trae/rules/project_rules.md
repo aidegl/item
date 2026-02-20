@@ -155,12 +155,12 @@ const MINIPROGRAM_VERSION = '1.0.2';
 
 ### 更新流程
 1. 修改 `server.js` 中的 `MINIPROGRAM_VERSION` 常量
-2. 提交代码到 Git（`git add .`, `git commit`, `git push`）
-3. 在服务器上拉取最新代码（`git pull`）
-4. **重启 PM2 服务**（`pm2 restart miniprogram-generator-3001`）
-5. 重新打包小程序
-6. 在微信开发者工具中查看控制台，确认版本号已更新
-7. 测试功能是否正常
+2. **[手动操作]** 提交代码到 Git（使用 GitHub Desktop 或命令行：`git add .`, `git commit`, `git push`）
+3. **[手动操作]** 在服务器上拉取最新代码（SSH 连接到服务器，执行 `git pull`）
+4. **[手动操作]** 重启 PM2 服务（SSH 连接到服务器，执行 `pm2 restart miniprogram-generator-3001`）
+5. **[手动操作]** 重新打包小程序（打开宝塔装修页面，点击"打包小程序"按钮）
+6. **[手动操作]** 在微信开发者工具中导入并查看控制台，确认版本号已更新
+7. **[手动操作]** 测试功能是否正常
 
 **重要说明**：
 - 本地代码通过 Git 同步到宝塔服务器（`/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard`）
