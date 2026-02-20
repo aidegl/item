@@ -11,6 +11,8 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const MINIPROGRAM_VERSION = '1.0.2';
+
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
@@ -138,6 +140,11 @@ function generateAppJs(merchantId, outputDir) {
             `merchantId: '${merchantId}'`
         );
     }
+
+    appJsContent = appJsContent.replace(
+        /console\.log\('小程序启动'\);/g,
+        `console.log('小程序启动');\n  console.log('小程序版本: ${MINIPROGRAM_VERSION}');`
+    );
 
     fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
     console.log('生成app.js, 商家ID:', merchantId || '');
@@ -267,6 +274,7 @@ ${componentsData}
     const app = getApp();
     const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
     console.log('商家ID:', appMerchantId);
+    console.log('小程序版本: ${MINIPROGRAM_VERSION}');
     
     console.log('=== 开始加载组件数据 ===');
 ${loadDataCalls}
