@@ -558,6 +558,207 @@ async function generateAppJson(config, outputDir) {
 - `app.json` 顶层不再使用 `globalStyle` 字段，统一通过 `window` 和 `tabBar` 配置全局样式
 - `tabBar.borderStyle` 在生成时固定为 `white`，以去除底部导航栏顶部的灰色分隔线
 
+#### 数据加载架构
+
+##### 方案演进历程
+
+**初始方案：服务器端加载数据（已废弃）**
+- **设计思路**：在打包时由后端调用明道云 API 获取组件数据，将数据直接写入生成的小程序代码中
+- **实现方式**：
+  - 在 `server.js` 中调用组件的 `loadData` 方法
+  - 组件从明道云 API 获取数据后，返回格式化后的数据
+  - 后端将数据直接写入生成的页面 JS 文件中
+  - 小程序启动时直接使用打包时写入的数据
+- **失败原因**：
+  1. **API 调用失败**：服务器端调用明道云 API 时多次返回空数据，原因不明
+  2. **过滤条件问题**：初始使用了 `use` 字段过滤，导致数据被过滤掉
+  3. **调试困难**：无法在微信开发者工具中查看 API 调用过程，只能通过服务器日志排查
+  4. **效率低下**：每次打包都需要重新调用 API 获取数据，耗时且不必要
+  5. **数据不实时**：打包后数据就固定了，需要重新打包才能更新数据
+
+**最终方案：小程序端自行加载数据（当前方案）**
+- **设计思路**：在生成的小程序页面代码中添加数据加载方法，小程序启动时直接调用明道云 API 获取数据
+- **实现方式**：
+  1. **后端生成数据加载代码**：
+     - 在 `server.js` 的 `generatePageJS` 函数中，为每个组件生成对应的数据加载方法
+     - 生成 `load{组件名}Data()` 方法：负责调用 API 并更新页面数据
+     - 生成 `call{组件名}API()` 方法：负责调用明道云 API 并处理返回结果
+  2. **小程序端调用数据加载**：
+     - 在页面的 `onLoad` 生命周期中调用各个组件的 `load{组件名}Data()` 方法
+     - 每个组件独立加载数据，互不影响
+  3. **数据映射处理**：
+     - 在 `call{组件名}API()` 方法中对 API 返回的数据进行映射和格式化
+     - 例如轮播图组件：从 `img` 字段解析图片 URL，从 `url` 字段获取直接链接
+  4. **错误处理**：
+     - 每个 `load{组件名}Data()` 方法都有 try-catch 错误捕获
+     - 加载失败时输出错误日志，但不影响其他组件加载
+
+**方案对比**：
+
+| 对比项 | 服务器端加载 | 小程序端加载 |
+|--------|-------------|-------------|
+| 数据实时性 | 打包后固定，需重新打包 | 每次启动都获取最新数据 |
+| 打包速度 | 慢（需要调用多个 API） | 快（只生成代码） |
+| 调试难度 | 高（只能看服务器日志） | 低（可在微信开发者工具查看） |
+| 灵活性 | 低（数据固定） | 高（数据实时更新） |
+| 依赖性 | 依赖服务器网络环境 | 依赖小程序网络环境 |
+| 维护成本 | 高（每次数据更新需重新打包） | 低（数据自动更新） |
+
+##### 技术要点
+
+**1. 数据加载方法生成**
+
+在 `server.js` 的 `generatePageJS` 函数中，为每个组件生成数据加载代码：
+
+```javascript
+const loadMethods = components.map(comp => {
+    let worksheetId = '';
+    let dataMapping = '';
+    
+    if (comp.componentName === '轮播图') {
+        worksheetId = 'lunbotu';
+        dataMapping = `result.data.rows.map(row => {
+            let url = '';
+            if (row.url) {
+                url = row.url;
+            } else if (row.img) {
+                try {
+                    const imgArray = JSON.parse(row.img);
+                    if (Array.isArray(imgArray) && imgArray.length > 0) {
+                        url = imgArray[0].large_thumbnail_full_path || imgArray[0].url;
+                    }
+                } catch (e) {
+                    console.error('解析img字段失败:', e);
+                }
+            }
+            return { url };
+        }).filter(item => item.url)`;
+    } else if (comp.componentName === '功能列表') {
+        worksheetId = 'gongnengliebiao';
+        dataMapping = `result.data.rows.map(row => ({
+            icon: row.icon,
+            name: row.name
+        }))`;
+    }
+    
+    return `
+    async load${comp.componentName}Data() {
+        try {
+            console.log('开始加载${comp.componentName}数据...');
+            const app = getApp();
+            const merchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
+            
+            const data = await this.call${comp.componentName}API(merchantId);
+            console.log('${comp.componentName}数据加载成功:', data);
+            this.setData({ ${comp.componentName}: data });
+        } catch (error) {
+            console.error('${comp.componentName}数据加载失败:', error);
+        }
+    },
+    
+    async call${comp.componentName}API(merchantId) {
+        const api = require('../../utils/MingdaoYunArrayAPI');
+        const apiInstance = new api();
+        
+        const result = await apiInstance.getData({
+            worksheetId: '${worksheetId}',
+            filters: [],
+            pageSize: 50,
+            pageIndex: 1
+        });
+        
+        if (result.success && result.data && result.data.rows) {
+            return ${dataMapping};
+        }
+        return [];
+    },`;
+}).join('\n');
+```
+
+**2. 页面生命周期调用**
+
+在生成的页面 JS 中，在 `onLoad` 生命周期中调用数据加载方法：
+
+```javascript
+onLoad(options) {
+    console.log('${page.pageName}页面加载', options);
+    const app = getApp();
+    const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
+    console.log('商家ID:', appMerchantId);
+    console.log('小程序版本: ${MINIPROGRAM_VERSION}');
+    
+    console.log('=== 开始加载组件数据 ===');
+${loadDataCalls}
+    console.log('=== 组件数据加载结束 ===');
+},
+```
+
+**3. 数据映射处理**
+
+不同组件的数据结构不同，需要在 `call{组件名}API()` 方法中进行数据映射：
+
+- **轮播图组件**：
+  - API 返回的 `img` 字段是 JSON 字符串，需要解析为数组
+  - 从数组中提取第一张图片的 URL
+  - 优先使用 `url` 字段，如果不存在则从 `img` 字段解析
+
+- **功能列表组件**：
+  - API 返回的数据包含 `icon` 和 `name` 字段
+  - 直接映射为 `{ icon, name }` 格式
+
+**4. 错误处理**
+
+每个数据加载方法都有完整的错误处理：
+
+```javascript
+async load轮播图Data() {
+    try {
+        console.log('开始加载轮播图数据...');
+        const app = getApp();
+        const merchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
+        
+        const data = await this.call轮播图API(merchantId);
+        console.log('轮播图数据加载成功:', data);
+        this.setData({ 轮播图: data });
+    } catch (error) {
+        console.error('轮播图数据加载失败:', error);
+    }
+},
+```
+
+**5. 版本号管理**
+
+为了追踪代码版本，在 `server.js` 中定义版本号常量：
+
+```javascript
+const MINIPROGRAM_VERSION = '1.0.3';
+```
+
+在生成的页面 JS 中打印版本号：
+
+```javascript
+console.log('小程序版本: ${MINIPROGRAM_VERSION}');
+```
+
+每次修改代码时更新版本号，便于追踪问题和验证更新是否生效。
+
+##### 关键技术点总结
+
+1. **去过滤条件**：不使用任何过滤条件，直接获取所有数据，避免因过滤条件导致数据为空
+2. **数据映射**：在 `call{组件名}API()` 方法中对 API 返回的数据进行映射和格式化
+3. **错误处理**：每个数据加载方法都有 try-catch 错误捕获，不影响其他组件加载
+4. **日志输出**：在关键步骤输出日志，便于调试和排查问题
+5. **版本管理**：使用版本号追踪代码版本，便于问题定位
+6. **模块化设计**：每个组件独立加载数据，互不影响，便于维护和扩展
+
+##### 失败经验总结
+
+1. **不要在服务器端加载数据**：服务器端加载数据会导致数据不实时、打包速度慢、调试困难等问题
+2. **避免使用过滤条件**：过滤条件可能导致数据被过滤掉，建议先获取所有数据，再在前端过滤
+3. **充分的日志输出**：在关键步骤输出日志，便于调试和排查问题
+4. **版本号管理**：使用版本号追踪代码版本，便于问题定位和验证更新是否生效
+5. **小程序 API 兼容性**：注意 Node.js 和微信小程序 API 的差异，确保代码在小程序环境中正常运行
+
 ### 开发进程
 
 #### 已实现功能（可回归验证）
