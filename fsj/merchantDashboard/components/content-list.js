@@ -125,7 +125,7 @@ module.exports = {
 
 .content-tags {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .content-tag {
