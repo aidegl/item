@@ -277,393 +277,244 @@ function generatePageJS(page, merchantId) {
           console.error('解析icon字段失败:', e);
         }
         return { icon: iconUrl, name: row.mingcheng };
-      });
-        } else if (comp.componentName === '内容列表') {
-            worksheetId = 'neirong';
-            filtersConfig = `[
-        {
-          'controlId': 'mRowid',
-          'dataType': 2,
-          'spliceType': 1,
-          'filterType': 24,
-          'value': mRowid
-        }
-      ]`;
-            dataMapping = `result.data.rows.map(row => {
+      });`;
+    } else if (comp.componentName === '内容列表') {
+      worksheetId = 'neirong';
+      filtersConfig = `[
+              {
+                'controlId': 'mRowid',
+                'dataType': 2,
+                'spliceType': 1,
+                'filterType': 24,
+                'value': mRowid
+              }
+            ]`;
+      dataMapping = `result.data.rows.map(row => {
         let fengmianUrl = '';
-        let biaoqianData = [];
-
-        if (row.fengmian) {
-          try {
+        try {
+          if (row.fengmian) {
             const imgArray = JSON.parse(row.fengmian);
             if (Array.isArray(imgArray) && imgArray.length > 0) {
               fengmianUrl = imgArray[0].large_thumbnail_full_path || imgArray[0].url || imgArray[0].thumbnail_full_path;
             }
-          } catch (e) {
-            console.error('解析fengmian字段失败:', e);
           }
+        } catch (e) {
+          console.error('解析fengmian字段失败:', e);
         }
-
-        if (row.biaoqian) {
-          try {
-            const tagArray = JSON.parse(row.biaoqian);
-            biaoqianData = Array.isArray(tagArray) ? tagArray : [];
-          } catch (e) {
-            biaoqianData = [];
-          }
-        }
-
-        let cjsj_display = '';
-        if (row.cjsj) {
-          try {
-            const timestamp = new Date(row.cjsj).getTime();
-            const now = Date.now();
-            const diff = now - timestamp;
-            const minute = 60 * 1000;
-            const hour = 60 * minute;
-            const day = 24 * hour;
-
-            if (diff < hour) {
-              const minutes = Math.floor(diff / minute);
-              cjsj_display = minutes <= 0 ? '刚刚' : minutes + '分钟前';
-            } else if (diff < day) {
-              cjsj_display = Math.floor(diff / hour) + '小时前';
-            } else if (diff < 2 * day) {
-              cjsj_display = '昨天';
-            } else if (diff < 7 * day) {
-              cjsj_display = Math.floor(diff / day) + '天前';
-            } else {
-              const date = new Date(timestamp);
-              cjsj_display = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+        let zztxUrl = '';
+        try {
+          if (row.zztx) {
+            const imgArray = JSON.parse(row.zztx);
+            if (Array.isArray(imgArray) && imgArray.length > 0) {
+              zztxUrl = imgArray[0].large_thumbnail_full_path || imgArray[0].url || imgArray[0].thumbnail_full_path;
             }
-          } catch (e) {
-            cjsj_display = '';
           }
+        } catch (e) {
+          console.error('解析zztx字段失败:', e);
         }
-
         return {
           rowid: row.rowid,
-          fengmian: fengmianUrl,
           mingcheng: row.mingcheng || '',
           miaoshu: row.miaoshu || '',
-          biaoqian: biaoqianData,
+          fengmian: fengmianUrl,
+          biaoqian: row.biaoqian || '',
           jiage: row.jiage || '',
-          zztx: row.zztx || '',
+          zztx: zztxUrl,
           zznc: row.zznc || '',
-          cjsj_display: cjsj_display
+          cjsj: row.cjsj || ''
         };
-      }); `;
-        } else {
-            worksheetId = '';
-            dataMapping = 'result.data.rows';
-        }
+      })`;
+    } else {
+      worksheetId = '';
+      dataMapping = 'result.data.rows';
+    }
 
-        const dataKey = getComponentDataKey(comp);
-        return `
-  async load${ comp.componentName } Data() {
-        try {
-          console.log('开始加载${comp.componentName}数据...');
-          const app = getApp();
-          const mRowid = app && app.globalData && app.globalData.mRowid ? app.globalData.mRowid : '${merchantId || ''}';
-
-          const data = await this.call${ comp.componentName }API(mRowid);
-          console.log('${comp.componentName}数据加载成功:', data);
-          this.setData({ ${ dataKey }: data });
-} catch (error) {
-  console.error('${comp.componentName}数据加载失败:', error);
-}
+    const dataKey = getComponentDataKey(comp);
+    return `
+  async load${comp.componentName}Data() {
+    try {
+      console.log('开始加载${comp.componentName}数据...');
+      const app = getApp();
+      const mRowid = app && app.globalData && app.globalData.mRowid ? app.globalData.mRowid : '${merchantId || ''}';
+      
+      const data = await this.call${comp.componentName}API(mRowid);
+      console.log('${comp.componentName}数据加载成功:', data);
+      this.setData({ ${dataKey}: data });
+    } catch (error) {
+      console.error('${comp.componentName}数据加载失败:', error);
+    }
   },
 
-  async call${ comp.componentName } API(mRowid) {
-  const api = require('../../utils/MingdaoYunArrayAPI');
-  const apiInstance = new api();
-
-  const result = await apiInstance.getData({
-    worksheetId: '${worksheetId}',
-    filters: ${ filtersConfig },
-    pageSize: 50,
-    pageIndex: 1
+  async call${comp.componentName}API(mRowid) {
+    const api = require('../../utils/MingdaoYunArrayAPI');
+    const apiInstance = new api();
+    
+    const result = await apiInstance.getData({
+      worksheetId: '${worksheetId}',
+      filters: ${filtersConfig},
+      pageSize: 50,
+      pageIndex: 1
     });
+    
+    if (result.success && result.data && result.data.rows) {
+      return ${dataMapping};
+    }
+    return [];
+  },`;
+  }).join('\n');
 
-if (result.success && result.data && result.data.rows) {
-  return ${ dataMapping };
-}
-return [];
-  }, `;
-    }).join('\n');
-
-    return `Page({
+  return `Page({
   data: {
-    ${ componentsData }
+${componentsData}
   },
 
   async onLoad(options) {
-  console.log('${page.pageName}页面加载', options);
-  const app = getApp();
-  const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
-  console.log('商家ID:', appMerchantId);
-  console.log('小程序版本: ${MINIPROGRAM_VERSION}');
-
-  await this.initShangjiaRowid(appMerchantId);
-
-  console.log('=== 开始加载组件数据 ===');
-  ${ loadDataCalls }
+    console.log('${page.pageName}页面加载', options);
+    const app = getApp();
+    const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
+    console.log('商家ID:', appMerchantId);
+    console.log('小程序版本: ${MINIPROGRAM_VERSION}');
+    
+    await this.initShangjiaRowid(appMerchantId);
+    
+    console.log('=== 开始加载组件数据 ===');
+${loadDataCalls}
     console.log('=== 组件数据加载结束 ===');
   },
 
   async initShangjiaRowid(mRowid) {
-  try {
-    const app = getApp();
-    const api = require('../../utils/MingdaoYunArrayAPI');
-    const apiInstance = new api();
-
-    const filters = [
-      {
-        'controlId': 'mRowid',
-        'dataType': 2,
-        'spliceType': 1,
-        'filterType': 2,
-        'value': mRowid
+    try {
+      const app = getApp();
+      const api = require('../../utils/MingdaoYunArrayAPI');
+      const apiInstance = new api();
+      
+      const filters = [
+        {
+          'controlId': 'mRowid',
+          'dataType': 2,
+          'spliceType': 1,
+          'filterType': 2,
+          'value': mRowid
+        }
+      ];
+      
+      const result = await apiInstance.getData({
+        worksheetId: 'shangjia',
+        filters: filters,
+        pageSize: 1,
+        pageIndex: 1
+      });
+      
+      console.log('=== 查询shangjia表返回结果 ===');
+      console.log(JSON.stringify(result, null, 2));
+      
+      if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
+        const shangjiaRowid = result.data.rows[0].rowid;
+        console.log('商家rowid:', shangjiaRowid);
+        app.globalData.mRowid = shangjiaRowid;
+      } else {
+        console.log('未找到对应的商家记录');
       }
-    ];
-
-    const result = await apiInstance.getData({
-      worksheetId: 'shangjia',
-      filters: filters,
-      pageSize: 1,
-      pageIndex: 1
-    });
-
-    console.log('=== 查询shangjia表返回结果 ===');
-    console.log(JSON.stringify(result, null, 2));
-
-    if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
-      const shangjiaRowid = result.data.rows[0].rowid;
-      console.log('商家rowid:', shangjiaRowid);
-      app.globalData.mRowid = shangjiaRowid;
-    } else {
-      console.log('未找到对应的商家记录');
+    } catch (error) {
+      console.error('查询shangjia表失败:', error);
     }
-  } catch (error) {
-    console.error('查询shangjia表失败:', error);
-  }
-},
+  },
 
-onReady() {
-  console.log('页面渲染完成');
-},
+  onReady() {
+    console.log('页面渲染完成');
+  },
 
-onShow() {
-  console.log('页面显示');
-},
+  onShow() {
+    console.log('页面显示');
+  },
 
-onHide() {
-  console.log('页面隐藏');
-},
+  onHide() {
+    console.log('页面隐藏');
+  },
 
-onUnload() {
-  console.log('页面卸载');
-},
-${ loadMethods }
-}); `;
+  onUnload() {
+    console.log('页面卸载');
+  },
+${loadMethods}
+});`;
 }
 
 function generatePageWXML(page) {
-    const componentsHTML = page.components.map(comp => {
-        return generateComponentHTML(comp);
-    }).join('\n');
+  const componentsHTML = page.components.map(comp => {
+    return generateComponentHTML(comp);
+  }).join('\n');
 
-    return `< view class="page" >
-  ${ componentsHTML }
-</view > `;
+  return `<view class="page">
+${componentsHTML}
+</view>`;
 }
 
 function generateComponentHTML(component) {
-    const comp = getComponent(component.componentName);
-    if (comp && comp.generateHTML) {
-        const componentWithKey = { ...component, dataKey: getComponentDataKey(component) };
-        return comp.generateHTML(componentWithKey);
-    }
-    return `  < view class="component" > ${ component.componentName }</view > `;
+  const comp = getComponent(component.componentName);
+  if (comp && comp.generateHTML) {
+    const componentWithKey = { ...component, dataKey: getComponentDataKey(component) };
+    return comp.generateHTML(componentWithKey);
+  }
+  return `  <view class="component">${component.componentName}</view>`;
 }
 
 function generatePageWXSS(page) {
-    const componentsCSS = page.components.map(comp => {
-        const component = getComponent(comp.componentName);
-        return component && component.generateCSS ? component.generateCSS() : '';
-    }).filter(css => css).join('\n\n');
+  const componentsCSS = page.components.map(comp => {
+    const component = getComponent(comp.componentName);
+    return component && component.generateCSS ? component.generateCSS() : '';
+  }).filter(css => css).join('\n\n');
 
-    return `.page {
-  min - height: 100vh;
+  return `.page {
+  min-height: 100vh;
   background: #f5f5f5;
 }
 
-${ componentsCSS } `;
+${componentsCSS}`;
 }
 
 function generatePageJSON(page) {
-    return `{
+  return `{
   "navigationBarTitleText": "${page.pageName}",
-    "usingComponents": { }
-} `;
+  "usingComponents": {}
+}`;
 }
 
 async function downloadImage(url, filepath) {
-    return new Promise((resolve, reject) => {
-        https.get(url, (response) => {
-            if (response.statusCode === 200) {
-                const fileStream = fs.createWriteStream(filepath);
-                response.pipe(fileStream);
-                fileStream.on('finish', () => {
-                    fileStream.close();
-                    console.log(`图片下载成功: ${ filepath } `);
-                    resolve();
-                });
-            } else {
-                console.error(`图片下载失败: ${ url }, 状态码: ${ response.statusCode } `);
-                reject(new Error(`图片下载失败: ${ response.statusCode } `));
-            }
-        }).on('error', (err) => {
-            console.error(`图片下载错误: ${ url } `, err);
-            reject(err);
+  return new Promise((resolve, reject) => {
+    https.get(url, (response) => {
+      if (response.statusCode === 200) {
+        const fileStream = fs.createWriteStream(filepath);
+        response.pipe(fileStream);
+        fileStream.on('finish', () => {
+          fileStream.close();
+          console.log(`图片下载成功: ${filepath}`);
+          resolve();
         });
+      } else {
+        console.error(`图片下载失败: ${url}, 状态码: ${response.statusCode}`);
+        reject(new Error(`图片下载失败: ${response.statusCode}`));
+      }
+    }).on('error', (err) => {
+      console.error(`图片下载错误: ${url}`, err);
+      reject(err);
     });
+  });
 }
 
 async function downloadTabBarIcons(config, outputDir) {
-    const imagesDir = path.join(outputDir, 'images');
+  const imagesDir = path.join(outputDir, 'images');
 
-    if (!fs.existsSync(imagesDir)) {
-        fs.mkdirSync(imagesDir, { recursive: true });
-        console.log('创建images目录');
-    }
+  if (!fs.existsSync(imagesDir)) {
+    fs.mkdirSync(imagesDir, { recursive: true });
+    console.log('创建images目录');
+  }
 
-    const iconPromises = [];
+  const iconPromises = [];
 
-    const themeColorRaw = config.globalConfig && config.globalConfig.themeColor ? config.globalConfig.themeColor : '#667eea';
-    const themeColor = normalizeColorForAppJson(themeColorRaw) || '#667eea';
+  const themeColorRaw = config.globalConfig && config.globalConfig.themeColor ? config.globalConfig.themeColor : '#667eea';
+  const themeColor = normalizeColorForAppJson(themeColorRaw) || '#667eea';
 
-    const tabBarConfig = config.tabBarConfig || {};
-    const unselectedColorResolved = resolveThemeColor(tabBarConfig.unselectedColor || '#999999', themeColor);
-    const unselectedColor = normalizeColorForAppJson(unselectedColorResolved) || '#999999';
-
-    const selectedColorResolved = resolveThemeColor(tabBarConfig.selectedColor, themeColor);
-    let selectedColor = normalizeColorForAppJson(selectedColorResolved);
-    if (!selectedColor) {
-        selectedColor = themeColor || '#667eea';
-    }
-
-    const tabBarList = tabBarConfig.list || [];
-
-    for (const tab of tabBarList) {
-        if (tab.selectedIconRowid && config.userImages) {
-            const selectedImage = config.userImages.find(img => img.rowid === tab.selectedIconRowid);
-            if (selectedImage && selectedImage.url) {
-                const filename = `${ tab.selectedIconRowid }.png`;
-                const filepath = path.join(imagesDir, filename);
-                iconPromises.push(
-                    downloadImage(selectedImage.url, filepath)
-                        .then(async () => {
-                            try {
-                                const image = await Jimp.read(filepath);
-                                image.color([{ apply: 'mix', params: [selectedColor, 100] }]);
-                                await image.writeAsync(filepath);
-                                console.log(`选中图标已叠加颜色 ${ selectedColor }: ${ filepath } `);
-                            } catch (err) {
-                                console.error('选中图标叠加颜色失败:', filepath, selectedColor, err);
-                            }
-                        })
-                );
-                tab.selectedIcon = filename;
-            }
-        }
-
-        if (tab.unselectedIconRowid && config.userImages) {
-            const unselectedImage = config.userImages.find(img => img.rowid === tab.unselectedIconRowid);
-            if (unselectedImage && unselectedImage.url) {
-                const filename = `${ tab.unselectedIconRowid }.png`;
-                const filepath = path.join(imagesDir, filename);
-                iconPromises.push(
-                    downloadImage(unselectedImage.url, filepath)
-                        .then(async () => {
-                            try {
-                                const image = await Jimp.read(filepath);
-                                image.color([{ apply: 'mix', params: [unselectedColor, 100] }]);
-                                await image.writeAsync(filepath);
-                                console.log(`未选中图标已叠加颜色 ${ unselectedColor }: ${ filepath } `);
-                            } catch (err) {
-                                console.error('未选中图标叠加颜色失败:', filepath, unselectedColor, err);
-                            }
-                        })
-                );
-                tab.unselectedIcon = filename;
-            }
-        }
-    }
-
-    await Promise.all(iconPromises);
-    console.log('所有图标下载完成');
-}
-
-function resolveThemeColor(value, themeColor) {
-    if (!value) {
-        return value;
-    }
-    if (value === '{主题色}') {
-        return themeColor || value;
-    }
-    return value;
-}
-
-function normalizeColorForAppJson(color) {
-    if (!color || typeof color !== 'string') {
-        return color;
-    }
-    let c = color.trim();
-    if (/^#([0-9a-fA-F]{8})$/.test(c)) {
-        c = '#' + c.slice(1, 7);
-    } else if (/^#([0-9a-fA-F]{3})$/.test(c)) {
-        const r = c[1];
-        const g = c[2];
-        const b = c[3];
-        c = `#${ r }${ r }${ g }${ g }${ b }${ b } `;
-    }
-    return c;
-}
-
-async function generateAppJson(config, outputDir) {
-    const themeColorRaw = config.globalConfig && config.globalConfig.themeColor ? config.globalConfig.themeColor : '#667eea';
-    const themeColor = normalizeColorForAppJson(themeColorRaw) || '#667eea';
-
-    const globalConfig = config.globalConfig || {};
-    const navigationBar = globalConfig.navigationBar || {};
-
-    const navBackgroundColorRaw = resolveThemeColor(navigationBar.backgroundColor, themeColor);
-    const navBackgroundColor = normalizeColorForAppJson(navBackgroundColorRaw) || '#ffffff';
-
-    const navTextColorRaw = resolveThemeColor(navigationBar.textColor, themeColor);
-    const navTextColor = normalizeColorForAppJson(navTextColorRaw) || '#181818';
-
-    const navigationBarTextStyle = navTextColor && navTextColor.toLowerCase() === '#ffffff' ? 'white' : 'black';
-
-    const appJson = {
-        pages: config.pages.map(p => `pages / ${ p.pageId }/index`),
-window: {
-  backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: navBackgroundColor,
-      navigationBarTitleText: '小程序',
-        navigationBarTextStyle: navigationBarTextStyle
-},
-sitemapLocation: 'sitemap.json'
-    };
-
-const tabBarConfig = config.tabBarConfig || {};
-const tabBarList = tabBarConfig.list || [];
-
-if (tabBarList.length > 0) {
-  const tabBarBackgroundColorResolved = resolveThemeColor(tabBarConfig.backgroundColor || '#ffffff', themeColor);
-  const tabBarBackgroundColor = normalizeColorForAppJson(tabBarBackgroundColorResolved) || '#ffffff';
-
+  const tabBarConfig = config.tabBarConfig || {};
   const unselectedColorResolved = resolveThemeColor(tabBarConfig.unselectedColor || '#999999', themeColor);
   const unselectedColor = normalizeColorForAppJson(unselectedColorResolved) || '#999999';
 
@@ -673,24 +524,144 @@ if (tabBarList.length > 0) {
     selectedColor = themeColor || '#667eea';
   }
 
-  appJson.tabBar = {
-    color: unselectedColor,
-    selectedColor: selectedColor,
-    backgroundColor: tabBarBackgroundColor,
-    borderStyle: 'white',
-    list: tabBarList.map(tab => ({
-      pagePath: `pages/${tab.pageId}/index`,
-      text: tab.name,
-      iconPath: `images/${tab.unselectedIcon}`,
-      selectedIconPath: `images/${tab.selectedIcon}`
-    }))
-  };
-  console.log('生成tabBar配置');
+  const tabBarList = tabBarConfig.list || [];
+
+  for (const tab of tabBarList) {
+    if (tab.selectedIconRowid && config.userImages) {
+      const selectedImage = config.userImages.find(img => img.rowid === tab.selectedIconRowid);
+      if (selectedImage && selectedImage.url) {
+        const filename = `${tab.selectedIconRowid}.png`;
+        const filepath = path.join(imagesDir, filename);
+        iconPromises.push(
+          downloadImage(selectedImage.url, filepath)
+            .then(async () => {
+              try {
+                const image = await Jimp.read(filepath);
+                image.color([{ apply: 'mix', params: [selectedColor, 100] }]);
+                await image.writeAsync(filepath);
+                console.log(`选中图标已叠加颜色 ${selectedColor}: ${filepath}`);
+              } catch (err) {
+                console.error('选中图标叠加颜色失败:', filepath, selectedColor, err);
+              }
+            })
+        );
+        tab.selectedIcon = filename;
+      }
+    }
+
+    if (tab.unselectedIconRowid && config.userImages) {
+      const unselectedImage = config.userImages.find(img => img.rowid === tab.unselectedIconRowid);
+      if (unselectedImage && unselectedImage.url) {
+        const filename = `${tab.unselectedIconRowid}.png`;
+        const filepath = path.join(imagesDir, filename);
+        iconPromises.push(
+          downloadImage(unselectedImage.url, filepath)
+            .then(async () => {
+              try {
+                const image = await Jimp.read(filepath);
+                image.color([{ apply: 'mix', params: [unselectedColor, 100] }]);
+                await image.writeAsync(filepath);
+                console.log(`未选中图标已叠加颜色 ${unselectedColor}: ${filepath}`);
+              } catch (err) {
+                console.error('未选中图标叠加颜色失败:', filepath, unselectedColor, err);
+              }
+            })
+        );
+        tab.unselectedIcon = filename;
+      }
+    }
+  }
+
+  await Promise.all(iconPromises);
+  console.log('所有图标下载完成');
 }
 
-fs.writeFileSync(path.join(outputDir, 'app.json'), JSON.stringify(appJson, null, 2));
-console.log('生成app.json，内容如下:');
-console.log(JSON.stringify(appJson, null, 2));
+function resolveThemeColor(value, themeColor) {
+  if (!value) {
+    return value;
+  }
+  if (value === '{主题色}') {
+    return themeColor || value;
+  }
+  return value;
+}
+
+function normalizeColorForAppJson(color) {
+  if (!color || typeof color !== 'string') {
+    return color;
+  }
+  let c = color.trim();
+  if (/^#([0-9a-fA-F]{8})$/.test(c)) {
+    c = '#' + c.slice(1, 7);
+  } else if (/^#([0-9a-fA-F]{3})$/.test(c)) {
+    const r = c[1];
+    const g = c[2];
+    const b = c[3];
+    c = `#${r}${r}${g}${g}${b}${b}`;
+  }
+  return c;
+}
+
+async function generateAppJson(config, outputDir) {
+  const themeColorRaw = config.globalConfig && config.globalConfig.themeColor ? config.globalConfig.themeColor : '#667eea';
+  const themeColor = normalizeColorForAppJson(themeColorRaw) || '#667eea';
+
+  const globalConfig = config.globalConfig || {};
+  const navigationBar = globalConfig.navigationBar || {};
+
+  const navBackgroundColorRaw = resolveThemeColor(navigationBar.backgroundColor, themeColor);
+  const navBackgroundColor = normalizeColorForAppJson(navBackgroundColorRaw) || '#ffffff';
+
+  const navTextColorRaw = resolveThemeColor(navigationBar.textColor, themeColor);
+  const navTextColor = normalizeColorForAppJson(navTextColorRaw) || '#181818';
+
+  const navigationBarTextStyle = navTextColor && navTextColor.toLowerCase() === '#ffffff' ? 'white' : 'black';
+
+  const appJson = {
+    pages: config.pages.map(p => `pages/${p.pageId}/index`),
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: navBackgroundColor,
+      navigationBarTitleText: '小程序',
+      navigationBarTextStyle: navigationBarTextStyle
+    },
+    sitemapLocation: 'sitemap.json'
+  };
+
+  const tabBarConfig = config.tabBarConfig || {};
+  const tabBarList = tabBarConfig.list || [];
+
+  if (tabBarList.length > 0) {
+    const tabBarBackgroundColorResolved = resolveThemeColor(tabBarConfig.backgroundColor || '#ffffff', themeColor);
+    const tabBarBackgroundColor = normalizeColorForAppJson(tabBarBackgroundColorResolved) || '#ffffff';
+
+    const unselectedColorResolved = resolveThemeColor(tabBarConfig.unselectedColor || '#999999', themeColor);
+    const unselectedColor = normalizeColorForAppJson(unselectedColorResolved) || '#999999';
+
+    const selectedColorResolved = resolveThemeColor(tabBarConfig.selectedColor, themeColor);
+    let selectedColor = normalizeColorForAppJson(selectedColorResolved);
+    if (!selectedColor) {
+      selectedColor = themeColor || '#667eea';
+    }
+
+    appJson.tabBar = {
+      color: unselectedColor,
+      selectedColor: selectedColor,
+      backgroundColor: tabBarBackgroundColor,
+      borderStyle: 'white',
+      list: tabBarList.map(tab => ({
+        pagePath: `pages/${tab.pageId}/index`,
+        text: tab.name,
+        iconPath: `images/${tab.unselectedIcon}`,
+        selectedIconPath: `images/${tab.selectedIcon}`
+      }))
+    };
+    console.log('生成tabBar配置');
+  }
+
+  fs.writeFileSync(path.join(outputDir, 'app.json'), JSON.stringify(appJson, null, 2));
+  console.log('生成app.json，内容如下:');
+  console.log(JSON.stringify(appJson, null, 2));
 }
 
 async function createZip(sourceDir, zipPath) {
