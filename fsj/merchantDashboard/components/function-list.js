@@ -32,7 +32,7 @@ module.exports = {
   generateHTML(component) {
     const dataKey = component.dataKey || 'functionList';
     return `  <view class="function-list">
-    <view class="function-grid">
+    <view class="function-grid {{${dataKey}.length >= 6 ? 'grid-3' : 'grid-single'}}">
       <block wx:for="{{${dataKey}}}" wx:key="name">
         <view class="function-item"><image src="{{item.icon}}" mode="aspectFit"></image><text>{{item.name}}</text></view>
       </block>
@@ -43,15 +43,20 @@ module.exports = {
   generateCSS() {
     return `.function-list {
   background: #fff;
-  padding: 10px;
-  margin: 10px;
-  border-radius: 8px;
+  padding: 10px 0;
 }
 
 .function-grid {
   display: grid;
+  gap: 0;
+}
+
+.grid-single {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-3 {
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
 }
 
 .function-item {
@@ -59,17 +64,17 @@ module.exports = {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 10px;
+  padding: 10px 0;
 }
 
 .function-item image {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 8px;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
 }
 
 .function-item text {
-  font-size: 12px;
+  font-size: 10px;
   color: #666;
 }`;
   },
