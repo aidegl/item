@@ -90,48 +90,5 @@ module.exports = {
       columns: '列数',
       iconSize: '图标大小'
     };
-  },
-
-  async loadData(merchantId, outputDir) {
-    try {
-      console.log('加载功能列表数据...');
-      const api = new MingDaoYunArrayAPI();
-      const imagesDir = path.join(outputDir, 'images');
-
-      if (!fs.existsSync(imagesDir)) {
-        fs.mkdirSync(imagesDir, { recursive: true });
-      }
-
-      const result = await api.getData({
-        worksheetId: 'gongnengliebiao',
-        filters: [],
-        pageSize: 50,
-        pageIndex: 1
-      });
-
-      console.log('功能列表API返回结果:', JSON.stringify(result, null, 2));
-
-      if (result.success && result.data && result.data.rows) {
-        const functionListData = result.data.rows.map(row => ({
-          icon: row.icon,
-          name: row.name
-        }));
-
-        for (let i = 0; i < functionListData.length; i++) {
-          const filename = `function_${i}.png`;
-          const filepath = path.join(imagesDir, filename);
-          await downloadImage(functionListData[i].icon, filepath);
-          functionListData[i].icon = `/images/${filename}`;
-        }
-
-        console.log(`功能列表加载成功，共 ${functionListData.length} 个功能`);
-        return functionListData;
-      }
-
-      return [];
-    } catch (error) {
-      console.error('加载功能列表数据失败:', error);
-      return [];
-    }
   }
 };
