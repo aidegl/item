@@ -42,13 +42,13 @@ module.exports = {
 .content-items {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .content-item {
   display: flex;
-  gap: 10px;
-  padding: 10px 0;
+  gap: 12px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #f5f5f5;
 }
 
@@ -60,7 +60,7 @@ module.exports = {
 .content-cover {
   width: 100px;
   height: 80px;
-  border-radius: 6px;
+  border-radius: 8px;
   flex-shrink: 0;
   background: #f5f5f5;
 }
