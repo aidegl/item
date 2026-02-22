@@ -21,7 +21,7 @@ module.exports = {
             <view class="content-author">
               <image class="author-avatar" src="{{item.zztx}}" mode="aspectFill" wx:if="{{item.zztx}}"></image>
               <text class="author-name" wx:if="{{item.zznc}}">{{item.zznc}}</text>
-              <text class="content-date">{{item.cjsj}}</text>
+              <text class="content-date">{{item.ctime}}</text>
             </view>
           </view>
         </view>
@@ -37,7 +37,7 @@ module.exports = {
     return `.content-list {
   background: #fff;
   border-radius: 10px;
-  margin: 5px 10px;
+  margin: 10px 10px;
   padding: 10px;
 }
 
@@ -78,7 +78,7 @@ module.exports = {
 .content-title {
   font-size: 15px;
   color: #333;
-  font-weight: 500;
+  font-weight: 700;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -167,7 +167,7 @@ module.exports = {
       priceField: 'jiage',
       authorAvatarField: 'zztx',
       authorNameField: 'zznc',
-      dateField: 'cjsj'
+      dateField: 'ctime'
     };
   },
 

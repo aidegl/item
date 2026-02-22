@@ -321,7 +321,7 @@ function generatePageJS(page, merchantId) {
           jiage: row.jiage || '',
           zztx: zztxUrl,
           zznc: row.zznc || '',
-          cjsj: row.cjsj || ''
+          ctime: row.ctime || ''
         };
       })`;
     } else {
