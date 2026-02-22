@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.1.2';
+const MINIPROGRAM_VERSION = '1.1.3';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -256,7 +256,7 @@ function generatePageJS(page, merchantId) {
         return { url };
       }).filter(item => item.url)`;
         } else if (comp.componentName === '功能列表') {
-            worksheetId = 'gongnengliebiao';
+            worksheetId = 'gongneng';
             filtersConfig = `[
               {
                 'controlId': 'mRowid',
@@ -268,7 +268,7 @@ function generatePageJS(page, merchantId) {
             ]`;
             dataMapping = `result.data.rows.map(row => ({
         icon: row.icon,
-        name: row.name
+        name: row.mingcheng
       }))`;
         } else {
             worksheetId = '';
