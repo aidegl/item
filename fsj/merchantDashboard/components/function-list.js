@@ -32,7 +32,7 @@ module.exports = {
   generateHTML(component) {
     const dataKey = component.dataKey || 'functionList';
     return `  <view class="function-list">
-    <view class="function-grid {{functionList.length >= 9 ? 'grid-5' : (functionList.length >= 6 ? 'grid-3' : 'grid-4')}}">
+    <view class="function-grid grid-{{functionList.length >= 9 ? 5 : (functionList.length >= 6 ? 3 : 4)}}">
       <block wx:for="{{${dataKey}}}" wx:key="name">
         <view class="function-item"><image src="{{item.icon}}" mode="aspectFit"></image><text>{{item.name}}</text></view>
       </block>
