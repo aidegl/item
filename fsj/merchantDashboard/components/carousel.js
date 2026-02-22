@@ -14,7 +14,7 @@ module.exports = {
   generateCSS() {
     return `.carousel {
   width: 100%;
-  height: 200px;
+  height: 160px;
 }
 
 .carousel image {
@@ -25,7 +25,7 @@ module.exports = {
 
   getDefaultProperties() {
     return {
-      height: 200,
+      height: 160,
       autoplay: true,
       interval: 3000
     };
