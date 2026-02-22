@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.2.0';
+const MINIPROGRAM_VERSION = '1.2.1';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -321,7 +321,30 @@ function generatePageJS(page, merchantId) {
           jiage: row.jiage || '',
           zztx: zztxUrl,
           zznc: row.zznc || '',
-          ctime: row.ctime || ''
+          ctime: row.ctime || '',
+          ctimeFormatted: (function() {
+            if (!row.ctime) return '';
+            const now = new Date();
+            const date = new Date(row.ctime.replace(' ', 'T'));
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            if (diffMins < 1) return '刚刚';
+            if (diffMins < 60) return diffMins + '分钟前';
+            if (diffHours < 24) return diffHours + '小时前';
+            if (diffDays === 1 || (diffHours >= 24 && diffHours < 48)) return '昨天';
+            if (diffDays < 7) return diffDays + '天前';
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const h = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            if (y === now.getFullYear()) {
+              return m + '-' + d + ' ' + h + ':' + min;
+            }
+            return y + '-' + m + '-' + d;
+          })()
         };
       })`;
     } else {
