@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.1.3';
+const MINIPROGRAM_VERSION = '1.1.4';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -266,10 +266,18 @@ function generatePageJS(page, merchantId) {
                 'value': mRowid
               }
             ]`;
-            dataMapping = `result.data.rows.map(row => ({
-        icon: row.icon,
-        name: row.mingcheng
-      }))`;
+            dataMapping = `result.data.rows.map(row => {
+        let iconUrl = '';
+        try {
+          const iconArray = JSON.parse(row.icon);
+          if (Array.isArray(iconArray) && iconArray.length > 0) {
+            iconUrl = iconArray[0].large_thumbnail_full_path || iconArray[0].url || iconArray[0].thumbnail_full_path;
+          }
+        } catch (e) {
+          console.error('解析icon字段失败:', e);
+        }
+        return { icon: iconUrl, name: row.mingcheng };
+      })`;
         } else {
             worksheetId = '';
             dataMapping = 'result.data.rows';
