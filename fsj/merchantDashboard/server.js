@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.0.9';
+const MINIPROGRAM_VERSION = '1.1.0';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -295,16 +295,55 @@ function generatePageJS(page, merchantId) {
 ${componentsData}
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     console.log('${page.pageName}页面加载', options);
     const app = getApp();
     const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
     console.log('商家ID:', appMerchantId);
     console.log('小程序版本: ${MINIPROGRAM_VERSION}');
     
+    await this.initShangjiaRowid(appMerchantId);
+    
     console.log('=== 开始加载组件数据 ===');
 ${loadDataCalls}
     console.log('=== 组件数据加载结束 ===');
+  },
+
+  async initShangjiaRowid(mRowid) {
+    try {
+      const api = require('../../utils/MingdaoYunArrayAPI');
+      const apiInstance = new api();
+      
+      const filters = [
+        {
+          'controlId': 'mRowid',
+          'dataType': 2,
+          'spliceType': 1,
+          'filterType': 2,
+          'value': mRowid
+        }
+      ];
+      
+      const result = await apiInstance.getData({
+        worksheetId: 'shangjia',
+        filters: filters,
+        pageSize: 1,
+        pageIndex: 1
+      });
+      
+      console.log('=== 查询shangjia表返回结果 ===');
+      console.log(JSON.stringify(result, null, 2));
+      
+      if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
+        const shangjiaRowid = result.data.rows[0].rowid;
+        console.log('商家rowid:', shangjiaRowid);
+        app.globalData.mRowid = shangjiaRowid;
+      } else {
+        console.log('未找到对应的商家记录');
+      }
+    } catch (error) {
+      console.error('查询shangjia表失败:', error);
+    }
   },
 
   onReady() {
