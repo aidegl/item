@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.1.5';
+const MINIPROGRAM_VERSION = '1.1.6';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -277,7 +277,8 @@ function generatePageJS(page, merchantId) {
           console.error('解析icon字段失败:', e);
         }
         return { icon: iconUrl, name: row.mingcheng };
-      })`;
+      });
+      this.setData({ functionListLength: result.data.rows.length });`;
         } else {
             worksheetId = '';
             dataMapping = 'result.data.rows';

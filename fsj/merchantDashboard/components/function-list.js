@@ -32,7 +32,7 @@ module.exports = {
   generateHTML(component) {
     const dataKey = component.dataKey || 'functionList';
     return `  <view class="function-list">
-    <view class="function-grid {{${dataKey}.length >= 6 ? 'grid-3' : 'grid-single'}}">
+    <view class="function-grid {{functionListLength >= 9 ? 'grid-5' : (functionListLength >= 6 ? 'grid-3' : 'grid-4')}}">
       <block wx:for="{{${dataKey}}}" wx:key="name">
         <view class="function-item"><image src="{{item.icon}}" mode="aspectFit"></image><text>{{item.name}}</text></view>
       </block>
@@ -51,12 +51,16 @@ module.exports = {
   gap: 0;
 }
 
-.grid-single {
+.grid-4 {
   grid-template-columns: repeat(4, 1fr);
 }
 
 .grid-3 {
   grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-5 {
+  grid-template-columns: repeat(5, 1fr);
 }
 
 .function-item {
