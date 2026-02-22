@@ -8,28 +8,32 @@ module.exports = {
     <view wx:if="${dataKey}.length > 0" class="content-items">
       <block wx:for="{{${dataKey}}}" wx:key="rowid">
         <view class="content-item {{!item.fengmian ? 'content-item-full' : ''}}">
-          <view class="content-body">
-            <text class="content-title">{{item.mingcheng}}</text>
-            <text class="content-desc">{{item.miaoshu}}</text>
-            <view class="content-meta">
-              <view class="content-tags" wx:if="{{item.biaoqian}}">
-                <text class="content-tag">{{item.biaoqian}}</text>
+          <view class="content-main">
+            <view class="content-body">
+              <text class="content-title">{{item.mingcheng}}</text>
+              <text class="content-desc">{{item.miaoshu}}</text>
+              <view class="content-meta">
+                <view class="content-tags" wx:if="{{item.biaoqian}}">
+                  <text class="content-tag">{{item.biaoqian}}</text>
+                </view>
+                <text class="content-price" wx:if="{{item.jiage}}">¥{{item.jiage}}</text>
               </view>
-              <text class="content-price" wx:if="{{item.jiage}}">¥{{item.jiage}}</text>
             </view>
+            <image class="content-cover" src="{{item.fengmian}}" mode="aspectFill" wx:if="{{item.fengmian}}"></image>
+          </view>
+          <view class="content-footer">
             <view class="content-author">
               <image class="author-avatar" src="{{item.zztx}}" mode="aspectFill" wx:if="{{item.zztx}}"></image>
               <text class="author-name" wx:if="{{item.zznc}}">{{item.zznc}}</text>
               <text class="content-date">{{item.ctimeFormatted}}</text>
-              <view class="content-stats">
-                <text class="stat-text">👍 {{item.dianzan || 0}}</text>
-                <text class="stat-text">💬 {{item.pinglun || 0}}</text>
-                <text class="stat-text">⭐ {{item.shoucang || 0}}</text>
-                <text class="stat-text">👁️ {{item.yueduliang || 0}}</text>
-              </view>
+            </view>
+            <view class="content-stats">
+              <text class="stat-text">👍 {{item.dianzan || 0}}</text>
+              <text class="stat-text">💬 {{item.pinglun || 0}}</text>
+              <text class="stat-text">⭐ {{item.shoucang || 0}}</text>
+              <text class="stat-text">👁️ {{item.yueduliang || 0}}</text>
             </view>
           </view>
-          <image class="content-cover" src="{{item.fengmian}}" mode="aspectFill" wx:if="{{item.fengmian}}"></image>
         </view>
       </block>
     </view>
@@ -54,12 +58,17 @@ module.exports = {
 
 .content-item {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
   padding-bottom: 12px;
   border-bottom: 1px solid #f5f5f5;
 }
 
-.content-item-full .content-body {
+.content-main {
+  display: flex;
+  gap: 12px;
+}
+
+.content-item-full .content-main .content-body {
   flex: 1;
 }
 
@@ -135,16 +144,19 @@ module.exports = {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 4px;
-  flex-wrap: wrap;
+}
+
+.content-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
 }
 
 .content-stats {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 100%;
-  margin-top: 6px;
 }
 
 .stat-text {
