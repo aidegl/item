@@ -317,7 +317,19 @@ function generatePageJS(page, merchantId) {
           mingcheng: row.mingcheng || '',
           miaoshu: row.miaoshu || '',
           fengmian: fengmianUrl,
-          biaoqian: row.biaoqian || '',
+          biaoqian: (function() {
+            try {
+              if (row.biaoqian) {
+                const arr = JSON.parse(row.biaoqian);
+                if (Array.isArray(arr)) {
+                  return arr.map(item => item.name || item).filter(v => v).join(' ');
+                }
+              }
+            } catch (e) {
+              console.error('解析biaoqian失败:', e);
+            }
+            return row.biaoqian || '';
+          })(),
           jiage: row.jiage || '',
           zztx: zztxUrl,
           zznc: row.zznc || '',
