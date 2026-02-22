@@ -36,7 +36,9 @@ module.exports = {
   generateCSS() {
     return `.content-list {
   background: #fff;
+  border-radius: 10px;
   margin: 5px 10px;
+  padding: 10px;
 }
 
 .content-items {
@@ -60,7 +62,7 @@ module.exports = {
 .content-cover {
   width: 100px;
   height: 80px;
-  border-radius: 8px;
+  border-radius: 5px;
   flex-shrink: 0;
   background: #f5f5f5;
 }
