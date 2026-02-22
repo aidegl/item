@@ -8,7 +8,6 @@ module.exports = {
     <view wx:if="${dataKey}.length > 0" class="content-items">
       <block wx:for="{{${dataKey}}}" wx:key="rowid">
         <view class="content-item">
-          <image class="content-cover" src="{{item.fengmian}}" mode="aspectFill"></image>
           <view class="content-body">
             <text class="content-title">{{item.mingcheng}}</text>
             <text class="content-desc">{{item.miaoshu}}</text>
@@ -21,9 +20,10 @@ module.exports = {
             <view class="content-author">
               <image class="author-avatar" src="{{item.zztx}}" mode="aspectFill" wx:if="{{item.zztx}}"></image>
               <text class="author-name" wx:if="{{item.zznc}}">{{item.zznc}}</text>
-              <text class="content-date">{{item.ctime}}</text>
+              <text class="content-date">{{item.ctimeFormatted}}</text>
             </view>
           </view>
+          <image class="content-cover" src="{{item.fengmian}}" mode="aspectFill"></image>
         </view>
       </block>
     </view>
