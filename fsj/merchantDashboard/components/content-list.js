@@ -21,23 +21,11 @@ module.exports = {
               <image class="author-avatar" src="{{item.zztx}}" mode="aspectFill" wx:if="{{item.zztx}}"></image>
               <text class="author-name" wx:if="{{item.zznc}}">{{item.zznc}}</text>
               <text class="content-date">{{item.ctimeFormatted}}</text>
-            </view>
-            <view class="content-stats">
-              <view class="stat-item" wx:if="{{item.dianzan}}">
-                <text class="stat-icon">👍</text>
-                <text class="stat-text">{{item.dianzan}}</text>
-              </view>
-              <view class="stat-item" wx:if="{{item.pinglun}}">
-                <text class="stat-icon">💬</text>
-                <text class="stat-text">{{item.pinglun}}</text>
-              </view>
-              <view class="stat-item" wx:if="{{item.shoucang}}">
-                <text class="stat-icon">⭐</text>
-                <text class="stat-text">{{item.shoucang}}</text>
-              </view>
-              <view class="stat-item" wx:if="{{item.yueduliang}}">
-                <text class="stat-icon">👁️</text>
-                <text class="stat-text">{{item.yueduliang}}</text>
+              <view class="content-stats">
+                <text class="stat-text">👍 {{item.dianzan || 0}}</text>
+                <text class="stat-text">💬 {{item.pinglun || 0}}</text>
+                <text class="stat-text">⭐ {{item.shoucang || 0}}</text>
+                <text class="stat-text">👁️ {{item.yueduliang || 0}}</text>
               </view>
             </view>
           </view>
@@ -148,23 +136,15 @@ module.exports = {
   align-items: center;
   gap: 6px;
   margin-top: 4px;
+  flex-wrap: wrap;
 }
 
 .content-stats {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   margin-top: 6px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.stat-icon {
-  font-size: 12px;
 }
 
 .stat-text {
