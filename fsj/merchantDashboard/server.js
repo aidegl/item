@@ -322,13 +322,13 @@ function generatePageJS(page, merchantId) {
               if (row.biaoqian) {
                 const arr = JSON.parse(row.biaoqian);
                 if (Array.isArray(arr)) {
-                  return arr.map(item => item.name || item).filter(v => v).join(' ');
+                  return arr.map(item => item.name || item).filter(v => v);
                 }
               }
             } catch (e) {
               console.error('解析biaoqian失败:', e);
             }
-            return row.biaoqian || '';
+            return row.biaoqian ? [row.biaoqian] : [];
           })(),
           jiage: row.jiage || '',
           zztx: zztxUrl,
