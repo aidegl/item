@@ -36,19 +36,19 @@ module.exports = {
   generateCSS() {
     return `.content-list {
   background: #fff;
-  padding: 12px;
+  padding: 5px 10px;
 }
 
 .content-items {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .content-item {
   display: flex;
-  gap: 12px;
-  padding-bottom: 12px;
+  gap: 10px;
+  padding: 10px 0;
   border-bottom: 1px solid #f5f5f5;
 }
 
@@ -58,9 +58,9 @@ module.exports = {
 }
 
 .content-cover {
-  width: 150px;
-  height: 90px;
-  border-radius: 8px;
+  width: 100px;
+  height: 80px;
+  border-radius: 6px;
   flex-shrink: 0;
   background: #f5f5f5;
 }
