@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.2.1';
+const MINIPROGRAM_VERSION = '1.2.2';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -344,7 +344,11 @@ function generatePageJS(page, merchantId) {
               return m + '-' + d + ' ' + h + ':' + min;
             }
             return y + '-' + m + '-' + d;
-          })()
+          })(),
+          dianzan: row.dianzan || '',
+          pinglun: row.pinglun || '',
+          shoucang: row.shoucang || '',
+          bofangliang: row.bofangliang || ''
         };
       })`;
     } else {

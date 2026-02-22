@@ -7,7 +7,7 @@ module.exports = {
     return `  <view class="content-list">
     <view wx:if="${dataKey}.length > 0" class="content-items">
       <block wx:for="{{${dataKey}}}" wx:key="rowid">
-        <view class="content-item">
+        <view class="content-item {{!item.fengmian ? 'content-item-full' : ''}}">
           <view class="content-body">
             <text class="content-title">{{item.mingcheng}}</text>
             <text class="content-desc">{{item.miaoshu}}</text>
@@ -22,8 +22,26 @@ module.exports = {
               <text class="author-name" wx:if="{{item.zznc}}">{{item.zznc}}</text>
               <text class="content-date">{{item.ctimeFormatted}}</text>
             </view>
+            <view class="content-stats">
+              <view class="stat-item" wx:if="{{item.dianzan}}">
+                <text class="stat-icon">👍</text>
+                <text class="stat-text">{{item.dianzan}}</text>
+              </view>
+              <view class="stat-item" wx:if="{{item.pinglun}}">
+                <text class="stat-icon">💬</text>
+                <text class="stat-text">{{item.pinglun}}</text>
+              </view>
+              <view class="stat-item" wx:if="{{item.shoucang}}">
+                <text class="stat-icon">⭐</text>
+                <text class="stat-text">{{item.shoucang}}</text>
+              </view>
+              <view class="stat-item" wx:if="{{item.bofangliang}}">
+                <text class="stat-icon">▶️</text>
+                <text class="stat-text">{{item.bofangliang}}</text>
+              </view>
+            </view>
           </view>
-          <image class="content-cover" src="{{item.fengmian}}" mode="aspectFill"></image>
+          <image class="content-cover" src="{{item.fengmian}}" mode="aspectFill" wx:if="{{item.fengmian}}"></image>
         </view>
       </block>
     </view>
@@ -51,6 +69,10 @@ module.exports = {
   gap: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid #f5f5f5;
+}
+
+.content-item-full .content-body {
+  flex: 1;
 }
 
 .content-item:last-child {
@@ -126,6 +148,28 @@ module.exports = {
   align-items: center;
   gap: 6px;
   margin-top: 4px;
+}
+
+.content-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-icon {
+  font-size: 12px;
+}
+
+.stat-text {
+  font-size: 11px;
+  color: #999;
 }
 
 .author-avatar {
