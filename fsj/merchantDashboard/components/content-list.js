@@ -36,8 +36,7 @@ module.exports = {
   generateCSS() {
     return `.content-list {
   background: #fff;
-  border-radius: 10px;
-  margin: 10px 10px;
+  margin: 1px 0;
   padding: 10px;
 }
 
