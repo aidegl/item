@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.1.0';
+const MINIPROGRAM_VERSION = '1.1.2';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -225,9 +225,19 @@ function generatePageJS(page, merchantId) {
     const loadMethods = components.map(comp => {
         let worksheetId = '';
         let dataMapping = '';
+        let filtersConfig = '[]';
 
         if (comp.componentName === '轮播图') {
             worksheetId = 'lunbotu';
+            filtersConfig = `[
+              {
+                'controlId': 'mRowid',
+                'dataType': 2,
+                'spliceType': 1,
+                'filterType': 24,
+                'value': mRowid
+              }
+            ]`;
             dataMapping = `result.data.rows.map(row => {
         let url = '';
         if (row.url) {
@@ -247,6 +257,15 @@ function generatePageJS(page, merchantId) {
       }).filter(item => item.url)`;
         } else if (comp.componentName === '功能列表') {
             worksheetId = 'gongnengliebiao';
+            filtersConfig = `[
+              {
+                'controlId': 'mRowid',
+                'dataType': 2,
+                'spliceType': 1,
+                'filterType': 24,
+                'value': mRowid
+              }
+            ]`;
             dataMapping = `result.data.rows.map(row => ({
         icon: row.icon,
         name: row.name
@@ -262,9 +281,9 @@ function generatePageJS(page, merchantId) {
     try {
       console.log('开始加载${comp.componentName}数据...');
       const app = getApp();
-      const merchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
+      const mRowid = app && app.globalData && app.globalData.mRowid ? app.globalData.mRowid : '${merchantId || ''}';
       
-      const data = await this.call${comp.componentName}API(merchantId);
+      const data = await this.call${comp.componentName}API(mRowid);
       console.log('${comp.componentName}数据加载成功:', data);
       this.setData({ ${dataKey}: data });
     } catch (error) {
@@ -272,13 +291,13 @@ function generatePageJS(page, merchantId) {
     }
   },
 
-  async call${comp.componentName}API(merchantId) {
+  async call${comp.componentName}API(mRowid) {
     const api = require('../../utils/MingdaoYunArrayAPI');
     const apiInstance = new api();
     
     const result = await apiInstance.getData({
       worksheetId: '${worksheetId}',
-      filters: [],
+      filters: ${filtersConfig},
       pageSize: 50,
       pageIndex: 1
     });
@@ -311,6 +330,7 @@ ${loadDataCalls}
 
   async initShangjiaRowid(mRowid) {
     try {
+      const app = getApp();
       const api = require('../../utils/MingdaoYunArrayAPI');
       const apiInstance = new api();
       

@@ -1,218 +1,141 @@
-
-Welcome to Alibaba Cloud Elastic Compute Service !
-
-Last login: Wed Jan 7 22:44:12 +0800 2026 from 100.104.185.16
-The current terminal create by BT-Panel.
-root@iZf8zal6c69zav3ybcmj74Z:~# cd /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard
-npm install
-npm warn Unknown global config "--init.module". This will stop working in the next major version of npm.
-
-up to date in 654ms
-
-27 packages are looking for funding
-  run `npm fund` for details
-root@iZf8zal6c69zav3ybcmj74Z:/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard# pm2 logs miniprogram-generator-3001 --lines 100
-[TAILING] Tailing last 100 lines for [miniprogram-generator-3001] process (change the value with --lines option)
-/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/logs/err.log last 100 lines:
-0|miniprog | 2026-02-19 00:43:16 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-19 00:43:16 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-19 00:43:16 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-19 00:43:16 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-19 00:43:16 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-19 00:43:16 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-19 00:43:16 +08:00:   requireStack: [
-0|miniprog | 2026-02-19 00:43:16 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-19 00:43:16 +08:00:   ]
-0|miniprog | 2026-02-19 00:43:16 +08:00: }
-0|miniprog | 2026-02-19 00:43:17 +08:00: Error: Cannot find module 'express'
-0|miniprog | 2026-02-19 00:43:17 +08:00: Require stack:
-0|miniprog | 2026-02-19 00:43:17 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-19 00:43:17 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-19 00:43:17 +08:00:   requireStack: [
-0|miniprog | 2026-02-19 00:43:17 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-19 00:43:17 +08:00:   ]
-0|miniprog | 2026-02-19 00:43:17 +08:00: }
-0|miniprog | 2026-02-19 00:43:17 +08:00: Error: Cannot find module 'express'
-0|miniprog | 2026-02-19 00:43:17 +08:00: Require stack:
-0|miniprog | 2026-02-19 00:43:17 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-19 00:43:17 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-19 00:43:17 +08:00:   requireStack: [
-0|miniprog | 2026-02-19 00:43:17 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-19 00:43:17 +08:00:   ]
-0|miniprog | 2026-02-19 00:43:17 +08:00: }
-0|miniprog | 2026-02-19 00:43:17 +08:00: Error: Cannot find module 'express'
-0|miniprog | 2026-02-19 00:43:17 +08:00: Require stack:
-0|miniprog | 2026-02-19 00:43:17 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-19 00:43:17 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-19 00:43:17 +08:00:   requireStack: [
-0|miniprog | 2026-02-19 00:43:17 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-19 00:43:17 +08:00:   ]
-0|miniprog | 2026-02-19 00:43:17 +08:00: }
-0|miniprog | 2026-02-19 00:43:17 +08:00: Error: Cannot find module 'express'
-0|miniprog | 2026-02-19 00:43:17 +08:00: Require stack:
-0|miniprog | 2026-02-19 00:43:17 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-19 00:43:17 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-19 00:43:17 +08:00:   requireStack: [
-0|miniprog | 2026-02-19 00:43:17 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-19 00:43:17 +08:00:   ]
-0|miniprog | 2026-02-19 00:43:17 +08:00: }
-0|miniprog | 2026-02-19 00:43:17 +08:00: Error: Cannot find module 'express'
-0|miniprog | 2026-02-19 00:43:17 +08:00: Require stack:
-0|miniprog | 2026-02-19 00:43:17 +08:00: - /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Hook._require.Module.require (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at require (node:internal/modules/helpers:152:16)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object.<anonymous> (/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js:1:17)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object..js (node:internal/modules/cjs/loader:1893:10)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module.load (node:internal/modules/cjs/loader:1481:32)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._load (node:internal/modules/cjs/loader:1300:12)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Object.<anonymous> (/www/server/nodejs/v24.12.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
-0|miniprog | 2026-02-19 00:43:17 +08:00:     at Module._compile (node:internal/modules/cjs/loader:1761:14) {
-0|miniprog | 2026-02-19 00:43:17 +08:00:   code: 'MODULE_NOT_FOUND',
-0|miniprog | 2026-02-19 00:43:17 +08:00:   requireStack: [
-0|miniprog | 2026-02-19 00:43:17 +08:00:     '/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/server.js'
-0|miniprog | 2026-02-19 00:43:17 +08:00:   ]
-0|miniprog | 2026-02-19 00:43:17 +08:00: }
-
-/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/logs/out.log last 100 lines:
-0|miniprog | 2026-02-19 00:57:37 +08:00: 组件数据加载完成
-0|miniprog | 2026-02-19 00:57:37 +08:00: 最终组件数据: [
-0|miniprog | 2026-02-19 00:57:37 +08:00:   {
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "componentName": "轮播图",
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "componentId": "3bb5211a-a1d8-4fe8-b01f-3ddf802633ad",
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "componentItems": [],
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "properties": {
-0|miniprog | 2026-02-19 00:57:37 +08:00:       "height": 200,
-0|miniprog | 2026-02-19 00:57:37 +08:00:       "autoplay": true,
-0|miniprog | 2026-02-19 00:57:37 +08:00:       "interval": 3000
-0|miniprog | 2026-02-19 00:57:37 +08:00:     }
-0|miniprog | 2026-02-19 00:57:37 +08:00:   }
-0|miniprog | 2026-02-19 00:57:37 +08:00: ]
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成JS文件...
-0|miniprog | 2026-02-19 00:57:37 +08:00: JS文件生成成功
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成WXML文件...
-0|miniprog | 2026-02-19 00:57:37 +08:00: WXML文件生成成功
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成WXSS文件...
-0|miniprog | 2026-02-19 00:57:37 +08:00: WXSS文件生成成功
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成JSON文件...
-0|miniprog | 2026-02-19 00:57:37 +08:00: JSON文件生成成功
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成页面: 首页
-0|miniprog | 2026-02-19 00:57:37 +08:00: ========== 开始生成页面 ==========
-0|miniprog | 2026-02-19 00:57:37 +08:00: 页面信息: {
-0|miniprog | 2026-02-19 00:57:37 +08:00:   "pageId": "default-page-2",
-0|miniprog | 2026-02-19 00:57:37 +08:00:   "pageName": "我的",
-0|miniprog | 2026-02-19 00:57:37 +08:00:   "components": []
-0|miniprog | 2026-02-19 00:57:37 +08:00: }
-0|miniprog | 2026-02-19 00:57:37 +08:00: 创建页面目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225/pages/default-page-2
-0|miniprog | 2026-02-19 00:57:37 +08:00: 加载组件数据...
-0|miniprog | 2026-02-19 00:57:37 +08:00: 开始加载组件数据...
-0|miniprog | 2026-02-19 00:57:37 +08:00: 页面组件列表: []
-0|miniprog | 2026-02-19 00:57:37 +08:00: 
-0|miniprog | 2026-02-19 00:57:37 +08:00: 组件数据加载完成
-0|miniprog | 2026-02-19 00:57:37 +08:00: 最终组件数据: []
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成JS文件...
-0|miniprog | 2026-02-19 00:57:37 +08:00: JS文件生成成功
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成WXML文件...
-0|miniprog | 2026-02-19 00:57:37 +08:00: WXML文件生成成功
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成WXSS文件...
-0|miniprog | 2026-02-19 00:57:37 +08:00: WXSS文件生成成功
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成JSON文件...
-0|miniprog | 2026-02-19 00:57:37 +08:00: JSON文件生成成功
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成页面: 我的
-0|miniprog | 2026-02-19 00:57:37 +08:00: 2.5. 下载tabBar图标...
-0|miniprog | 2026-02-19 00:57:37 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225/images/4c661940-1d8d-4f95-a6ab-4661effea87c.png
-0|miniprog | 2026-02-19 00:57:37 +08:00: 选中图标已叠加颜色 #0557e1: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225/images/4c661940-1d8d-4f95-a6ab-4661effea87c.png
-0|miniprog | 2026-02-19 00:57:37 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225/images/67467570-f4ec-4aad-a374-dbbeecd43d22.png
-0|miniprog | 2026-02-19 00:57:37 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225/images/5f96392a-bd0e-4d78-a14c-803493ddf484.png
-0|miniprog | 2026-02-19 00:57:37 +08:00: 图片下载成功: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225/images/736e427c-e162-4e98-b5dd-a877c70b6c3d.png
-0|miniprog | 2026-02-19 00:57:37 +08:00: 选中图标已叠加颜色 #0557e1: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225/images/67467570-f4ec-4aad-a374-dbbeecd43d22.png
-0|miniprog | 2026-02-19 00:57:37 +08:00: 未选中图标已叠加颜色 #999999: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225/images/5f96392a-bd0e-4d78-a14c-803493ddf484.png
-0|miniprog | 2026-02-19 00:57:37 +08:00: 未选中图标已叠加颜色 #999999: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225/images/736e427c-e162-4e98-b5dd-a877c70b6c3d.png
-0|miniprog | 2026-02-19 00:57:37 +08:00: 所有图标下载完成
-0|miniprog | 2026-02-19 00:57:37 +08:00: 3. 生成app.json...
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成tabBar配置
-0|miniprog | 2026-02-19 00:57:37 +08:00: 生成app.json，内容如下:
-0|miniprog | 2026-02-19 00:57:37 +08:00: {
-0|miniprog | 2026-02-19 00:57:37 +08:00:   "pages": [
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "pages/default-page-1/index",
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "pages/default-page-2/index"
-0|miniprog | 2026-02-19 00:57:37 +08:00:   ],
-0|miniprog | 2026-02-19 00:57:37 +08:00:   "window": {
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "backgroundTextStyle": "light",
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "navigationBarBackgroundColor": "#ffffff",
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "navigationBarTitleText": "小程序",
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "navigationBarTextStyle": "black"
-0|miniprog | 2026-02-19 00:57:37 +08:00:   },
-0|miniprog | 2026-02-19 00:57:37 +08:00:   "sitemapLocation": "sitemap.json",
-0|miniprog | 2026-02-19 00:57:37 +08:00:   "tabBar": {
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "color": "#999999",
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "selectedColor": "#0557e1",
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "backgroundColor": "#ffffff",
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "borderStyle": "white",
-0|miniprog | 2026-02-19 00:57:37 +08:00:     "list": [
-0|miniprog | 2026-02-19 00:57:37 +08:00:       {
-0|miniprog | 2026-02-19 00:57:37 +08:00:         "pagePath": "pages/default-page-1/index",
-0|miniprog | 2026-02-19 00:57:37 +08:00:         "text": "首页",
-0|miniprog | 2026-02-19 00:57:37 +08:00:         "iconPath": "images/5f96392a-bd0e-4d78-a14c-803493ddf484.png",
-0|miniprog | 2026-02-19 00:57:37 +08:00:         "selectedIconPath": "images/4c661940-1d8d-4f95-a6ab-4661effea87c.png"
-0|miniprog | 2026-02-19 00:57:37 +08:00:       },
-0|miniprog | 2026-02-19 00:57:37 +08:00:       {
-0|miniprog | 2026-02-19 00:57:37 +08:00:         "pagePath": "pages/default-page-2/index",
-0|miniprog | 2026-02-19 00:57:37 +08:00:         "text": "我的",
-0|miniprog | 2026-02-19 00:57:37 +08:00:         "iconPath": "images/736e427c-e162-4e98-b5dd-a877c70b6c3d.png",
-0|miniprog | 2026-02-19 00:57:37 +08:00:         "selectedIconPath": "images/67467570-f4ec-4aad-a374-dbbeecd43d22.png"
-0|miniprog | 2026-02-19 00:57:37 +08:00:       }
-0|miniprog | 2026-02-19 00:57:37 +08:00:     ]
-0|miniprog | 2026-02-19 00:57:37 +08:00:   }
-0|miniprog | 2026-02-19 00:57:37 +08:00: }
-0|miniprog | 2026-02-19 00:57:37 +08:00: 4. 创建ZIP文件...
-0|miniprog | 2026-02-19 00:57:37 +08:00: 开始创建ZIP: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225 -> /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225.zip
-0|miniprog | 2026-02-19 00:57:37 +08:00: 开始添加目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225
-0|miniprog | 2026-02-19 00:57:37 +08:00: 目录添加完成，开始finalize
-0|miniprog | 2026-02-19 00:57:37 +08:00: finalize完成
-0|miniprog | 2026-02-19 00:57:37 +08:00: ZIP文件已创建: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225.zip (24548 bytes)
-0|miniprog | 2026-02-19 00:57:37 +08:00: 5. 清理临时文件...
-0|miniprog | 2026-02-19 00:57:37 +08:00: 清理目录: /www/wwwroot/100000whys.cn/project/fsj/merchantDashboard/output/miniprogram_1771433857225
-0|miniprog | 2026-02-19 00:57:40 +08:00: 文件下载: miniprogram_1771433857225.zip
-0|miniprog | 2026-02-19 00:59:02 +08:00: 文件下载: miniprogram_1771433857225.zip
+[Deprecation] SharedArrayBuffer will require cross-origin isolation as of M92, around July 2021. See https://developer.chrome.com/blog/enabling-shared-array-buffer/ for more details.
+[system] WeChatLib: 3.14.2 (2026.2.10 20:21:14)
+[system] Subpackages: N/A
+[system] LazyCodeLoading: false
+Sun Feb 22 2026 08:45:55 GMT+0800 (中国标准时间) 文章推荐
+getSystemInfo API 提示
+小程序基础库从 3.7.0 起正式支持 HarmonyOS 平台，开发者可通过 wx.getDeviceInfo() 判断平台进行兼容处理，让小程序在 HarmonyOS 也获得最佳体验，查看指引[https://developers.weixin.qq.com/community/develop/doc/00008e041106f0259bb33530164409]
+关于上述警告，点击查看更多信息：https://developers.weixin.qq.com/community/develop/doc/00008e041106f0259bb33530164409]
+app.js? [sm]:3 小程序启动
+app.js? [sm]:4 小程序版本: 1.1.0
+app.js? [sm]:5 商家ID: 698826f3b35652a8d4f60e21
+app.js? [sm]:9 小程序显示
+index.js? [sm]:7 首页页面加载 {}
+index.js? [sm]:10 商家ID: 698826f3b35652a8d4f60e21
+index.js? [sm]:11 小程序版本: 1.1.0
+MingdaoYunArrayAPI.js? [sm]:28 [组件日志] 动作名称：调用明道云getFilterRows接口，接收的worksheetId值： shangjia
+MingdaoYunArrayAPI.js? [sm]:29 [组件日志] 接收的filters值： [{…}]
+MingdaoYunArrayAPI.js? [sm]:30 [执行日志] 2026/2/22上午8:45:55 - 执行了getData函数，入参： {worksheetId: "shangjia", filters: Array(1), pageSize: 1, pageIndex: 1}
+MingdaoYunArrayAPI.js? [sm]:54 [组件日志] 准备调用明道云接口，请求体： {appKey: "b37a969f03b3cf0b", sign: "MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==", worksheetId: "shangjia", viewId: "", pageSize: 1, …}
+Sun Feb 22 2026 08:45:55 GMT+0800 (中国标准时间) 配置中关闭合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书检查
+MingdaoYunArrayAPI.js? [sm]:56 工具未校验合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书。
+(anonymous) @ MingdaoYunArrayAPI.js? [sm]:56
+_callee$ @ MingdaoYunArrayAPI.js? [sm]:34
+s @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+getData @ MingdaoYunArrayAPI.js? [sm]:110
+_callee2$ @ index.js? [sm]:35
+s @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+initShangjiaRowid @ index.js? [sm]:53
+_callee$ @ index.js? [sm]:13
+s @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+onLoad @ index.js? [sm]:17
+index.js? [sm]:62 页面显示
+index.js? [sm]:58 页面渲染完成
+[system] Launch Time: 3346 ms
+MingdaoYunArrayAPI.js? [sm]:64 [组件日志] 明道云接口原始返回结果： {data: {…}, success: true, error_code: 1}
+MingdaoYunArrayAPI.js? [sm]:80 [组件日志] 组件出参data： {rows: Array(1), total: 1}
+MingdaoYunArrayAPI.js? [sm]:81 [执行日志] 2026/2/22上午8:45:55 - 执行了getData函数，返回数据： {success: true, error_code: 1, error_msg: ""}
+index.js? [sm]:42 === 查询shangjia表返回结果 ===
+index.js? [sm]:43 {
+  "success": true,
+  "data": {
+    "rows": [
+      {
+        "_id": "698826f8ac5b063f0d2c94c8",
+        "rowid": "64818489-0805-4ddf-a33e-d4a17a71167f",
+        "ctime": "2026-02-08 14:02:32",
+        "caid": {
+          "accountId": "a#698826f3b35652a8d4f60e21",
+          "fullname": "7654",
+          "avatar": "https://p1.mingdaoyun.cn/UserAvatar/default.png?watermark/2/text/Nw==/font/5oCd5rqQ6buR5L2T/fontsize/1000/fill/d2hpdGU=/dissolve/100/gravity/Center/dx/0/dy/0/fontstyle/Ym9sZA==%7CimageView2/1/w/48/h/48/q/90",
+          "isPortal": false,
+          "status": 1
+        },
+        "uaid": {
+          "accountId": "ae75cf2e-0f73-4137-9e99-116d92c45a47",
+          "fullname": "林东城",
+          "avatar": "https://p1.mingdaoyun.cn/UserAvatar/default2.png?watermark/2/text/5Lic5Z-O/font/5oCd5rqQ6buR5L2T/fontsize/700/fill/d2hpdGU=/dissolve/100/gravity/Center/dx/0/dy/0/fontstyle/Ym9sZA==%7CimageView2/1/w/48/h/48/q/90",
+          "isPortal": false,
+          "status": 1
+        },
+        "ownerid": {
+          "accountId": "a#698826f3b35652a8d4f60e21",
+          "fullname": "7654",
+          "avatar": "https://p1.mingdaoyun.cn/UserAvatar/default.png?watermark/2/text/Nw==/font/5oCd5rqQ6buR5L2T/fontsize/1000/fill/d2hpdGU=/dissolve/100/gravity/Center/dx/0/dy/0/fontstyle/Ym9sZA==%7CimageView2/1/w/48/h/48/q/90",
+          "isPortal": false,
+          "status": 1
+        },
+        "utime": "2026-02-08 15:15:35",
+        "dqsj": "2027-02-28",
+        "6987e1eb3f0d80c09a4c9d4e": "7654",
+        "autoid": 0,
+        "logo": "[{\"file_id\":\"c579af46-ea43-4d4d-b7a7-17480bef1c15\",\"thumbnail_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/\",\"thumbnail_name\":\"fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png?imageView2/1/w/200/h/118\",\"large_thumbnail_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/\",\"large_thumbnail_name\":\"fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png?imageView2/2/w/1280/h/800\",\"file_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/\",\"file_name\":\"fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png\",\"file_size\":12732,\"is_delete\":false,\"file_type\":1,\"original_file_name\":\"d1bcb0c3-fa9c-4dff-8b6d-f80578e0785e.png\",\"allow_down\":true,\"large_thumbnail_full_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png?imageView2/2/w/1280/h/800\",\"thumbnail_full_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png?imageView2/1/w/200/h/118\",\"original_file_full_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png\",\"origin_link_url\":null,\"short_link_url\":null,\"share_folder_url\":null,\"is_knowledge\":false,\"node_id\":\"\",\"allow_view\":true,\"width\":0,\"height\":0,\"duration\":0.0,\"allow_edit\":false,\"DownloadUrl\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png\",\"WaterMarkInfo\":null,\"preview_url\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png?e=1771807556&token=mN_sp-Y4_5zePppXZC8fTktRmKMNiYlC8jl_yeGZ:JA8vP4bduJ2iTugMif-4MncugAo=\",\"createTime\":\"2026-02-08 15:13:42\"}]",
+        "mRowid": "698826f3b35652a8d4f60e21",
+        "698855faff3b8781d456c504": "",
+        "698856125d44d1f34810ae31": "",
+        "mingcheng": "有趣channel"
+      }
+    ],
+    "total": 1
+  },
+  "error_msg": "",
+  "error_code": 1
+}
+index.js? [sm]:47 商家rowid: 64818489-0805-4ddf-a33e-d4a17a71167f
+index.js? [sm]:53 查询shangjia表失败: ReferenceError: app is not defined
+    at _callee2$ (index.js? [sm]:48)
+    at s (regeneratorRuntime.js?forceSync=true:1)
+    at Generator.<anonymous> (regeneratorRuntime.js?forceSync=true:1)
+    at Generator.next (regeneratorRuntime.js?forceSync=true:1)
+    at asyncGeneratorStep (asyncToGenerator.js?forceSync=true:1)
+    at c (asyncToGenerator.js?forceSync=true:1)(env: Windows,mp,2.01.2510260; lib: 3.14.2)
+_callee2$ @ index.js? [sm]:53
+s @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+Promise.then (async)
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+initShangjiaRowid @ index.js? [sm]:53
+_callee$ @ index.js? [sm]:13
+s @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+onLoad @ index.js? [sm]:17
+index.js? [sm]:15 === 开始加载组件数据 ===
+index.js? [sm]:75 开始加载轮播图数据...
+MingdaoYunArrayAPI.js? [sm]:28 [组件日志] 动作名称：调用明道云getFilterRows接口，接收的worksheetId值： lunbotu
+MingdaoYunArrayAPI.js? [sm]:29 [组件日志] 接收的filters值： []
+MingdaoYunArrayAPI.js? [sm]:30 [执行日志] 2026/2/22上午8:45:55 - 执行了getData函数，入参： {worksheetId: "lunbotu", filters: Array(0), pageSize: 50, pageIndex: 1}
+MingdaoYunArrayAPI.js? [sm]:54 [组件日志] 准备调用明道云接口，请求体： {appKey: "b37a969f03b3cf0b", sign: "MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==", worksheetId: "lunbotu", viewId: "", pageSize: 50, …}
+index.js? [sm]:17 === 组件数据加载结束 ===
+MingdaoYunArrayAPI.js? [sm]:64 [组件日志] 明道云接口原始返回结果： {data: {…}, success: true, error_code: 1}
+MingdaoYunArrayAPI.js? [sm]:80 [组件日志] 组件出参data： {rows: Array(3), total: 3}
+MingdaoYunArrayAPI.js? [sm]:81 [执行日志] 2026/2/22上午8:45:55 - 执行了getData函数，返回数据： {success: true, error_code: 1, error_msg: ""}
+index.js? [sm]:80 轮播图数据加载成功: (3) [{…}, {…}, {…}]

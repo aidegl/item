@@ -668,15 +668,17 @@ const loadMethods = components.map(comp => {
 
 **2. 页面生命周期调用**
 
-在生成的页面 JS 中，在 `onLoad` 生命周期中调用数据加载方法：
+在生成的页面 JS 中，在 `onLoad` 生命周期中先调用 `initShangjiaRowid` 获取商家实际 rowid，再调用数据加载方法：
 
 ```javascript
-onLoad(options) {
+async onLoad(options) {
     console.log('${page.pageName}页面加载', options);
     const app = getApp();
     const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
     console.log('商家ID:', appMerchantId);
     console.log('小程序版本: ${MINIPROGRAM_VERSION}');
+    
+    await this.initShangjiaRowid(appMerchantId);
     
     console.log('=== 开始加载组件数据 ===');
 ${loadDataCalls}
@@ -1396,7 +1398,109 @@ wx.request({
   5. 调用 `generateAppJson(config, outputDir)` 生成 `app.json`；
   6. 使用 `createZip(sourceDir, zipPath)` 打包为 ZIP，返回下载地址 `/download/miniprogram_xxx.zip`。
 
-#### 四、健康检查与 502 排查
+#### 二、商家实际rowid获取流程
+
+在首页加载时，通过 URL 参数带来的 `mRowid`（初始商家标识）查询 `shangjia` 表，获取该商家在明道云中的实际 `rowid`，然后赋值给全局变量供后续组件数据加载使用。
+
+**1. app.js 全局变量定义**
+
+在 `wxApp/app.js` 中定义 `mRowid` 全局变量：
+
+```javascript
+globalData: {
+  userInfo: null,
+  merchantId: '{商家ID}',
+  mRowid: ''
+}
+```
+
+**2. 首页 onLoad 中调用初始化方法**
+
+在生成的页面 JS 中，在 `onLoad` 生命周期中先调用 `initShangjiaRowid` 方法获取商家实际 rowid：
+
+```javascript
+async onLoad(options) {
+  console.log('${page.pageName}页面加载', options);
+  const app = getApp();
+  const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
+  console.log('商家ID:', appMerchantId);
+  console.log('小程序版本: ${MINIPROGRAM_VERSION}');
+  
+  await this.initShangjiaRowid(appMerchantId);
+  
+  console.log('=== 开始加载组件数据 ===');
+  // 加载组件数据...
+  console.log('=== 组件数据加载结束 ===');
+},
+```
+
+**3. initShangjiaRowid 方法实现**
+
+通过 `mRowid` 查询 `shangjia` 表获取商家实际 rowid：
+
+```javascript
+async initShangjiaRowid(mRowid) {
+  try {
+    const api = require('../../utils/MingdaoYunArrayAPI');
+    const apiInstance = new api();
+    
+    const filters = [
+      {
+        'controlId': 'mRowid',
+        'dataType': 2,
+        'spliceType': 1,
+        'filterType': 2,
+        'value': mRowid
+      }
+    ];
+    
+    const result = await apiInstance.getData({
+      worksheetId: 'shangjia',
+      filters: filters,
+      pageSize: 1,
+      pageIndex: 1
+    });
+    
+    console.log('=== 查询shangjia表返回结果 ===');
+    console.log(JSON.stringify(result, null, 2));
+    
+    if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
+      const shangjiaRowid = result.data.rows[0].rowid;
+      console.log('商家rowid:', shangjiaRowid);
+      app.globalData.mRowid = shangjiaRowid;
+    } else {
+      console.log('未找到对应的商家记录');
+    }
+  } catch (error) {
+    console.error('查询shangjia表失败:', error);
+  }
+},
+```
+
+**4. 过滤条件说明**
+
+查询 `shangjia` 表时的过滤条件：
+
+| 字段 | 值 | 说明 |
+|-----|---|-----|
+| controlId | `mRowid` | 明道云表中的字段名 |
+| dataType | `2` | 数值类型 |
+| spliceType | `1` | AND 条件 |
+| filterType | `2` | 等于 |
+| value | `mRowid` | URL 参数带来的商家标识 |
+
+**5. 数据流**
+
+```
+URL参数 ?mRowid=xxx 
+  → app.globalData.merchantId 
+  → initShangjiaRowid() 查询 shangjia 表 
+  → 获取商家实际 rowid 
+  → app.globalData.mRowid 
+  → 供后续组件数据加载使用（如轮播图、功能列表等）
+```
+
+#### 三、健康检查与 502 排查
 
 ##### 1. 健康检查接口
 - 后端 `server.js` 中提供：
