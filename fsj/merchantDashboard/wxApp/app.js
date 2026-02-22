@@ -14,6 +14,7 @@ App({
 
   globalData: {
     userInfo: null,
-    merchantId: '{商家ID}'
+    merchantId: '{商家ID}',
+    mRowid: ''
   }
 });
