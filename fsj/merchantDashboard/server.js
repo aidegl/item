@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.1.4';
+const MINIPROGRAM_VERSION = '1.1.5';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
