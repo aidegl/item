@@ -13,8 +13,10 @@ module.exports = {
               <text class="content-title">{{item.mingcheng}}</text>
               <text class="content-desc">{{item.miaoshu}}</text>
               <view class="content-meta">
-                <view class="content-tags" wx:if="{{item.biaoqian}}">
-                  <text class="content-tag">{{item.biaoqian}}</text>
+                <view class="content-tags" wx:if="{{item.biaoqian.length > 0}}">
+                  <block wx:for="{{item.biaoqian}}" wx:for-item="tag" wx:key="*this">
+                    <text class="content-tag">{{tag}}</text>
+                  </block>
                 </view>
                 <text class="content-price" wx:if="{{item.jiage}}">¥{{item.jiage}}</text>
               </view>
@@ -132,6 +134,8 @@ module.exports = {
   background: #f5f5f5;
   padding: 2px 6px;
   border-radius: 4px;
+  margin-right: 4px;
+  white-space: nowrap;
 }
 
 .content-price {
