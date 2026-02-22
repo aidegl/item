@@ -132,7 +132,7 @@ module.exports = {
   font-size: 10px;
   color: #666;
   background: #f5f5f5;
-  padding: 2px 6px;
+  padding: 2px 3px;
   border-radius: 4px;
   margin-right: 4px;
   white-space: nowrap;
@@ -169,8 +169,8 @@ module.exports = {
 }
 
 .author-avatar {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #f5f5f5;
 }
