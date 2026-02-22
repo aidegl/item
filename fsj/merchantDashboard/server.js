@@ -348,7 +348,7 @@ function generatePageJS(page, merchantId) {
           dianzan: row.dianzan || '',
           pinglun: row.pinglun || '',
           shoucang: row.shoucang || '',
-          bofangliang: row.bofangliang || ''
+          yueduliang: row.yueduliang || ''
         };
       })`;
     } else {

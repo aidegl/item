@@ -35,9 +35,9 @@ module.exports = {
                 <text class="stat-icon">⭐</text>
                 <text class="stat-text">{{item.shoucang}}</text>
               </view>
-              <view class="stat-item" wx:if="{{item.bofangliang}}">
-                <text class="stat-icon">▶️</text>
-                <text class="stat-text">{{item.bofangliang}}</text>
+              <view class="stat-item" wx:if="{{item.yueduliang}}">
+                <text class="stat-icon">👁️</text>
+                <text class="stat-text">{{item.yueduliang}}</text>
               </view>
             </view>
           </view>
