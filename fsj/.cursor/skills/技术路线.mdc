@@ -335,8 +335,10 @@ module.exports = {
   - 该 JSON 将作为小程序端加载数据的唯一配置入口。
 
 - **通用数据 vs 自定义数据**  
-  - 通用数据：指商品、文章、知识库等平台内预置业务表  
-  - 自定义数据：指商家在明道云中自行创建的业务表  
+  - **统一数据源**：所有内容（商品、文章、知识库、活动等）统一存储在 `neirong` 数据表
+  - **统一结构**：`neirong` 表包含通用字段（标题、描述、封面、详情图、价格、作者、发布时间等），支持不同内容类型共用
+  - **类型区分**：通过 `leixing`（类型）字段区分不同内容（商品、文章、知识库等）
+  - **自定义数据**：商家在明道云中自行创建的内容，同样存入 `neirong` 表
   - 在 UI 上使用统一的「通用 / 自定义」双下拉样式进行选择，便于在不同模块复用。
 
 - **排序规则与明道云计算**
@@ -345,7 +347,7 @@ module.exports = {
     - 将排序配置透传给明道云 API
     - 按明道云返回的顺序渲染数据
   - 通用数据（`dataSourceType = common`）排序选项：
-    - `weight`：按权重排序（使用 `nrsf` 表的权重字段）
+    - `weight`：按权重排序（使用 `neirong` 表的权重字段）
     - `publishTimeAsc`：发布时间正序
     - `publishTimeDesc`：发布时间倒序
     - `updateTimeAsc`：更新时间正序
@@ -353,11 +355,11 @@ module.exports = {
   - 自定义数据（`dataSourceType = custom`）排序选项：
     - `algorithm`：算法推荐模式（商家自行根据下面的公式在明道云中 DIY 排序逻辑）
 
-- **算法推荐模式（使用 `nrsf` 表）**
+- **算法推荐模式（使用 `neirong` 表）**
   - 当组件启用算法推荐（排序方式为 `weight` 或 `algorithm`）模式时：
     - 所有内容的权重计算和排序逻辑在明道云中实现
     - 小程序/后端仅携带必要参数（如商家 ID、内容类型等）调用明道云接口
-    - 明道云在 `nrsf` 表中维护权重字段，并按权重排序返回内容（或内容 ID 列表）
+    - 明道云在 `neirong` 表中维护权重字段，并按权重排序返回内容（或内容 ID 列表）
   - 规划中的权重计算公式（在明道云中实现）：  
     - 权重 = 评论基数 × 评论因子  
       + 收藏基数 × 收藏因子  
@@ -373,10 +375,10 @@ module.exports = {
     - 点赞基数 = 当前内容的点赞数 ÷ （所有内容总点赞数 ÷ 内容总数）  
     - 其他行为（评论、收藏、完播、成交等）以类似方式进行标准化  
   - 推荐流程（规划）：
-    1. 明道云每天统计行为数据，更新 `nrsf` 表中的各类基数字段
-    2. 明道云根据商家配置的因子，按公式计算权重并写入 `nrsf` 表
+    1. 明道云每天统计行为数据，更新 `neirong` 表中的各类基数字段
+    2. 明道云根据商家配置的因子，按公式计算权重并写入 `neirong` 表
     3. 小程序侧发起数据请求时，带上排序方式（如权重排序）
-    4. 明道云根据 `nrsf` 中的权重和排序方式返回排序后的数据或数据 ID 列表
+    4. 明道云根据 `neirong` 中的权重和排序方式返回排序后的数据或数据 ID 列表
     5. 小程序按返回顺序渲染到对应组件（商品列表、内容列表等）中
 
 - **非算法模式（直接按业务表排序）**
@@ -598,14 +600,14 @@ async function generateAppJson(config, outputDir) {
 
 **方案对比**：
 
-| 对比项 | 服务器端加载 | 小程序端加载 |
-|--------|-------------|-------------|
-| 数据实时性 | 打包后固定，需重新打包 | 每次启动都获取最新数据 |
-| 打包速度 | 慢（需要调用多个 API） | 快（只生成代码） |
-| 调试难度 | 高（只能看服务器日志） | 低（可在微信开发者工具查看） |
-| 灵活性 | 低（数据固定） | 高（数据实时更新） |
-| 依赖性 | 依赖服务器网络环境 | 依赖小程序网络环境 |
-| 维护成本 | 高（每次数据更新需重新打包） | 低（数据自动更新） |
+| 对比项     | 服务器端加载                 | 小程序端加载                 |
+| ---------- | ---------------------------- | ---------------------------- |
+| 数据实时性 | 打包后固定，需重新打包       | 每次启动都获取最新数据       |
+| 打包速度   | 慢（需要调用多个 API）       | 快（只生成代码）             |
+| 调试难度   | 高（只能看服务器日志）       | 低（可在微信开发者工具查看） |
+| 灵活性     | 低（数据固定）               | 高（数据实时更新）           |
+| 依赖性     | 依赖服务器网络环境           | 依赖小程序网络环境           |
+| 维护成本   | 高（每次数据更新需重新打包） | 低（数据自动更新）           |
 
 ##### 技术要点
 
@@ -680,15 +682,17 @@ const loadMethods = components.map(comp => {
 
 **2. 页面生命周期调用**
 
-在生成的页面 JS 中，在 `onLoad` 生命周期中调用数据加载方法：
+在生成的页面 JS 中，在 `onLoad` 生命周期中先调用 `initShangjiaRowid` 获取商家实际 rowid，再调用数据加载方法：
 
 ```javascript
-onLoad(options) {
+async onLoad(options) {
     console.log('${page.pageName}页面加载', options);
     const app = getApp();
     const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
     console.log('商家ID:', appMerchantId);
     console.log('小程序版本: ${MINIPROGRAM_VERSION}');
+    
+    await this.initShangjiaRowid(appMerchantId);
     
     console.log('=== 开始加载组件数据 ===');
 ${loadDataCalls}
@@ -1408,7 +1412,109 @@ wx.request({
   5. 调用 `generateAppJson(config, outputDir)` 生成 `app.json`；
   6. 使用 `createZip(sourceDir, zipPath)` 打包为 ZIP，返回下载地址 `/download/miniprogram_xxx.zip`。
 
-#### 四、健康检查与 502 排查
+#### 二、商家实际rowid获取流程
+
+在首页加载时，通过 URL 参数带来的 `mRowid`（初始商家标识）查询 `shangjia` 表，获取该商家在明道云中的实际 `rowid`，然后赋值给全局变量供后续组件数据加载使用。
+
+**1. app.js 全局变量定义**
+
+在 `wxApp/app.js` 中定义 `mRowid` 全局变量：
+
+```javascript
+globalData: {
+  userInfo: null,
+  merchantId: '{商家ID}',
+  mRowid: ''
+}
+```
+
+**2. 首页 onLoad 中调用初始化方法**
+
+在生成的页面 JS 中，在 `onLoad` 生命周期中先调用 `initShangjiaRowid` 方法获取商家实际 rowid：
+
+```javascript
+async onLoad(options) {
+  console.log('${page.pageName}页面加载', options);
+  const app = getApp();
+  const appMerchantId = app && app.globalData && app.globalData.merchantId ? app.globalData.merchantId : '${merchantId || ''}';
+  console.log('商家ID:', appMerchantId);
+  console.log('小程序版本: ${MINIPROGRAM_VERSION}');
+  
+  await this.initShangjiaRowid(appMerchantId);
+  
+  console.log('=== 开始加载组件数据 ===');
+  // 加载组件数据...
+  console.log('=== 组件数据加载结束 ===');
+},
+```
+
+**3. initShangjiaRowid 方法实现**
+
+通过 `mRowid` 查询 `shangjia` 表获取商家实际 rowid：
+
+```javascript
+async initShangjiaRowid(mRowid) {
+  try {
+    const api = require('../../utils/MingdaoYunArrayAPI');
+    const apiInstance = new api();
+    
+    const filters = [
+      {
+        'controlId': 'mRowid',
+        'dataType': 2,
+        'spliceType': 1,
+        'filterType': 2,
+        'value': mRowid
+      }
+    ];
+    
+    const result = await apiInstance.getData({
+      worksheetId: 'shangjia',
+      filters: filters,
+      pageSize: 1,
+      pageIndex: 1
+    });
+    
+    console.log('=== 查询shangjia表返回结果 ===');
+    console.log(JSON.stringify(result, null, 2));
+    
+    if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
+      const shangjiaRowid = result.data.rows[0].rowid;
+      console.log('商家rowid:', shangjiaRowid);
+      app.globalData.mRowid = shangjiaRowid;
+    } else {
+      console.log('未找到对应的商家记录');
+    }
+  } catch (error) {
+    console.error('查询shangjia表失败:', error);
+  }
+},
+```
+
+**4. 过滤条件说明**
+
+查询 `shangjia` 表时的过滤条件：
+
+| 字段       | 值       | 说明                   |
+| ---------- | -------- | ---------------------- |
+| controlId  | `mRowid` | 明道云表中的字段名     |
+| dataType   | `2`      | 数值类型               |
+| spliceType | `1`      | AND 条件               |
+| filterType | `2`      | 等于                   |
+| value      | `mRowid` | URL 参数带来的商家标识 |
+
+**5. 数据流**
+
+```
+URL参数 ?mRowid=xxx 
+  → app.globalData.merchantId 
+  → initShangjiaRowid() 查询 shangjia 表 
+  → 获取商家实际 rowid 
+  → app.globalData.mRowid 
+  → 供后续组件数据加载使用（如轮播图、功能列表等）
+```
+
+#### 三、健康检查与 502 排查
 
 ##### 1. 健康检查接口
 - 后端 `server.js` 中提供：
