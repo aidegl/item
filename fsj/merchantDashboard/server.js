@@ -155,6 +155,14 @@ async function generatePage(page, outputDir, merchantId) {
     console.log('========== 开始生成页面 ==========');
     console.log('页面信息:', JSON.stringify(page, null, 2));
 
+    if (page.components) {
+      page.components.forEach((comp, idx) => {
+        if (comp.componentName === '内容列表') {
+          console.log(`组件[${idx}] 内容列表的属性:`, JSON.stringify(comp.properties, null, 2));
+        }
+      });
+    }
+
     const pageDir = path.join(outputDir, 'pages', page.pageId);
     console.log(`创建页面目录: ${pageDir}`);
     fs.mkdirSync(pageDir, { recursive: true });
@@ -657,6 +665,11 @@ function generateComponentHTML(component) {
   const comp = getComponent(component.componentName);
   if (comp && comp.generateHTML) {
     const componentWithKey = { ...component, dataKey: getComponentDataKey(component) };
+
+    if (component.componentName === '内容列表') {
+      console.log('生成内容列表WXML，componentWithKey.properties:', JSON.stringify(componentWithKey.properties, null, 2));
+    }
+
     return comp.generateHTML(componentWithKey);
   }
   return `  <view class="component">${component.componentName}</view>`;
