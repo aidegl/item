@@ -3413,25 +3413,11 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
     header.appendChild(title);
 
     const subTitle = document.createElement('p');
-    subTitle.textContent = '请核对 AI 提取的信息，对每个字段可选择同意或拒绝 AI 识别结果';
+    subTitle.textContent = '输入框保留原信息，下方显示 AI 识别结果。点击「同意」采纳 AI 结果，点击「拒绝」保持原信息';
     subTitle.style.cssText = 'margin-bottom: 0; font-size: 13px; color: var(--text-secondary);';
     header.appendChild(subTitle);
 
     content.appendChild(header);
-
-    // 从表单读取原始值（保留用户已填内容）
-    const getOriginalValue = (key) => {
-        const form = document.getElementById('consultationForm');
-        if (!form) return '';
-        const el = form.querySelector(`[name="${key}"]`);
-        return el ? (el.value || '') : '';
-    };
-    const getOriginalQuestions = () => {
-        const container = document.getElementById('questions-container');
-        if (!container) return [];
-        const tas = container.querySelectorAll('textarea[name="patientQuestions[]"]');
-        return Array.from(tas).map(t => t.value.trim()).filter(Boolean);
-    };
 
     // 中间滚动区域
     const scrollBody = document.createElement('div');
@@ -3442,35 +3428,49 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
     form.style.cssText = 'display: flex; flex-direction: column; gap: 16px;';
 
     const inputElements = {};
-    const variants = {
-        'hospital': ['medicalOrgName', 'hospital_name', 'visit_hospital', '医院', 'medicalOrg'],
-        'department': ['departmentName', 'department_name', 'visit_department', '科室'],
-        'doctor': ['doctorName', 'doctor_name', 'attending_doctor', '医生'],
-        'date': ['appointmentTime', 'visit_date', 'visitDate', '日期'],
-        'coreAppeal': ['serviceTitle', 'appeal', 'main_complaint', '诉求', 'complaint', '主诉', '现病史'],
-        'onsetDate': ['actualStartDate', 'onset_time', 'start_date', 'onsetTime'],
-        'duration': ['cxfzsj_pl', 'frequency', 'duration_time', 'duration'],
-        'associatedSymptoms': ['bszz', 'symptoms', 'other_symptoms', 'accompanying_symptoms'],
-        'diagnosis': ['zhjy', 'doctor_diagnosis', 'result', 'diagnosis', '初步诊断', '诊断', '诊断意见'],
-        'examSummary': ['zjbz', 'exam_results', 'lab_results', 'summary', '体格检查', '检验检查', '辅助检查', '检查', '查体'],
-        'advice': ['yyzysx', 'doctor_advice', 'medication', 'advice', 'treatmentMeasures', '治疗措施', '处理意见', '处理', '建议'],
-        'lifestyleAdvice': ['lifestyle', 'notes', 'lifestyle_advice', '生活建议', '注意事项'],
-        'followupDate': ['hxfcap', 'recheck_date', 'next_visit', 'followup'],
-        'nurseReminder': ['pzszhtx', 'reminder', 'tips', 'nurse_reminder', '提醒']
-    };
 
-    const getAiValue = (field) => {
+    // 从主表单获取原始值的辅助函数
+    function getOriginalValue(key) {
+        const form = document.getElementById('consultationForm');
+        if (!form) return '';
+        if (key === 'date') {
+            const el = form.querySelector('input[name="date"]');
+            if (!el || !el.value) return '';
+            return el.value.substring(0, 10);
+        }
+        const el = form.querySelector(`[name="${key}"]`);
+        return el ? (el.value || '') : '';
+    }
+
+    // 从 AI 数据中提取字段值的辅助函数
+    function getAIValue(field) {
         let val = '';
         const dataKeys = Object.keys(data);
         if (data[field.key] !== undefined && data[field.key] !== null && data[field.key] !== '') {
-            val = data[field.key];
+            val = String(data[field.key]).trim();
         } else if (data[field.label] !== undefined && data[field.label] !== null && data[field.label] !== '') {
-            val = data[field.label];
+            val = String(data[field.label]).trim();
         } else {
+            const variants = {
+                'hospital': ['medicalOrgName', 'hospital_name', 'visit_hospital', '医院', 'medicalOrg'],
+                'department': ['departmentName', 'department_name', 'visit_department', '科室'],
+                'doctor': ['doctorName', 'doctor_name', 'attending_doctor', '医生'],
+                'date': ['appointmentTime', 'visit_date', 'visitDate', '日期'],
+                'coreAppeal': ['serviceTitle', 'appeal', 'main_complaint', '诉求', 'complaint', '主诉', '现病史'],
+                'onsetDate': ['actualStartDate', 'onset_time', 'start_date', 'onsetTime'],
+                'duration': ['cxfzsj_pl', 'frequency', 'duration_time', 'duration'],
+                'associatedSymptoms': ['bszz', 'symptoms', 'other_symptoms', 'accompanying_symptoms'],
+                'diagnosis': ['zhjy', 'doctor_diagnosis', 'result', 'diagnosis', '初步诊断', '诊断', '诊断意见'],
+                'examSummary': ['zjbz', 'exam_results', 'lab_results', 'summary', '体格检查', '检验检查', '辅助检查', '检查', '查体'],
+                'advice': ['yyzysx', 'doctor_advice', 'medication', 'advice', 'treatmentMeasures', '治疗措施', '处理意见', '处理', '建议'],
+                'lifestyleAdvice': ['lifestyle', 'notes', 'lifestyle_advice', '生活建议', '注意事项'],
+                'followupDate': ['hxfcap', 'recheck_date', 'next_visit', 'followup'],
+                'nurseReminder': ['pzszhtx', 'reminder', 'tips', 'nurse_reminder', '提醒']
+            };
             const possibleKeys = variants[field.key] || [];
             for (const k of possibleKeys) {
                 if (data[k] !== undefined && data[k] !== null && data[k] !== '') {
-                    val = data[k];
+                    val = String(data[k]).trim();
                     break;
                 }
             }
@@ -3479,22 +3479,16 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
                 const searchLabel = field.label.toLowerCase();
                 for (const actualKey of dataKeys) {
                     const lowerActualKey = actualKey.toLowerCase();
-                    if (lowerActualKey.includes(searchKey) || lowerActualKey.includes(searchLabel) || searchKey.includes(lowerActualKey)) {
-                        if (data[actualKey] && typeof data[actualKey] === 'string') {
-                            val = data[actualKey];
-                            break;
-                        }
+                    if ((lowerActualKey.includes(searchKey) || lowerActualKey.includes(searchLabel) || searchKey.includes(lowerActualKey)) &&
+                        data[actualKey] && typeof data[actualKey] === 'string') {
+                        val = String(data[actualKey]).trim();
+                        break;
                     }
                 }
             }
         }
-        if (val && (field.type === 'date' || field.key === 'date' || field.key === 'onsetDate' || field.key === 'followupDate')) {
-            val = String(val).trim().replace(/\//g, '-');
-            if (field.key === 'date' && val.length <= 10) val = val + 'T00:00';
-            else val = val.split('T')[0].split(' ')[0];
-        }
         return val;
-    };
+    }
 
     fields.forEach(field => {
         const group = document.createElement('div');
@@ -3516,58 +3510,83 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
             input.style.cssText = 'padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);';
         }
 
-        const aiVal = getAiValue(field);
         const originalVal = getOriginalValue(field.key);
+        const aiVal = getAIValue(field);
+
         input.value = originalVal;
         inputElements[field.key] = input;
-        console.log(`[填充验证] 字段: ${field.label} | 原值: "${originalVal}" | AI值: "${aiVal}"`);
-
         group.appendChild(input);
 
+        // 若有 AI 识别结果，在输入框下方展示并提供同意/拒绝按钮
         if (aiVal) {
-            const suggestionWrap = document.createElement('div');
-            suggestionWrap.style.cssText = 'display: flex; flex-direction: column; gap: 8px; padding: 10px; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; margin-top: 4px;';
+            const suggestionBlock = document.createElement('div');
+            suggestionBlock.style.cssText = 'display: flex; flex-direction: column; gap: 8px; padding: 10px; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px;';
             const aiLabel = document.createElement('div');
             aiLabel.style.cssText = 'font-size: 12px; color: var(--text-secondary);';
-            aiLabel.textContent = 'AI 识别结果：';
+            aiLabel.textContent = 'AI 识别：';
             const aiText = document.createElement('div');
-            aiText.style.cssText = 'font-size: 14px; color: var(--text-primary); word-break: break-all;';
+            aiText.style.cssText = 'font-size: 14px; color: var(--text-primary);';
             aiText.textContent = aiVal;
             const btnRow = document.createElement('div');
             btnRow.style.cssText = 'display: flex; gap: 8px;';
-            const btnAgree = document.createElement('button');
-            btnAgree.textContent = '同意';
-            btnAgree.className = 'btn btn-primary btn-sm';
-            btnAgree.style.cssText = 'padding: 6px 14px; font-size: 13px;';
-            const btnReject = document.createElement('button');
-            btnReject.textContent = '拒绝';
-            btnReject.className = 'btn btn-outline btn-sm';
-            btnReject.style.cssText = 'padding: 6px 14px; font-size: 13px;';
-            btnAgree.onclick = () => { input.value = aiVal; suggestionWrap.remove(); };
-            btnReject.onclick = () => { suggestionWrap.remove(); };
-            btnRow.appendChild(btnAgree);
-            btnRow.appendChild(btnReject);
-            suggestionWrap.appendChild(aiLabel);
-            suggestionWrap.appendChild(aiText);
-            suggestionWrap.appendChild(btnRow);
-            group.appendChild(suggestionWrap);
+            const acceptBtn = document.createElement('button');
+            acceptBtn.textContent = '同意';
+            acceptBtn.className = 'btn btn-primary';
+            acceptBtn.style.cssText = 'padding: 6px 16px; font-size: 13px; flex: 1;';
+            const rejectBtn = document.createElement('button');
+            rejectBtn.textContent = '拒绝';
+            rejectBtn.className = 'btn btn-outline';
+            rejectBtn.style.cssText = 'padding: 6px 16px; font-size: 13px; flex: 1;';
+
+            acceptBtn.onclick = () => {
+                let valToApply = aiVal;
+                if (field.type === 'date' && valToApply) {
+                    valToApply = String(valToApply).replace(/\//g, '-').substring(0, 10);
+                }
+                input.value = valToApply;
+                suggestionBlock.remove();
+            };
+            rejectBtn.onclick = () => {
+                suggestionBlock.remove();
+            };
+
+            btnRow.appendChild(acceptBtn);
+            btnRow.appendChild(rejectBtn);
+            suggestionBlock.appendChild(aiLabel);
+            suggestionBlock.appendChild(aiText);
+            suggestionBlock.appendChild(btnRow);
+            group.appendChild(suggestionBlock);
         }
 
+        console.log(`[填充验证] 字段: ${field.label} | 原值: "${originalVal}" | AI值: "${aiVal}"`);
         form.appendChild(group);
     });
 
     // 特殊处理患者疑问 (仅在诊前或默认情况下显示)
     if (sttType === 'pre' || sttType === 'default') {
-        let questionsAiVal = data.patientQuestions || data.questions || data['患者核心疑问'] || data['疑问'] || [];
-        if (Array.isArray(questionsAiVal) && questionsAiVal.length === 0) {
-            if (data.wentiyi) questionsAiVal.push(data.wentiyi);
-            if (data.wentier) questionsAiVal.push(data.wentier);
-            if (data.wentisan) questionsAiVal.push(data.wentisan);
+        let questionsVal = data.patientQuestions || data.questions || data['患者核心疑问'] || data['疑问'] || [];
+
+        // [增加匹配] 匹配 wentiyi, wentier, wentisan 这种格式
+        if (Array.isArray(questionsVal) && questionsVal.length === 0) {
+            if (data.wentiyi) questionsVal.push(data.wentiyi);
+            if (data.wentier) questionsVal.push(data.wentier);
+            if (data.wentisan) questionsVal.push(data.wentisan);
         }
-        if (typeof questionsAiVal === 'string' && questionsAiVal.trim()) {
-            questionsAiVal = questionsAiVal.split(/[\n,，]/).filter(q => q.trim());
+
+        // 如果是字符串，转为数组
+        if (typeof questionsVal === 'string' && questionsVal.trim()) {
+            questionsVal = questionsVal.split(/[\n,，]/).filter(q => q.trim());
         }
-        const questionsOriginalVal = getOriginalQuestions();
+
+        const aiQuestionsStr = Array.isArray(questionsVal) && questionsVal.length > 0 ? questionsVal.join('\n') : '';
+
+        // 获取原始问题（从 questions-container）
+        let originalQuestionsStr = '';
+        const questionsContainer = document.getElementById('questions-container');
+        if (questionsContainer) {
+            const tas = questionsContainer.querySelectorAll('textarea[name="patientQuestions[]"]');
+            originalQuestionsStr = Array.from(tas).map(ta => ta.value).filter(v => v.trim()).join('\n');
+        }
 
         const group = document.createElement('div');
         group.style.cssText = 'display: flex; flex-direction: column; gap: 6px;';
@@ -3580,38 +3599,45 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
         questionsTextarea.rows = 3;
         questionsTextarea.placeholder = '每行一个问题';
         questionsTextarea.style.cssText = 'padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--input-bg); color: var(--text-primary);';
-        questionsTextarea.value = questionsOriginalVal.join('\n');
+        questionsTextarea.value = originalQuestionsStr;
         inputElements['patientQuestions'] = questionsTextarea;
+
         group.appendChild(questionsTextarea);
 
-        if (Array.isArray(questionsAiVal) && questionsAiVal.length > 0) {
-            const suggestionWrap = document.createElement('div');
-            suggestionWrap.style.cssText = 'display: flex; flex-direction: column; gap: 8px; padding: 10px; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; margin-top: 4px;';
+        if (aiQuestionsStr) {
+            const suggestionBlock = document.createElement('div');
+            suggestionBlock.style.cssText = 'display: flex; flex-direction: column; gap: 8px; padding: 10px; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px;';
             const aiLabel = document.createElement('div');
             aiLabel.style.cssText = 'font-size: 12px; color: var(--text-secondary);';
-            aiLabel.textContent = 'AI 识别结果：';
+            aiLabel.textContent = 'AI 识别：';
             const aiText = document.createElement('div');
-            aiText.style.cssText = 'font-size: 14px; color: var(--text-primary); word-break: break-all; white-space: pre-wrap;';
-            aiText.textContent = questionsAiVal.join('\n');
+            aiText.style.cssText = 'font-size: 14px; color: var(--text-primary); white-space: pre-wrap;';
+            aiText.textContent = aiQuestionsStr;
             const btnRow = document.createElement('div');
             btnRow.style.cssText = 'display: flex; gap: 8px;';
-            const btnAgree = document.createElement('button');
-            btnAgree.textContent = '同意';
-            btnAgree.className = 'btn btn-primary btn-sm';
-            btnAgree.style.cssText = 'padding: 6px 14px; font-size: 13px;';
-            const btnReject = document.createElement('button');
-            btnReject.textContent = '拒绝';
-            btnReject.className = 'btn btn-outline btn-sm';
-            btnReject.style.cssText = 'padding: 6px 14px; font-size: 13px;';
-            btnAgree.onclick = () => { questionsTextarea.value = questionsAiVal.join('\n'); suggestionWrap.remove(); };
-            btnReject.onclick = () => { suggestionWrap.remove(); };
-            btnRow.appendChild(btnAgree);
-            btnRow.appendChild(btnReject);
-            suggestionWrap.appendChild(aiLabel);
-            suggestionWrap.appendChild(aiText);
-            suggestionWrap.appendChild(btnRow);
-            group.appendChild(suggestionWrap);
+            const acceptBtn = document.createElement('button');
+            acceptBtn.textContent = '同意';
+            acceptBtn.className = 'btn btn-primary';
+            acceptBtn.style.cssText = 'padding: 6px 16px; font-size: 13px; flex: 1;';
+            const rejectBtn = document.createElement('button');
+            rejectBtn.textContent = '拒绝';
+            rejectBtn.className = 'btn btn-outline';
+            rejectBtn.style.cssText = 'padding: 6px 16px; font-size: 13px; flex: 1;';
+
+            acceptBtn.onclick = () => {
+                questionsTextarea.value = aiQuestionsStr;
+                suggestionBlock.remove();
+            };
+            rejectBtn.onclick = () => suggestionBlock.remove();
+
+            btnRow.appendChild(acceptBtn);
+            btnRow.appendChild(rejectBtn);
+            suggestionBlock.appendChild(aiLabel);
+            suggestionBlock.appendChild(aiText);
+            suggestionBlock.appendChild(btnRow);
+            group.appendChild(suggestionBlock);
         }
+
         form.appendChild(group);
     }
 
