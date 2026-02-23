@@ -213,6 +213,166 @@ function getComponentDataKey(component) {
 
 function generatePageJS(page, merchantId) {
   const components = page.components || [];
+
+  let contentListData = '';
+  let contentListMethods = '';
+  let contentListLoadMethod = '';
+
+  components.forEach(comp => {
+    if (comp.componentName === '内容列表') {
+      const enableTabs = comp.properties && comp.properties.enableTabs;
+      let tabThemeColor = (comp.properties && comp.properties.tabThemeColor) || '{主题色}';
+      if (tabThemeColor === '{主题色}') {
+        tabThemeColor = '(themeColor || "#667eea")';
+      }
+      const tabs = (comp.properties && comp.properties.tabs) || [];
+
+      contentListData = `
+  contentTabs: ${JSON.stringify(tabs.map((t, i) => ({ label: t.label, field: t.field, value: t.value, active: i === 0 })))},
+  contentTabThemeColor: '${tabThemeColor}',
+  contentActiveTabIndex: 0,`;
+
+      contentListMethods = `
+  
+  switchContentTab(e) {
+    const index = e.currentTarget.dataset.index;
+    const tabs = this.data.contentTabs.map((t, i) => ({ ...t, active: i === index }));
+    this.setData({
+      contentTabs: tabs,
+      contentActiveTabIndex: index
+    });
+    this.load内容列表Data();
+  },`;
+
+      contentListLoadMethod = `
+  async load内容列表Data() {
+    try {
+      console.log('开始加载内容列表数据...');
+      const app = getApp();
+      const mRowid = app && app.globalData && app.globalData.mRowid ? app.globalData.mRowid : '${merchantId || ''}';
+      
+      const activeTab = this.data.contentTabs[this.data.contentActiveTabIndex];
+      const filters = [
+        {
+          'controlId': 'mRowid',
+          'dataType': 2,
+          'spliceType': 1,
+          'filterType': 24,
+          'value': mRowid
+        }
+      ];
+      
+      if (activeTab && activeTab.field && activeTab.value) {
+        filters.push({
+          'controlId': activeTab.field,
+          'dataType': 2,
+          'spliceType': 1,
+          'filterType': 2,
+          'value': activeTab.value
+        });
+      }
+      
+      const api = require('../../utils/MingdaoYunArrayAPI');
+      const apiInstance = new api();
+      
+      const result = await apiInstance.getData({
+        worksheetId: 'neirong',
+        filters: filters,
+        pageSize: 50,
+        pageIndex: 1
+      });
+      
+      console.log('内容列表API返回:', result);
+      
+      if (result.success && result.data && result.data.rows) {
+        const data = result.data.rows.map(row => {
+          let fengmianUrl = '';
+          try {
+            if (row.fengmian) {
+              const imgArray = JSON.parse(row.fengmian);
+              if (Array.isArray(imgArray) && imgArray.length > 0) {
+                fengmianUrl = imgArray[0].large_thumbnail_full_path || imgArray[0].url || imgArray[0].thumbnail_full_path;
+              }
+            }
+          } catch (e) {
+            console.error('解析fengmian字段失败:', e);
+          }
+          let zztxUrl = '';
+          try {
+            if (row.zztx) {
+              const imgArray = JSON.parse(row.zztx);
+              if (Array.isArray(imgArray) && imgArray.length > 0) {
+                zztxUrl = imgArray[0].large_thumbnail_full_path || imgArray[0].url || imgArray[0].thumbnail_full_path;
+              }
+            }
+          } catch (e) {
+            console.error('解析zztx字段失败:', e);
+          }
+          return {
+            rowid: row.rowid,
+            mingcheng: row.mingcheng || '',
+            miaoshu: row.miaoshu || '',
+            fengmian: fengmianUrl,
+            biaoqian: (function() {
+              try {
+                if (row.biaoqian) {
+                  const arr = JSON.parse(row.biaoqian);
+                  if (Array.isArray(arr)) {
+                    return arr.map(item => item.name || item).filter(v => v);
+                  }
+                }
+              } catch (e) {
+                console.error('解析biaoqian失败:', e);
+              }
+              return row.biaoqian ? [row.biaoqian] : [];
+            })(),
+            jiage: row.jiage || '',
+            zztx: zztxUrl,
+            zznc: row.zznc || '',
+            ctime: row.ctime || '',
+            ctimeFormatted: (function() {
+              if (!row.ctime) return '';
+              const now = new Date();
+              const date = new Date(row.ctime.replace(' ', 'T'));
+              const diffMs = now - date;
+              const diffMins = Math.floor(diffMs / 60000);
+              const diffHours = Math.floor(diffMs / 3600000);
+              const diffDays = Math.floor(diffMs / 86400000);
+              if (diffMins < 1) return '刚刚';
+              if (diffMins < 60) return diffMins + '分钟前';
+              if (diffHours < 24) return diffHours + '小时前';
+              if (diffDays === 1 || (diffHours >= 24 && diffHours < 48)) return '昨天';
+              if (diffDays < 7) return diffDays + '天前';
+              const y = date.getFullYear();
+              const m = String(date.getMonth() + 1).padStart(2, '0');
+              const d = String(date.getDate()).padStart(2, '0');
+              const h = String(date.getHours()).padStart(2, '0');
+              const min = String(date.getMinutes()).padStart(2, '0');
+              if (y === now.getFullYear()) {
+                return m + '-' + d + ' ' + h + ':' + min;
+              }
+              return y + '-' + m + '-' + d;
+            })(),
+            dianzan: row.dianzan || '',
+            pinglun: row.pinglun || '',
+            shoucang: row.shoucang || '',
+            yueduliang: row.yueduliang || ''
+          };
+        });
+        
+        console.log('内容列表数据加载成功:', data);
+        const dataKey = getComponentDataKey(comp);
+        this.setData({ [dataKey]: data });
+      } else {
+        console.log('内容列表数据为空或加载失败');
+      }
+    } catch (error) {
+      console.error('内容列表数据加载失败:', error);
+    }
+  },`;
+    }
+  });
+
   const componentsData = components.map(comp => {
     const dataKey = getComponentDataKey(comp);
     return `  ${dataKey}: [],`;
@@ -404,7 +564,7 @@ function generatePageJS(page, merchantId) {
 
   return `Page({
   data: {
-${componentsData}
+${componentsData}${contentListData}
   },
 
   async onLoad(options) {
@@ -419,6 +579,7 @@ ${componentsData}
     console.log('=== 开始加载组件数据 ===');
 ${loadDataCalls}
     console.log('=== 组件数据加载结束 ===');
+${contentListMethods}
   },
 
   async initShangjiaRowid(mRowid) {
