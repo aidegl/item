@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.2.2';
+const MINIPROGRAM_VERSION = '1.2.3';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -228,6 +228,7 @@ function generatePageJS(page, merchantId) {
       const tabs = (comp.properties && comp.properties.tabs) || [];
 
       contentListData = `
+  contentList: [],
   contentTabs: ${JSON.stringify(tabs.map((t, i) => ({ label: t.label, field: t.field, value: t.value, active: i === 0 })))},
   contentTabThemeColor: '${tabThemeColor}',
   contentActiveTabIndex: 0,`;
@@ -235,8 +236,10 @@ function generatePageJS(page, merchantId) {
       contentListMethods = `
   
   switchContentTab(e) {
-    const index = e.currentTarget.dataset.index;
-    const tabs = this.data.contentTabs.map((t, i) => ({ ...t, active: i === index }));
+    var index = e.currentTarget.dataset.index;
+    var tabs = this.data.contentTabs.map(function(t, i) {
+      return { label: t.label, field: t.field, value: t.value, active: i === index };
+    });
     this.setData({
       contentTabs: tabs,
       contentActiveTabIndex: index
@@ -285,7 +288,7 @@ function generatePageJS(page, merchantId) {
       console.log('内容列表API返回:', result);
       
       if (result.success && result.data && result.data.rows) {
-        const data = result.data.rows.map(row => {
+        const data = result.data.rows.map(function(row) {
           let fengmianUrl = '';
           try {
             if (row.fengmian) {
@@ -318,7 +321,7 @@ function generatePageJS(page, merchantId) {
                 if (row.biaoqian) {
                   const arr = JSON.parse(row.biaoqian);
                   if (Array.isArray(arr)) {
-                    return arr.map(item => item.name || item).filter(v => v);
+                    return arr.map(function(item) { return item.name || item; }).filter(function(v) { return v; });
                   }
                 }
               } catch (e) {
@@ -361,8 +364,7 @@ function generatePageJS(page, merchantId) {
         });
         
         console.log('内容列表数据加载成功:', data);
-        const dataKey = getComponentDataKey(comp);
-        this.setData({ [dataKey]: data });
+        this.setData({ contentList: data });
       } else {
         console.log('内容列表数据为空或加载失败');
       }
@@ -398,7 +400,7 @@ function generatePageJS(page, merchantId) {
                 'value': mRowid
               }
             ]`;
-      dataMapping = `result.data.rows.map(row => {
+      dataMapping = `result.data.rows.map(function(row) {
         let url = '';
         if (row.url) {
           url = row.url;
@@ -414,7 +416,7 @@ function generatePageJS(page, merchantId) {
           }
         }
         return { url };
-      }).filter(item => item.url)`;
+      }).filter(function(item) { return item.url; })`;
     } else if (comp.componentName === '功能列表') {
       worksheetId = 'gongneng';
       filtersConfig = `[
@@ -426,7 +428,7 @@ function generatePageJS(page, merchantId) {
                 'value': mRowid
               }
             ]`;
-      dataMapping = `result.data.rows.map(row => {
+      dataMapping = `result.data.rows.map(function(row) {
         let iconUrl = '';
         try {
           const iconArray = JSON.parse(row.icon);
@@ -439,90 +441,7 @@ function generatePageJS(page, merchantId) {
         return { icon: iconUrl, name: row.mingcheng };
       });`;
     } else if (comp.componentName === '内容列表') {
-      worksheetId = 'neirong';
-      filtersConfig = `[
-              {
-                'controlId': 'mRowid',
-                'dataType': 2,
-                'spliceType': 1,
-                'filterType': 24,
-                'value': mRowid
-              }
-            ]`;
-      dataMapping = `result.data.rows.map(row => {
-        let fengmianUrl = '';
-        try {
-          if (row.fengmian) {
-            const imgArray = JSON.parse(row.fengmian);
-            if (Array.isArray(imgArray) && imgArray.length > 0) {
-              fengmianUrl = imgArray[0].large_thumbnail_full_path || imgArray[0].url || imgArray[0].thumbnail_full_path;
-            }
-          }
-        } catch (e) {
-          console.error('解析fengmian字段失败:', e);
-        }
-        let zztxUrl = '';
-        try {
-          if (row.zztx) {
-            const imgArray = JSON.parse(row.zztx);
-            if (Array.isArray(imgArray) && imgArray.length > 0) {
-              zztxUrl = imgArray[0].large_thumbnail_full_path || imgArray[0].url || imgArray[0].thumbnail_full_path;
-            }
-          }
-        } catch (e) {
-          console.error('解析zztx字段失败:', e);
-        }
-        return {
-          rowid: row.rowid,
-          mingcheng: row.mingcheng || '',
-          miaoshu: row.miaoshu || '',
-          fengmian: fengmianUrl,
-          biaoqian: (function() {
-            try {
-              if (row.biaoqian) {
-                const arr = JSON.parse(row.biaoqian);
-                if (Array.isArray(arr)) {
-                  return arr.map(item => item.name || item).filter(v => v);
-                }
-              }
-            } catch (e) {
-              console.error('解析biaoqian失败:', e);
-            }
-            return row.biaoqian ? [row.biaoqian] : [];
-          })(),
-          jiage: row.jiage || '',
-          zztx: zztxUrl,
-          zznc: row.zznc || '',
-          ctime: row.ctime || '',
-          ctimeFormatted: (function() {
-            if (!row.ctime) return '';
-            const now = new Date();
-            const date = new Date(row.ctime.replace(' ', 'T'));
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-            if (diffMins < 1) return '刚刚';
-            if (diffMins < 60) return diffMins + '分钟前';
-            if (diffHours < 24) return diffHours + '小时前';
-            if (diffDays === 1 || (diffHours >= 24 && diffHours < 48)) return '昨天';
-            if (diffDays < 7) return diffDays + '天前';
-            const y = date.getFullYear();
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            const h = String(date.getHours()).padStart(2, '0');
-            const min = String(date.getMinutes()).padStart(2, '0');
-            if (y === now.getFullYear()) {
-              return m + '-' + d + ' ' + h + ':' + min;
-            }
-            return y + '-' + m + '-' + d;
-          })(),
-          dianzan: row.dianzan || '',
-          pinglun: row.pinglun || '',
-          shoucang: row.shoucang || '',
-          yueduliang: row.yueduliang || ''
-        };
-      })`;
+      return '';
     } else {
       worksheetId = '';
       dataMapping = 'result.data.rows';
@@ -578,8 +497,10 @@ ${componentsData}${contentListData}
     
     console.log('=== 开始加载组件数据 ===');
 ${loadDataCalls}
+    this.load内容列表Data();
     console.log('=== 组件数据加载结束 ===');
 ${contentListMethods}
+${contentListLoadMethod}
   },
 
   async initShangjiaRowid(mRowid) {
