@@ -3137,6 +3137,14 @@
       console.log('[decoration.html] 当前商家ID:', config.merchantId);
       console.log('[decoration.html] 用户图片数量:', config.userImages.length);
 
+      pages.forEach((page, pageIdx) => {
+        page.components.forEach((comp, compIdx) => {
+          if (comp.componentName === '内容列表') {
+            console.log(`[decoration.html] 页面${pageIdx} 内容列表组件${compIdx}:`, JSON.stringify(comp.properties, null, 2));
+          }
+        });
+      });
+
       try {
         const response = await fetch('/api/generate-miniprogram', {
           method: 'POST',
