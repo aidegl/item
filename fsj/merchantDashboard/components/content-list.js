@@ -4,25 +4,7 @@ module.exports = {
 
   generateHTML(component) {
     const dataKey = component.dataKey || 'contentList';
-    const enableTabs = component.properties && component.properties.enableTabs;
-    const tabThemeColor = component.properties && component.properties.tabThemeColor ? component.properties.tabThemeColor : '{主题色}';
-    const tabs = component.properties && component.properties.tabs ? component.properties.tabs : [];
-    const displayTabs = tabs.length > 0 ? [{ label: '全部', field: '', value: '' }, ...tabs] : [];
-
     return `  <view class="content-list">
-    ${enableTabs && displayTabs.length > 0 ? `
-    <view class="content-tabs">
-      <scroll-view scroll-x="true" class="tabs-scroll">
-        <view class="tabs-container">
-          <block wx:for="{{contentTabs}}" wx:key="index">
-            <view class="tab-item {{item.active ? 'tab-active' : ''}}" style="{{item.active ? 'color:' + contentTabThemeColor + ';border-bottom-color:' + contentTabThemeColor : ''}}" bindtap="switchContentTab" data-index="{{index}}">
-              <text>{{item.label}}</text>
-            </view>
-          </block>
-        </view>
-      </scroll-view>
-    </view>
-    ` : ''}
     <view wx:if="${dataKey}.length > 0" class="content-items">
       <block wx:for="{{${dataKey}}}" wx:key="rowid">
         <view class="content-item {{!item.fengmian ? 'content-item-full' : ''}}">
@@ -68,33 +50,6 @@ module.exports = {
   background: #fff;
   margin: 1px 0;
   padding: 10px;
-}
-
-.content-tabs {
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 10px;
-}
-
-.tabs-scroll {
-  white-space: nowrap;
-  width: 100%;
-}
-
-.tabs-container {
-  display: flex;
-  gap: 12px;
-}
-
-.tab-item {
-  padding: 8px 12px;
-  font-size: 14px;
-  color: #666;
-  border-bottom: 2px solid transparent;
-  white-space: nowrap;
-}
-
-.tab-active {
-  font-weight: 500;
 }
 
 .content-items {
@@ -251,10 +206,7 @@ module.exports = {
       priceField: 'jiage',
       authorAvatarField: 'zztx',
       authorNameField: 'zznc',
-      dateField: 'ctime',
-      enableTabs: false,
-      tabThemeColor: '{主题色}',
-      tabs: []
+      dateField: 'ctime'
     };
   },
 
