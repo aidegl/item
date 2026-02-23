@@ -228,7 +228,7 @@ function generatePageJS(page, merchantId) {
   tabThemeColor: '${tabThemeColor}',
   currentTabIndex: 0,
   currentTabField: '',
-  currentTabValue: '';`;
+  currentTabValue: ''`;
     }
 
     return dataFields;
