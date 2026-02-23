@@ -20,8 +20,10 @@ module.exports = {
       ]);
     }
 
-    return `  <view class="content-list">
-    <view class="content-tabs" wx:if="${enableTabs}">
+    const showTabs = enableTabs && tabs.length > 0;
+
+    const tabsHTML = showTabs ? `
+    <view class="content-tabs">
       <scroll-view class="tabs-scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
         <view class="tabs-container">
           <block wx:for="{{contentTabs}}" wx:key="index">
@@ -36,7 +38,10 @@ module.exports = {
           </block>
         </view>
       </scroll-view>
-    </view>
+    </view>` : '';
+
+    return `  <view class="content-list">
+${tabsHTML}
     <view wx:if="${dataKey}.length > 0" class="content-items">
       <block wx:for="{{${dataKey}}}" wx:key="rowid">
         <view class="content-item {{!item.fengmian ? 'content-item-full' : ''}}">
