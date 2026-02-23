@@ -757,6 +757,7 @@
       padding: 0;
       border: none;
       margin: 0;
+      pointer-events: auto;
     }
 
     .image-picker {
@@ -1580,6 +1581,24 @@
       updateTabBarProperty(key, '{主题色}');
     }
 
+    function setThemeTokenForContentListTab(key) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        selectedComponent.properties[key] = '{主题色}';
+
+        const resolvedThemeColor = resolveThemeColor('{主题色}') || '#667eea';
+        const preview = document.querySelector(`.color-picker-preview[data-color-key="${key}"]`);
+        const textInput = document.querySelector(`.color-text-input[data-color-key="${key}"]`);
+        const picker = document.querySelector(`.color-picker-input-overlay[data-color-key="${key}"]`);
+
+        if (preview) preview.style.backgroundColor = resolvedThemeColor;
+        if (textInput) textInput.value = '{主题色}';
+        if (picker) picker.value = resolvedThemeColor;
+
+        renderPreview();
+        saveConfig();
+      }
+    }
+
     function updateGlobalProperty(key, value) {
       const isThemeToken = value === '{主题色}';
       if (!isThemeToken && !isValidColor(value)) {
@@ -2338,9 +2357,20 @@
             </div>
           `;
         case '内容列表':
+          const contentTabs = component.properties.enableTabs ? component.properties.tabs : [];
+          const contentThemeColor = resolveThemeColor(component.properties.tabThemeColor) || '#667eea';
+          const allTabExists = contentTabs.find(t => t.label === '全部');
+          const displayTabs = contentTabs.length > 0 ? [{ label: '全部', field: '', value: '' }, ...contentTabs] : [];
           return `
             <div style="background: #fff; padding: 10px; border-radius: 8px;">
-              ${component.componentItems.map(item => `
+              ${component.properties.enableTabs && displayTabs.length > 0 ? `
+                <div style="display: flex; gap: 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 10px; overflow-x: auto;">
+                  ${displayTabs.map((tab, idx) => `
+                    <span style="padding: 6px 12px; font-size: 14px; color: ${idx === 0 ? contentThemeColor : '#666'}; border-bottom: 2px solid ${idx === 0 ? contentThemeColor : 'transparent'}; white-space: nowrap;">${tab.label}</span>
+                  `).join('')}
+                </div>
+              ` : ''}
+              ${component.componentItems.length > 0 ? component.componentItems.map(item => `
                 <div style="padding: 12px; border-bottom: 1px solid #f0f0f0; display: flex; gap: 10px;">
                   <div style="width: 60px; height: 60px; background: #e0e0e0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;">图</div>
                   <div style="flex: 1;">
@@ -2348,7 +2378,7 @@
                     <div style="font-size: 12px; color: #666;">${item.desc || '描述'}</div>
                   </div>
                 </div>
-              `).join('')}
+              `).join('') : '<div style="padding: 20px; text-align: center; color: #999;">暂无内容</div>'}
             </div>
           `;
         default:
@@ -2655,7 +2685,54 @@
         const value = selectedComponent.properties[key];
         const label = getPropertyLabel(key);
 
-        if (typeof value === 'boolean') {
+        if (selectedComponent.componentName === '内容列表' && key === 'enableTabs') {
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <select onchange="updateContentListTabs(this.value)">
+                <option value="false" ${!value ? 'selected' : ''}>否</option>
+                <option value="true" ${value ? 'selected' : ''}>是</option>
+              </select>
+            </div>
+          `;
+        } else if (selectedComponent.componentName === '内容列表' && key === 'tabThemeColor') {
+          const themeColor = resolveThemeColor(selectedComponent.properties.tabThemeColor) || '#667eea';
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <div class="color-picker-wrapper">
+                <div class="color-picker-container">
+                  <div class="color-picker-preview" data-color-key="tabThemeColor" style="background-color: ${themeColor}; width: 100%; height: 100%;"></div>
+                  <input type="color" id="colorPicker-tabThemeColor" data-color-key="tabThemeColor" value="${themeColor}" oninput="updateContentListTabThemeColor(this.value)" onchange="updateContentListTabThemeColor(this.value)" class="color-picker-input-overlay">
+                </div>
+                <div class="color-input-row">
+                  <input type="text" data-color-key="tabThemeColor" value="${selectedComponent.properties.tabThemeColor || ''}" oninput="updateContentListTabThemeColor(this.value)" onchange="updateContentListTabThemeColor(this.value)" onkeypress="handleColorInputKeypress(event, 'tabThemeColor', this.value)" class="color-text-input" placeholder="#000000">
+                  <button class="theme-token-btn" type="button" onclick="setThemeTokenForContentListTab('tabThemeColor')">主题色</button>
+                </div>
+              </div>
+            </div>
+          `;
+        } else if (selectedComponent.componentName === '内容列表' && key === 'tabs') {
+          const tabs = selectedComponent.properties.tabs || [];
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <div id="tabsConfigContainer">
+                ${tabs.map((tab, index) => `
+                  <div class="tab-config-item" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; background: #f9f9f9;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                      <input type="text" value="${tab.label || ''}" placeholder="标签名称" onchange="updateTabLabel(${index}, this.value)" style="flex: 1; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
+                      <input type="text" value="${tab.field || ''}" placeholder="字段名" onchange="updateTabField(${index}, this.value)" style="width: 80px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
+                      <input type="text" value="${tab.value || ''}" placeholder="值" onchange="updateTabValue(${index}, this.value)" style="width: 80px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
+                      <button onclick="removeTab(${index})" style="padding: 4px 8px; background: #ff4d4f; color: #fff; border: none; border-radius: 4px; cursor: pointer;">删除</button>
+                    </div>
+                  </div>
+                `).join('')}
+                <button onclick="addNewTab()" style="width: 100%; padding: 8px; background: #52c41a; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-top: 8px;">+ 添加标签</button>
+              </div>
+            </div>
+          `;
+        } else if (typeof value === 'boolean') {
           html += `
             <div class="property-group">
               <label>${label}</label>
@@ -2790,7 +2867,12 @@
         'showSales': '显示销量',
         'backgroundColor': '背景色',
         'textColor': '文字颜色',
-        'icon': '图标'
+        'icon': '图标',
+        'showImage': '显示封面',
+        'showDesc': '显示描述',
+        'enableTabs': '开启标签页',
+        'tabThemeColor': '标签主题色',
+        'tabs': '标签配置'
       };
       return labels[key] || key;
     }
@@ -2799,6 +2881,84 @@
       if (selectedComponent) {
         selectedComponent.properties[key] = value;
         renderPreview();
+      }
+    }
+
+    function updateContentListTabs(value) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        selectedComponent.properties.enableTabs = value === 'true';
+        renderProperties();
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateContentListTabThemeColor(value) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        selectedComponent.properties.tabThemeColor = value;
+
+        const resolvedColor = resolveThemeColor(value) || value;
+        const preview = document.querySelector(`.color-picker-preview[data-color-key="tabThemeColor"]`);
+        const textInput = document.querySelector(`.color-text-input[data-color-key="tabThemeColor"]`);
+        const picker = document.querySelector(`.color-picker-input-overlay[data-color-key="tabThemeColor"]`);
+
+        if (preview) preview.style.backgroundColor = resolvedColor;
+        if (textInput) textInput.value = value;
+        if (picker) picker.value = resolvedColor;
+
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateTabLabel(index, value) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        if (!selectedComponent.properties.tabs) selectedComponent.properties.tabs = [];
+        selectedComponent.properties.tabs[index] = selectedComponent.properties.tabs[index] || {};
+        selectedComponent.properties.tabs[index].label = value;
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateTabField(index, value) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        if (!selectedComponent.properties.tabs) selectedComponent.properties.tabs = [];
+        selectedComponent.properties.tabs[index] = selectedComponent.properties.tabs[index] || {};
+        selectedComponent.properties.tabs[index].field = value;
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateTabValue(index, value) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        if (!selectedComponent.properties.tabs) selectedComponent.properties.tabs = [];
+        selectedComponent.properties.tabs[index] = selectedComponent.properties.tabs[index] || {};
+        selectedComponent.properties.tabs[index].value = value;
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function addNewTab() {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        if (!selectedComponent.properties.tabs) selectedComponent.properties.tabs = [];
+        selectedComponent.properties.tabs.push({ label: '', field: '', value: '' });
+        renderProperties();
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function removeTab(index) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        if (selectedComponent.properties.tabs) {
+          selectedComponent.properties.tabs.splice(index, 1);
+          renderProperties();
+          renderPreview();
+          saveConfig();
+        }
       }
     }
 
@@ -3123,7 +3283,10 @@
         },
         'content-list': {
           showImage: true,
-          showDesc: true
+          showDesc: true,
+          enableTabs: false,
+          tabThemeColor: '{主题色}',
+          tabs: []
         }
       };
       return properties[type] || {};
