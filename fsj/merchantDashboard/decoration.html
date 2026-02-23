@@ -2717,18 +2717,30 @@
           html += `
             <div class="property-group">
               <label>${label}</label>
-              <div id="tabsConfigContainer">
+              <div id="tabsConfigContainer" style="margin-top: 8px;">
                 ${tabs.map((tab, index) => `
-                  <div class="tab-config-item" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; background: #f9f9f9;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                      <input type="text" value="${tab.label || ''}" placeholder="标签名称" onchange="updateTabLabel(${index}, this.value)" style="flex: 1; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
-                      <input type="text" value="${tab.field || ''}" placeholder="字段名" onchange="updateTabField(${index}, this.value)" style="width: 80px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
-                      <input type="text" value="${tab.value || ''}" placeholder="值" onchange="updateTabValue(${index}, this.value)" style="width: 80px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
-                      <button onclick="removeTab(${index})" style="padding: 4px 8px; background: #ff4d4f; color: #fff; border: none; border-radius: 4px; cursor: pointer;">删除</button>
+                  <div class="tab-config-item" style="padding: 12px; border: 1px solid #e8e8e8; border-radius: 6px; margin-bottom: 10px; background: #fafafa;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                      <span style="font-size: 12px; color: #999; font-weight: 500;">标签 ${index + 1}</span>
+                      <button onclick="removeTab(${index})" style="padding: 2px 8px; background: #ff4d4f; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">删除</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: #666; width: 50px; flex-shrink: 0;">名称</span>
+                        <input type="text" value="${tab.label || ''}" placeholder="如：推荐" onchange="updateTabLabel(${index}, this.value)" style="flex: 1; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px;">
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: #666; width: 50px; flex-shrink: 0;">字段</span>
+                        <input type="text" value="${tab.field || ''}" placeholder="如：leixing" onchange="updateTabField(${index}, this.value)" style="flex: 1; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px;">
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: #666; width: 50px; flex-shrink: 0;">值</span>
+                        <input type="text" value="${tab.value || ''}" placeholder="如：recommended" onchange="updateTabValue(${index}, this.value)" style="flex: 1; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px;">
+                      </div>
                     </div>
                   </div>
                 `).join('')}
-                <button onclick="addNewTab()" style="width: 100%; padding: 8px; background: #52c41a; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-top: 8px;">+ 添加标签</button>
+                <button onclick="addNewTab()" style="width: 100%; padding: 10px; background: #1890ff; color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-top: 8px; font-size: 14px; font-weight: 500;">+ 添加标签</button>
               </div>
             </div>
           `;
