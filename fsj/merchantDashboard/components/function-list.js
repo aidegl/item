@@ -32,7 +32,7 @@ module.exports = {
   generateHTML(component) {
     const dataKey = component.dataKey || 'functionList';
     return `  <view class="function-list">
-    <view class="function-grid">
+    <view class="function-grid {{functionList.length >= 9 ? 'grid-5' : (functionList.length >= 7 ? 'grid-4' : (functionList.length >= 6 ? 'grid-3' : 'grid-auto'))}}">
       <block wx:for="{{${dataKey}}}" wx:key="name">
         <view class="function-item"><image src="{{item.icon}}" mode="aspectFit"></image><text>{{item.name}}</text></view>
       </block>
@@ -43,15 +43,28 @@ module.exports = {
   generateCSS() {
     return `.function-list {
   background: #fff;
-  padding: 10px;
-  margin: 10px;
-  border-radius: 8px;
+  padding: 10px 0;
 }
 
 .function-grid {
   display: grid;
+  gap: 0;
+}
+
+.grid-auto {
+  grid-template-columns: repeat(auto-fit, minmax(25%, 1fr));
+}
+
+.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-3 {
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+}
+
+.grid-5 {
+  grid-template-columns: repeat(5, 1fr);
 }
 
 .function-item {
@@ -59,17 +72,17 @@ module.exports = {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 10px;
+  padding: 10px 0;
 }
 
 .function-item image {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 8px;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
 }
 
 .function-item text {
-  font-size: 12px;
+  font-size: 10px;
   color: #666;
 }`;
   },
@@ -90,48 +103,5 @@ module.exports = {
       columns: '列数',
       iconSize: '图标大小'
     };
-  },
-
-  async loadData(merchantId, outputDir) {
-    try {
-      console.log('加载功能列表数据...');
-      const api = new MingDaoYunArrayAPI();
-      const imagesDir = path.join(outputDir, 'images');
-
-      if (!fs.existsSync(imagesDir)) {
-        fs.mkdirSync(imagesDir, { recursive: true });
-      }
-
-      const result = await api.getData({
-        worksheetId: 'gongnengliebiao',
-        filters: [],
-        pageSize: 50,
-        pageIndex: 1
-      });
-
-      console.log('功能列表API返回结果:', JSON.stringify(result, null, 2));
-
-      if (result.success && result.data && result.data.rows) {
-        const functionListData = result.data.rows.map(row => ({
-          icon: row.icon,
-          name: row.name
-        }));
-
-        for (let i = 0; i < functionListData.length; i++) {
-          const filename = `function_${i}.png`;
-          const filepath = path.join(imagesDir, filename);
-          await downloadImage(functionListData[i].icon, filepath);
-          functionListData[i].icon = `/images/${filename}`;
-        }
-
-        console.log(`功能列表加载成功，共 ${functionListData.length} 个功能`);
-        return functionListData;
-      }
-
-      return [];
-    } catch (error) {
-      console.error('加载功能列表数据失败:', error);
-      return [];
-    }
   }
 };
