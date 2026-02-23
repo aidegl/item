@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="version" content="1">
+    <title>语音识别信息核对 - 陪诊助手</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .voice-review-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9fafb;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .page-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .stat-pending .stat-number {
+            color: #f59e0b;
+        }
+
+        .stat-confirmed .stat-number {
+            color: #10b981;
+        }
+
+        .stat-rejected .stat-number {
+            color: #ef4444;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #475569;
+            min-width: 100px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: #1e293b;
+            flex: 1;
+        }
+
+        .transcript-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .transcript-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .transcript-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #78350f;
+            white-space: pre-wrap;
+        }
+
+        .diff-item {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .diff-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .diff-item.confirmed {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .diff-item.rejected {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .diff-item.pending {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .diff-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .diff-field {
+            font-weight: 600;
+            color: #475569;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .diff-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .diff-status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .diff-status.confirmed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .diff-status.rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .diff-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .diff-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .diff-label {
+            font-size: 13px;
+            color: #64748b;
+            min-width: 60px;
+            flex-shrink: 0;
+            padding-top: 2px;
+        }
+
+        .diff-value {
+            flex: 1;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .diff-value.original {
+            color: #64748b;
+            text-decoration: line-through;
+        }
+
+        .diff-value.recognized {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .diff-value.highlight {
+            background: linear-gradient(120deg, #fef3c7 0%, #fde68a 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px dashed #f59e0b;
+        }
+
+        .diff-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            outline: none;
+        }
+
+        .action-btn.confirm {
+            background: #10b981;
+            color: white;
+        }
+
+        .action-btn.confirm:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+        .action-btn.reject {
+            background: #ef4444;
+            color: white;
+        }
+
+        .action-btn.reject:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .action-icon {
+            font-size: 16px;
+        }
+
+        .bottom-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 16px 20px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .accept-all-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .accept-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .accept-all-btn:active {
+            transform: translateY(0);
+        }
+
+        .accept-all-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .diff-item.pending {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 640px) {
+            .voice-review-container {
+                padding: 12px;
+            }
+
+            .stats-bar {
+                padding: 10px;
+            }
+
+            .stat-number {
+                font-size: 22px;
+            }
+
+            .diff-row {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .diff-label {
+                min-width: auto;
+            }
+
+            .bottom-actions {
+                padding: 12px;
+            }
+
+            .accept-all-btn {
+                padding: 14px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="voice-review-container">
+        <div class="page-header">
+            <h1>语音识别信息核对</h1>
+            <p>请核对语音识别结果，确认或拒绝差异内容</p>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item stat-pending">
+                <div class="stat-number" id="pendingCount">0</div>
+                <div class="stat-label">待处理</div>
+            </div>
+            <div class="stat-item stat-confirmed">
+                <div class="stat-number" id="confirmedCount">0</div>
+                <div class="stat-label">已确认</div>
+            </div>
+            <div class="stat-item stat-rejected">
+                <div class="stat-number" id="rejectedCount">0</div>
+                <div class="stat-label">已拒绝</div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title">原始信息</div>
+            <div class="info-row">
+                <div class="info-label">患者姓名</div>
+                <div class="info-value" id="originalName">张三</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">联系电话</div>
+                <div class="info-value" id="originalPhone">13800138000</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">就诊医院</div>
+                <div class="info-value" id="originalHospital">上海交通大学医学院附属瑞金医院</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">就诊科室</div>
+                <div class="info-value" id="originalDepartment">心血管内科</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">就诊时间</div>
+                <div class="info-value" id="originalTime">2024年1月15日 上午9:30</div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title">语音识别结果</div>
+            <div class="transcript-box">
+                <div class="transcript-title">
+                    <span>📝</span>
+                    <span>识别文本</span>
+                </div>
+                <div class="transcript-content" id="transcriptContent">
+                    患者张三，联系电话13800138001，要去上海交通大学医学院附属瑞金医院心血管内科就诊，时间是2024年1月15日上午9点30分。
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title">差异内容核对</div>
+            <div id="diffList">
+            </div>
+        </div>
+
+        <div style="height: 80px;"></div>
+    </div>
+
+    <div class="bottom-actions">
+        <button class="accept-all-btn" id="acceptAllBtn" onclick="acceptAll()">
+            <span>✓</span>
+            <span>一键接受修改</span>
+        </button>
+    </div>
+
+    <script>
+        let differences = [
+            {
+                id: 1,
+                field: '联系电话',
+                original: '13800138000',
+                recognized: '13800138001',
+                status: 'pending'
+            },
+            {
+                id: 2,
+                field: '就诊时间',
+                original: '2024年1月15日 上午9:30',
+                recognized: '2024年1月15日上午9点30分',
+                status: 'pending'
+            }
+        ];
+
+        function renderDifferences() {
+            const diffList = document.getElementById('diffList');
+            
+            if (differences.length === 0) {
+                diffList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✓</div>
+                        <div class="empty-state-text">没有发现差异内容</div>
+                    </div>
+                `;
+                return;
+            }
+
+            diffList.innerHTML = differences.map(diff => `
+                <div class="diff-item ${diff.status}" id="diff-${diff.id}">
+                    <div class="diff-header">
+                        <div class="diff-field">${diff.field}</div>
+                        <div class="diff-status ${diff.status}">
+                            ${diff.status === 'pending' ? '待处理' : diff.status === 'confirmed' ? '已确认' : '已拒绝'}
+                        </div>
+                    </div>
+                    <div class="diff-content">
+                        <div class="diff-row">
+                            <div class="diff-label">原始值</div>
+                            <div class="diff-value original">${diff.original}</div>
+                        </div>
+                        <div class="diff-row">
+                            <div class="diff-label">识别值</div>
+                            <div class="diff-value recognized highlight">${diff.recognized}</div>
+                        </div>
+                    </div>
+                    <div class="diff-actions">
+                        <button class="action-btn confirm" onclick="confirmDiff(${diff.id})" ${diff.status !== 'pending' ? 'disabled' : ''}>
+                            <span class="action-icon">✓</span>
+                            <span>确认</span>
+                        </button>
+                        <button class="action-btn reject" onclick="rejectDiff(${diff.id})" ${diff.status !== 'pending' ? 'disabled' : ''}>
+                            <span class="action-icon">✗</span>
+                            <span>拒绝</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const pending = differences.filter(d => d.status === 'pending').length;
+            const confirmed = differences.filter(d => d.status === 'confirmed').length;
+            const rejected = differences.filter(d => d.status === 'rejected').length;
+
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('confirmedCount').textContent = confirmed;
+            document.getElementById('rejectedCount').textContent = rejected;
+
+            const acceptAllBtn = document.getElementById('acceptAllBtn');
+            acceptAllBtn.disabled = pending === 0;
+        }
+
+        function confirmDiff(id) {
+            const diff = differences.find(d => d.id === id);
+            if (diff) {
+                diff.status = 'confirmed';
+                renderDifferences();
+            }
+        }
+
+        function rejectDiff(id) {
+            const diff = differences.find(d => d.id === id);
+            if (diff) {
+                diff.status = 'rejected';
+                renderDifferences();
+            }
+        }
+
+        function acceptAll() {
+            differences.forEach(diff => {
+                if (diff.status === 'pending') {
+                    diff.status = 'confirmed';
+                }
+            });
+            renderDifferences();
+        }
+
+        function updateOriginalInfo(info) {
+            document.getElementById('originalName').textContent = info.name || '';
+            document.getElementById('originalPhone').textContent = info.phone || '';
+            document.getElementById('originalHospital').textContent = info.hospital || '';
+            document.getElementById('originalDepartment').textContent = info.department || '';
+            document.getElementById('originalTime').textContent = info.time || '';
+        }
+
+        function updateTranscript(transcript) {
+            document.getElementById('transcriptContent').textContent = transcript;
+        }
+
+        function setDifferences(newDifferences) {
+            differences = newDifferences.map((diff, index) => ({
+                ...diff,
+                id: index + 1,
+                status: diff.status || 'pending'
+            }));
+            renderDifferences();
+        }
+
+        function getConfirmedDifferences() {
+            return differences.filter(d => d.status === 'confirmed');
+        }
+
+        function getRejectedDifferences() {
+            return differences.filter(d => d.status === 'rejected');
+        }
+
+        function getPendingDifferences() {
+            return differences.filter(d => d.status === 'pending');
+        }
+
+        renderDifferences();
+    </script>
+</body>
+
+</html>
