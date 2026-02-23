@@ -4,7 +4,39 @@ module.exports = {
 
   generateHTML(component) {
     const dataKey = component.dataKey || 'contentList';
+    const enableTabs = component.properties?.enableTabs || false;
+    const tabs = component.properties?.tabs || [];
+    const tabThemeColor = component.properties?.tabThemeColor || '#667eea';
+
+    let tabsConfig = '[]';
+    if (enableTabs && tabs.length > 0) {
+      tabsConfig = JSON.stringify([
+        { label: '全部', field: '', value: '' },
+        ...tabs.map(t => ({
+          label: t.label || '',
+          field: t.field || '',
+          value: t.value || ''
+        }))
+      ]);
+    }
+
     return `  <view class="content-list">
+    <view class="content-tabs" wx:if="${enableTabs}">
+      <scroll-view class="tabs-scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="tabs-container">
+          <block wx:for="{{contentTabs}}" wx:key="index">
+            <view class="tab-item {{currentTabIndex === index ? 'tab-active' : ''}}" 
+                  style="{{currentTabIndex === index ? 'color: ' + tabThemeColor + '; border-bottom-color: ' + tabThemeColor + ';' : ''}}"
+                  data-index="{{index}}" 
+                  data-field="{{item.field}}" 
+                  data-value="{{item.value}}"
+                  bindtap="onContentTabTap">
+              <text>{{item.label}}</text>
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+    </view>
     <view wx:if="${dataKey}.length > 0" class="content-items">
       <block wx:for="{{${dataKey}}}" wx:key="rowid">
         <view class="content-item {{!item.fengmian ? 'content-item-full' : ''}}">
@@ -49,7 +81,33 @@ module.exports = {
     return `.content-list {
   background: #fff;
   margin: 1px 0;
-  padding: 10px;
+}
+
+.content-tabs {
+  padding: 10px 10px 0;
+  background: #fff;
+}
+
+.tabs-scroll {
+  white-space: nowrap;
+}
+
+.tabs-container {
+  display: flex;
+  gap: 12px;
+}
+
+.tab-item {
+  font-size: 14px;
+  color: #666;
+  padding: 8px 4px;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  position: relative;
+}
+
+.tab-active {
+  font-weight: 500;
 }
 
 .content-items {
@@ -206,7 +264,10 @@ module.exports = {
       priceField: 'jiage',
       authorAvatarField: 'zztx',
       authorNameField: 'zznc',
-      dateField: 'ctime'
+      dateField: 'ctime',
+      enableTabs: false,
+      tabThemeColor: '#667eea',
+      tabs: []
     };
   },
 
@@ -224,7 +285,10 @@ module.exports = {
       priceField: '价格字段',
       authorAvatarField: '作者头像字段',
       authorNameField: '作者昵称字段',
-      dateField: '发布日期字段'
+      dateField: '发布日期字段',
+      enableTabs: '开启标签页',
+      tabThemeColor: '标签主题色',
+      tabs: '标签配置'
     };
   }
 };
