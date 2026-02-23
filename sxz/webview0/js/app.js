@@ -3428,8 +3428,6 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
     form.style.cssText = 'display: flex; flex-direction: column; gap: 16px;';
 
     const inputElements = {};
-    const fieldStates = {};
-    const originalValues = {};
 
     fields.forEach(field => {
         const group = document.createElement('div');
@@ -3515,121 +3513,7 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
         input.value = val;
         inputElements[field.key] = input;
 
-        // 获取表单中的原始值
-        const form = document.getElementById('consultationForm');
-        let originalValue = '';
-        if (form) {
-            const originalInput = form.querySelector(`[name="${field.key}"]`);
-            if (originalInput) {
-                originalValue = originalInput.value || '';
-            }
-        }
-        originalValues[field.key] = originalValue;
-
-        // 检查是否有出入
-        const hasDiscrepancy = val && originalValue && val !== originalValue;
-
-        // 创建字段状态跟踪
-        fieldStates[field.key] = {
-            hasDiscrepancy: hasDiscrepancy,
-            originalValue: originalValue,
-            aiValue: val,
-            manuallyModified: false,
-            accepted: false
-        };
-
-        // 如果有出入，显示原始信息和确认/拒绝图标
-        if (hasDiscrepancy) {
-            // 创建包含输入框和图标的容器
-            const inputContainer = document.createElement('div');
-            inputContainer.style.cssText = 'display: flex; gap: 8px; align-items: flex-start;';
-
-            inputContainer.appendChild(input);
-
-            // 创建图标容器
-            const iconContainer = document.createElement('div');
-            iconContainer.style.cssText = 'display: flex; gap: 4px; flex-shrink: 0;';
-
-            // 确认图标
-            const confirmIcon = document.createElement('button');
-            confirmIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-            confirmIcon.style.cssText = `
-                padding: 6px;
-                border: 1px solid #10b981;
-                background: #10b981;
-                color: white;
-                border-radius: 6px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s;
-            `;
-            confirmIcon.title = '接受修改';
-            confirmIcon.onclick = () => {
-                fieldStates[field.key].accepted = true;
-                fieldStates[field.key].manuallyModified = true;
-                confirmIcon.style.background = '#10b981';
-                confirmIcon.style.opacity = '1';
-                rejectIcon.style.background = '#f3f4f6';
-                rejectIcon.style.color = '#6b7280';
-                input.style.borderColor = '#10b981';
-            };
-
-            // 拒绝图标
-            const rejectIcon = document.createElement('button');
-            rejectIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-            rejectIcon.style.cssText = `
-                padding: 6px;
-                border: 1px solid #ef4444;
-                background: #f3f4f6;
-                color: #6b7280;
-                border-radius: 6px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s;
-            `;
-            rejectIcon.title = '拒绝修改';
-            rejectIcon.onclick = () => {
-                fieldStates[field.key].accepted = false;
-                fieldStates[field.key].manuallyModified = true;
-                input.value = originalValue;
-                rejectIcon.style.background = '#ef4444';
-                rejectIcon.style.color = 'white';
-                confirmIcon.style.background = '#f3f4f6';
-                confirmIcon.style.color = '#6b7280';
-                input.style.borderColor = '#ef4444';
-            };
-
-            iconContainer.appendChild(confirmIcon);
-            iconContainer.appendChild(rejectIcon);
-            inputContainer.appendChild(iconContainer);
-            group.appendChild(inputContainer);
-
-            // 显示原始信息
-            const originalInfo = document.createElement('div');
-            originalInfo.style.cssText = `
-                font-size: 12px;
-                color: #6b7280;
-                background: #f3f4f6;
-                padding: 8px;
-                border-radius: 6px;
-                margin-top: 4px;
-                border-left: 3px solid #f59e0b;
-            `;
-            originalInfo.innerHTML = `<strong>原始信息:</strong> ${originalValue}`;
-            group.appendChild(originalInfo);
-        } else {
-            group.appendChild(input);
-        }
-
-        // 监听输入变化
-        input.addEventListener('input', () => {
-            fieldStates[field.key].manuallyModified = true;
-        });
-
+        group.appendChild(input);
         form.appendChild(group);
     });
 
@@ -3674,95 +3558,25 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
 
     // 底部按钮 (固定)
     const footer = document.createElement('div');
-    footer.style.cssText = 'padding: 16px 24px 24px 24px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; background: var(--card-bg);';
-
-    // 一键接受修改按钮
-    const acceptAllBtn = document.createElement('button');
-    acceptAllBtn.textContent = '一键接受修改';
-    acceptAllBtn.className = 'btn btn-primary';
-    acceptAllBtn.style.cssText = `
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-    `;
-    acceptAllBtn.onmouseover = () => {
-        acceptAllBtn.style.transform = 'translateY(-2px)';
-        acceptAllBtn.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
-    };
-    acceptAllBtn.onmouseout = () => {
-        acceptAllBtn.style.transform = 'translateY(0)';
-        acceptAllBtn.style.boxShadow = 'none';
-    };
-    acceptAllBtn.onclick = () => {
-        // 自动接受所有没有手动操作的字段
-        for (const key in fieldStates) {
-            if (fieldStates[key].hasDiscrepancy && !fieldStates[key].manuallyModified) {
-                fieldStates[key].accepted = true;
-                // 更新UI显示
-                const input = inputElements[key];
-                if (input) {
-                    input.style.borderColor = '#10b981';
-                }
-            }
-        }
-        showToast('已自动接受所有未手动操作的字段');
-    };
-
-    // 按钮容器
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.cssText = 'display: flex; gap: 12px;';
+    footer.style.cssText = 'padding: 16px 24px 24px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: center; gap: 12px; flex-shrink: 0; background: var(--card-bg);';
 
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = '取消';
     cancelBtn.className = 'btn btn-outline';
-    cancelBtn.style.cssText = `
-        flex: 1;
-        padding: 12px;
-        border: 1px solid var(--border-color);
-        background: var(--input-bg);
-        color: var(--text-primary);
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-    `;
+    cancelBtn.style.flex = '1';
     cancelBtn.onclick = () => document.body.removeChild(modal);
 
     const confirmBtn = document.createElement('button');
     confirmBtn.textContent = '信息填入';
     confirmBtn.className = 'btn btn-primary';
-    confirmBtn.style.cssText = `
-        flex: 1;
-        padding: 12px;
-        background: #10b981;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    `;
+    confirmBtn.style.flex = '1';
     confirmBtn.onclick = () => {
         const verifiedData = {};
         for (const key in inputElements) {
-            // 如果字段有出入且被拒绝，使用原始值
-            if (fieldStates[key] && fieldStates[key].hasDiscrepancy && !fieldStates[key].accepted && fieldStates[key].manuallyModified) {
-                verifiedData[key] = fieldStates[key].originalValue;
+            if (key === 'patientQuestions') {
+                verifiedData[key] = inputElements[key].value.split('\n').filter(q => q.trim() !== '');
             } else {
-                if (key === 'patientQuestions') {
-                    verifiedData[key] = inputElements[key].value.split('\n').filter(q => q.trim() !== '');
-                } else {
-                    verifiedData[key] = inputElements[key].value;
-                }
+                verifiedData[key] = inputElements[key].value;
             }
         }
         // 传递 sttType 给 fillConsultationForm，以便只填充对应类别的字段
@@ -3771,10 +3585,8 @@ function showVerificationPopup(aiData, originalText, sttType = 'default') {
         showToast('信息已填入表单');
     };
 
-    buttonContainer.appendChild(cancelBtn);
-    buttonContainer.appendChild(confirmBtn);
-    footer.appendChild(acceptAllBtn);
-    footer.appendChild(buttonContainer);
+    footer.appendChild(cancelBtn);
+    footer.appendChild(confirmBtn);
     content.appendChild(footer);
 
     modal.appendChild(content);

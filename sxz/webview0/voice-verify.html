@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音识别信息核对 - 陪诊助手</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            padding-bottom: 100px;
+            -webkit-text-size-adjust: 100% !important;
+            text-size-adjust: 100% !important;
+        }
+
+        .container {
+            max-width: 448px;
+            width: 100%;
+            margin: 0 auto;
+            background-color: #fff;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .stats-bar {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .stat-number.pending {
+            color: #f59e0b;
+        }
+
+        .stat-number.confirmed {
+            color: #10b981;
+        }
+
+        .stat-number.rejected {
+            color: #ef4444;
+        }
+
+        .content-section {
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background-color: #667eea;
+            border-radius: 2px;
+        }
+
+        .text-display {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            line-height: 1.8;
+            color: #334155;
+            font-size: 15px;
+        }
+
+        .text-display .normal {
+            color: #334155;
+        }
+
+        .text-display .difference {
+            background-color: #fef3c7;
+            border-bottom: 2px solid #f59e0b;
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: #92400e;
+            font-weight: 500;
+        }
+
+        .text-display .original {
+            text-decoration: line-through;
+            color: #94a3b8;
+            margin-right: 5px;
+        }
+
+        .text-display .recognized {
+            color: #92400e;
+        }
+
+        .diff-item {
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .diff-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .diff-item.confirmed {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+
+        .diff-item.rejected {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+        }
+
+        .diff-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .diff-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .diff-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .diff-original {
+            text-decoration: line-through;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .diff-arrow {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .diff-recognized {
+            color: #92400e;
+            font-weight: 500;
+            font-size: 14px;
+            background-color: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .diff-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn.confirm {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .action-btn.confirm:hover {
+            background-color: #059669;
+        }
+
+        .action-btn.reject {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .action-btn.reject:hover {
+            background-color: #dc2626;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .status-badge.pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.confirmed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.rejected {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 448px;
+            width: 100%;
+            background-color: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 15px 20px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .accept-all-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .accept-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .accept-all-btn:active {
+            transform: translateY(0);
+        }
+
+        .accept-all-btn:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .accept-all-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .diff-item {
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>语音识别信息核对</h1>
+            <p>请核对语音识别结果，确认或拒绝差异内容</p>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number pending" id="pendingCount">0</div>
+                <div class="stat-label">待处理</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number confirmed" id="confirmedCount">0</div>
+                <div class="stat-label">已确认</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number rejected" id="rejectedCount">0</div>
+                <div class="stat-label">已拒绝</div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="section-title">识别结果预览</div>
+            <div class="text-display" id="textPreview">
+                <span class="normal">患者</span>
+                <span class="difference">
+                    <span class="original">张三</span>
+                    <span class="recognized">李四</span>
+                </span>
+                <span class="normal">，年龄</span>
+                <span class="difference">
+                    <span class="original">30岁</span>
+                    <span class="recognized">35岁</span>
+                </span>
+                <span class="normal">，就诊科室为</span>
+                <span class="difference">
+                    <span class="original">内科</span>
+                    <span class="recognized">外科</span>
+                </span>
+                <span class="normal">，主要症状为</span>
+                <span class="difference">
+                    <span class="original">头痛</span>
+                    <span class="recognized">胃痛</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="section-title">差异详情</div>
+            <div id="diffList">
+                <!-- 差异项将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="accept-all-btn" id="acceptAllBtn" onclick="acceptAll()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            一键接受修改
+        </button>
+    </div>
+
+    <script>
+        let differences = [
+            {
+                id: 1,
+                original: '张三',
+                recognized: '李四',
+                status: 'pending',
+                context: '患者姓名'
+            },
+            {
+                id: 2,
+                original: '30岁',
+                recognized: '35岁',
+                status: 'pending',
+                context: '年龄'
+            },
+            {
+                id: 3,
+                original: '内科',
+                recognized: '外科',
+                status: 'pending',
+                context: '就诊科室'
+            },
+            {
+                id: 4,
+                original: '头痛',
+                recognized: '胃痛',
+                status: 'pending',
+                context: '主要症状'
+            }
+        ];
+
+        function renderDifferences() {
+            const diffList = document.getElementById('diffList');
+            
+            if (differences.length === 0) {
+                diffList.innerHTML = `
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p>没有发现差异内容</p>
+                    </div>
+                `;
+                return;
+            }
+
+            diffList.innerHTML = differences.map(diff => `
+                <div class="diff-item ${diff.status}" id="diff-${diff.id}">
+                    <div class="diff-header">
+                        <span class="diff-label">${diff.context}</span>
+                        <span class="status-badge ${diff.status}">${getStatusText(diff.status)}</span>
+                    </div>
+                    <div class="diff-content">
+                        <span class="diff-original">${diff.original}</span>
+                        <span class="diff-arrow">→</span>
+                        <span class="diff-recognized">${diff.recognized}</span>
+                    </div>
+                    <div class="diff-actions">
+                        <button class="action-btn confirm" onclick="confirmDiff(${diff.id})" ${diff.status !== 'pending' ? 'disabled' : ''}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            确认
+                        </button>
+                        <button class="action-btn reject" onclick="rejectDiff(${diff.id})" ${diff.status !== 'pending' ? 'disabled' : ''}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            拒绝
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': '待处理',
+                'confirmed': '已确认',
+                'rejected': '已拒绝'
+            };
+            return statusMap[status] || '未知';
+        }
+
+        function updateStats() {
+            const pending = differences.filter(d => d.status === 'pending').length;
+            const confirmed = differences.filter(d => d.status === 'confirmed').length;
+            const rejected = differences.filter(d => d.status === 'rejected').length;
+
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('confirmedCount').textContent = confirmed;
+            document.getElementById('rejectedCount').textContent = rejected;
+
+            const acceptAllBtn = document.getElementById('acceptAllBtn');
+            acceptAllBtn.disabled = pending === 0;
+        }
+
+        function confirmDiff(id) {
+            const diff = differences.find(d => d.id === id);
+            if (diff) {
+                diff.status = 'confirmed';
+                renderDifferences();
+                updateStats();
+                updateTextPreview();
+            }
+        }
+
+        function rejectDiff(id) {
+            const diff = differences.find(d => d.id === id);
+            if (diff) {
+                diff.status = 'rejected';
+                renderDifferences();
+                updateStats();
+                updateTextPreview();
+            }
+        }
+
+        function acceptAll() {
+            differences.forEach(diff => {
+                if (diff.status === 'pending') {
+                    diff.status = 'confirmed';
+                }
+            });
+            renderDifferences();
+            updateStats();
+            updateTextPreview();
+        }
+
+        function updateTextPreview() {
+            const textPreview = document.getElementById('textPreview');
+            let html = '<span class="normal">患者</span>';
+            
+            differences.forEach(diff => {
+                if (diff.status === 'confirmed') {
+                    html += `<span class="normal">${diff.recognized}</span>`;
+                } else if (diff.status === 'rejected') {
+                    html += `<span class="normal">${diff.original}</span>`;
+                } else {
+                    html += `<span class="difference">
+                        <span class="original">${diff.original}</span>
+                        <span class="recognized">${diff.recognized}</span>
+                    </span>`;
+                }
+            });
+
+            html += '<span class="normal">，年龄</span>';
+            html += '<span class="normal">，就诊科室为</span>';
+            html += '<span class="normal">，主要症状为</span>';
+
+            textPreview.innerHTML = html;
+        }
+
+        function init() {
+            renderDifferences();
+            updateStats();
+        }
+
+        init();
+    </script>
+</body>
+</html>
