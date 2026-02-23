@@ -668,6 +668,8 @@ function generateComponentHTML(component) {
 
     if (component.componentName === '内容列表') {
       console.log('生成内容列表WXML，componentWithKey.properties:', JSON.stringify(componentWithKey.properties, null, 2));
+      console.log('enableTabs值:', componentWithKey.properties?.enableTabs);
+      console.log('tabs值:', JSON.stringify(componentWithKey.properties?.tabs));
     }
 
     return comp.generateHTML(componentWithKey);
