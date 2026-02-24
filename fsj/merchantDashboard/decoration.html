@@ -1681,10 +1681,14 @@
     }
 
     function updateGlobalProperty(key, value) {
-      const isThemeToken = value === '{主题色}';
-      if (!isThemeToken && !isValidColor(value)) {
-        console.warn('无效的颜色值:', value);
-        return;
+      const colorKeys = ['themeColor', 'navigationBar.backgroundColor', 'navigationBar.textColor'];
+      const isColorKey = colorKeys.includes(key);
+      if (isColorKey) {
+        const isThemeToken = value === '{主题色}';
+        if (!isThemeToken && !isValidColor(value)) {
+          console.warn('无效的颜色值:', value);
+          return;
+        }
       }
 
       if (key.includes('.')) {
@@ -1695,6 +1699,10 @@
         globalConfig[parent][child] = value;
       } else {
         globalConfig[key] = value;
+        if (key === 'loginApiUrl' && value && !globalConfig.phoneLoginApiUrl) {
+          globalConfig.phoneLoginApiUrl = value;
+          if (typeof renderGlobalProperties === 'function') renderGlobalProperties();
+        }
       }
       saveConfig();
 

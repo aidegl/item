@@ -208,6 +208,12 @@ function generateAppJs(merchantId, outputDir, config) {
     `onHide() {\n    console.log('小程序隐藏');\n  },\n${doLoginBlock}\n\n  `
   );
 
+  const phoneLoginApiUrl = (config && config.globalConfig && config.globalConfig.phoneLoginApiUrl) || loginApiUrl;
+  appJsContent = appJsContent.replace(
+    /loginApiUrl: '',\s*\n\s*phoneLoginApiUrl: ''/,
+    `loginApiUrl: '${loginApiUrl.replace(/'/g, "\\'")}',\n    phoneLoginApiUrl: '${phoneLoginApiUrl.replace(/'/g, "\\'")}'`
+  );
+
   fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
   console.log('生成app.js, 商家ID:', merchantId || '');
 }
@@ -356,13 +362,15 @@ function generateLoginPage(outputDir, config, themeColor) {
       return;
     }
     const { code, encryptedData, iv } = e.detail;
-    if (!this.data.phoneLoginApiUrl) {
-      wx.showToast({ title: '请配置手机号登录接口', icon: 'none' });
+    const app = getApp();
+    const url = this.data.phoneLoginApiUrl || (app.globalData && app.globalData.phoneLoginApiUrl) || (app.globalData && app.globalData.loginApiUrl) || '';
+    if (!url) {
+      wx.showToast({ title: '请在后台配置「登录接口URL」或「手机号登录接口」', icon: 'none' });
       return;
     }
     wx.showLoading({ title: '登录中...' });
     wx.request({
-      url: this.data.phoneLoginApiUrl,
+      url: url,
       method: 'POST',
       data: { code: code || '', encryptedData: encryptedData || '', iv: iv || '' },
       header: { 'Content-Type': 'application/json' },
@@ -516,12 +524,14 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
       wx.showToast({ title: '请输入正确手机号', icon: 'none' });
       return;
     }
-    if (!this.data.phoneLoginApiUrl) {
-      wx.showToast({ title: '请配置验证码登录接口', icon: 'none' });
+    const app = getApp();
+    const baseUrl = this.data.phoneLoginApiUrl || (app.globalData && app.globalData.phoneLoginApiUrl) || (app.globalData && app.globalData.loginApiUrl) || '';
+    if (!baseUrl) {
+      wx.showToast({ title: '请在后台配置「登录接口URL」或「手机号登录接口」', icon: 'none' });
       return;
     }
     wx.request({
-      url: this.data.phoneLoginApiUrl + '/sendCode',
+      url: baseUrl + '/sendCode',
       method: 'POST',
       data: { phone },
       header: { 'Content-Type': 'application/json' },
@@ -555,13 +565,15 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
       wx.showToast({ title: '请输入验证码', icon: 'none' });
       return;
     }
-    if (!this.data.phoneLoginApiUrl) {
-      wx.showToast({ title: '请配置验证码登录接口', icon: 'none' });
+    const app = getApp();
+    const baseUrl = this.data.phoneLoginApiUrl || (app.globalData && app.globalData.phoneLoginApiUrl) || (app.globalData && app.globalData.loginApiUrl) || '';
+    if (!baseUrl) {
+      wx.showToast({ title: '请在后台配置「登录接口URL」或「手机号登录接口」', icon: 'none' });
       return;
     }
     wx.showLoading({ title: '登录中...' });
     wx.request({
-      url: this.data.phoneLoginApiUrl + '/verify',
+      url: baseUrl + '/verify',
       method: 'POST',
       data: { phone, code },
       header: { 'Content-Type': 'application/json' },
