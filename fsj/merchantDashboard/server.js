@@ -150,7 +150,7 @@ function generateAppJs(merchantId, outputDir) {
   console.log('生成app.js, 商家ID:', merchantId || '');
 }
 
-async function generatePage(page, outputDir, merchantId) {
+async function generatePage(page, outputDir, merchantId, themeColor) {
   try {
     console.log('========== 开始生成页面 ==========');
     console.log('页面信息:', JSON.stringify(page, null, 2));
@@ -170,17 +170,17 @@ async function generatePage(page, outputDir, merchantId) {
     console.log(`跳过组件数据加载（小程序端自行加载）`);
 
     console.log(`生成JS文件...`);
-    const jsContent = generatePageJS(page, merchantId);
+    const jsContent = generatePageJS(page, merchantId, themeColor || '#0557e1');
     fs.writeFileSync(path.join(pageDir, 'index.js'), jsContent);
     console.log(`JS文件生成成功`);
 
     console.log(`生成WXML文件...`);
-    const wxmlContent = generatePageWXML(page);
+    const wxmlContent = generatePageWXML(page, themeColor || '#0557e1');
     fs.writeFileSync(path.join(pageDir, 'index.wxml'), wxmlContent);
     console.log(`WXML文件生成成功`);
 
     console.log(`生成WXSS文件...`);
-    const wxssContent = generatePageWXSS(page);
+    const wxssContent = generatePageWXSS(page, themeColor || '#0557e1');
     fs.writeFileSync(path.join(pageDir, 'index.wxss'), wxssContent);
     console.log(`WXSS文件生成成功`);
 
@@ -714,9 +714,16 @@ function isMyPage(page) {
   return name === '我的' || name.includes('我的');
 }
 
+/** 解析用户信息栏背景色（支持 {主题色}） */
+function resolveUserBarBackground(page, themeColor) {
+  const val = page?.userInfoBarBackground || '{主题色}';
+  return val === '{主题色}' ? (themeColor || '#0557e1') : val;
+}
+
 /** 生成「我的」页面顶部固定用户信息栏 WXML（必须显示，不可拖拽） */
-function generateMyPageUserBarWXML() {
-  return `<view class="my-page-user-bar">
+function generateMyPageUserBarWXML(page, themeColor) {
+  const bg = resolveUserBarBackground(page, themeColor);
+  return `<view class="my-page-user-bar" style="background-color: ${bg};">
   <view class="user-avatar">
     <image wx:if="{{userInfo.avatar}}" src="{{userInfo.avatar}}" mode="aspectFill" class="avatar-img" />
     <text wx:else class="avatar-placeholder">👤</text>
@@ -728,12 +735,12 @@ function generateMyPageUserBarWXML() {
 </view>`;
 }
 
-function generatePageWXML(page) {
+function generatePageWXML(page, themeColor) {
   const componentsHTML = (page.components || []).map(comp => {
     return generateComponentHTML(comp);
   }).join('\n');
 
-  const userBarBlock = isMyPage(page) ? '\n' + generateMyPageUserBarWXML() + '\n' : '';
+  const userBarBlock = isMyPage(page) ? '\n' + generateMyPageUserBarWXML(page, themeColor) + '\n' : '';
   return `<view class="page">${userBarBlock}
 ${componentsHTML}
 </view>`;
@@ -755,11 +762,11 @@ function generateComponentHTML(component) {
   return `  <view class="component">${component.componentName}</view>`;
 }
 
-/** 生成「我的」页面顶部用户信息栏 WXSS */
+/** 生成「我的」页面顶部用户信息栏 WXSS（背景色由 WXML 内联 style 覆盖） */
 function generateMyPageUserBarWXSS() {
   return `.my-page-user-bar {
-  background: linear-gradient(135deg, #0557e1 0%, #0d47a1 100%);
   color: #fff;
+  /* background 由 WXML 内联 style 设置，此处为兜底 */
   padding: 32rpx;
   display: flex;
   align-items: center;
@@ -808,7 +815,7 @@ function generateMyPageUserBarWXSS() {
 }`;
 }
 
-function generatePageWXSS(page) {
+function generatePageWXSS(page, themeColor) {
   const componentsCSS = (page.components || []).map(comp => {
     const component = getComponent(comp.componentName);
     return component && component.generateCSS ? component.generateCSS() : '';
@@ -1077,6 +1084,7 @@ app.post('/api/generate-miniprogram', async (req, res) => {
     }
 
     const merchantId = config.merchantId || '';
+    const themeColor = config.globalConfig?.themeColor || '#0557e1';
     console.log('商家ID:', merchantId);
 
     const timestamp = Date.now();
@@ -1091,7 +1099,7 @@ app.post('/api/generate-miniprogram', async (req, res) => {
 
     console.log('2. 生成页面代码...');
     for (const page of config.pages) {
-      await generatePage(page, uniqueDir, merchantId);
+      await generatePage(page, uniqueDir, merchantId, themeColor);
     }
 
     console.log('2.5. 下载tabBar图标...');
