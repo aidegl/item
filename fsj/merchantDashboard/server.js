@@ -221,6 +221,15 @@ function getComponentDataKey(component) {
 
 function generatePageJS(page, merchantId) {
   const components = page.components || [];
+  const myPage = isMyPage(page);
+
+  const userInfoDataBlock = myPage ? `  userInfo: {
+    avatar: '',
+    nickname: '用户昵称',
+    userId: '--'
+  },
+` : '';
+
   const componentsData = components.map(comp => {
     const dataKey = getComponentDataKey(comp);
     let dataFields = `  ${dataKey}: [],`;
@@ -426,9 +435,56 @@ function generatePageJS(page, merchantId) {
   },`;
   }).join('\n');
 
+  const loadUserInfoMethod = myPage ? `
+  async loadUserInfo() {
+    try {
+      const app = getApp();
+      const openId = app && app.globalData && app.globalData.openId ? app.globalData.openId : '';
+      if (!openId) {
+        this.setData({ userInfo: { avatar: '', nickname: '用户昵称', userId: '--' } });
+        return;
+      }
+      const MingDaoYunArrayAPI = require('../../utils/MingdaoYunArrayAPI');
+      const api = new MingDaoYunArrayAPI();
+      const result = await api.getData({
+        worksheetId: 'yonghu',
+        filters: [
+          { controlId: 'openId', dataType: 2, spliceType: 1, filterType: 2, value: openId }
+        ],
+        pageSize: 1,
+        pageIndex: 1
+      });
+      if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
+        const row = result.data.rows[0];
+        let avatar = '';
+        try {
+          const avatarField = row.touxiang || row.avatar || row['头像'];
+          if (typeof avatarField === 'string' && avatarField) {
+            const arr = JSON.parse(avatarField);
+            if (Array.isArray(arr) && arr.length > 0) {
+              const first = arr[0];
+              avatar = first.large_thumbnail_full_path || first.url || first.large_thumbnail_path || first.path || '';
+            }
+          }
+        } catch (e) {}
+        const nickname = (row.nicheng || row.nickname || row['昵称'] || '用户昵称') + '';
+        const userId = (row.yonghuId || row.userId || row.rowid || '--') + '';
+        this.setData({
+          userInfo: { avatar: avatar || '', nickname: nickname || '用户昵称', userId: userId || '--' }
+        });
+      } else {
+        this.setData({ userInfo: { avatar: '', nickname: '用户昵称', userId: '--' } });
+      }
+    } catch (error) {
+      console.error('加载用户信息失败:', error);
+      this.setData({ userInfo: { avatar: '', nickname: '用户昵称', userId: '--' } });
+    }
+  },
+` : '';
+
   return `Page({
   data: {
-${componentsData}
+${userInfoDataBlock}${componentsData}
   },
 
   async onLoad(options) {
@@ -439,7 +495,7 @@ ${componentsData}
     console.log('小程序版本: ${MINIPROGRAM_VERSION}');
     
     await this.initShangjiaRowid(appMerchantId);
-    
+${myPage ? '    this.loadUserInfo();\n' : ''}
     console.log('=== 开始加载组件数据 ===');
 ${loadDataCalls}
     console.log('=== 组件数据加载结束 ===');
@@ -647,16 +703,35 @@ ${components.filter(c => c.componentName === '内容列表' && c.properties && c
   onUnload() {
     console.log('页面卸载');
   },
-${loadMethods}
+${loadUserInfoMethod}${loadMethods}
 });`;
 }
 
+function isMyPage(page) {
+  return page && (page.pageType === 'my' || page.pageName === '我的');
+}
+
+/** 生成「我的」页面顶部固定用户信息栏 WXML（必须显示，不可拖拽） */
+function generateMyPageUserBarWXML() {
+  return `<view class="my-page-user-bar">
+  <view class="user-avatar">
+    <image wx:if="{{userInfo.avatar}}" src="{{userInfo.avatar}}" mode="aspectFill" class="avatar-img" />
+    <text wx:else class="avatar-placeholder">👤</text>
+  </view>
+  <view class="user-info">
+    <text class="user-nickname">{{userInfo.nickname}}</text>
+    <text class="user-id">ID: {{userInfo.userId}}</text>
+  </view>
+</view>`;
+}
+
 function generatePageWXML(page) {
-  const componentsHTML = page.components.map(comp => {
+  const componentsHTML = (page.components || []).map(comp => {
     return generateComponentHTML(comp);
   }).join('\n');
 
-  return `<view class="page">
+  const userBarBlock = isMyPage(page) ? '\n' + generateMyPageUserBarWXML() + '\n' : '';
+  return `<view class="page">${userBarBlock}
 ${componentsHTML}
 </view>`;
 }
@@ -677,18 +752,72 @@ function generateComponentHTML(component) {
   return `  <view class="component">${component.componentName}</view>`;
 }
 
+/** 生成「我的」页面顶部用户信息栏 WXSS */
+function generateMyPageUserBarWXSS() {
+  return `.my-page-user-bar {
+  background: linear-gradient(135deg, #0557e1 0%, #0d47a1 100%);
+  color: #fff;
+  padding: 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  border-radius: 0 0 24rpx 24rpx;
+  margin-bottom: 24rpx;
+}
+.my-page-user-bar .user-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.my-page-user-bar .avatar-img {
+  width: 100%;
+  height: 100%;
+}
+.my-page-user-bar .avatar-placeholder {
+  font-size: 48rpx;
+}
+.my-page-user-bar .user-info {
+  flex: 1;
+  min-width: 0;
+}
+.my-page-user-bar .user-nickname {
+  font-size: 32rpx;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.my-page-user-bar .user-id {
+  font-size: 24rpx;
+  opacity: 0.9;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}`;
+}
+
 function generatePageWXSS(page) {
-  const componentsCSS = page.components.map(comp => {
+  const componentsCSS = (page.components || []).map(comp => {
     const component = getComponent(comp.componentName);
     return component && component.generateCSS ? component.generateCSS() : '';
   }).filter(css => css).join('\n\n');
 
+  const userBarCSS = isMyPage(page) ? generateMyPageUserBarWXSS() + '\n\n' : '';
   return `.page {
   min-height: 100vh;
   background: #f5f5f5;
 }
 
-${componentsCSS}`;
+${userBarCSS}${componentsCSS}`;
 }
 
 function generatePageJSON(page) {
