@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.2.3';
+const MINIPROGRAM_VERSION = '1.2.4';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -452,10 +452,12 @@ function generatePageJS(page, merchantId) {
           { controlId: 'openId', dataType: 2, spliceType: 1, filterType: 2, value: openId }
         ],
         pageSize: 1,
-        pageIndex: 1
+        pageIndex:1
       });
+      console.log('用户信息API返回结果:', JSON.stringify(result, null, 2));
       if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
         const row = result.data.rows[0];
+        console.log('用户数据:', JSON.stringify(row, null, 2));
         let avatar = '';
         try {
           const avatarField = row.touxiang || row.avatar || row['头像'];
@@ -469,6 +471,7 @@ function generatePageJS(page, merchantId) {
         } catch (e) {}
         const nickname = (row.nicheng || row.nickname || row['昵称'] || '用户昵称') + '';
         const userId = (row.yonghuId || row.userId || row.rowid || '--') + '';
+        console.log('解析后的用户信息:', { avatar, nickname, userId });
         this.setData({
           userInfo: { avatar: avatar || '', nickname: nickname || '用户昵称', userId: userId || '--' }
         });
@@ -703,7 +706,25 @@ ${components.filter(c => c.componentName === '内容列表' && c.properties && c
   onUnload() {
     console.log('页面卸载');
   },
-${loadUserInfoMethod}${loadMethods}
+
+${myPage ? `  onLogout() {
+    const app = getApp();
+    wx.showModal({
+      title: '提示',
+      content: '确定要退出登录吗？',
+      success: function(res) {
+        if (res.confirm) {
+          app.logout();
+          wx.showToast({
+            title: '已退出登录',
+            icon: 'success',
+            duration: 2000
+          });
+        }
+      }
+    });
+  },
+` : ''}${loadUserInfoMethod}${loadMethods}
 });`;
 }
 
@@ -731,6 +752,9 @@ function generateMyPageUserBarWXML(page, themeColor) {
   <view class="user-info">
     <text class="user-nickname">{{userInfo.nickname}}</text>
     <text class="user-id">ID: {{userInfo.userId}}</text>
+  </view>
+  <view class="logout-btn" bindtap="onLogout">
+    <text>退出登录</text>
   </view>
 </view>`;
 }
@@ -812,6 +836,15 @@ function generateMyPageUserBarWXSS() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.my-page-user-bar .logout-btn {
+  padding: 12rpx 24rpx;
+  background: rgba(255,255,255,0.2);
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+.my-page-user-bar .logout-btn text {
+  color: #fff;
 }`;
 }
 
