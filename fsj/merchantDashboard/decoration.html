@@ -385,6 +385,15 @@
       color: #fff;
     }
 
+    .component-library-content {
+      min-height: 120px;
+    }
+    .component-library-empty {
+      padding: 16px;
+      text-align: center;
+      color: var(--text-muted, #999);
+      font-size: 13px;
+    }
     .component-library {
       flex: 1;
       background: var(--bg-color);
@@ -993,6 +1002,50 @@
       padding: 0;
     }
 
+    /* 我的页面顶部用户信息栏：固定显示，不可拖拽、不可删除 */
+    .my-page-user-bar {
+      background: linear-gradient(135deg, var(--admin-primary-color, #0557e1) 0%, #0d47a1 100%);
+      color: #fff;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 0 0 12px 12px;
+      margin-bottom: 12px;
+      user-select: none;
+      pointer-events: none;
+    }
+    .my-page-user-bar .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .my-page-user-bar .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .my-page-user-bar .user-nickname {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .my-page-user-bar .user-id {
+      font-size: 12px;
+      opacity: 0.9;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .phone-screen .component-wrapper {
       border: 2px dashed transparent;
       padding: 5px;
@@ -1142,58 +1195,8 @@
       </div>
 
       <div class="component-library">
-        <div class="component-section">
-          <h3>基础组件</h3>
-          <div class="component-grid">
-            <div class="component-item" draggable="true" data-component="carousel">
-              <div class="component-icon">🖼️</div>
-              <div class="component-name">轮播图</div>
-            </div>
-            <div class="component-item" draggable="true" data-component="function-list">
-              <div class="component-icon">📋</div>
-              <div class="component-name">功能列表</div>
-            </div>
-            <div class="component-item" draggable="true" data-component="image">
-              <div class="component-icon">🖼️</div>
-              <div class="component-name">图片</div>
-            </div>
-            <div class="component-item" draggable="true" data-component="text">
-              <div class="component-icon">📝</div>
-              <div class="component-name">文本</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="component-section">
-          <h3>商品组件</h3>
-          <div class="component-grid">
-            <div class="component-item" draggable="true" data-component="product-grid">
-              <div class="component-icon">🛍️</div>
-              <div class="component-name">商品网格</div>
-            </div>
-            <div class="component-item" draggable="true" data-component="product-list">
-              <div class="component-icon">📦</div>
-              <div class="component-name">商品列表</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="component-section">
-          <h3>内容组件</h3>
-          <div class="component-grid">
-            <div class="component-item" draggable="true" data-component="notice">
-              <div class="component-icon">📢</div>
-              <div class="component-name">公告</div>
-            </div>
-            <div class="component-item" draggable="true" data-component="tabs">
-              <div class="component-icon">📑</div>
-              <div class="component-name">标签页面</div>
-            </div>
-            <div class="component-item" draggable="true" data-component="content-list">
-              <div class="component-icon">📄</div>
-              <div class="component-name">内容列表</div>
-            </div>
-          </div>
+        <div id="componentLibraryContent" class="component-library-content">
+          <!-- 组件库根据当前选中的页面动态渲染 -->
         </div>
       </div>
     </div>
@@ -1269,11 +1272,13 @@
       {
         pageId: 'default-page-1',
         pageName: '首页',
+        pageType: 'home',
         components: []
       },
       {
         pageId: 'default-page-2',
         pageName: '我的',
+        pageType: 'my',
         components: []
       }
     ];
@@ -1313,6 +1318,60 @@
 
     let sidebarView = 'pages';
     let selectedTabBarItem = 0;
+
+    // 组件库配置：relatedPage 标识组件属于哪个页面（home=首页/分类等, my=我的）
+    const COMPONENT_CONFIG = [
+      { type: 'carousel', name: '轮播图', icon: '🖼️', relatedPage: 'home', section: '基础组件' },
+      { type: 'function-list', name: '功能列表', icon: '📋', relatedPage: 'home', section: '基础组件' },
+      { type: 'image', name: '图片', icon: '🖼️', relatedPage: 'home', section: '基础组件' },
+      { type: 'text', name: '文本', icon: '📝', relatedPage: 'home', section: '基础组件' },
+      { type: 'product-grid', name: '商品网格', icon: '🛍️', relatedPage: 'home', section: '商品组件' },
+      { type: 'product-list', name: '商品列表', icon: '📦', relatedPage: 'home', section: '商品组件' },
+      { type: 'notice', name: '公告', icon: '📢', relatedPage: 'home', section: '内容组件' },
+      { type: 'tabs', name: '标签页面', icon: '📑', relatedPage: 'home', section: '内容组件' },
+      { type: 'content-list', name: '内容列表', icon: '📄', relatedPage: 'home', section: '内容组件' },
+      { type: 'my-orders', name: '我的订单', icon: '📋', relatedPage: 'my', section: '我的页面' },
+      { type: 'member-benefits', name: '会员权益消耗明细', icon: '🎁', relatedPage: 'my', section: '我的页面' },
+      { type: 'user-agreement', name: '登录用户协议', icon: '📜', relatedPage: 'my', section: '我的页面' },
+      { type: 'newbie-guide', name: '新手引导', icon: '✨', relatedPage: 'my', section: '我的页面' },
+      { type: 'settings', name: '设置', icon: '⚙️', relatedPage: 'my', section: '我的页面' }
+    ];
+
+    function getCurrentPageType() {
+      if (!currentPage) return 'home';
+      return currentPage.pageType || (currentPage.pageName === '我的' ? 'my' : 'home');
+    }
+
+    function renderComponentLibrary() {
+      const pageType = getCurrentPageType();
+      const container = document.getElementById('componentLibraryContent');
+      if (!container) return;
+
+      const filtered = COMPONENT_CONFIG.filter(c => c.relatedPage === pageType);
+      const bySection = {};
+      filtered.forEach(c => {
+        if (!bySection[c.section]) bySection[c.section] = [];
+        bySection[c.section].push(c);
+      });
+
+      let html = '';
+      Object.keys(bySection).forEach(sectionName => {
+        html += `<div class="component-section"><h3>${sectionName}</h3><div class="component-grid">`;
+        bySection[sectionName].forEach(c => {
+          html += `<div class="component-item" draggable="true" data-component="${c.type}">
+            <div class="component-icon">${c.icon}</div>
+            <div class="component-name">${c.name}</div>
+          </div>`;
+        });
+        html += '</div></div>';
+      });
+      container.innerHTML = html || '<p class="component-library-empty">当前页面无可用组件</p>';
+
+      container.querySelectorAll('.component-item').forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+      });
+    }
 
     function getUrlParams() {
       const params = new URLSearchParams(window.location.search);
@@ -2002,6 +2061,7 @@
           }
         }
         renderPageTree();
+        renderComponentLibrary();
         addButton.style.display = 'block';
         addButton.onclick = addPage;
         renderProperties();
@@ -2129,7 +2189,12 @@
         '商品列表': '📦',
         '公告': '📢',
         '标签页面': '📑',
-        '内容列表': '📄'
+        '内容列表': '📄',
+        '我的订单': '📋',
+        '会员权益消耗明细': '🎁',
+        '登录用户协议': '📜',
+        '新手引导': '✨',
+        '设置': '⚙️'
       };
       return iconMap[componentName] || '📄';
     }
@@ -2208,6 +2273,7 @@
     function selectPage(page) {
       currentPage = page;
       renderPageTree();
+      renderComponentLibrary();
       renderPreview();
       renderProperties();
       renderTabBar();
@@ -2218,6 +2284,7 @@
       const newPage = {
         pageId: generateUUID(),
         pageName: '新页面 ' + (pages.length + 1),
+        pageType: 'home',
         components: []
       };
       pages.push(newPage);
@@ -2231,6 +2298,7 @@
         const newPage = {
           pageId: generateUUID(),
           pageName: page.pageName + ' (副本)',
+          pageType: page.pageType || 'home',
           components: JSON.parse(JSON.stringify(page.components))
         };
         pages.push(newPage);
@@ -2269,12 +2337,32 @@
         navbarBack.style.visibility = 'hidden';
       }
 
-      if (!currentPage || currentPage.components.length === 0) {
-        pageCanvas.innerHTML = `
-          <div class="component-placeholder">
-            拖拽组件到此处开始设计页面
+      const isMyPage = currentPage && (currentPage.pageType === 'my' || currentPage.pageName === '我的');
+
+      // 「我的」页面顶部固定用户信息栏：必须显示，不可拖拽、不可删除
+      if (isMyPage) {
+        const userBar = document.createElement('div');
+        userBar.className = 'my-page-user-bar';
+        const avatarUrl = globalConfig.myPageUserAvatar || '';
+        const avatarHtml = avatarUrl
+          ? `<img src="${avatarUrl}" alt="头像" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
+          : '👤';
+        userBar.innerHTML = `
+          <div class="user-avatar">${avatarHtml}</div>
+          <div class="user-info">
+            <div class="user-nickname">${(globalConfig.myPageUserNickname || '用户昵称').replace(/</g, '&lt;')}</div>
+            <div class="user-id">ID: ${(globalConfig.myPageUserId || '--').replace(/</g, '&lt;')}</div>
           </div>
         `;
+        pageCanvas.appendChild(userBar);
+      }
+
+      if (!currentPage || currentPage.components.length === 0) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'component-placeholder';
+        placeholder.textContent = '拖拽组件到此处开始设计页面';
+        pageCanvas.appendChild(placeholder);
+        renderTabBar();
         return;
       }
 
@@ -2381,6 +2469,16 @@
               `).join('') : '<div style="padding: 20px; text-align: center; color: #999;">暂无内容</div>'}
             </div>
           `;
+        case '我的订单':
+          return `<div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;"><div style="font-size: 14px; color: #333;">📋 ${component.properties.title || '我的订单'}</div><div style="font-size: 12px; color: #999; margin-top: 8px;">订单列表占位</div></div>`;
+        case '会员权益消耗明细':
+          return `<div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;"><div style="font-size: 14px; color: #333;">🎁 ${component.properties.title || '会员权益消耗明细'}</div></div>`;
+        case '登录用户协议':
+          return `<div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;"><div style="font-size: 14px; color: #333;">📜 ${component.properties.title || '登录用户协议'}</div></div>`;
+        case '新手引导':
+          return `<div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;"><div style="font-size: 14px; color: #333;">✨ ${component.properties.title || '新手引导'}</div></div>`;
+        case '设置':
+          return `<div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;"><div style="font-size: 14px; color: #333;">⚙️ ${component.properties.title || '设置'}</div><div style="font-size: 12px; color: #999; margin-top: 8px;">设置项占位</div></div>`;
         default:
           return `<div style="padding: 20px; text-align: center; color: #999;">${component.componentName}</div>`;
       }
@@ -3061,20 +3159,15 @@
           const data = JSON.parse(config);
           globalConfig = data.globalConfig || globalConfig;
           tabBarConfig = data.tabBarConfig || tabBarConfig;
-          pages = data.pages || [];
+          pages = (data.pages || []).map(p => ({
+            ...p,
+            pageType: p.pageType || (p.pageName === '我的' ? 'my' : 'home')
+          }));
 
           if (pages.length === 0) {
             pages = [
-              {
-                pageId: 'default-page-1',
-                pageName: '首页',
-                components: []
-              },
-              {
-                pageId: 'default-page-2',
-                pageName: '我的',
-                components: []
-              }
+              { pageId: 'default-page-1', pageName: '首页', pageType: 'home', components: [] },
+              { pageId: 'default-page-2', pageName: '我的', pageType: 'my', components: [] }
             ];
 
             if (!tabBarConfig || !Array.isArray(tabBarConfig.list)) {
@@ -3190,10 +3283,7 @@
       }
     }
 
-    document.querySelectorAll('.component-item').forEach(item => {
-      item.addEventListener('dragstart', handleDragStart);
-      item.addEventListener('dragend', handleDragEnd);
-    });
+    // 组件库为动态渲染，拖拽事件在 renderComponentLibrary() 中绑定
 
     const pageCanvas = document.getElementById('pageCanvas');
     pageCanvas.addEventListener('dragover', handleDragOver);
@@ -3242,7 +3332,12 @@
         'product-list': '商品列表',
         'notice': '公告',
         'tabs': '标签页面',
-        'content-list': '内容列表'
+        'content-list': '内容列表',
+        'my-orders': '我的订单',
+        'member-benefits': '会员权益消耗明细',
+        'user-agreement': '登录用户协议',
+        'newbie-guide': '新手引导',
+        'settings': '设置'
       };
       return names[type] || type;
     }
@@ -3257,7 +3352,12 @@
         'product-list': [],
         'notice': ['欢迎使用本小程序'],
         'tabs': ['标签1', '标签2', '标签3'],
-        'content-list': []
+        'content-list': [],
+        'my-orders': [],
+        'member-benefits': [],
+        'user-agreement': [],
+        'newbie-guide': [],
+        'settings': []
       };
       return defaults[type] || [];
     }
@@ -3307,7 +3407,12 @@
           enableTabs: false,
           tabThemeColor: '{主题色}',
           tabs: []
-        }
+        },
+        'my-orders': { title: '我的订单', showStatus: true },
+        'member-benefits': { title: '会员权益消耗明细' },
+        'user-agreement': { title: '登录用户协议', url: '' },
+        'newbie-guide': { title: '新手引导', steps: [] },
+        'settings': { title: '设置', items: [] }
       };
       return properties[type] || {};
     }
@@ -3334,6 +3439,7 @@
         addPage();
       }
       renderPageTree();
+      renderComponentLibrary();
       renderPreview();
       renderTabBar();
 
