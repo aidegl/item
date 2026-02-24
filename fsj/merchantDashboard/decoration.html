@@ -1288,6 +1288,10 @@
       themeColor: '#0557e1',
       /** 登录接口URL，用于 wx.login 的 code 换取 openId，后端需接收 {code} 返回 {openId} */
       loginApiUrl: '',
+      /** 手机号登录接口（一键登录、验证码登录共用），可复用 loginApiUrl */
+      phoneLoginApiUrl: '',
+      userAgreementUrl: '',
+      privacyPolicyUrl: '',
       navigationBar: {
         backgroundColor: '#ffffff',
         textColor: '#181818'
@@ -1524,6 +1528,18 @@
         <div class="property-group">
           <label>登录接口URL</label>
           <input type="text" value="${(globalConfig.loginApiUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('loginApiUrl', this.value)" placeholder="https://xxx.com/api/login，接收code返回openId">
+        </div>
+        <div class="property-group">
+          <label>手机号登录接口</label>
+          <input type="text" value="${(globalConfig.phoneLoginApiUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('phoneLoginApiUrl', this.value)" placeholder="用于一键登录/验证码登录，可同登录接口URL">
+        </div>
+        <div class="property-group">
+          <label>用户服务协议URL</label>
+          <input type="text" value="${(globalConfig.userAgreementUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('userAgreementUrl', this.value)" placeholder="https://xxx.com/agreement">
+        </div>
+        <div class="property-group">
+          <label>隐私政策URL</label>
+          <input type="text" value="${(globalConfig.privacyPolicyUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('privacyPolicyUrl', this.value)" placeholder="https://xxx.com/privacy">
         </div>
         <div class="property-group">
           <label>主题色</label>
