@@ -86,6 +86,7 @@ ${tabsHTML}
     return `.content-list {
   background: #fff;
   margin: 1px 0;
+  padding: 10px;
 }
 
 .content-tabs {
