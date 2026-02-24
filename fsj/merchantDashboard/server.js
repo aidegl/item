@@ -708,7 +708,10 @@ ${loadUserInfoMethod}${loadMethods}
 }
 
 function isMyPage(page) {
-  return page && (page.pageType === 'my' || page.pageName === '我的');
+  if (!page) return false;
+  if (page.pageType === 'my') return true;
+  const name = (page.pageName || '').trim();
+  return name === '我的' || name.includes('我的');
 }
 
 /** 生成「我的」页面顶部固定用户信息栏 WXML（必须显示，不可拖拽） */
@@ -1059,9 +1062,19 @@ app.post('/api/generate-miniprogram', async (req, res) => {
   try {
     console.log('收到生成请求:', new Date().toISOString());
     const config = req.body;
-    console.log('接收到的配置:', JSON.stringify(config, null, 2));
     console.log('tabBarConfig.list长度:', config.tabBarConfig?.list?.length || 0);
     console.log('pages长度:', config.pages?.length || 0);
+
+    // 规范化 pages：确保「我的」页有 pageType，便于生成用户信息栏
+    if (config.pages && Array.isArray(config.pages)) {
+      config.pages = config.pages.map(p => {
+        const pageType = p.pageType || (isMyPage({ pageName: p.pageName }) ? 'my' : 'home');
+        return { ...p, pageType };
+      });
+      config.pages.forEach(p => {
+        console.log('页面:', p.pageName, 'pageType:', p.pageType, '是否我的页:', isMyPage(p));
+      });
+    }
 
     const merchantId = config.merchantId || '';
     console.log('商家ID:', merchantId);
