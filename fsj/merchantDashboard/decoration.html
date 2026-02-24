@@ -1286,6 +1286,8 @@
     let globalConfig = {
       style: 'classic',
       themeColor: '#0557e1',
+      /** 登录接口URL，用于 wx.login 的 code 换取 openId，后端需接收 {code} 返回 {openId} */
+      loginApiUrl: '',
       navigationBar: {
         backgroundColor: '#ffffff',
         textColor: '#181818'
@@ -1519,6 +1521,10 @@
     function renderGlobalProperties() {
       const propertiesContent = document.getElementById('propertiesContent');
       propertiesContent.innerHTML = `
+        <div class="property-group">
+          <label>登录接口URL</label>
+          <input type="text" value="${(globalConfig.loginApiUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('loginApiUrl', this.value)" placeholder="https://xxx.com/api/login，接收code返回openId">
+        </div>
         <div class="property-group">
           <label>主题色</label>
           <div class="color-picker-wrapper">

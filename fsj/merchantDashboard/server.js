@@ -11,7 +11,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.2.4';
+const MINIPROGRAM_VERSION = '1.2.3';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -130,7 +130,7 @@ async function loadComponentData(page, merchantId, outputDir) {
   }
 }
 
-function generateAppJs(merchantId, outputDir) {
+function generateAppJs(merchantId, outputDir, config) {
   const sourceAppJsPath = path.join(__dirname, 'wxApp', 'app.js');
   let appJsContent = fs.readFileSync(sourceAppJsPath, 'utf-8');
 
@@ -141,9 +141,71 @@ function generateAppJs(merchantId, outputDir) {
     );
   }
 
+  const loginApiUrl = (config && config.globalConfig && config.globalConfig.loginApiUrl) || '';
+  const loginBlock = `
+  console.log('小程序版本: ${MINIPROGRAM_VERSION}');
+  const savedOpenId = wx.getStorageSync('openId');
+  if (savedOpenId) {
+    this.globalData.openId = savedOpenId;
+    console.log('从缓存恢复 openId:', savedOpenId);
+  } else {
+    this.doLogin();
+  }
+`;
+
+  const doLoginBlock = loginApiUrl ? `
+  doLogin() {
+    wx.login({
+      success: (res) => {
+        if (!res.code) {
+          console.warn('wx.login 未返回 code');
+          return;
+        }
+        console.log('wx.login code:', res.code);
+        wx.request({
+          url: '${loginApiUrl.replace(/'/g, "\\'")}',
+          method: 'POST',
+          data: { code: res.code },
+          header: { 'Content-Type': 'application/json' },
+          success: (reqRes) => {
+            console.log('登录接口返回:', reqRes.data);
+            const openId = (reqRes.data && reqRes.data.openId) || (reqRes.data && reqRes.data.data && reqRes.data.data.openId);
+            if (openId) {
+              this.globalData.openId = openId;
+              wx.setStorageSync('openId', openId);
+              console.log('登录成功, openId:', openId);
+            } else {
+              console.warn('登录接口未返回 openId, 完整结果:', JSON.stringify(reqRes.data));
+            }
+          },
+          fail: (err) => {
+            console.error('登录请求失败:', err);
+          }
+        });
+      },
+      fail: (err) => {
+        console.error('wx.login 失败:', err);
+      }
+    });
+  },
+` : `
+  doLogin() {
+    wx.login({
+      success: (res) => {
+        console.log('wx.login 结果, code:', res.code, '(需配置 globalConfig.loginApiUrl 将 code 换取 openId)');
+      }
+    });
+  },
+`;
+
   appJsContent = appJsContent.replace(
     /console\.log\('小程序启动'\);/g,
-    `console.log('小程序启动');\n  console.log('小程序版本: ${MINIPROGRAM_VERSION}');`
+    `console.log('小程序启动');${loginBlock}`
+  );
+
+  appJsContent = appJsContent.replace(
+    /onHide\(\) \{\s*console\.log\('小程序隐藏'\);\s*\}/s,
+    `onHide() {\n    console.log('小程序隐藏');\n  },${doLoginBlock}`
   );
 
   fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
@@ -448,16 +510,14 @@ function generatePageJS(page, merchantId) {
       const api = new MingDaoYunArrayAPI();
       const result = await api.getData({
         worksheetId: 'yonghu',
-        filters: [
-          { controlId: 'openId', dataType: 2, spliceType: 1, filterType: 2, value: openId }
-        ],
+        filters: [{ controlId: 'openId', dataType: 2, spliceType: 1, filterType: 2, value: openId }],
         pageSize: 1,
-        pageIndex:1
+        pageIndex: 1
       });
-      console.log('用户信息API返回结果:', JSON.stringify(result, null, 2));
       if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
         const row = result.data.rows[0];
-        console.log('用户数据:', JSON.stringify(row, null, 2));
+        console.log('用户信息(明道云yonghu表):', row);
+        const nickname = (row.nicheng || row.nickname || row['昵称'] || '用户昵称') + '';
         let avatar = '';
         try {
           const avatarField = row.touxiang || row.avatar || row['头像'];
@@ -469,9 +529,7 @@ function generatePageJS(page, merchantId) {
             }
           }
         } catch (e) {}
-        const nickname = (row.nicheng || row.nickname || row['昵称'] || '用户昵称') + '';
         const userId = (row.yonghuId || row.userId || row.rowid || '--') + '';
-        console.log('解析后的用户信息:', { avatar, nickname, userId });
         this.setData({
           userInfo: { avatar: avatar || '', nickname: nickname || '用户昵称', userId: userId || '--' }
         });
@@ -482,6 +540,23 @@ function generatePageJS(page, merchantId) {
       console.error('加载用户信息失败:', error);
       this.setData({ userInfo: { avatar: '', nickname: '用户昵称', userId: '--' } });
     }
+  },
+
+  onLogout() {
+    wx.showModal({
+      title: '提示',
+      content: '确定退出登录吗？',
+      success: (res) => {
+        if (res.confirm) {
+          const app = getApp();
+          app.globalData.openId = '';
+          wx.removeStorageSync('openId');
+          this.setData({ userInfo: { avatar: '', nickname: '用户昵称', userId: '--' } });
+          wx.showToast({ title: '已退出', icon: 'success' });
+          app.doLogin && app.doLogin();
+        }
+      }
+    });
   },
 ` : '';
 
@@ -706,25 +781,7 @@ ${components.filter(c => c.componentName === '内容列表' && c.properties && c
   onUnload() {
     console.log('页面卸载');
   },
-
-${myPage ? `  onLogout() {
-    const app = getApp();
-    wx.showModal({
-      title: '提示',
-      content: '确定要退出登录吗？',
-      success: function(res) {
-        if (res.confirm) {
-          app.logout();
-          wx.showToast({
-            title: '已退出登录',
-            icon: 'success',
-            duration: 2000
-          });
-        }
-      }
-    });
-  },
-` : ''}${loadUserInfoMethod}${loadMethods}
+${loadUserInfoMethod}${loadMethods}
 });`;
 }
 
@@ -753,9 +810,7 @@ function generateMyPageUserBarWXML(page, themeColor) {
     <text class="user-nickname">{{userInfo.nickname}}</text>
     <text class="user-id">ID: {{userInfo.userId}}</text>
   </view>
-  <view class="logout-btn" bindtap="onLogout">
-    <text>退出登录</text>
-  </view>
+  <button class="logout-btn" bindtap="onLogout">退出登录</button>
 </view>`;
 }
 
@@ -839,12 +894,13 @@ function generateMyPageUserBarWXSS() {
 }
 .my-page-user-bar .logout-btn {
   padding: 12rpx 24rpx;
-  background: rgba(255,255,255,0.2);
-  border-radius: 8rpx;
   font-size: 24rpx;
-}
-.my-page-user-bar .logout-btn text {
   color: #fff;
+  background: rgba(255,255,255,0.25);
+  border: 1rpx solid rgba(255,255,255,0.5);
+  border-radius: 8rpx;
+  margin-left: auto;
+  flex-shrink: 0;
 }`;
 }
 
@@ -1128,7 +1184,7 @@ app.post('/api/generate-miniprogram', async (req, res) => {
     await copyBaseFramework(uniqueDir);
 
     console.log('1.5. 生成app.js...');
-    generateAppJs(merchantId, uniqueDir);
+    generateAppJs(merchantId, uniqueDir, config);
 
     console.log('2. 生成页面代码...');
     for (const page of config.pages) {
