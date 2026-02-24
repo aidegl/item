@@ -204,8 +204,8 @@ function generateAppJs(merchantId, outputDir, config) {
   );
 
   appJsContent = appJsContent.replace(
-    /onHide\(\) \{\s*console\.log\('小程序隐藏'\);\s*\}/s,
-    `onHide() {\n    console.log('小程序隐藏');\n  },${doLoginBlock}`
+    /onHide\(\) \{\s*console\.log\('小程序隐藏'\);\s*\},\s*/s,
+    `onHide() {\n    console.log('小程序隐藏');\n  },\n${doLoginBlock}\n\n  `
   );
 
   fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
