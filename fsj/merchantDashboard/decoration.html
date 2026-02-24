@@ -2272,6 +2272,7 @@
 
     function selectPage(page) {
       currentPage = page;
+      selectedComponent = null; // 只选中页面，不选中组件，支持页面级参数设计
       renderPageTree();
       renderComponentLibrary();
       renderPreview();
@@ -2343,6 +2344,9 @@
       if (isMyPage) {
         const userBar = document.createElement('div');
         userBar.className = 'my-page-user-bar';
+        const barBg = currentPage.userInfoBarBackground ?? '{主题色}';
+        const barBgResolved = resolveThemeColor(barBg) || '#0557e1';
+        userBar.style.background = barBgResolved;
         const avatarUrl = globalConfig.myPageUserAvatar || '';
         const avatarHtml = avatarUrl
           ? `<img src="${avatarUrl}" alt="头像" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
@@ -2753,12 +2757,33 @@
       const propertiesContent = document.getElementById('propertiesContent');
 
       if (currentPage && !selectedComponent) {
-        propertiesContent.innerHTML = `
+        const isMyPage = currentPage.pageType === 'my' || currentPage.pageName === '我的';
+        let pagePropsHtml = `
           <div class="property-group">
             <label>页面名称</label>
-            <input type="text" value="${currentPage.pageName}" onchange="updatePageProperty('pageName', this.value)">
+            <input type="text" value="${(currentPage.pageName || '').replace(/"/g, '&quot;')}" onchange="updatePageProperty('pageName', this.value)">
           </div>
         `;
+        if (isMyPage) {
+          const barBg = currentPage.userInfoBarBackground ?? '{主题色}';
+          const barBgResolved = resolveThemeColor(barBg) || '#0557e1';
+          pagePropsHtml += `
+          <div class="property-group">
+            <label>用户信息栏背景色</label>
+            <div class="color-picker-wrapper">
+              <div class="color-picker-container">
+                <div class="color-picker-preview" data-color-key="page-userBarBg" style="background-color: ${barBgResolved}; width: 100%; height: 100%;"></div>
+                <input type="color" id="colorPicker-userBarBg" data-color-key="page-userBarBg" value="${barBgResolved}" oninput="updateMyPageUserBarBackground(this.value)" onchange="updateMyPageUserBarBackground(this.value)" class="color-picker-input-overlay">
+              </div>
+              <div class="color-input-row">
+                <input type="text" data-color-key="page-userBarBg" value="${(barBg || '').replace(/"/g, '&quot;')}" oninput="updateMyPageUserBarBackground(this.value)" onchange="updateMyPageUserBarBackground(this.value)" class="color-text-input" placeholder="#0557e1 或 {主题色}">
+                <button class="theme-token-btn" type="button" onclick="setThemeTokenForMyPageUserBar()">主题色</button>
+              </div>
+            </div>
+          </div>
+        `;
+        }
+        propertiesContent.innerHTML = pagePropsHtml;
         return;
       }
 
@@ -3079,6 +3104,19 @@
         renderPreview();
         saveConfig();
       }
+    }
+
+    function updateMyPageUserBarBackground(value) {
+      if (currentPage && (currentPage.pageType === 'my' || currentPage.pageName === '我的')) {
+        currentPage.userInfoBarBackground = value;
+        renderPreview();
+        renderProperties();
+        saveConfig();
+      }
+    }
+
+    function setThemeTokenForMyPageUserBar() {
+      updateMyPageUserBarBackground('{主题色}');
     }
 
     function updateComponentDataSourceType(value) {
