@@ -2522,23 +2522,28 @@
     }
 
     function selectTabBarItemFromPreview(index) {
-      console.log('[底部导航] 点击底部导航项, index:', index);
-      console.log('[底部导航] 切换到底部导航栏视图');
-      selectView('tabbar');
-
+      console.log('[底部导航] 点击预览区底部导航项, index:', index);
+      selectedTabBarItem = index;
       const tab = tabBarConfig.list[index];
       if (tab && tab.pageId) {
         const page = pages.find(p => p.pageId === tab.pageId);
         if (page) {
-          console.log('[底部导航] 找到关联页面:', page.pageName);
           currentPage = page;
-          console.log('[底部导航] currentPage 已更新为:', page.pageName);
+          selectedComponent = null;
+          console.log('[底部导航] 已切换为页面:', page.pageName);
         }
       }
-
-      console.log('[底部导航] 选中底部导航项');
-      selectTabBarItem(index);
-      console.log('[底部导航] 完成');
+      // 保持或切回「页面」视图，并同步页面树、组件库、预览，避免预览与左侧选中页不一致
+      if (sidebarView !== 'pages') {
+        selectView('pages');
+      } else {
+        renderPageTree();
+        renderComponentLibrary();
+        renderPreview();
+        renderProperties();
+      }
+      renderTabBar();
+      updateActionButtonsVisibility();
     }
 
     function handlePageCanvasClick() {
