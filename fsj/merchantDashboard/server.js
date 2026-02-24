@@ -240,18 +240,9 @@ function generateLoginPage(outputDir, config, themeColor) {
       <text class="divider-line"></text>
     </view>
 
-    <view class="form-verify">
-      <view class="input-row">
-        <input class="input-phone" type="number" placeholder="请输入手机号" maxlength="11" value="{{phone}}" bindinput="onPhoneInput" />
-      </view>
-      <view class="input-row row-code">
-        <input class="input-code" type="number" placeholder="请输入验证码" maxlength="6" value="{{code}}" bindinput="onCodeInput" />
-        <button class="btn-getcode {{countdown > 0 ? 'disabled' : ''}}" disabled="{{countdown > 0}}" bindtap="onGetCode">
-          {{countdown > 0 ? countdown + 's后重试' : '获取验证码'}}
-        </button>
-      </view>
-      <button class="btn-login" bindtap="onVerifyLogin" style="background-color: {{themeColor}};">验证码登录</button>
-    </view>
+    <button class="btn-verify" bindtap="onGoVerifyLogin" style="border-color: {{themeColor}}; color: {{themeColor}};">
+      手机验证码登录
+    </button>
   </view>
 
   <view class="login-footer">
@@ -267,9 +258,13 @@ function generateLoginPage(outputDir, config, themeColor) {
   padding: 60rpx 48rpx 80rpx;
   background: linear-gradient(180deg, #f8f9fc 0%, #fff 40%);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .login-header {
   margin-bottom: 80rpx;
+  text-align: center;
 }
 .login-title {
   display: block;
@@ -284,7 +279,13 @@ function generateLoginPage(outputDir, config, themeColor) {
   color: #666;
 }
 .login-methods {
-  margin-bottom: 100rpx;
+  width: 100%;
+  max-width: 560rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
 }
 .btn-onekey {
   width: 100%;
@@ -300,6 +301,7 @@ function generateLoginPage(outputDir, config, themeColor) {
 .divider {
   display: flex;
   align-items: center;
+  width: 100%;
   margin: 40rpx 0 32rpx;
 }
 .divider-line {
@@ -312,49 +314,16 @@ function generateLoginPage(outputDir, config, themeColor) {
   font-size: 26rpx;
   color: #999;
 }
-.form-verify .input-row {
-  margin-bottom: 24rpx;
-}
-.form-verify .input-row input {
-  width: 100%;
-  height: 88rpx;
-  padding: 0 24rpx;
-  font-size: 30rpx;
-  background: #f5f6f8;
-  border-radius: 12rpx;
-  box-sizing: border-box;
-}
-.row-code {
-  display: flex;
-  gap: 16rpx;
-}
-.row-code .input-code { flex: 1; }
-.btn-getcode {
-  width: 200rpx;
-  height: 88rpx;
-  line-height: 88rpx;
-  font-size: 26rpx;
-  color: #0557e1;
-  background: #e8f0fe;
-  border-radius: 12rpx;
-  flex-shrink: 0;
-}
-.btn-getcode.disabled {
-  color: #999;
-  background: #e5e5e5;
-}
-.btn-getcode::after { border: none; }
-.btn-login {
+.btn-verify {
   width: 100%;
   height: 96rpx;
   line-height: 96rpx;
   border-radius: 48rpx;
-  color: #fff;
   font-size: 32rpx;
-  border: none;
-  margin-top: 16rpx;
+  background: transparent;
+  border: 2rpx solid;
 }
-.btn-login::after { border: none; }
+.btn-verify::after { border: none; }
 .login-footer {
   position: fixed;
   bottom: 60rpx;
@@ -374,11 +343,11 @@ function generateLoginPage(outputDir, config, themeColor) {
     themeColor: '${tc}',
     userAgreementUrl: '${userAgreementUrl}',
     privacyPolicyUrl: '${privacyPolicyUrl}',
-    phone: '',
-    code: '',
-    countdown: 0,
-    loginApiUrl: '${loginApiUrl}',
     phoneLoginApiUrl: '${phoneLoginApiUrl.replace(/'/g, "\\'")}'
+  },
+
+  onGoVerifyLogin() {
+    wx.navigateTo({ url: '/pages/login-verify/index' });
   },
 
   onGetPhoneNumber(e) {
@@ -415,6 +384,127 @@ function generateLoginPage(outputDir, config, themeColor) {
         wx.showToast({ title: '网络错误', icon: 'none' });
       }
     });
+  },
+
+  onAgreementTap(e) {
+    const url = e.currentTarget.dataset.url;
+    if (url) wx.navigateTo({ url: '/pages/webview/index?url=' + encodeURIComponent(url) });
+    else wx.showToast({ title: '协议链接未配置', icon: 'none' });
+  }
+});`;
+
+  const json = `{
+  "navigationBarTitleText": "登录",
+  "usingComponents": {}
+}`;
+
+  fs.writeFileSync(path.join(loginDir, 'index.wxml'), wxml);
+  fs.writeFileSync(path.join(loginDir, 'index.wxss'), wxss);
+  fs.writeFileSync(path.join(loginDir, 'index.js'), js);
+  fs.writeFileSync(path.join(loginDir, 'index.json'), json);
+  console.log('生成登录页面');
+}
+
+/** 生成验证码登录页面（手机号、验证码输入） */
+function generateLoginVerifyPage(outputDir, config, themeColor) {
+  const loginVerifyDir = path.join(outputDir, 'pages', 'login-verify');
+  fs.mkdirSync(loginVerifyDir, { recursive: true });
+
+  const tc = (themeColor && themeColor !== '{主题色}') ? themeColor : '#0557e1';
+  const phoneLoginApiUrl = (config && config.globalConfig && config.globalConfig.phoneLoginApiUrl) || (config && config.globalConfig && config.globalConfig.loginApiUrl) || '';
+
+  const wxml = `<view class="verify-page">
+  <view class="verify-header">
+    <text class="verify-title">验证码登录</text>
+    <text class="verify-desc">请输入手机号并获取验证码</text>
+  </view>
+
+  <view class="verify-form">
+    <view class="input-row">
+      <input class="input-phone" type="number" placeholder="请输入手机号" maxlength="11" value="{{phone}}" bindinput="onPhoneInput" />
+    </view>
+    <view class="input-row row-code">
+      <input class="input-code" type="number" placeholder="请输入验证码" maxlength="6" value="{{code}}" bindinput="onCodeInput" />
+      <button class="btn-getcode {{countdown > 0 ? 'disabled' : ''}}" disabled="{{countdown > 0}}" bindtap="onGetCode">
+        {{countdown > 0 ? countdown + 's后重试' : '获取验证码'}}
+      </button>
+    </view>
+    <button class="btn-login" bindtap="onVerifyLogin" style="background-color: {{themeColor}};">登录</button>
+  </view>
+</view>`;
+
+  const wxss = `.verify-page {
+  min-height: 100vh;
+  padding: 60rpx 48rpx;
+  background: #fff;
+  box-sizing: border-box;
+}
+.verify-header {
+  margin-bottom: 64rpx;
+}
+.verify-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 12rpx;
+}
+.verify-desc {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+}
+.verify-form .input-row {
+  margin-bottom: 32rpx;
+}
+.verify-form .input-row input {
+  width: 100%;
+  height: 96rpx;
+  padding: 0 28rpx;
+  font-size: 30rpx;
+  background: #f5f6f8;
+  border-radius: 12rpx;
+  box-sizing: border-box;
+}
+.row-code {
+  display: flex;
+  gap: 20rpx;
+}
+.row-code .input-code { flex: 1; }
+.btn-getcode {
+  width: 200rpx;
+  height: 96rpx;
+  line-height: 96rpx;
+  font-size: 26rpx;
+  color: #0557e1;
+  background: #e8f0fe;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+}
+.btn-getcode.disabled {
+  color: #999;
+  background: #e5e5e5;
+}
+.btn-getcode::after { border: none; }
+.btn-login {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  border-radius: 48rpx;
+  color: #fff;
+  font-size: 32rpx;
+  border: none;
+  margin-top: 48rpx;
+}
+.btn-login::after { border: none; }`;
+
+  const js = `Page({
+  data: {
+    themeColor: '${tc}',
+    phone: '',
+    code: '',
+    countdown: 0,
+    phoneLoginApiUrl: '${phoneLoginApiUrl.replace(/'/g, "\\'")}'
   },
 
   onPhoneInput(e) { this.setData({ phone: e.detail.value }); },
@@ -483,7 +573,7 @@ function generateLoginPage(outputDir, config, themeColor) {
           app.globalData.openId = openId;
           wx.setStorageSync('openId', openId);
           wx.showToast({ title: '登录成功', icon: 'success' });
-          setTimeout(() => wx.navigateBack(), 500);
+          setTimeout(() => wx.navigateBack({ delta: 2 }), 500);
         } else {
           wx.showToast({ title: (res.data && res.data.msg) || '验证码错误', icon: 'none' });
         }
@@ -493,25 +583,19 @@ function generateLoginPage(outputDir, config, themeColor) {
         wx.showToast({ title: '网络错误', icon: 'none' });
       }
     });
-  },
-
-  onAgreementTap(e) {
-    const url = e.currentTarget.dataset.url;
-    if (url) wx.navigateTo({ url: '/pages/webview/index?url=' + encodeURIComponent(url) });
-    else wx.showToast({ title: '协议链接未配置', icon: 'none' });
   }
 });`;
 
   const json = `{
-  "navigationBarTitleText": "登录",
+  "navigationBarTitleText": "验证码登录",
   "usingComponents": {}
 }`;
 
-  fs.writeFileSync(path.join(loginDir, 'index.wxml'), wxml);
-  fs.writeFileSync(path.join(loginDir, 'index.wxss'), wxss);
-  fs.writeFileSync(path.join(loginDir, 'index.js'), js);
-  fs.writeFileSync(path.join(loginDir, 'index.json'), json);
-  console.log('生成登录页面');
+  fs.writeFileSync(path.join(loginVerifyDir, 'index.wxml'), wxml);
+  fs.writeFileSync(path.join(loginVerifyDir, 'index.wxss'), wxss);
+  fs.writeFileSync(path.join(loginVerifyDir, 'index.js'), js);
+  fs.writeFileSync(path.join(loginVerifyDir, 'index.json'), json);
+  console.log('生成验证码登录页面');
 }
 
 /** 生成 webview 页面（用于展示协议等外链） */
@@ -1408,6 +1492,7 @@ async function generateAppJson(config, outputDir) {
     pages: [
       ...config.pages.map(p => `pages/${p.pageId}/index`),
       'pages/login/index',
+      'pages/login-verify/index',
       'pages/webview/index'
     ],
     window: {
@@ -1535,8 +1620,9 @@ app.post('/api/generate-miniprogram', async (req, res) => {
       await generatePage(page, uniqueDir, merchantId, themeColor);
     }
 
-    console.log('2.3. 生成登录页与webview页...');
+    console.log('2.3. 生成登录页、验证码登录页与webview页...');
     generateLoginPage(uniqueDir, config, themeColor);
+    generateLoginVerifyPage(uniqueDir, config, themeColor);
     generateWebviewPage(uniqueDir);
 
     console.log('2.5. 下载tabBar图标...');
