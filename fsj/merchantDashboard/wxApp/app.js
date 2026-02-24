@@ -15,6 +15,8 @@ App({
   globalData: {
     userInfo: null,
     merchantId: '{商家ID}',
-    mRowid: ''
+    mRowid: '',
+    /** 微信登录后获得的 OpenID，用于「我的」页用户信息栏从明道云 yonghu 表拉取头像、昵称等 */
+    openId: ''
   }
 });
