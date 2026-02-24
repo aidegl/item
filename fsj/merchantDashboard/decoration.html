@@ -3230,15 +3230,21 @@
     }
 
     async function publishCode() {
+      // 发布前确保每个页面有 pageType，便于服务端生成「我的」页用户信息栏
+      const pagesToSend = pages.map(p => ({
+        ...p,
+        pageType: p.pageType || (p.pageName === '我的' ? 'my' : 'home')
+      }));
       const config = {
         merchantId: window.merchantId || localStorage.getItem('merchantId') || '',
         globalConfig: globalConfig,
         tabBarConfig: tabBarConfig,
-        pages: pages,
+        pages: pagesToSend,
         userImages: window.userImages || []
       };
 
       console.log('[decoration.html] 发布代码:', config);
+      console.log('[decoration.html] 我的页面 pageType:', pagesToSend.filter(p => p.pageName === '我的').map(p => p.pageType));
       console.log('[decoration.html] 当前商家ID:', config.merchantId);
       console.log('[decoration.html] 用户图片数量:', config.userImages.length);
 
