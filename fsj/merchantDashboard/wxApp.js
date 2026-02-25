@@ -134,14 +134,18 @@ app.get('/', (req, res) => res.send('沈仙子后端服务运行中（已对接M
 // 手机号一键登录接口（需同时传 loginCode 获取 openId + code 获取手机号）
 // 小程序需先 wx.login 获取 loginCode，getPhoneNumber 返回 code，二者一起发送
 app.post('/api/core/api/phone-login', async (req, res) => {
-    const { code, loginCode, encryptedData, iv, sessionKey, merchant_id, merchantId } = req.body;
+    const body = req.body || {};
+    const { code, encryptedData, iv, sessionKey, merchant_id, merchantId } = body;
+    const loginCode = body.loginCode || body.login_code;
     const mchId = merchant_id || merchantId;
+
+    console.log('[phone-login] 收到参数:', JSON.stringify({ hasCode: !!code, hasLoginCode: !!loginCode, hasSessionKey: !!sessionKey, mchId }));
 
     if (!loginCode && !sessionKey) {
         return res.json({
             success: false,
             openId: '',
-            message: '缺少 loginCode（请先调用 wx.login），或缺少 sessionKey'
+            message: '缺少 loginCode（请先调用 wx.login 获取并传入 loginCode）'
         });
     }
 
