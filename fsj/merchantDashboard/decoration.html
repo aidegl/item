@@ -1286,8 +1286,12 @@
     let globalConfig = {
       style: 'classic',
       themeColor: '#0557e1',
-      /** 登录接口URL，用于 wx.login 的 code 换取 openId，后端需接收 {code} 返回 {openId} */
+      /** 登录接口URL，用于 wx.login 的 code 换取 openId。留空且配置了小程序密钥则使用本服务内置接口 */
       loginApiUrl: '',
+      /** 小程序 AppID（配置后使用本服务换取 openId） */
+      wechatAppId: '',
+      /** 小程序 AppSecret（配置后使用本服务换取 openId，请妥善保管） */
+      wechatAppSecret: '',
       /** 手机号登录接口（一键登录、验证码登录共用），可复用 loginApiUrl */
       phoneLoginApiUrl: '',
       userAgreementUrl: '',
@@ -1527,7 +1531,15 @@
       propertiesContent.innerHTML = `
         <div class="property-group">
           <label>登录接口URL</label>
-          <input type="text" value="${(globalConfig.loginApiUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('loginApiUrl', this.value)" placeholder="https://xxx.com/api/login，接收code返回openId">
+          <input type="text" value="${(globalConfig.loginApiUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('loginApiUrl', this.value)" placeholder="留空则使用本服务（需配置下方AppID/AppSecret）">
+        </div>
+        <div class="property-group">
+          <label>小程序 AppID</label>
+          <input type="text" value="${(globalConfig.wechatAppId || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('wechatAppId', this.value)" placeholder="wx开头的AppID">
+        </div>
+        <div class="property-group">
+          <label>小程序 AppSecret</label>
+          <input type="password" value="${(globalConfig.wechatAppSecret || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('wechatAppSecret', this.value)" placeholder="小程序密钥（请妥善保管）">
         </div>
         <div class="property-group">
           <label>手机号登录接口</label>
@@ -1681,14 +1693,10 @@
     }
 
     function updateGlobalProperty(key, value) {
-      const colorKeys = ['themeColor', 'navigationBar.backgroundColor', 'navigationBar.textColor'];
-      const isColorKey = colorKeys.includes(key);
-      if (isColorKey) {
-        const isThemeToken = value === '{主题色}';
-        if (!isThemeToken && !isValidColor(value)) {
-          console.warn('无效的颜色值:', value);
-          return;
-        }
+      const isThemeToken = value === '{主题色}';
+      if (!isThemeToken && !isValidColor(value)) {
+        console.warn('无效的颜色值:', value);
+        return;
       }
 
       if (key.includes('.')) {
@@ -1699,10 +1707,6 @@
         globalConfig[parent][child] = value;
       } else {
         globalConfig[key] = value;
-        if (key === 'loginApiUrl' && value && !globalConfig.phoneLoginApiUrl) {
-          globalConfig.phoneLoginApiUrl = value;
-          if (typeof renderGlobalProperties === 'function') renderGlobalProperties();
-        }
       }
       saveConfig();
 

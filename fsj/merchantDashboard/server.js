@@ -21,8 +21,70 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const TEMP_DIR = path.join(__dirname, 'temp');
 const OUTPUT_DIR = path.join(__dirname, 'output');
+const WECHAT_CREDENTIALS_FILE = path.join(__dirname, 'wechat-credentials.json');
 const MAX_ZIP_FILES = 10;
 const ZIP_EXPIRE_HOURS = 24;
+
+/** 根据 merchantId 获取商家小程序配置（appId、appSecret）*/
+async function getMerchantWechatConfig(merchantId) {
+  if (!merchantId) return null;
+
+  const appKey = process.env.MINGDAO_APP_KEY;
+  const sign = process.env.MINGDAO_SIGN;
+  const worksheetId = process.env.MINGDAO_MERCHANT_WORKSHEET_ID || 'shangjia';
+  const merchantIdField = process.env.MINGDAO_MERCHANT_ID_FIELD || 'mRowid';
+  const appIdField = process.env.MINGDAO_APPID_FIELD || 'appId';
+  const appSecretField = process.env.MINGDAO_APPSECRET_FIELD || 'appSecret';
+
+  if (appKey && sign) {
+    try {
+      const { mingdaoGetFilterRows } = require('./utils/mingdaoServer');
+      const result = await mingdaoGetFilterRows({
+        appKey,
+        sign,
+        worksheetId,
+        filters: [{ controlId: merchantIdField, dataType: 2, spliceType: 1, filterType: 2, value: merchantId }],
+        pageSize: 1,
+        pageIndex: 1
+      });
+      if (result.success && result.data && result.data.rows && result.data.rows.length > 0) {
+        const row = result.data.rows[0];
+        const appId = row[appIdField] || row.appId || row.appid;
+        const appSecret = row[appSecretField] || row.appSecret || row.appsecret;
+        if (appId && appSecret) return { appId: String(appId).trim(), appSecret: String(appSecret).trim() };
+      }
+    } catch (e) {
+      console.error('从明道云读取商家配置失败:', e);
+    }
+  }
+
+  try {
+    if (!fs.existsSync(WECHAT_CREDENTIALS_FILE)) return null;
+    const raw = fs.readFileSync(WECHAT_CREDENTIALS_FILE, 'utf-8');
+    const data = JSON.parse(raw);
+    return data[merchantId] && data[merchantId].appId && data[merchantId].appSecret ? data[merchantId] : null;
+  } catch (e) {
+    console.error('读取本地商家配置失败:', e);
+    return null;
+  }
+}
+
+/** 保存商家小程序配置 */
+function saveMerchantWechatConfig(merchantId, appId, appSecret) {
+  if (!merchantId || !appId || !appSecret) return false;
+  try {
+    let data = {};
+    if (fs.existsSync(WECHAT_CREDENTIALS_FILE)) {
+      data = JSON.parse(fs.readFileSync(WECHAT_CREDENTIALS_FILE, 'utf-8'));
+    }
+    data[merchantId] = { appId, appSecret };
+    fs.writeFileSync(WECHAT_CREDENTIALS_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    return true;
+  } catch (e) {
+    console.error('保存商家配置失败:', e);
+    return false;
+  }
+}
 
 [TEMP_DIR, OUTPUT_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) {
@@ -141,7 +203,13 @@ function generateAppJs(merchantId, outputDir, config) {
     );
   }
 
-  const loginApiUrl = (config && config.globalConfig && config.globalConfig.loginApiUrl) || '';
+  const gc = config && config.globalConfig || {};
+  let loginApiUrl = gc.loginApiUrl || '';
+  if (!loginApiUrl && gc.wechatAppId && gc.wechatAppSecret) {
+    const base = process.env.SERVER_PUBLIC_URL || '';
+    loginApiUrl = base ? (base.replace(/\/$/, '') + '/api/wechat/login') : '';
+  }
+  const phoneLoginApiUrl = gc.phoneLoginApiUrl || loginApiUrl || '';
   const loginBlock = `
   console.log('小程序版本: ${MINIPROGRAM_VERSION}');
   const savedOpenId = wx.getStorageSync('openId');
@@ -165,7 +233,7 @@ function generateAppJs(merchantId, outputDir, config) {
         wx.request({
           url: '${loginApiUrl.replace(/'/g, "\\'")}',
           method: 'POST',
-          data: { code: res.code },
+          data: { code: res.code, merchantId: this.globalData.merchantId || '' },
           header: { 'Content-Type': 'application/json' },
           success: (reqRes) => {
             console.log('登录接口返回:', reqRes.data);
@@ -208,10 +276,12 @@ function generateAppJs(merchantId, outputDir, config) {
     `onHide() {\n    console.log('小程序隐藏');\n  },\n${doLoginBlock}\n\n  `
   );
 
-  const phoneLoginApiUrl = (config && config.globalConfig && config.globalConfig.phoneLoginApiUrl) || loginApiUrl;
   appJsContent = appJsContent.replace(
-    /loginApiUrl: '',\s*\n\s*phoneLoginApiUrl: ''/,
-    `loginApiUrl: '${loginApiUrl.replace(/'/g, "\\'")}',\n    phoneLoginApiUrl: '${phoneLoginApiUrl.replace(/'/g, "\\'")}'`
+    /openId: ''\s*\}/s,
+    `openId: '',
+    loginApiUrl: '${loginApiUrl.replace(/'/g, "\\'")}',
+    phoneLoginApiUrl: '${phoneLoginApiUrl.replace(/'/g, "\\'")}'
+  }`
   );
 
   fs.writeFileSync(path.join(outputDir, 'app.js'), appJsContent);
@@ -365,14 +435,14 @@ function generateLoginPage(outputDir, config, themeColor) {
     const app = getApp();
     const url = this.data.phoneLoginApiUrl || (app.globalData && app.globalData.phoneLoginApiUrl) || (app.globalData && app.globalData.loginApiUrl) || '';
     if (!url) {
-      wx.showToast({ title: '请在后台配置「登录接口URL」或「手机号登录接口」', icon: 'none' });
+      wx.showToast({ title: '请在商家后台「全局设置」中配置「登录接口URL」或「手机号登录接口」', icon: 'none', duration: 2500 });
       return;
     }
     wx.showLoading({ title: '登录中...' });
     wx.request({
       url: url,
       method: 'POST',
-      data: { code: code || '', encryptedData: encryptedData || '', iv: iv || '' },
+      data: { code: code || '', encryptedData: encryptedData || '', iv: iv || '', merchantId: app.globalData.merchantId || '' },
       header: { 'Content-Type': 'application/json' },
       success: (res) => {
         wx.hideLoading();
@@ -527,13 +597,13 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
     const app = getApp();
     const baseUrl = this.data.phoneLoginApiUrl || (app.globalData && app.globalData.phoneLoginApiUrl) || (app.globalData && app.globalData.loginApiUrl) || '';
     if (!baseUrl) {
-      wx.showToast({ title: '请在后台配置「登录接口URL」或「手机号登录接口」', icon: 'none' });
+      wx.showToast({ title: '请在商家后台「全局设置」中配置登录接口', icon: 'none' });
       return;
     }
     wx.request({
       url: baseUrl + '/sendCode',
       method: 'POST',
-      data: { phone },
+      data: { phone, merchantId: app.globalData.merchantId || '' },
       header: { 'Content-Type': 'application/json' },
       success: (res) => {
         if (res.data && (res.data.success || res.data.code === 0)) {
@@ -568,14 +638,14 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
     const app = getApp();
     const baseUrl = this.data.phoneLoginApiUrl || (app.globalData && app.globalData.phoneLoginApiUrl) || (app.globalData && app.globalData.loginApiUrl) || '';
     if (!baseUrl) {
-      wx.showToast({ title: '请在后台配置「登录接口URL」或「手机号登录接口」', icon: 'none' });
+      wx.showToast({ title: '请在商家后台「全局设置」中配置登录接口', icon: 'none' });
       return;
     }
     wx.showLoading({ title: '登录中...' });
     wx.request({
       url: baseUrl + '/verify',
       method: 'POST',
-      data: { phone, code },
+      data: { phone, code, merchantId: app.globalData.merchantId || '' },
       header: { 'Content-Type': 'application/json' },
       success: (res) => {
         wx.hideLoading();
@@ -1617,6 +1687,12 @@ app.post('/api/generate-miniprogram', async (req, res) => {
     const themeColor = config.globalConfig?.themeColor || '#0557e1';
     console.log('商家ID:', merchantId);
 
+    const gc = config.globalConfig || {};
+    if (merchantId && gc.wechatAppId && gc.wechatAppSecret) {
+      saveMerchantWechatConfig(merchantId, gc.wechatAppId, gc.wechatAppSecret);
+      console.log('已保存商家微信配置');
+    }
+
     const timestamp = Date.now();
     const uniqueDir = path.join(OUTPUT_DIR, `miniprogram_${timestamp}`);
     fs.mkdirSync(uniqueDir, { recursive: true });
@@ -1692,6 +1768,69 @@ app.get('/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
+  });
+});
+
+/** 保存商家小程序配置（AppID、AppSecret） */
+app.post('/api/merchant/wechat-config', (req, res) => {
+  try {
+    const { merchantId, appId, appSecret } = req.body || {};
+    if (!merchantId || !appId || !appSecret) {
+      return res.status(400).json({ success: false, message: '缺少 merchantId、appId 或 appSecret' });
+    }
+    if (saveMerchantWechatConfig(merchantId, appId.trim(), appSecret.trim())) {
+      res.json({ success: true, message: '配置已保存' });
+    } else {
+      res.status(500).json({ success: false, message: '保存失败' });
+    }
+  } catch (e) {
+    console.error('/api/merchant/wechat-config 错误:', e);
+    res.status(500).json({ success: false, message: '服务器错误' });
+  }
+});
+
+/** 微信 code 换取 openId（jscode2session） */
+app.post('/api/wechat/login', async (req, res) => {
+  const { code, merchantId } = req.body || {};
+  if (!code) {
+    return res.status(400).json({ success: false, message: '缺少 code' });
+  }
+  if (!merchantId) {
+    return res.status(400).json({ success: false, message: '缺少 merchantId' });
+  }
+  const cfg = await getMerchantWechatConfig(merchantId);
+  if (!cfg) {
+    return res.status(400).json({
+      success: false,
+      message: '未找到该商家的微信配置，请在商家后台配置 AppID 和 AppSecret'
+    });
+  }
+  const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${encodeURIComponent(cfg.appId)}&secret=${encodeURIComponent(cfg.appSecret)}&js_code=${encodeURIComponent(code)}&grant_type=authorization_code`;
+  https.get(url, (wxRes) => {
+    let body = '';
+    wxRes.on('data', chunk => { body += chunk; });
+    wxRes.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        if (data.errcode) {
+          return res.json({
+            success: false,
+            message: data.errmsg || '微信接口错误',
+            errcode: data.errcode
+          });
+        }
+        res.json({
+          success: true,
+          openId: data.openid,
+          sessionKey: data.session_key
+        });
+      } catch (e) {
+        res.status(500).json({ success: false, message: '解析微信返回失败' });
+      }
+    });
+  }).on('error', err => {
+    console.error('请求微信接口失败:', err);
+    res.status(500).json({ success: false, message: '网络错误' });
   });
 });
 
