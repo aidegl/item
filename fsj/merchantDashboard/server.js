@@ -5,6 +5,7 @@ const fs = require('fs');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const https = require('https');
+const http = require('http');
 const Jimp = require('jimp');
 const { registerComponent, getComponent } = require('./components/componentRegistry');
 
@@ -1807,6 +1808,36 @@ app.post('/api/merchant/wechat-config', (req, res) => {
     res.status(500).json({ success: false, message: '服务器错误' });
   }
 });
+
+/** 转发到 wxApp 登录服务（当 api.100000whys.cn 指向本服务时，小程序请求 /api/core/ 需由此转发） */
+const WXAPP_URL = process.env.WXAPP_SERVICE_URL || 'http://127.0.0.1:3000';
+function proxyToWxApp(path, req, res) {
+  const body = JSON.stringify(req.body || {});
+  const url = new URL(path, WXAPP_URL);
+  const client = url.protocol === 'https:' ? https : http;
+  const options = {
+    hostname: url.hostname,
+    port: url.port || (url.protocol === 'https:' ? 443 : 80),
+    path: url.pathname,
+    method: req.method,
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body, 'utf8') }
+  };
+  const proxyReq = client.request(options, (proxyRes) => {
+    let data = '';
+    proxyRes.on('data', chunk => { data += chunk; });
+    proxyRes.on('end', () => {
+      res.status(proxyRes.statusCode || 200).send(data || '');
+    });
+  });
+  proxyReq.on('error', (err) => {
+    console.error('[proxy] 转发到 wxApp 失败:', err.message);
+    res.status(502).json({ success: false, message: '登录服务暂不可用，请检查 wxApp 进程是否运行' });
+  });
+  proxyReq.write(body);
+  proxyReq.end();
+}
+app.post('/api/core/api/login', (req, res) => proxyToWxApp('/api/core/api/login', req, res));
+app.post('/api/core/api/phone-login', (req, res) => proxyToWxApp('/api/core/api/phone-login', req, res));
 
 /** 微信 code 换取 openId（jscode2session） */
 app.post('/api/wechat/login', async (req, res) => {
