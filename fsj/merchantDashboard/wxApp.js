@@ -32,15 +32,23 @@ const MYSQL_CONFIG = {
 };
 const pool = mysql.createPool(MYSQL_CONFIG);
 
-// 读取商家配置函数
+// 读取商家配置函数（可通过环境变量 WX_APPID、WX_SECRET 覆盖，用于多小程序或测试）
 async function getMerchantConfig(merchantId) {
+    if (process.env.WX_APPID && process.env.WX_SECRET) {
+        console.log('[getMerchantConfig] 使用环境变量 appid:', process.env.WX_APPID);
+        return { ...DEFAULT_CONFIG, appid: process.env.WX_APPID, secret: process.env.WX_SECRET };
+    }
     try {
         const [rows] = await pool.execute(
             'SELECT appid, secret, mchid, apiv3Key, publicKey, privateKey FROM merchant_wx_config WHERE merchant_id = ?',
             [merchantId]
         );
-        if (rows.length === 0) return DEFAULT_CONFIG;
+        if (rows.length === 0) {
+            console.log('[getMerchantConfig] MySQL 未找到 merchant_id:', merchantId, '使用默认配置');
+            return DEFAULT_CONFIG;
+        }
         const config = rows[0];
+        console.log('[getMerchantConfig] 从 MySQL 读取到配置 merchant_id:', merchantId, 'appid:', config.appid, 'secret:', config.secret ? config.secret.substring(0, 4) + '****' : '');
         return {
             appid: config.appid || DEFAULT_CONFIG.appid,
             secret: config.secret || DEFAULT_CONFIG.secret,
@@ -55,9 +63,10 @@ async function getMerchantConfig(merchantId) {
     }
 }
 
-// 微信登录接口（修复核心问题：判断微信错误+统一返回格式+打印日志）
-app.post('/api/core/api/login', async (req, res) => {
-    const { code, merchant_id } = req.body;
+// 微信登录接口（支持 /api/core/api/login 和 /api/login 两种路径）
+const handleLogin = async (req, res) => {
+    const body = req.body || {};
+    const { code, merchant_id, merchantId, appId, appSecret } = body;
     // 1. 校验前端传参（新增）
     if (!code) {
         return res.json({
@@ -67,9 +76,12 @@ app.post('/api/core/api/login', async (req, res) => {
         });
     }
     try {
-        const config = merchant_id ? await getMerchantConfig(merchant_id) : DEFAULT_CONFIG;
+        // 优先使用 server 转发时注入的 appId/appSecret（来自明道云或 wechat-credentials.json）
+        const config = (appId && appSecret)
+            ? (console.log('[login] 使用 server 注入的 appId:', appId), { appid: appId, secret: appSecret })
+            : (merchant_id || merchantId) ? await getMerchantConfig(merchant_id || merchantId) : DEFAULT_CONFIG;
         const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${config.appid}&secret=${config.secret}&js_code=${code}&grant_type=authorization_code`;
-        console.log('调用微信code2session接口:', { url, merchant_id }); // 新增日志
+        console.log('[login] 使用 appid:', config.appid, 'merchantId:', merchant_id || merchantId);
         const response = await axios.get(url);
         console.log('微信code2session返回:', response.data); // 新增日志
 
@@ -83,11 +95,9 @@ app.post('/api/core/api/login', async (req, res) => {
         }
 
         // 3. 正常返回（确保有openid字段）
-        res.json({
-            success: true,
-            openid: response.data.openid || '',
-            session_key: response.data.session_key || '' // 可选：返回session_key
-        });
+        const result = { success: true, openid: response.data.openid || '', session_key: response.data.session_key || '' };
+        console.log('[login] 成功返回 openId:', result.openid ? result.openid.substring(0, 8) + '...' : '');
+        res.json(result);
     } catch (e) {
         console.error('登录接口异常:', e.message, e.response?.data); // 新增错误日志
         // 4. 异常时统一返回格式（核心修复）
@@ -126,51 +136,110 @@ app.post('/api/pay', async (req, res) => {
         console.error('支付接口报错:', e);
         res.status(500).json({ success: false, message: '支付服务异常', error: e.message });
     }
-});
+};
+app.post('/api/core/api/login', handleLogin);
+app.post('/api/login', handleLogin);
 
 // 健康检查接口
 app.get('/', (req, res) => res.send('沈仙子后端服务运行中（已对接MySQL）...'));
 
-// 手机号一键登录接口
-app.post('/api/core/api/phone-login', async (req, res) => {
-    const { encryptedData, iv, sessionKey, merchant_id } = req.body;
+// 手机号一键登录接口（支持 /api/core/api/phone-login 和 /api/phone-login 两种路径）
+const handlePhoneLogin = async (req, res) => {
+    const body = req.body || {};
+    const { code, encryptedData, iv, sessionKey, merchant_id, merchantId, appId, appSecret } = body;
+    const loginCode = body.loginCode || body.login_code;
+    const mchId = merchant_id || merchantId;
 
-    if (!encryptedData || !iv || !sessionKey) {
+    console.log('[phone-login] 收到参数:', JSON.stringify({ hasCode: !!code, hasLoginCode: !!loginCode, hasSessionKey: !!sessionKey, mchId }));
+
+    if (!loginCode && !sessionKey) {
         return res.json({
             success: false,
-            message: '缺少必要参数'
+            openId: '',
+            message: '缺少 loginCode（请先调用 wx.login 获取并传入 loginCode）'
         });
     }
 
     try {
-        const config = merchant_id ? await getMerchantConfig(merchant_id) : DEFAULT_CONFIG;
-        const WXBizDataCrypt = require('./wxApp/utils/WXBizDataCrypt');
-        const pc = new WXBizDataCrypt(config.appid, sessionKey);
-        const data = pc.decryptData(encryptedData, iv);
+        // 优先使用 server 转发时注入的 appId/appSecret（来自明道云或 wechat-credentials.json），否则从 MySQL merchant_wx_config 读取
+        const config = (appId && appSecret)
+            ? (console.log('[phone-login] 使用 server 注入的 appId:', appId), { appid: appId, secret: appSecret })
+            : mchId ? await getMerchantConfig(mchId) : DEFAULT_CONFIG;
+        console.log('[phone-login] 使用 appid:', config.appid, 'merchantId:', mchId);
 
-        console.log('解密手机号成功:', data);
+        // 1. 用 loginCode 换取 openId（必须，用于「我的」页等）
+        let openId = '';
+        let session_key = '';
+        if (loginCode) {
+            const jsUrl = `https://api.weixin.qq.com/sns/jscode2session?appid=${config.appid}&secret=${config.secret}&js_code=${loginCode}&grant_type=authorization_code`;
+            const jsRes = await axios.get(jsUrl);
+            if (jsRes.data.errcode) {
+                return res.json({
+                    success: false,
+                    openId: '',
+                    message: `微信登录失败: ${jsRes.data.errmsg}`
+                });
+            }
+            openId = jsRes.data.openid || '';
+            session_key = jsRes.data.session_key || '';
+        }
 
-        if (data.phoneNumber) {
+        // 2. 若有 getPhoneNumber 的 code（新接口），可换取手机号（可选）
+        if (code && openId) {
+            try {
+                const tokenUrl = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.secret}`;
+                const tokenRes = await axios.get(tokenUrl);
+                const access_token = tokenRes.data?.access_token;
+                if (access_token) {
+                    const phoneRes = await axios.post(
+                        `https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=${access_token}`,
+                        { code }
+                    );
+                    if (phoneRes.data?.phone_info?.phoneNumber) {
+                        console.log('获取手机号成功:', phoneRes.data.phone_info.phoneNumber);
+                    }
+                }
+            } catch (phoneErr) {
+                console.warn('获取手机号失败（不影响openId返回）:', phoneErr.message);
+            }
+        }
+
+        // 3. 兼容旧接口：encryptedData + iv + sessionKey 解密手机号（可选，不影响 openId 返回）
+        if (encryptedData && iv && (sessionKey || session_key)) {
+            try {
+                const WXBizDataCrypt = require('./utils/WXBizDataCrypt');
+                const pc = new WXBizDataCrypt(config.appid, sessionKey || session_key);
+                const data = pc.decryptData(encryptedData, iv);
+                if (data.phoneNumber) console.log('解密手机号成功:', data.phoneNumber);
+            } catch (decErr) {
+                console.warn('解密手机号失败:', decErr.message);
+            }
+        }
+
+        if (openId) {
+            console.log('[phone-login] 成功返回 openId:', openId.substring(0, 8) + '...', 'merchantId:', mchId);
             return res.json({
                 success: true,
-                phoneNumber: data.phoneNumber,
-                countryCode: data.countryCode,
-                message: '获取手机号成功'
-            });
-        } else {
-            return res.json({
-                success: false,
-                message: '未获取到手机号'
+                openId,
+                message: '登录成功'
             });
         }
+        return res.json({
+            success: false,
+            openId: '',
+            message: '未能获取 openId'
+        });
     } catch (e) {
-        console.error('解密手机号失败:', e.message);
+        console.error('手机号一键登录异常:', e.message);
         res.json({
             success: false,
-            message: '解密失败: ' + e.message
+            openId: '',
+            message: '登录失败: ' + e.message
         });
     }
-});
+};
+app.post('/api/core/api/phone-login', handlePhoneLogin);
+app.post('/api/phone-login', handlePhoneLogin);
 
 // 绑定所有地址启动服务
 app.listen(3000, '0.0.0.0', (err) => {
