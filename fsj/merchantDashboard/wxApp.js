@@ -172,47 +172,6 @@ app.post('/api/phone-login', async (req, res) => {
     }
 });
 
-// 手机号一键登录接口
-app.post('/api/phone-login', async (req, res) => {
-    const { encryptedData, iv, sessionKey, merchant_id } = req.body;
-
-    if (!encryptedData || !iv || !sessionKey) {
-        return res.json({
-            success: false,
-            message: '缺少必要参数'
-        });
-    }
-
-    try {
-        const config = merchant_id ? await getMerchantConfig(merchant_id) : DEFAULT_CONFIG;
-        const WXBizDataCrypt = require('./utils/WXBizDataCrypt');
-        const pc = new WXBizDataCrypt(config.appid, sessionKey);
-        const data = pc.decryptData(encryptedData, iv);
-
-        console.log('解密手机号成功:', data);
-
-        if (data.phoneNumber) {
-            return res.json({
-                success: true,
-                phoneNumber: data.phoneNumber,
-                countryCode: data.countryCode,
-                message: '获取手机号成功'
-            });
-        } else {
-            return res.json({
-                success: false,
-                message: '未获取到手机号'
-            });
-        }
-    } catch (e) {
-        console.error('解密手机号失败:', e.message);
-        res.json({
-            success: false,
-            message: '解密失败: ' + e.message
-        });
-    }
-});
-
 // 绑定所有地址启动服务
 app.listen(3000, '0.0.0.0', (err) => {
     if (err) {
