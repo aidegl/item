@@ -430,6 +430,7 @@ function generateLoginPage(outputDir, config, themeColor) {
   },
 
   onGetPhoneNumber(e) {
+    console.log('[登录] getPhoneNumber 回调:', e.detail);
     if (e.detail.errMsg !== 'getPhoneNumber:ok') {
       wx.showToast({ title: '需要授权手机号才能登录', icon: 'none' });
       return;
@@ -441,6 +442,8 @@ function generateLoginPage(outputDir, config, themeColor) {
       wx.showToast({ title: '请在商家后台「全局设置」中配置「登录接口URL」或「手机号登录接口」', icon: 'none', duration: 2500 });
       return;
     }
+    const merchantId = app.globalData.merchantId || '';
+    console.log('[登录] 请求URL:', url, 'merchantId:', merchantId);
     wx.showLoading({ title: '登录中...' });
     wx.login({
       success: (loginRes) => {
@@ -450,27 +453,55 @@ function generateLoginPage(outputDir, config, themeColor) {
           wx.showToast({ title: '获取登录凭证失败，请重试', icon: 'none' });
           return;
         }
+        const postData = { code: code || '', encryptedData: encryptedData || '', iv: iv || '', loginCode, merchantId };
+        console.log('[登录] 请求 merchantId:', merchantId);
         wx.request({
           url: url,
           method: 'POST',
-          data: { code: code || '', encryptedData: encryptedData || '', iv: iv || '', loginCode, merchantId: app.globalData.merchantId || '' },
+          data: postData,
           header: { 'Content-Type': 'application/json' },
           success: (res) => {
-            wx.hideLoading();
+            console.log('[登录] 响应 status:', res.statusCode, 'data:', JSON.stringify(res.data));
             const openId = (res.data && res.data.openId) || (res.data && res.data.openid) || (res.data && res.data.data && res.data.data.openId);
             if (openId) {
-              const app = getApp();
+              wx.hideLoading();
               app.globalData.openId = openId;
               wx.setStorageSync('openId', openId);
               wx.showToast({ title: '登录成功', icon: 'success' });
               setTimeout(() => wx.navigateBack(), 500);
-            } else {
-              wx.showToast({ title: (res.data && res.data.msg) || (res.data && res.data.message) || '登录失败', icon: 'none' });
+              return;
             }
+            if (res.statusCode === 404 || res.statusCode >= 500) {
+              console.log('[登录] phone-login 失败，尝试 login 接口');
+              const loginUrl = this.data.loginApiUrl || (app.globalData && app.globalData.loginApiUrl) || url.replace(/phone-login/g, 'login');
+              wx.request({
+                url: loginUrl,
+                method: 'POST',
+                data: { code: loginCode, merchantId, merchant_id: merchantId },
+                header: { 'Content-Type': 'application/json' },
+                success: (r2) => {
+                  wx.hideLoading();
+                  const oid = (r2.data && r2.data.openId) || (r2.data && r2.data.openid);
+                  if (oid) {
+                    app.globalData.openId = oid;
+                    wx.setStorageSync('openId', oid);
+                    wx.showToast({ title: '登录成功', icon: 'success' });
+                    setTimeout(() => wx.navigateBack(), 500);
+                  } else {
+                    wx.showToast({ title: (r2.data && r2.data.message) || '登录失败', icon: 'none' });
+                  }
+                },
+                fail: () => { wx.hideLoading(); wx.showToast({ title: '登录服务不可用', icon: 'none' }); }
+              });
+              return;
+            }
+            wx.hideLoading();
+            wx.showToast({ title: (res.data && res.data.msg) || (res.data && res.data.message) || '登录失败', icon: 'none' });
           },
           fail: (err) => {
             wx.hideLoading();
-            wx.showToast({ title: '网络错误', icon: 'none' });
+            console.error('[登录] 请求失败:', err);
+            wx.showToast({ title: (err.errMsg || '网络错误') + (err.statusCode ? ' ' + err.statusCode : ''), icon: 'none' });
           }
         });
       },
@@ -1811,8 +1842,9 @@ app.post('/api/merchant/wechat-config', (req, res) => {
 
 /** 转发到 wxApp 登录服务（当 api.100000whys.cn 指向本服务时，小程序请求 /api/core/ 需由此转发） */
 const WXAPP_URL = process.env.WXAPP_SERVICE_URL || 'http://127.0.0.1:3000';
-function proxyToWxApp(path, req, res) {
-  const body = JSON.stringify(req.body || {});
+function proxyToWxApp(path, req, res, bodyOverride) {
+  const body = bodyOverride !== undefined ? bodyOverride : (req.body || {});
+  const bodyStr = JSON.stringify(body);
   const url = new URL(path, WXAPP_URL);
   const client = url.protocol === 'https:' ? https : http;
   const options = {
@@ -1820,7 +1852,7 @@ function proxyToWxApp(path, req, res) {
     port: url.port || (url.protocol === 'https:' ? 443 : 80),
     path: url.pathname,
     method: req.method,
-    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body, 'utf8') }
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr, 'utf8') }
   };
   const proxyReq = client.request(options, (proxyRes) => {
     let data = '';
@@ -1833,13 +1865,28 @@ function proxyToWxApp(path, req, res) {
     console.error('[proxy] 转发到 wxApp 失败:', err.message);
     res.status(502).json({ success: false, message: '登录服务暂不可用，请检查 wxApp 进程是否运行' });
   });
-  proxyReq.write(body);
+  proxyReq.write(bodyStr);
   proxyReq.end();
 }
-app.post('/api/core/api/login', (req, res) => proxyToWxApp('/api/core/api/login', req, res));
-app.post('/api/core/api/phone-login', (req, res) => proxyToWxApp('/api/core/api/phone-login', req, res));
-app.post('/api/login', (req, res) => proxyToWxApp('/api/login', req, res));
-app.post('/api/phone-login', (req, res) => proxyToWxApp('/api/phone-login', req, res));
+/** 转发时注入商家微信配置（从明道云或 wechat-credentials.json 获取），解决 wxApp 与打包小程序 AppID 不一致问题 */
+async function proxyWithMerchantConfig(path, req, res) {
+  const body = req.body ? { ...req.body } : {};
+  const mchId = body.merchantId || body.merchant_id;
+  if (mchId) {
+    const cfg = await getMerchantWechatConfig(mchId);
+    if (cfg?.appId && cfg?.appSecret) {
+      body.appId = cfg.appId;
+      body.appSecret = cfg.appSecret;
+      console.log('[proxy] 已注入商家配置 appId:', cfg.appId, 'merchantId:', mchId);
+    }
+  }
+  proxyToWxApp(path, req, res, body);
+}
+
+app.post('/api/core/api/login', (req, res) => proxyWithMerchantConfig('/api/core/api/login', req, res));
+app.post('/api/core/api/phone-login', (req, res) => proxyWithMerchantConfig('/api/core/api/phone-login', req, res));
+app.post('/api/login', (req, res) => proxyWithMerchantConfig('/api/login', req, res));
+app.post('/api/phone-login', (req, res) => proxyWithMerchantConfig('/api/phone-login', req, res));
 
 /** 微信 code 换取 openId（jscode2session） */
 app.post('/api/wechat/login', async (req, res) => {
