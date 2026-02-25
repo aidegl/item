@@ -294,9 +294,9 @@ function generateLoginPage(outputDir, config, themeColor) {
   fs.mkdirSync(loginDir, { recursive: true });
 
   const tc = (themeColor && themeColor !== '{主题色}') ? themeColor : '#0557e1';
-  const baseUrl = process.env.SERVER_PUBLIC_URL || '';
-  const phoneLoginApiUrl = baseUrl ? (baseUrl.replace(/\/$/, '') + '/api/phone-login') : '';
-  const loginApiUrl = baseUrl ? (baseUrl.replace(/\/$/, '') + '/api/login') : '';
+  const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://api.100000whys.cn';
+  const phoneLoginApiUrl = baseUrl.replace(/\/$/, '') + '/api/phone-login';
+  const loginApiUrl = baseUrl.replace(/\/$/, '') + '/api/login';
   const userAgreementUrl = (config && config.globalConfig && config.globalConfig.userAgreementUrl) || '';
   const privacyPolicyUrl = (config && config.globalConfig && config.globalConfig.privacyPolicyUrl) || '';
 
@@ -491,9 +491,9 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
   fs.mkdirSync(loginVerifyDir, { recursive: true });
 
   const tc = (themeColor && themeColor !== '{主题色}') ? themeColor : '#0557e1';
-  const baseUrl = process.env.SERVER_PUBLIC_URL || '';
-  const phoneLoginApiUrl = baseUrl ? (baseUrl.replace(/\/$/, '') + '/api/phone-login') : '';
-  const loginApiUrl = baseUrl ? (baseUrl.replace(/\/$/, '') + '/api/login') : '';
+  const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://api.100000whys.cn';
+  const phoneLoginApiUrl = baseUrl.replace(/\/$/, '') + '/api/phone-login';
+  const loginApiUrl = baseUrl.replace(/\/$/, '') + '/api/login';
 
   const wxml = `<view class="verify-page">
   <view class="verify-header">
