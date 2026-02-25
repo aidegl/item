@@ -4,8 +4,8 @@ Page({
     phone: '',
     code: '',
     countdown: 0,
-    phoneLoginApiUrl: '',
-    loginApiUrl: ''
+    phoneLoginApiUrl: 'https://api.100000whys.cn/api/core/api/phone-login',
+    loginApiUrl: 'https://api.100000whys.cn/api/core/api/login'
   },
 
   onPhoneInput(e) { this.setData({ phone: e.detail.value }); },

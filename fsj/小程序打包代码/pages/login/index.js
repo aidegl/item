@@ -3,8 +3,8 @@ Page({
     themeColor: '#0557e1',
     userAgreementUrl: '',
     privacyPolicyUrl: '',
-    phoneLoginApiUrl: '',
-    loginApiUrl: ''
+    phoneLoginApiUrl: 'https://api.100000whys.cn/api/core/api/phone-login',
+    loginApiUrl: 'https://api.100000whys.cn/api/core/api/login'
   },
 
   onGoVerifyLogin() {
