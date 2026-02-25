@@ -55,8 +55,8 @@ async function getMerchantConfig(merchantId) {
     }
 }
 
-// 微信登录接口（修复核心问题：判断微信错误+统一返回格式+打印日志）
-app.post('/api/core/api/login', async (req, res) => {
+// 微信登录接口（支持 /api/core/api/login 和 /api/login 两种路径）
+const handleLogin = async (req, res) => {
     const { code, merchant_id } = req.body;
     // 1. 校验前端传参（新增）
     if (!code) {
@@ -126,14 +126,15 @@ app.post('/api/pay', async (req, res) => {
         console.error('支付接口报错:', e);
         res.status(500).json({ success: false, message: '支付服务异常', error: e.message });
     }
-});
+};
+app.post('/api/core/api/login', handleLogin);
+app.post('/api/login', handleLogin);
 
 // 健康检查接口
 app.get('/', (req, res) => res.send('沈仙子后端服务运行中（已对接MySQL）...'));
 
-// 手机号一键登录接口（需同时传 loginCode 获取 openId + code 获取手机号）
-// 小程序需先 wx.login 获取 loginCode，getPhoneNumber 返回 code，二者一起发送
-app.post('/api/core/api/phone-login', async (req, res) => {
+// 手机号一键登录接口（支持 /api/core/api/phone-login 和 /api/phone-login 两种路径）
+const handlePhoneLogin = async (req, res) => {
     const body = req.body || {};
     const { code, encryptedData, iv, sessionKey, merchant_id, merchantId } = body;
     const loginCode = body.loginCode || body.login_code;
@@ -221,7 +222,9 @@ app.post('/api/core/api/phone-login', async (req, res) => {
             message: '登录失败: ' + e.message
         });
     }
-});
+};
+app.post('/api/core/api/phone-login', handlePhoneLogin);
+app.post('/api/phone-login', handlePhoneLogin);
 
 // 绑定所有地址启动服务
 app.listen(3000, '0.0.0.0', (err) => {
