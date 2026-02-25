@@ -131,43 +131,90 @@ app.post('/api/pay', async (req, res) => {
 // 健康检查接口
 app.get('/', (req, res) => res.send('沈仙子后端服务运行中（已对接MySQL）...'));
 
-// 手机号一键登录接口
+// 手机号一键登录接口（需同时传 loginCode 获取 openId + code 获取手机号）
+// 小程序需先 wx.login 获取 loginCode，getPhoneNumber 返回 code，二者一起发送
 app.post('/api/core/api/phone-login', async (req, res) => {
-    const { encryptedData, iv, sessionKey, merchant_id } = req.body;
+    const { code, loginCode, encryptedData, iv, sessionKey, merchant_id, merchantId } = req.body;
+    const mchId = merchant_id || merchantId;
 
-    if (!encryptedData || !iv || !sessionKey) {
+    if (!loginCode && !sessionKey) {
         return res.json({
             success: false,
-            message: '缺少必要参数'
+            openId: '',
+            message: '缺少 loginCode（请先调用 wx.login），或缺少 sessionKey'
         });
     }
 
     try {
-        const config = merchant_id ? await getMerchantConfig(merchant_id) : DEFAULT_CONFIG;
-        const WXBizDataCrypt = require('./wxApp/utils/WXBizDataCrypt');
-        const pc = new WXBizDataCrypt(config.appid, sessionKey);
-        const data = pc.decryptData(encryptedData, iv);
+        const config = mchId ? await getMerchantConfig(mchId) : DEFAULT_CONFIG;
 
-        console.log('解密手机号成功:', data);
+        // 1. 用 loginCode 换取 openId（必须，用于「我的」页等）
+        let openId = '';
+        let session_key = '';
+        if (loginCode) {
+            const jsUrl = `https://api.weixin.qq.com/sns/jscode2session?appid=${config.appid}&secret=${config.secret}&js_code=${loginCode}&grant_type=authorization_code`;
+            const jsRes = await axios.get(jsUrl);
+            if (jsRes.data.errcode) {
+                return res.json({
+                    success: false,
+                    openId: '',
+                    message: `微信登录失败: ${jsRes.data.errmsg}`
+                });
+            }
+            openId = jsRes.data.openid || '';
+            session_key = jsRes.data.session_key || '';
+        }
 
-        if (data.phoneNumber) {
+        // 2. 若有 getPhoneNumber 的 code（新接口），可换取手机号（可选）
+        if (code && openId) {
+            try {
+                const tokenUrl = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.secret}`;
+                const tokenRes = await axios.get(tokenUrl);
+                const access_token = tokenRes.data?.access_token;
+                if (access_token) {
+                    const phoneRes = await axios.post(
+                        `https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=${access_token}`,
+                        { code }
+                    );
+                    if (phoneRes.data?.phone_info?.phoneNumber) {
+                        console.log('获取手机号成功:', phoneRes.data.phone_info.phoneNumber);
+                    }
+                }
+            } catch (phoneErr) {
+                console.warn('获取手机号失败（不影响openId返回）:', phoneErr.message);
+            }
+        }
+
+        // 3. 兼容旧接口：encryptedData + iv + sessionKey 解密手机号（可选，不影响 openId 返回）
+        if (encryptedData && iv && (sessionKey || session_key)) {
+            try {
+                const WXBizDataCrypt = require('./utils/WXBizDataCrypt');
+                const pc = new WXBizDataCrypt(config.appid, sessionKey || session_key);
+                const data = pc.decryptData(encryptedData, iv);
+                if (data.phoneNumber) console.log('解密手机号成功:', data.phoneNumber);
+            } catch (decErr) {
+                console.warn('解密手机号失败:', decErr.message);
+            }
+        }
+
+        if (openId) {
             return res.json({
                 success: true,
-                phoneNumber: data.phoneNumber,
-                countryCode: data.countryCode,
-                message: '获取手机号成功'
-            });
-        } else {
-            return res.json({
-                success: false,
-                message: '未获取到手机号'
+                openId,
+                message: '登录成功'
             });
         }
+        return res.json({
+            success: false,
+            openId: '',
+            message: '未能获取 openId'
+        });
     } catch (e) {
-        console.error('解密手机号失败:', e.message);
+        console.error('手机号一键登录异常:', e.message);
         res.json({
             success: false,
-            message: '解密失败: ' + e.message
+            openId: '',
+            message: '登录失败: ' + e.message
         });
     }
 });
