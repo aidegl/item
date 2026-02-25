@@ -1838,6 +1838,8 @@ function proxyToWxApp(path, req, res) {
 }
 app.post('/api/core/api/login', (req, res) => proxyToWxApp('/api/core/api/login', req, res));
 app.post('/api/core/api/phone-login', (req, res) => proxyToWxApp('/api/core/api/phone-login', req, res));
+app.post('/api/login', (req, res) => proxyToWxApp('/api/login', req, res));
+app.post('/api/phone-login', (req, res) => proxyToWxApp('/api/phone-login', req, res));
 
 /** 微信 code 换取 openId（jscode2session） */
 app.post('/api/wechat/login', async (req, res) => {
