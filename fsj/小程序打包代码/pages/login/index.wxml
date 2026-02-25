@@ -1,0 +1,29 @@
+<view class="login-page">
+  <view class="login-header">
+    <text class="login-title">登录</text>
+    <text class="login-desc">欢迎使用，请选择登录方式</text>
+  </view>
+
+  <view class="login-methods">
+    <button class="btn-onekey" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" style="background-color: {{themeColor}};">
+      手机号一键登录
+    </button>
+
+    <view class="divider">
+      <text class="divider-line"></text>
+      <text class="divider-text">或</text>
+      <text class="divider-line"></text>
+    </view>
+
+    <button class="btn-verify" bindtap="onGoVerifyLogin" style="border-color: {{themeColor}}; color: {{themeColor}};">
+      手机验证码登录
+    </button>
+  </view>
+
+  <view class="login-footer">
+    <text class="agreement-text">我已阅读</text>
+    <text class="agreement-link" bindtap="onAgreementTap" data-url="{{userAgreementUrl}}">《用户服务协议》</text>
+    <text class="agreement-text">、</text>
+    <text class="agreement-link" bindtap="onAgreementTap" data-url="{{privacyPolicyUrl}}">《隐私政策》</text>
+  </view>
+</view>
