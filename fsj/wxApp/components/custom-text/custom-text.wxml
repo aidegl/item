@@ -1,6 +1,0 @@
-<text 
-  class="custom-text"
-  style="font-size: {{fontSize}}rpx; color: {{color}}; text-align: {{textAlign}};"
->
-  {{content}}
-</text>
