@@ -205,12 +205,14 @@ function generateAppJs(merchantId, outputDir, config) {
   }
 
   const gc = config && config.globalConfig || {};
+  const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://api.100000whys.cn';
+  const base = baseUrl.replace(/\/$/, '');
   let loginApiUrl = gc.loginApiUrl || '';
   if (!loginApiUrl && gc.wechatAppId && gc.wechatAppSecret) {
-    const base = process.env.SERVER_PUBLIC_URL || '';
-    loginApiUrl = base ? (base.replace(/\/$/, '') + '/api/wechat/login') : '';
+    loginApiUrl = base + '/api/wechat/login';
   }
-  const phoneLoginApiUrl = gc.phoneLoginApiUrl || loginApiUrl || '';
+  if (!loginApiUrl) loginApiUrl = base + '/api/core/api/login';
+  const phoneLoginApiUrl = gc.phoneLoginApiUrl || base + '/api/core/api/phone-login';
   const loginBlock = `
   console.log('小程序版本: ${MINIPROGRAM_VERSION}');
   const savedOpenId = wx.getStorageSync('openId');
@@ -238,7 +240,7 @@ function generateAppJs(merchantId, outputDir, config) {
           header: { 'Content-Type': 'application/json' },
           success: (reqRes) => {
             console.log('登录接口返回:', reqRes.data);
-            const openId = (reqRes.data && reqRes.data.openId) || (reqRes.data && reqRes.data.data && reqRes.data.data.openId);
+            const openId = (reqRes.data && (reqRes.data.openId || reqRes.data.openid)) || (reqRes.data && reqRes.data.data && (reqRes.data.data.openId || reqRes.data.data.openid));
             if (openId) {
               this.globalData.openId = openId;
               wx.setStorageSync('openId', openId);
@@ -700,7 +702,7 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
       header: { 'Content-Type': 'application/json' },
       success: (res) => {
         wx.hideLoading();
-        const openId = (res.data && res.data.openId) || (res.data && res.data.data && res.data.data.openId);
+        const openId = (res.data && (res.data.openId || res.data.openid)) || (res.data && res.data.data && (res.data.data.openId || res.data.data.openid));
         if (openId) {
           const app = getApp();
           app.globalData.openId = openId;

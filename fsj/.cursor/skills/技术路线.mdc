@@ -420,6 +420,27 @@ module.exports = {
 - **验证路径**：重新打包 → 导入开发者工具 → `index.wxml` 中 `wx:for` 变为英文字段 → 编译错误消失。  
 - **注意事项**：涉及打包生成逻辑修改后，必须重启 PM2 并重新打包才能生效。
 
+##### 成功经验：手机号一键登录与商家小程序配置
+
+- **问题现象**：打包小程序的「手机号一键登录」点击后返回 `invalid code`，微信接口提示 code 无效。
+- **根因**：用于 `jscode2session` 的 AppID/Secret 与当前小程序的 AppID 不一致。打包小程序的 `project.config.json` 中的 appid（如 `wx8899213e89e3cd45`）必须与调用微信接口时使用的 appid 完全一致，否则会出现 `invalid code`。
+- **架构要点**：
+  1. **配置来源**：支持多种配置源，按优先级使用：
+     - 明道云 / `wechat-credentials.json`（通过 server.js `getMerchantWechatConfig`）
+     - MySQL `merchant_wx_config` 表（通过 wxApp.js `getMerchantConfig`）
+  2. **请求路径**：小程序 → `https://api.100000whys.cn/api/core/api/phone-login` → Nginx → wxApp:3000 或 server → proxy → wxApp
+  3. **转发注入**：server.js 在转发 /api/core/api/phone-login 前，根据 merchantId 调用 `getMerchantWechatConfig`，若拿到 appId/secret 则注入到请求体，wxApp 优先使用请求体中的 appId/appSecret。
+- **修复方式**：
+  1. **MySQL 配置**：在宝塔 MySQL 的 `merchant_wx_config` 表中，为每个 merchant_id 添加对应小程序的 appid、secret：
+     ```sql
+     INSERT INTO merchant_wx_config (merchant_id, appid, secret) 
+     VALUES ('698826f3b35652a8d4f60e21', 'wx8899213e89e3cd45', '你的小程序AppSecret');
+     ```
+  2. **小程序端**：点击「手机号一键登录」后先执行 `wx.login` 获取 loginCode，再与 getPhoneNumber 的 code 一起发送；请求体必须包含 `merchantId`。
+  3. **wxApp 日志**：`[getMerchantConfig]` 打印 MySQL 配置读取结果，`[phone-login]` 打印使用的 appid 和返回的 openId，便于排查。
+- **验证路径**：MySQL 正确配置 → 重启 wxApp → 小程序点击手机号一键登录 → 控制台出现「从 MySQL 读取到配置」「成功返回 openId」→ 登录成功。
+- **注意事项**：`merchant_wx_config.appid` 必须与打包小程序的 `project.config.json` 中 appid 一致；Secret 在微信公众平台-开发管理-开发设置中获取。
+
 ### 后端架构（宝塔部署）
 
 #### 技术栈

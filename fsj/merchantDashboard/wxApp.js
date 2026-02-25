@@ -241,6 +241,15 @@ const handlePhoneLogin = async (req, res) => {
 app.post('/api/core/api/phone-login', handlePhoneLogin);
 app.post('/api/phone-login', handlePhoneLogin);
 
+// 验证码登录：发送验证码（需接入短信服务后实现）
+app.post('/api/core/api/phone-login/sendCode', (req, res) => {
+    res.json({ success: false, msg: '验证码登录功能需配置短信服务，请使用「手机号一键登录」' });
+});
+// 验证码登录：校验验证码（需接入短信服务后实现）
+app.post('/api/core/api/login/verify', (req, res) => {
+    res.json({ success: false, msg: '验证码登录功能需配置短信服务，请使用「手机号一键登录」' });
+});
+
 // 绑定所有地址启动服务
 app.listen(3000, '0.0.0.0', (err) => {
     if (err) {
