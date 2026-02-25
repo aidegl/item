@@ -56,7 +56,7 @@ async function getMerchantConfig(merchantId) {
 }
 
 // 微信登录接口（修复核心问题：判断微信错误+统一返回格式+打印日志）
-app.post('/api/login', async (req, res) => {
+app.post('/api/core/api/login', async (req, res) => {
     const { code, merchant_id } = req.body;
     // 1. 校验前端传参（新增）
     if (!code) {
@@ -132,7 +132,7 @@ app.post('/api/pay', async (req, res) => {
 app.get('/', (req, res) => res.send('沈仙子后端服务运行中（已对接MySQL）...'));
 
 // 手机号一键登录接口
-app.post('/api/phone-login', async (req, res) => {
+app.post('/api/core/api/phone-login', async (req, res) => {
     const { encryptedData, iv, sessionKey, merchant_id } = req.body;
 
     if (!encryptedData || !iv || !sessionKey) {

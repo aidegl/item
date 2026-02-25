@@ -32,7 +32,7 @@ App({
 
   globalData: {
     userInfo: null,
-    merchantId: '75cf2e-0f73-4137-9e99-116d92c45a47',
+    merchantId: '698826f3b35652a8d4f60e21',
     mRowid: '',
     /** 微信登录后获得的 OpenID，用于「我的」页用户信息栏从明道云 yonghu 表拉取头像、昵称等 */
     openId: '',
