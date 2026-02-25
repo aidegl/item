@@ -27,6 +27,12 @@ Page({
     wx.login({
       success: (loginRes) => {
         const loginCode = loginRes.code || '';
+        console.log('[登录] wx.login 返回 loginCode:', loginCode ? '有' : '无', 'getPhoneNumber code:', code ? '有' : '无');
+        if (!loginCode) {
+          wx.hideLoading();
+          wx.showToast({ title: '获取登录凭证失败，请重试', icon: 'none' });
+          return;
+        }
         wx.request({
           url: url,
           method: 'POST',

@@ -444,6 +444,11 @@ function generateLoginPage(outputDir, config, themeColor) {
     wx.login({
       success: (loginRes) => {
         const loginCode = loginRes.code || '';
+        if (!loginCode) {
+          wx.hideLoading();
+          wx.showToast({ title: '获取登录凭证失败，请重试', icon: 'none' });
+          return;
+        }
         wx.request({
           url: url,
           method: 'POST',
