@@ -1,9 +1,0 @@
-{
-  "usingComponents": {
-    "carousel": "/components/carousel/carousel",
-    "function-list": "/components/function-list/function-list",
-    "single-image": "/components/single-image/single-image",
-    "custom-text": "/components/custom-text/custom-text"
-  },
-  "navigationBarTitleText": "{{pageName}}"
-}

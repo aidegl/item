@@ -1,0 +1,19 @@
+<view class="verify-page">
+  <view class="verify-header">
+    <text class="verify-title">验证码登录</text>
+    <text class="verify-desc">请输入手机号并获取验证码</text>
+  </view>
+
+  <view class="verify-form">
+    <view class="input-row">
+      <input class="input-phone" type="number" placeholder="请输入手机号" maxlength="11" value="{{phone}}" bindinput="onPhoneInput" />
+    </view>
+    <view class="input-row row-code">
+      <input class="input-code" type="number" placeholder="请输入验证码" maxlength="6" value="{{code}}" bindinput="onCodeInput" />
+      <button class="btn-getcode {{countdown > 0 ? 'disabled' : ''}}" disabled="{{countdown > 0}}" bindtap="onGetCode">
+        {{countdown > 0 ? countdown + 's后重试' : '获取验证码'}}
+      </button>
+    </view>
+    <button class="btn-login" bindtap="onVerifyLogin" style="background-color: {{themeColor}};">登录</button>
+  </view>
+</view>
