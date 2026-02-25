@@ -294,8 +294,9 @@ function generateLoginPage(outputDir, config, themeColor) {
   fs.mkdirSync(loginDir, { recursive: true });
 
   const tc = (themeColor && themeColor !== '{主题色}') ? themeColor : '#0557e1';
-  const loginApiUrl = (config && config.globalConfig && config.globalConfig.loginApiUrl) || '';
-  const phoneLoginApiUrl = (config && config.globalConfig && config.globalConfig.phoneLoginApiUrl) || loginApiUrl;
+  const baseUrl = process.env.SERVER_PUBLIC_URL || '';
+  const phoneLoginApiUrl = baseUrl ? (baseUrl.replace(/\/$/, '') + '/api/phone-login') : '';
+  const loginApiUrl = baseUrl ? (baseUrl.replace(/\/$/, '') + '/api/login') : '';
   const userAgreementUrl = (config && config.globalConfig && config.globalConfig.userAgreementUrl) || '';
   const privacyPolicyUrl = (config && config.globalConfig && config.globalConfig.privacyPolicyUrl) || '';
 
@@ -419,7 +420,8 @@ function generateLoginPage(outputDir, config, themeColor) {
     themeColor: '${tc}',
     userAgreementUrl: '${userAgreementUrl}',
     privacyPolicyUrl: '${privacyPolicyUrl}',
-    phoneLoginApiUrl: '${phoneLoginApiUrl.replace(/'/g, "\\'")}'
+    phoneLoginApiUrl: '${phoneLoginApiUrl.replace(/'/g, "\\'")}',
+    loginApiUrl: '${loginApiUrl.replace(/'/g, "\\'")}'
   },
 
   onGoVerifyLogin() {
@@ -433,7 +435,7 @@ function generateLoginPage(outputDir, config, themeColor) {
     }
     const { code, encryptedData, iv } = e.detail;
     const app = getApp();
-    const url = this.data.phoneLoginApiUrl || (app.globalData && app.globalData.phoneLoginApiUrl) || (app.globalData && app.globalData.loginApiUrl) || '';
+    const url = this.data.phoneLoginApiUrl || '';
     if (!url) {
       wx.showToast({ title: '请在商家后台「全局设置」中配置「登录接口URL」或「手机号登录接口」', icon: 'none', duration: 2500 });
       return;
@@ -489,7 +491,9 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
   fs.mkdirSync(loginVerifyDir, { recursive: true });
 
   const tc = (themeColor && themeColor !== '{主题色}') ? themeColor : '#0557e1';
-  const phoneLoginApiUrl = (config && config.globalConfig && config.globalConfig.phoneLoginApiUrl) || (config && config.globalConfig && config.globalConfig.loginApiUrl) || '';
+  const baseUrl = process.env.SERVER_PUBLIC_URL || '';
+  const phoneLoginApiUrl = baseUrl ? (baseUrl.replace(/\/$/, '') + '/api/phone-login') : '';
+  const loginApiUrl = baseUrl ? (baseUrl.replace(/\/$/, '') + '/api/login') : '';
 
   const wxml = `<view class="verify-page">
   <view class="verify-header">
@@ -582,7 +586,8 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
     phone: '',
     code: '',
     countdown: 0,
-    phoneLoginApiUrl: '${phoneLoginApiUrl.replace(/'/g, "\\'")}'
+    phoneLoginApiUrl: '${phoneLoginApiUrl.replace(/'/g, "\\'")}',
+    loginApiUrl: '${loginApiUrl.replace(/'/g, "\\'")}'
   },
 
   onPhoneInput(e) { this.setData({ phone: e.detail.value }); },
@@ -595,13 +600,13 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
       return;
     }
     const app = getApp();
-    const baseUrl = this.data.phoneLoginApiUrl || (app.globalData && app.globalData.phoneLoginApiUrl) || (app.globalData && app.globalData.loginApiUrl) || '';
-    if (!baseUrl) {
+    const url = this.data.phoneLoginApiUrl || '';
+    if (!url) {
       wx.showToast({ title: '请在商家后台「全局设置」中配置登录接口', icon: 'none' });
       return;
     }
     wx.request({
-      url: baseUrl + '/sendCode',
+      url: url + '/sendCode',
       method: 'POST',
       data: { phone, merchantId: app.globalData.merchantId || '' },
       header: { 'Content-Type': 'application/json' },
@@ -636,14 +641,14 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
       return;
     }
     const app = getApp();
-    const baseUrl = this.data.phoneLoginApiUrl || (app.globalData && app.globalData.phoneLoginApiUrl) || (app.globalData && app.globalData.loginApiUrl) || '';
-    if (!baseUrl) {
+    const url = this.data.loginApiUrl || '';
+    if (!url) {
       wx.showToast({ title: '请在商家后台「全局设置」中配置登录接口', icon: 'none' });
       return;
     }
     wx.showLoading({ title: '登录中...' });
     wx.request({
-      url: baseUrl + '/verify',
+      url: url + '/verify',
       method: 'POST',
       data: { phone, code, merchantId: app.globalData.merchantId || '' },
       header: { 'Content-Type': 'application/json' },
