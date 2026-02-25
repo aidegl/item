@@ -1,0 +1,36 @@
+{
+  "pages": [
+    "pages/default-page-1/index",
+    "pages/default-page-2/index",
+    "pages/login/index",
+    "pages/login-verify/index",
+    "pages/webview/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "小程序",
+    "navigationBarTextStyle": "black"
+  },
+  "sitemapLocation": "sitemap.json",
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#0557e1",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/default-page-1/index",
+        "text": "首页",
+        "iconPath": "images/5f96392a-bd0e-4d78-a14c-803493ddf484.png",
+        "selectedIconPath": "images/4c661940-1d8d-4f95-a6ab-4661effea87c.png"
+      },
+      {
+        "pagePath": "pages/default-page-2/index",
+        "text": "我的",
+        "iconPath": "images/736e427c-e162-4e98-b5dd-a877c70b6c3d.png",
+        "selectedIconPath": "images/67467570-f4ec-4aad-a374-dbbeecd43d22.png"
+      }
+    ]
+  }
+}
