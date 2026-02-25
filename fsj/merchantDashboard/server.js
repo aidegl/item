@@ -295,8 +295,8 @@ function generateLoginPage(outputDir, config, themeColor) {
 
   const tc = (themeColor && themeColor !== '{主题色}') ? themeColor : '#0557e1';
   const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://api.100000whys.cn';
-  const phoneLoginApiUrl = baseUrl.replace(/\/$/, '') + '/api/phone-login';
-  const loginApiUrl = baseUrl.replace(/\/$/, '') + '/api/login';
+  const phoneLoginApiUrl = baseUrl.replace(/\/$/, '') + '/api/core/api/phone-login';
+  const loginApiUrl = baseUrl.replace(/\/$/, '') + '/api/core/api/login';
   const userAgreementUrl = (config && config.globalConfig && config.globalConfig.userAgreementUrl) || '';
   const privacyPolicyUrl = (config && config.globalConfig && config.globalConfig.privacyPolicyUrl) || '';
 
@@ -492,8 +492,8 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
 
   const tc = (themeColor && themeColor !== '{主题色}') ? themeColor : '#0557e1';
   const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://api.100000whys.cn';
-  const phoneLoginApiUrl = baseUrl.replace(/\/$/, '') + '/api/phone-login';
-  const loginApiUrl = baseUrl.replace(/\/$/, '') + '/api/login';
+  const phoneLoginApiUrl = baseUrl.replace(/\/$/, '') + '/api/core/api/phone-login';
+  const loginApiUrl = baseUrl.replace(/\/$/, '') + '/api/core/api/login';
 
   const wxml = `<view class="verify-page">
   <view class="verify-header">
