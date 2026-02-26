@@ -12,7 +12,7 @@ const { registerComponent, getComponent } = require('./components/componentRegis
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const MINIPROGRAM_VERSION = '1.2.3';
+const MINIPROGRAM_VERSION = '1.2.4';
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -245,6 +245,18 @@ function generateAppJs(merchantId, outputDir, config) {
               this.globalData.openId = openId;
               wx.setStorageSync('openId', openId);
               console.log('登录成功, openId:', openId);
+              
+              const MingdaoYunRecordAPI = require('./utils/MingdaoYunRecordAPI');
+              const recordApi = new MingdaoYunRecordAPI();
+              recordApi.addRecord({
+                openId: openId,
+                leixing: '小程序登录',
+                dlfs: '微信授权登录'
+              }).then(recordResult => {
+                console.log('[登录] 小程序端记录登录结果:', recordResult);
+              }).catch(err => {
+                console.error('[登录] 小程序端记录登录失败:', err);
+              });
             } else {
               console.warn('登录接口未返回 openId, 完整结果:', JSON.stringify(reqRes.data));
             }
@@ -469,6 +481,19 @@ function generateLoginPage(outputDir, config, themeColor) {
               wx.hideLoading();
               app.globalData.openId = openId;
               wx.setStorageSync('openId', openId);
+              
+              const MingdaoYunRecordAPI = require('../../utils/MingdaoYunRecordAPI');
+              const recordApi = new MingdaoYunRecordAPI();
+              recordApi.addRecord({
+                openId: openId,
+                leixing: '小程序登录',
+                dlfs: '手机一键登录'
+              }).then(recordResult => {
+                console.log('[登录] 小程序端记录登录结果:', recordResult);
+              }).catch(err => {
+                console.error('[登录] 小程序端记录登录失败:', err);
+              });
+              
               wx.showToast({ title: '登录成功', icon: 'success' });
               setTimeout(() => wx.navigateBack(), 500);
               return;
@@ -707,6 +732,19 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
           const app = getApp();
           app.globalData.openId = openId;
           wx.setStorageSync('openId', openId);
+          
+          const MingdaoYunRecordAPI = require('../../utils/MingdaoYunRecordAPI');
+          const recordApi = new MingdaoYunRecordAPI();
+          recordApi.addRecord({
+            openId: openId,
+            leixing: '小程序登录',
+            dlfs: '手机验证码'
+          }).then(recordResult => {
+            console.log('[登录] 小程序端记录登录结果:', recordResult);
+          }).catch(err => {
+            console.error('[登录] 小程序端记录登录失败:', err);
+          });
+          
           wx.showToast({ title: '登录成功', icon: 'success' });
           setTimeout(() => wx.navigateBack({ delta: 2 }), 500);
         } else {

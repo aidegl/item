@@ -441,6 +441,51 @@ module.exports = {
 - **验证路径**：MySQL 正确配置 → 重启 wxApp → 小程序点击手机号一键登录 → 控制台出现「从 MySQL 读取到配置」「成功返回 openId」→ 登录成功。
 - **注意事项**：`merchant_wx_config.appid` 必须与打包小程序的 `project.config.json` 中 appid 一致；Secret 在微信公众平台-开发管理-开发设置中获取。
 
+##### 登录方式与记录表
+
+- **登录方式**：支持三种登录方式
+  1. **手机验证码登录**：用户输入手机号，获取验证码后登录
+  2. **手机号一键登录**：用户授权微信手机号，直接登录
+  3. **微信授权登录**：用户授权微信信息，直接登录（静默登录）
+
+- **登录记录表（jilubiao）**：记录用户登录行为
+  ```json
+  {
+    "controlId": "yonghu",
+    "value": "rowid"
+  },
+  {
+    "controlId": "leixing",
+    "value": "点赞 或 收藏 或 评论 或 思维",
+    "valueType": "提交值类型，1=不增加选项，2=允许增加选项（默认为1，为1时匹配不到已有选项时传入空，为2时，匹配不到时会创建新选项并写入）"
+  },
+  {
+    "controlId": "tupian",
+    "value": "https://www.mingdao.com/1.jpg,https://www.mingdao.com/2.jpg,https://www.mingdao.com/3.txt",
+    "editType": "数据更新类型，0=覆盖，1=新增（默认0:覆盖，新建记录可不传该参数）",
+    "valueType": "提交值类型，1=外部文件链接，2=文件流字节编码 base64格式 字符串 (默认1,为1时 外部链接放在value参数中，为2时 文件流base64信息放在controlFiles参数中 )"
+  },
+  {
+    "controlId": "leixing",
+    "value": "小程序登录"
+  },
+  {
+    "controlId": "dlfs",
+    "value": "手机验证码"
+  },
+  {
+    "controlId": "openId",
+    "value": "{后台api获取的用户openid}"
+  }
+  ```
+
+- **登录方式字段（dlfs）**：记录用户使用的登录方式
+  - `手机验证码`：通过手机号+验证码登录
+  - `手机一键登录`：通过微信授权手机号登录
+  - `微信授权登录`：通过微信授权信息登录（静默登录）
+
+- **记录时机**：每次用户成功登录后，自动向明道云 `jilubiao` 表添加一条记录，包含用户 openId 和登录方式。
+
 ### 后端架构（宝塔部署）
 
 #### 技术栈

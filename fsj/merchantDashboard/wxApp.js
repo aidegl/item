@@ -97,6 +97,7 @@ const handleLogin = async (req, res) => {
         // 3. 正常返回（确保有openid字段）
         const result = { success: true, openid: response.data.openid || '', session_key: response.data.session_key || '' };
         console.log('[login] 成功返回 openId:', result.openid ? result.openid.substring(0, 8) + '...' : '');
+
         res.json(result);
     } catch (e) {
         console.error('登录接口异常:', e.message, e.response?.data); // 新增错误日志
@@ -141,7 +142,7 @@ app.post('/api/core/api/login', handleLogin);
 app.post('/api/login', handleLogin);
 
 // 健康检查接口
-app.get('/', (req, res) => res.send('沈仙子后端服务运行中（已对接MySQL）...'));
+app.get('/', (req, res) => res.send('沈仙子后端服务运行中(已对接MySQL)...'));
 
 // 手机号一键登录接口（支持 /api/core/api/phone-login 和 /api/phone-login 两种路径）
 const handlePhoneLogin = async (req, res) => {
@@ -218,6 +219,7 @@ const handlePhoneLogin = async (req, res) => {
 
         if (openId) {
             console.log('[phone-login] 成功返回 openId:', openId.substring(0, 8) + '...', 'merchantId:', mchId);
+
             return res.json({
                 success: true,
                 openId,
