@@ -7,7 +7,8 @@ const mysql = require('mysql2/promise');
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '2mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '2mb' }));
 
 // 原有硬编码配置（兜底，防止MySQL读取失败）
 const DEFAULT_CONFIG = {
@@ -63,23 +64,31 @@ async function getMerchantConfig(merchantId) {
     }
 }
 
+/** 获取登录配置，避免逗号运算符解析问题 */
+async function getConfigForLogin(body) {
+    var appId = body.appId, appSecret = body.appSecret, merchant_id = body.merchant_id, merchantId = body.merchantId;
+    if (appId && appSecret) {
+        console.log('[login] 使用 server 注入的 appId:', appId);
+        return { appid: appId, secret: appSecret };
+    }
+    var mchId = merchant_id || merchantId;
+    if (mchId) return await getMerchantConfig(mchId);
+    return DEFAULT_CONFIG;
+}
+
 // 微信登录接口（支持 /api/core/api/login 和 /api/login 两种路径）
 const handleLogin = async (req, res) => {
-    const body = req.body || {};
-    const { code, merchant_id, merchantId, appId, appSecret } = body;
-    // 1. 校验前端传参（新增）
+    var body = req.body || {};
+    var code = body.code, merchant_id = body.merchant_id, merchantId = body.merchantId;
     if (!code) {
         return res.json({
             success: false,
-            openid: '', // 统一返回openid字段
+            openid: '',
             message: '缺少微信授权code'
         });
     }
     try {
-        // 优先使用 server 转发时注入的 appId/appSecret（来自明道云或 wechat-credentials.json）
-        const config = (appId && appSecret)
-            ? (console.log('[login] 使用 server 注入的 appId:', appId), { appid: appId, secret: appSecret })
-            : (merchant_id || merchantId) ? await getMerchantConfig(merchant_id || merchantId) : DEFAULT_CONFIG;
+        var config = await getConfigForLogin(body);
         const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${config.appid}&secret=${config.secret}&js_code=${code}&grant_type=authorization_code`;
         console.log('[login] 使用 appid:', config.appid, 'merchantId:', merchant_id || merchantId);
         const response = await axios.get(url);
@@ -99,7 +108,7 @@ const handleLogin = async (req, res) => {
         console.log('[login] 成功返回 openId:', result.openid ? result.openid.substring(0, 8) + '...' : '');
         res.json(result);
     } catch (e) {
-        console.error('登录接口异常:', e.message, e.response?.data); // 新增错误日志
+        console.error('登录接口异常:', e.message, (e.response && e.response.data));
         // 4. 异常时统一返回格式（核心修复）
         res.json({
             success: false,
@@ -161,10 +170,7 @@ const handlePhoneLogin = async (req, res) => {
     }
 
     try {
-        // 优先使用 server 转发时注入的 appId/appSecret（来自明道云或 wechat-credentials.json），否则从 MySQL merchant_wx_config 读取
-        const config = (appId && appSecret)
-            ? (console.log('[phone-login] 使用 server 注入的 appId:', appId), { appid: appId, secret: appSecret })
-            : mchId ? await getMerchantConfig(mchId) : DEFAULT_CONFIG;
+        var config = await getConfigForLogin(body);
         console.log('[phone-login] 使用 appid:', config.appid, 'merchantId:', mchId);
 
         // 1. 用 loginCode 换取 openId（必须，用于「我的」页等）
@@ -189,13 +195,13 @@ const handlePhoneLogin = async (req, res) => {
             try {
                 const tokenUrl = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${config.appid}&secret=${config.secret}`;
                 const tokenRes = await axios.get(tokenUrl);
-                const access_token = tokenRes.data?.access_token;
+                var access_token = (tokenRes.data && tokenRes.data.access_token);
                 if (access_token) {
                     const phoneRes = await axios.post(
                         `https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=${access_token}`,
                         { code }
                     );
-                    if (phoneRes.data?.phone_info?.phoneNumber) {
+                    if (phoneRes.data && phoneRes.data.phone_info && phoneRes.data.phone_info.phoneNumber) {
                         console.log('获取手机号成功:', phoneRes.data.phone_info.phoneNumber);
                     }
                 }
