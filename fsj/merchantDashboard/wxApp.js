@@ -7,7 +7,7 @@ const mysql = require('mysql2/promise');
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json({ limit: '2mb' })); // encryptedData 可能较长，提高限制
+app.use(bodyParser.json());
 
 // 原有硬编码配置（兜底，防止MySQL读取失败）
 const DEFAULT_CONFIG = {
@@ -141,34 +141,22 @@ app.post('/api/core/api/login', handleLogin);
 app.post('/api/login', handleLogin);
 
 // 健康检查接口
-app.get('/', (req, res) => res.send('沈仙子后端服务运行中(已对接MySQL)...'));
+app.get('/', (req, res) => res.send('沈仙子后端服务运行中（已对接MySQL）...'));
 
 // 手机号一键登录接口（支持 /api/core/api/phone-login 和 /api/phone-login 两种路径）
 const handlePhoneLogin = async (req, res) => {
     const body = req.body || {};
-    const contentType = req.get('Content-Type') || '';
-    if (Object.keys(body).length === 0 && req.method === 'POST') {
-        console.log('[phone-login] 警告: body 为空, Content-Type:', contentType);
-    }
     const { code, encryptedData, iv, sessionKey, merchant_id, merchantId, appId, appSecret } = body;
     const loginCode = body.loginCode || body.login_code;
     const mchId = merchant_id || merchantId;
 
-    // 调试：打印完整 body keys 及关键字段（不打印敏感值）
-    const bodyKeys = Object.keys(body);
-    console.log('[phone-login] 收到 body keys:', bodyKeys.join(', '));
-    console.log('[phone-login] loginCode:', loginCode ? loginCode.substring(0, 12) + '...' : '(空)');
-    console.log('[phone-login] mchId:', mchId);
+    console.log('[phone-login] 收到参数:', JSON.stringify({ hasCode: !!code, hasLoginCode: !!loginCode, hasSessionKey: !!sessionKey, mchId }));
 
     if (!loginCode && !sessionKey) {
-        const msg = bodyKeys.length === 0
-            ? '请求体为空（可能是 Content-Type 或 body 解析问题，请检查小程序 wx.request 的 header 与 data）'
-            : '缺少 loginCode（请先调用 wx.login 获取并传入 loginCode）';
-        console.log('[phone-login] 参数不足，bodyKeys:', bodyKeys);
         return res.json({
             success: false,
             openId: '',
-            message: msg
+            message: '缺少 loginCode（请先调用 wx.login 获取并传入 loginCode）'
         });
     }
 
@@ -262,13 +250,14 @@ app.post('/api/core/api/login/verify', (req, res) => {
     res.json({ success: false, msg: '验证码登录功能需配置短信服务，请使用「手机号一键登录」' });
 });
 
-// 绑定所有地址启动服务
-app.listen(3000, '0.0.0.0', (err) => {
+// 绑定所有地址启动服务（支持 PORT 环境变量，默认 3000，可设为 3003）
+const PORT = parseInt(process.env.PORT, 10) || 3000;
+app.listen(PORT, '0.0.0.0', (err) => {
     if (err) {
         console.error('服务启动失败:', err);
         return;
     }
-    console.log('Server running on port 3000 (绑定所有网卡: 0.0.0.0:3000)');
+    console.log('Server running on port ' + PORT + ' (绑定所有网卡: 0.0.0.0:' + PORT + ')');
 });
 
 // 捕获所有未处理错误，防止进程退出
