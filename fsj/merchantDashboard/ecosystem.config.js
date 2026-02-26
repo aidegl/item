@@ -6,12 +6,9 @@ module.exports = {
   apps: [
     {
       name: 'api-3003',
-      script: 'wxApp.js',
+      script: 'start-3003.js',
       exec_mode: 'fork',
       instances: 1,
-      env: {
-        PORT: '3003'
-      },
       autorestart: true,
       watch: false
     }
