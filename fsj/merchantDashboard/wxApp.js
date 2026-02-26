@@ -141,7 +141,7 @@ app.post('/api/core/api/login', handleLogin);
 app.post('/api/login', handleLogin);
 
 // 健康检查接口
-app.get('/', (req, res) => res.send('沈仙子后端服务运行中（已对接MySQL）...'));
+app.get('/', (req, res) => res.send('沈仙子后端服务运行中(已对接MySQL)...'));
 
 // 手机号一键登录接口（支持 /api/core/api/phone-login 和 /api/phone-login 两种路径）
 const handlePhoneLogin = async (req, res) => {
