@@ -192,16 +192,18 @@ const MINIPROGRAM_VERSION = '1.0.2';
 
 | 端口 | 进程名称 | 路径 | 功能 |
 |------|---------|------|------|
-| 3000 | server.js | `/www/wwwroot/api.100000whys.cn` | 登录接口（wxApp.js） |
 | 3001 | server.js | `/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard` | 小程序打包生成 |
+| 3003 | server.js | 宝塔新建 Node 项目（端口 3003） | 打包小程序与登录相关 API（wx.login、手机号一键登录等） |
+
+**说明**：端口 3003 为宝塔新建的 Node 服务，承载打包后小程序调用的所有登录相关接口。
 
 ### PM2 重启命令
 ```bash
-# 3000 登录服务
-pm2 restart server-3000  # 进程名可能为 api-3000 或其他，需根据实际 pm2 list 显示的名称
-
 # 3001 打包服务
 pm2 restart miniprogram-generator-3001
+
+# 3003 打包与登录 API（进程名以 pm2 list 为准，如 api-3003）
+pm2 restart api-3003
 
 # 或者重启所有
 pm2 restart all

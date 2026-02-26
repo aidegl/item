@@ -469,10 +469,10 @@ module.exports = {
 
 #### 服务器端口与路径对应关系
 
-| 端口 | 进程名称  | 路径                                                       | 功能                 |
-| ---- | --------- | ---------------------------------------------------------- | -------------------- |
-| 3000 | server.js | `/www/wwwroot/api.100000whys.cn`                           | 登录接口（wxApp.js） |
-| 3001 | server.js | `/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard` | 小程序打包生成       |
+| 端口 | 进程名称 | 路径 | 功能 |
+|------|---------|------|------|
+| 3000 | server.js | `/www/wwwroot/api.100000whys.cn` | 登录接口（wxApp.js） |
+| 3001 | server.js | `/www/wwwroot/100000whys.cn/project/fsj/merchantDashboard` | 小程序打包生成 |
 
 #### 后端打包逻辑示例
 
