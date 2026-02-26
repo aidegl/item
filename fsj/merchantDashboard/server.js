@@ -205,7 +205,7 @@ function generateAppJs(merchantId, outputDir, config) {
   }
 
   const gc = config && config.globalConfig || {};
-  const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://api.100000whys.cn';
+  const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://100000whys.cn';
   const base = baseUrl.replace(/\/$/, '');
   let loginApiUrl = gc.loginApiUrl || '';
   if (!loginApiUrl && gc.wechatAppId && gc.wechatAppSecret) {
@@ -297,7 +297,7 @@ function generateLoginPage(outputDir, config, themeColor) {
   fs.mkdirSync(loginDir, { recursive: true });
 
   const tc = (themeColor && themeColor !== '{主题色}') ? themeColor : '#0557e1';
-  const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://api.100000whys.cn';
+  const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://100000whys.cn';
   const phoneLoginApiUrl = baseUrl.replace(/\/$/, '') + '/api/core/api/phone-login';
   const loginApiUrl = baseUrl.replace(/\/$/, '') + '/api/core/api/login';
   const userAgreementUrl = (config && config.globalConfig && config.globalConfig.userAgreementUrl) || '';
@@ -539,7 +539,7 @@ function generateLoginVerifyPage(outputDir, config, themeColor) {
   fs.mkdirSync(loginVerifyDir, { recursive: true });
 
   const tc = (themeColor && themeColor !== '{主题色}') ? themeColor : '#0557e1';
-  const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://api.100000whys.cn';
+  const baseUrl = process.env.SERVER_PUBLIC_URL || 'https://100000whys.cn';
   const phoneLoginApiUrl = baseUrl.replace(/\/$/, '') + '/api/core/api/phone-login';
   const loginApiUrl = baseUrl.replace(/\/$/, '') + '/api/core/api/login';
 
@@ -1842,8 +1842,8 @@ app.post('/api/merchant/wechat-config', (req, res) => {
   }
 });
 
-/** 转发到 wxApp 登录服务（当 api.100000whys.cn 指向本服务时，小程序请求 /api/core/ 需由此转发） */
-const WXAPP_URL = process.env.WXAPP_SERVICE_URL || 'http://127.0.0.1:3000';
+/** 转发到 wxApp 登录服务（当有请求经 3001 转发时，转发到 3003 wxApp） */
+const WXAPP_URL = process.env.WXAPP_SERVICE_URL || 'http://127.0.0.1:3003';
 function proxyToWxApp(path, req, res, bodyOverride) {
   const body = bodyOverride !== undefined ? bodyOverride : (req.body || {});
   const bodyStr = JSON.stringify(body);
