@@ -7,7 +7,7 @@ const mysql = require('mysql2/promise');
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '2mb' })); // encryptedData 可能较长，提高限制
 
 // 原有硬编码配置（兜底，防止MySQL读取失败）
 const DEFAULT_CONFIG = {
@@ -146,17 +146,29 @@ app.get('/', (req, res) => res.send('沈仙子后端服务运行中（已对接M
 // 手机号一键登录接口（支持 /api/core/api/phone-login 和 /api/phone-login 两种路径）
 const handlePhoneLogin = async (req, res) => {
     const body = req.body || {};
+    const contentType = req.get('Content-Type') || '';
+    if (Object.keys(body).length === 0 && req.method === 'POST') {
+        console.log('[phone-login] 警告: body 为空, Content-Type:', contentType);
+    }
     const { code, encryptedData, iv, sessionKey, merchant_id, merchantId, appId, appSecret } = body;
     const loginCode = body.loginCode || body.login_code;
     const mchId = merchant_id || merchantId;
 
-    console.log('[phone-login] 收到参数:', JSON.stringify({ hasCode: !!code, hasLoginCode: !!loginCode, hasSessionKey: !!sessionKey, mchId }));
+    // 调试：打印完整 body keys 及关键字段（不打印敏感值）
+    const bodyKeys = Object.keys(body);
+    console.log('[phone-login] 收到 body keys:', bodyKeys.join(', '));
+    console.log('[phone-login] loginCode:', loginCode ? loginCode.substring(0, 12) + '...' : '(空)');
+    console.log('[phone-login] mchId:', mchId);
 
     if (!loginCode && !sessionKey) {
+        const msg = bodyKeys.length === 0
+            ? '请求体为空（可能是 Content-Type 或 body 解析问题，请检查小程序 wx.request 的 header 与 data）'
+            : '缺少 loginCode（请先调用 wx.login 获取并传入 loginCode）';
+        console.log('[phone-login] 参数不足，bodyKeys:', bodyKeys);
         return res.json({
             success: false,
             openId: '',
-            message: '缺少 loginCode（请先调用 wx.login 获取并传入 loginCode）'
+            message: msg
         });
     }
 
