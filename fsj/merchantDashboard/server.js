@@ -455,8 +455,14 @@ function generateLoginPage(outputDir, config, themeColor) {
           wx.showToast({ title: '获取登录凭证失败，请重试', icon: 'none' });
           return;
         }
-        const postData = { code: code || '', encryptedData: encryptedData || '', iv: iv || '', loginCode, merchantId };
-        console.log('[登录] 请求 merchantId:', merchantId);
+        const postData = {
+          code: code || '',
+          encryptedData: encryptedData || '',
+          iv: iv || '',
+          loginCode: loginCode || '',
+          merchantId: merchantId || ''
+        };
+        console.log('[登录] postData keys:', Object.keys(postData), 'loginCode:', loginCode ? loginCode.substring(0,8)+'...' : '(空)');
         wx.request({
           url: url,
           method: 'POST',
