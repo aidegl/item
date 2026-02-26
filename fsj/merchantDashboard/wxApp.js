@@ -97,7 +97,6 @@ const handleLogin = async (req, res) => {
         // 3. 正常返回（确保有openid字段）
         const result = { success: true, openid: response.data.openid || '', session_key: response.data.session_key || '' };
         console.log('[login] 成功返回 openId:', result.openid ? result.openid.substring(0, 8) + '...' : '');
-
         res.json(result);
     } catch (e) {
         console.error('登录接口异常:', e.message, e.response?.data); // 新增错误日志
@@ -219,7 +218,6 @@ const handlePhoneLogin = async (req, res) => {
 
         if (openId) {
             console.log('[phone-login] 成功返回 openId:', openId.substring(0, 8) + '...', 'merchantId:', mchId);
-
             return res.json({
                 success: true,
                 openId,
