@@ -215,49 +215,58 @@ function generateAppJs(merchantId, outputDir, config) {
   const phoneLoginApiUrl = gc.phoneLoginApiUrl || base + '/api/core/api/phone-login';
   const loginBlock = `
   console.log('小程序版本: ${MINIPROGRAM_VERSION}');
-  const savedOpenId = wx.getStorageSync('openId');
-  if (savedOpenId) {
-    this.globalData.openId = savedOpenId;
-    console.log('从缓存恢复 openId:', savedOpenId);
-  } else {
-    this.doLogin();
+  try {
+    var savedOpenId = wx.getStorageSync('openId');
+    if (savedOpenId) {
+      this.globalData.openId = savedOpenId;
+      console.log('从缓存恢复 openId:', typeof savedOpenId === 'string' ? savedOpenId.substring(0, 8) + '...' : savedOpenId);
+    } else {
+      setTimeout(function() { this.doLogin(); }.bind(this), 100);
+    }
+  } catch (e) {
+    console.warn('启动时获取 openId 异常（游客模式可能受限）:', e);
+    setTimeout(function() { this.doLogin(); }.bind(this), 100);
   }
 `;
 
   const doLoginBlock = loginApiUrl ? `
   doLogin() {
-    wx.login({
-      success: (res) => {
-        if (!res.code) {
-          console.warn('wx.login 未返回 code');
-          return;
-        }
-        console.log('wx.login code:', res.code);
-        wx.request({
-          url: '${loginApiUrl.replace(/'/g, "\\'")}',
-          method: 'POST',
-          data: { code: res.code, merchantId: this.globalData.merchantId || '' },
-          header: { 'Content-Type': 'application/json' },
-          success: (reqRes) => {
-            console.log('登录接口返回:', reqRes.data);
-            const openId = (reqRes.data && (reqRes.data.openId || reqRes.data.openid)) || (reqRes.data && reqRes.data.data && (reqRes.data.data.openId || reqRes.data.data.openid));
-            if (openId) {
-              this.globalData.openId = openId;
-              wx.setStorageSync('openId', openId);
-              console.log('登录成功, openId:', openId);
-            } else {
-              console.warn('登录接口未返回 openId, 完整结果:', JSON.stringify(reqRes.data));
-            }
-          },
-          fail: (err) => {
-            console.error('登录请求失败:', err);
+    try {
+      wx.login({
+        success: (res) => {
+          if (!res.code) {
+            console.warn('wx.login 未返回 code（游客模式/模拟器可能返回模拟数据）');
+            return;
           }
-        });
-      },
-      fail: (err) => {
-        console.error('wx.login 失败:', err);
-      }
-    });
+          wx.request({
+            url: '${loginApiUrl.replace(/'/g, "\\'")}',
+            method: 'POST',
+            data: { code: res.code, merchantId: this.globalData.merchantId || '' },
+            header: { 'Content-Type': 'application/json' },
+            success: (reqRes) => {
+              try {
+                const openId = (reqRes.data && (reqRes.data.openId || reqRes.data.openid)) || (reqRes.data && reqRes.data.data && (reqRes.data.data.openId || reqRes.data.data.openid));
+                if (openId) {
+                  this.globalData.openId = openId;
+                  wx.setStorageSync('openId', openId);
+                  console.log('登录成功, openId:', openId.substring(0, 8) + '...');
+                } else {
+                  console.warn('登录接口未返回 openId');
+                }
+              } catch (e) { console.warn('解析登录返回异常:', e); }
+            },
+            fail: (err) => {
+              console.warn('登录请求失败（游客模式/模拟器可能受限）:', err.errMsg || err);
+            }
+          });
+        },
+        fail: (err) => {
+          console.warn('wx.login 失败（游客模式可能受限）:', err.errMsg || err);
+        }
+      });
+    } catch (e) {
+      console.warn('doLogin 异常:', e);
+    }
   },
 ` : `
   doLogin() {
