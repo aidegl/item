@@ -107,7 +107,7 @@ const handleLogin = async (req, res) => {
             message: `登录失败: ${e.message}`
         });
     }
-});
+};
 
 // 微信支付接口（保留原有逻辑）
 app.post('/api/pay', async (req, res) => {
@@ -136,7 +136,7 @@ app.post('/api/pay', async (req, res) => {
         console.error('支付接口报错:', e);
         res.status(500).json({ success: false, message: '支付服务异常', error: e.message });
     }
-};
+});
 app.post('/api/core/api/login', handleLogin);
 app.post('/api/login', handleLogin);
 
