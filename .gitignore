@@ -1,21 +1,21 @@
-# OpenClaw 工作空间忽略文件
-
-# 子模块（单独管理）
-KnowledgeBase/
-hap-skills-collection/
-item-repo/
-
 # 运行时文件
 .openclaw/
 *.pid
 *.log
 
+# 缓存文件
+skills/mingdao-chat/.dialog-cache.json
+skills/mingdao-chat/.session-cache.json
+
 # 临时文件
 tmp/
 *.tmp
-
-# 备份文件
 *.bak
+
+# 子模块（单独管理）
+KnowledgeBase/
+hap-skills-collection/
+item-repo/
 
 # Node.js
 node_modules/
