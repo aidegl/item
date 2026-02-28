@@ -1,0 +1,87 @@
+.recording-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.recording-card {
+  background: white;
+  padding: 60rpx;
+  border-radius: 48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 560rpx;
+  box-shadow: 0 20rpx 50rpx rgba(0,0,0,0.2);
+}
+
+.audio-waves {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  height: 120rpx;
+  margin-bottom: 40rpx;
+}
+
+.wave-bar {
+  width: 8rpx;
+  height: 40rpx;
+  background: #8b5cf6;
+  border-radius: 4rpx;
+  animation: wave 1s ease-in-out infinite;
+}
+
+.bar-2 { animation-delay: 0.1s; background: #a78bfa; }
+.bar-3 { animation-delay: 0.2s; background: #c4b5fd; }
+.bar-4 { animation-delay: 0.3s; background: #8b5cf6; }
+.bar-5 { animation-delay: 0.4s; background: #a78bfa; }
+.bar-6 { animation-delay: 0.5s; background: #c4b5fd; }
+
+@keyframes wave {
+  0%, 100% { height: 40rpx; opacity: 0.5; }
+  50% { height: 100rpx; opacity: 1; }
+}
+
+.recording-status {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16rpx;
+}
+
+.recording-hint {
+  font-size: 28rpx;
+  color: #6b7280;
+  margin-bottom: 48rpx;
+}
+
+.stop-btn {
+  background: #ef4444 !important;
+  color: white !important;
+  border: none !important;
+  padding: 24rpx 60rpx !important;
+  border-radius: 100rpx !important;
+  font-size: 30rpx !important;
+  font-weight: 500 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16rpx !important;
+  box-shadow: 0 8rpx 24rpx rgba(239, 68, 68, 0.3) !important;
+  width: auto !important;
+  line-height: 1 !important;
+}
+
+.stop-icon {
+  width: 30rpx;
+  height: 30rpx;
+  background: white;
+  border-radius: 4rpx;
+}

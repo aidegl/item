@@ -1,0 +1,21 @@
+<view class="page">
+    <view class="result-section">
+        <view class="status-label">
+            <text>{{statusText}}</text>
+        </view>
+        <view class="timer">
+            <text>{{timerDisplay}}</text>
+        </view>
+        <textarea class="result-input" disabled value="{{resultText}}" placeholder="这里显示语音识别结果"></textarea>
+    </view>
+
+    <view class="footer">
+        <button class="record-btn {{isRecording ? 'recording' : ''}}" bindtap="onToggleRecord">
+            {{recordButtonText}}
+        </button>
+        <button class="ai-btn" bindtap="onAIIdentify">
+            智能识别
+        </button>
+    </view>
+</view>
+

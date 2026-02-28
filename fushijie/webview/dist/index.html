@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no,maximum-scale=1.0">
+  <!-- 防缓存 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+  <!-- 引入vConsole -->
+  <script src="./js/vconsole-loader.js"></script>
+  <script src="./js/api/MingdaoUpdate.js"></script>
+  <script src="./js/api/MingdaoQuery.js"></script>
+  <script src="./js/api/MingdaoArray.js"></script>
+  <script src="./utils/WechatLogin.js"></script>
+  <link rel="stylesheet" href="./css/base.css?v=1.0.5">
+  <link rel="stylesheet" href="./css/index.css?v=1.0.5">
+
+  <title>Document</title>
+</head>
+
+<body>
+
+
+  <main id="main-content">
+    <section id="page-home" class="page">
+      <div class="page-header page-header-home">
+        <div class="search-bar" role="search">
+          <img class="search-bar__icon" src="./assets/img/搜索.png" alt="搜索">
+          <input class="search-bar__input" type="search" placeholder="请输入想要搜索的内容">
+          <button class="search-bar__button" type="button">搜索</button>
+        </div>
+      </div>
+    </section>
+    <section id="page-agent" class="page">
+      <img class="agent-deco" src="./assets/img/agent.png" alt="">
+    </section>
+    <section id="page-chat" class="page">
+      <div class="page-header page-header-chat">
+        <div class="search-bar" role="search">
+          <img class="search-bar__icon" src="./assets/img/搜索.png" alt="搜索">
+          <input class="search-bar__input" type="search" placeholder="请输入想要搜索的内容">
+          <button class="search-bar__button" type="button">搜索</button>
+        </div>
+      </div>
+    </section>
+    <section id="page-me" class="page">
+      <div class="user-info">
+        <div class="user-info-inner">
+          <img class="user-avatar" src="./assets/img/me0.png" alt="头像">
+          <div class="user-basic">
+            <div class="user-name">未登录</div>
+          </div>
+        </div>
+      </div>
+      <div class="me-container">
+        <div class="metrics">
+          <div class="metric-cell">
+            <div class="metric-text">
+              <div class="metric-key">获赞</div>
+              <div class="metric-value">123</div>
+            </div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-text">
+              <div class="metric-key">关注</div>
+              <div class="metric-value">123</div>
+            </div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-text">
+              <div class="metric-key">粉丝</div>
+              <div class="metric-value">123</div>
+            </div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-text">
+              <div class="metric-key">声望</div>
+              <div class="metric-value">123</div>
+            </div>
+          </div>
+        </div>
+        <ul class="me-menu">
+          <li class="menu-item">
+            <div class="menu-left">
+              <img class="menu-icon" src="./assets/img/quanzi.png" alt="">
+              <span class="menu-text">我的圈子</span>
+            </div>
+            <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
+          </li>
+          <li class="menu-item">
+            <div class="menu-left">
+              <img class="menu-icon" src="./assets/img/tag.png" alt="">
+              <span class="menu-text">我的标签</span>
+            </div>
+            <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
+          </li>
+          <li class="menu-item">
+            <div class="menu-left">
+              <img class="menu-icon" src="./assets/img/aboutwe.png" alt="">
+              <span class="menu-text">关于我们</span>
+            </div>
+            <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
+          </li>
+          <li class="menu-item">
+            <div class="menu-left">
+              <img class="menu-icon" src="./assets/img/edit.png" alt="">
+              <span class="menu-text">意见反馈</span>
+            </div>
+            <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
+          </li>
+          <li class="menu-item" id="menu-settings">
+            <div class="menu-left">
+              <img class="menu-icon" src="./assets/img/set.png" alt="">
+              <span class="menu-text">设置</span>
+            </div>
+            <img class="menu-arrow" src="./assets/img/xiangqing.png" alt="详情">
+          </li>
+        </ul>
+        <pre id="mingdao-result" class="mingdao-result" aria-label="明道云返回数据"></pre>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部导航栏 -->
+  <nav class="tab-bar" aria-label="底部菜单">
+    <ul class="tab-list">
+      <li class="tab-item active" data-tab="home">
+        <div class="icon-wrapper">
+          <img src="./assets/img/home1.png" alt="首页" class="tab-icon">
+        </div>
+        <span class="tab-text">首页11</span>
+      </li>
+      <li class="tab-item" data-tab="agent">
+        <div class="icon-wrapper">
+          <img src="./assets/img/agent0.png" alt="AI助理" class="tab-icon">
+        </div>
+        <span class="tab-text">AI助理</span>
+      </li>
+      <li class="tab-item center-item" data-tab="task">
+        <div class="center-icon-wrapper">
+          <div class="center-icon-inner">
+            <img src="./assets/img/jia.png" alt="发布" class="center-icon">
+          </div>
+        </div>
+      </li>
+      <li class="tab-item" data-tab="chat">
+        <div class="icon-wrapper">
+          <img src="./assets/img/chat0.png" alt="对话" class="tab-icon">
+        </div>
+        <span class="tab-text">对话</span>
+      </li>
+      <li class="tab-item" data-tab="me">
+        <div class="icon-wrapper">
+          <img src="./assets/img/me0.png" alt="我的" class="tab-icon">
+        </div>
+        <span class="tab-text">我的</span>
+      </li>
+    </ul>
+  </nav>
+
+  <script src="./utils/login-test.js"></script>
+  <script src="./js/index.js"></script>
+</body>
+
+</html>

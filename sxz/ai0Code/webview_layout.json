@@ -1,0 +1,914 @@
+[
+  {
+    "id": "app_frontend",
+    "parentId": null,
+    "sort": 1,
+    "type": "System",
+    "name": "前台",
+    "basicProps": {},
+    "styleProps": {}
+  },
+  {
+    "id": "app_backend",
+    "parentId": null,
+    "sort": 2,
+    "type": "System",
+    "name": "后台",
+    "basicProps": {},
+    "styleProps": {}
+  },
+  {
+    "id": "root",
+    "parentId": "app_frontend",
+    "sort": 1,
+    "type": "Page",
+    "name": "陪诊助手首页",
+    "basicProps": {
+      "className": "app-container",
+      "backgroundColor": "#f5f5f5",
+      "height": "100%"
+    },
+    "styleProps": {
+      "display": "flex",
+      "flexDirection": "column"
+    }
+  },
+  {
+    "id": "onboarding_modal",
+    "parentId": "root",
+    "sort": 1,
+    "type": "Container",
+    "name": "新手引导弹窗",
+    "basicProps": {
+      "className": "onboarding-modal hidden"
+    },
+    "styleProps": {
+      "position": "fixed",
+      "top": "0",
+      "left": "0",
+      "width": "100%",
+      "height": "100%",
+      "backgroundColor": "rgba(0,0,0,0.5)",
+      "zIndex": "1000",
+      "display": "none",
+      "justifyContent": "center",
+      "alignItems": "center"
+    }
+  },
+  {
+    "id": "onboarding_content",
+    "parentId": "onboarding_modal",
+    "sort": 1,
+    "type": "Card",
+    "name": "引导内容卡片",
+    "basicProps": {
+      "className": "onboarding-content"
+    },
+    "styleProps": {
+      "width": "80%",
+      "maxWidth": "400px",
+      "backgroundColor": "#fff",
+      "borderRadius": "12px",
+      "overflow": "hidden"
+    }
+  },
+  {
+    "id": "onboarding_header",
+    "parentId": "onboarding_content",
+    "sort": 1,
+    "type": "Row",
+    "name": "引导头部",
+    "basicProps": {
+      "className": "onboarding-header",
+      "justify": "space-between",
+      "align": "center"
+    },
+    "styleProps": {
+      "padding": "16px",
+      "borderBottom": "1px solid #eee",
+      "display": "flex",
+      "justifyContent": "space-between",
+      "alignItems": "center"
+    }
+  },
+  {
+    "id": "onboarding_title",
+    "parentId": "onboarding_header",
+    "sort": 1,
+    "type": "Text",
+    "name": "标题",
+    "basicProps": {
+      "content": "欢迎使用陪诊助手",
+      "fontSize": "18px",
+      "fontWeight": "bold"
+    }
+  },
+  {
+    "id": "close_btn",
+    "parentId": "onboarding_header",
+    "sort": 2,
+    "type": "Button",
+    "name": "关闭按钮",
+    "basicProps": {
+      "text": "×",
+      "type": "text"
+    },
+    "styleProps": {
+      "fontSize": "24px",
+      "padding": "0 8px",
+      "border": "none",
+      "background": "transparent",
+      "cursor": "pointer"
+    }
+  },
+  {
+    "id": "onboarding_body",
+    "parentId": "onboarding_content",
+    "sort": 2,
+    "type": "Container",
+    "name": "引导主体",
+    "basicProps": {
+      "className": "onboarding-body"
+    },
+    "styleProps": {
+      "padding": "24px",
+      "textAlign": "center"
+    }
+  },
+  {
+    "id": "step_1",
+    "parentId": "onboarding_body",
+    "sort": 1,
+    "type": "Container",
+    "name": "步骤1-AI助手",
+    "basicProps": {
+      "className": "onboarding-step"
+    }
+  },
+  {
+    "id": "step_1_icon",
+    "parentId": "step_1",
+    "sort": 1,
+    "type": "Text",
+    "name": "图标",
+    "basicProps": {
+      "content": "🤖",
+      "fontSize": "48px"
+    },
+    "styleProps": {
+      "display": "block",
+      "marginBottom": "16px"
+    }
+  },
+  {
+    "id": "step_1_title",
+    "parentId": "step_1",
+    "sort": 2,
+    "type": "Text",
+    "name": "步骤标题",
+    "basicProps": {
+      "content": "智能AI助手",
+      "fontSize": "18px",
+      "fontWeight": "bold"
+    },
+    "styleProps": {
+      "display": "block",
+      "marginBottom": "8px"
+    }
+  },
+  {
+    "id": "step_1_desc",
+    "parentId": "step_1",
+    "sort": 3,
+    "type": "Text",
+    "name": "步骤描述",
+    "basicProps": {
+      "content": "随时为您解答陪诊相关问题，提供专业建议和话术指导",
+      "color": "#666"
+    }
+  },
+  {
+    "id": "onboarding_footer",
+    "parentId": "onboarding_content",
+    "sort": 3,
+    "type": "Row",
+    "name": "引导底部",
+    "basicProps": {
+      "className": "onboarding-footer",
+      "justify": "space-between",
+      "align": "center"
+    },
+    "styleProps": {
+      "padding": "16px",
+      "borderTop": "1px solid #eee",
+      "display": "flex",
+      "justifyContent": "space-between",
+      "alignItems": "center"
+    }
+  },
+  {
+    "id": "step_indicators",
+    "parentId": "onboarding_footer",
+    "sort": 1,
+    "type": "Row",
+    "name": "步骤指示器",
+    "basicProps": {
+      "className": "step-indicators"
+    },
+    "styleProps": {
+      "display": "flex",
+      "gap": "4px"
+    }
+  },
+  {
+    "id": "indicator_1",
+    "parentId": "step_indicators",
+    "sort": 1,
+    "type": "Container",
+    "name": "指示点1",
+    "styleProps": {
+      "width": "8px",
+      "height": "8px",
+      "borderRadius": "50%",
+      "backgroundColor": "#1890ff"
+    }
+  },
+  {
+    "id": "indicator_2",
+    "parentId": "step_indicators",
+    "sort": 2,
+    "type": "Container",
+    "name": "指示点2",
+    "styleProps": {
+      "width": "8px",
+      "height": "8px",
+      "borderRadius": "50%",
+      "backgroundColor": "#ddd"
+    }
+  },
+  {
+    "id": "next_btn",
+    "parentId": "onboarding_footer",
+    "sort": 2,
+    "type": "Button",
+    "name": "下一步按钮",
+    "basicProps": {
+      "text": "下一步",
+      "type": "primary"
+    }
+  },
+  {
+    "id": "main_content",
+    "parentId": "root",
+    "sort": 2,
+    "type": "Container",
+    "name": "主内容区",
+    "basicProps": {
+      "className": "main-content"
+    },
+    "styleProps": {
+      "flex": "1",
+      "overflow": "auto",
+      "paddingBottom": "60px"
+    }
+  },
+  {
+    "id": "page_ai_assistant",
+    "parentId": "main_content",
+    "sort": 1,
+    "type": "Container",
+    "name": "智能助手页面",
+    "styleProps": {
+      "padding": "16px",
+      "paddingBottom": "80px"
+    }
+  },
+  {
+    "id": "ai_header",
+    "parentId": "page_ai_assistant",
+    "sort": 1,
+    "type": "Container",
+    "name": "头部卡片",
+    "styleProps": {
+      "background": "linear-gradient(to bottom right, #eff6ff, #dbeafe)",
+      "borderRadius": "16px",
+      "padding": "24px",
+      "marginBottom": "16px",
+      "border": "1px solid #bfdbfe"
+    }
+  },
+  {
+    "id": "ai_header_row",
+    "parentId": "ai_header",
+    "sort": 1,
+    "type": "Row",
+    "name": "头部内容行",
+    "styleProps": {
+      "display": "flex",
+      "gap": "12px",
+      "alignItems": "flex-start"
+    }
+  },
+  {
+    "id": "ai_header_icon",
+    "parentId": "ai_header_row",
+    "sort": 1,
+    "type": "Container",
+    "name": "闪电图标",
+    "styleProps": {
+      "width": "40px",
+      "height": "40px",
+      "borderRadius": "50%",
+      "backgroundColor": "#3b82f6",
+      "display": "flex",
+      "alignItems": "center",
+      "justifyContent": "center",
+      "color": "#fff",
+      "fontSize": "18px"
+    }
+  },
+  {
+    "id": "ai_header_icon_text",
+    "parentId": "ai_header_icon",
+    "sort": 1,
+    "type": "Text",
+    "name": "图标内容",
+    "basicProps": {
+      "content": "⚡"
+    }
+  },
+  {
+    "id": "ai_header_text_col",
+    "parentId": "ai_header_row",
+    "sort": 2,
+    "type": "Col",
+    "name": "文字区域",
+    "styleProps": {
+      "flex": "1"
+    }
+  },
+  {
+    "id": "ai_header_title",
+    "parentId": "ai_header_text_col",
+    "sort": 1,
+    "type": "Text",
+    "name": "标题",
+    "basicProps": {
+      "content": "每诊提醒助手",
+      "fontSize": "18px",
+      "fontWeight": "600"
+    },
+    "styleProps": {
+      "display": "block",
+      "marginBottom": "8px"
+    }
+  },
+  {
+    "id": "ai_header_desc",
+    "parentId": "ai_header_text_col",
+    "sort": 2,
+    "type": "Text",
+    "name": "描述",
+    "basicProps": {
+      "content": "自动记录患者年病青复诊信息,帮助您及时提醒患者复诊",
+      "color": "#4b5563",
+      "fontSize": "14px"
+    }
+  },
+  {
+    "id": "date_card",
+    "parentId": "page_ai_assistant",
+    "sort": 2,
+    "type": "Container",
+    "name": "日期选择卡片",
+    "styleProps": {
+      "backgroundColor": "#fff",
+      "borderRadius": "16px",
+      "padding": "16px",
+      "marginBottom": "16px",
+      "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
+      "border": "1px solid #f3f4f6"
+    }
+  },
+  {
+    "id": "date_header",
+    "parentId": "date_card",
+    "sort": 1,
+    "type": "Row",
+    "name": "日期头部",
+    "styleProps": {
+      "display": "flex",
+      "justifyContent": "space-between",
+      "alignItems": "center",
+      "marginBottom": "16px"
+    }
+  },
+  {
+    "id": "date_left",
+    "parentId": "date_header",
+    "sort": 1,
+    "type": "Container",
+    "name": "日期左侧",
+    "styleProps": {
+      "display": "flex",
+      "alignItems": "center",
+      "gap": "8px"
+    }
+  },
+  {
+    "id": "date_icon",
+    "parentId": "date_left",
+    "sort": 1,
+    "type": "Text",
+    "name": "日历图标",
+    "basicProps": {
+      "content": "📅",
+      "fontSize": "20px"
+    }
+  },
+  {
+    "id": "date_text",
+    "parentId": "date_left",
+    "sort": 2,
+    "type": "Text",
+    "name": "当前日期",
+    "basicProps": {
+      "content": "2025-12-17",
+      "color": "#111827"
+    }
+  },
+  {
+    "id": "today_btn",
+    "parentId": "date_header",
+    "sort": 2,
+    "type": "Button",
+    "name": "今天按钮",
+    "basicProps": {
+      "text": "今天"
+    },
+    "styleProps": {
+      "backgroundColor": "#ef4444",
+      "color": "#fff",
+      "padding": "4px 16px",
+      "borderRadius": "999px",
+      "fontSize": "14px",
+      "border": "none"
+    }
+  },
+  {
+    "id": "reminder_list",
+    "parentId": "date_card",
+    "sort": 2,
+    "type": "Container",
+    "name": "提醒列表",
+    "styleProps": {
+      "display": "flex",
+      "flexDirection": "column",
+      "gap": "12px"
+    }
+  },
+  {
+    "id": "reminder_item_1",
+    "parentId": "reminder_list",
+    "sort": 1,
+    "type": "Container",
+    "name": "提醒项1-老王",
+    "styleProps": {
+      "display": "flex",
+      "alignItems": "center",
+      "gap": "12px",
+      "padding": "12px",
+      "borderRadius": "12px",
+      "backgroundColor": "#f0fdf4"
+    }
+  },
+  {
+    "id": "rem_icon_1",
+    "parentId": "reminder_item_1",
+    "sort": 1,
+    "type": "Container",
+    "name": "完成图标",
+    "styleProps": {
+      "width": "24px",
+      "height": "24px",
+      "borderRadius": "50%",
+      "backgroundColor": "#22c55e",
+      "display": "flex",
+      "alignItems": "center",
+      "justifyContent": "center",
+      "color": "#fff"
+    }
+  },
+  {
+    "id": "rem_icon_text_1",
+    "parentId": "rem_icon_1",
+    "sort": 1,
+    "type": "Text",
+    "name": "勾选",
+    "basicProps": {
+      "content": "✓"
+    }
+  },
+  {
+    "id": "rem_content_1",
+    "parentId": "reminder_item_1",
+    "sort": 2,
+    "type": "Container",
+    "name": "内容区",
+    "styleProps": {
+      "flex": "1",
+      "display": "flex",
+      "alignItems": "center",
+      "gap": "8px"
+    }
+  },
+  {
+    "id": "rem_avatar_1",
+    "parentId": "rem_content_1",
+    "sort": 1,
+    "type": "Text",
+    "name": "头像",
+    "basicProps": {
+      "content": "👤",
+      "color": "#3b82f6"
+    }
+  },
+  {
+    "id": "rem_name_1",
+    "parentId": "rem_content_1",
+    "sort": 2,
+    "type": "Text",
+    "name": "姓名",
+    "basicProps": {
+      "content": "老王",
+      "color": "#111827"
+    }
+  },
+  {
+    "id": "rem_type_1",
+    "parentId": "rem_content_1",
+    "sort": 3,
+    "type": "Text",
+    "name": "类型",
+    "basicProps": {
+      "content": "复诊",
+      "color": "#6b7280",
+      "fontSize": "12px"
+    }
+  },
+  {
+    "id": "rem_tag_1",
+    "parentId": "reminder_item_1",
+    "sort": 3,
+    "type": "Container",
+    "name": "状态标签",
+    "styleProps": {
+      "backgroundColor": "#dcfce7",
+      "color": "#16a34a",
+      "padding": "4px 12px",
+      "borderRadius": "999px",
+      "fontSize": "12px"
+    }
+  },
+  {
+    "id": "rem_tag_text_1",
+    "parentId": "rem_tag_1",
+    "sort": 1,
+    "type": "Text",
+    "name": "标签文案",
+    "basicProps": {
+      "content": "已复诊"
+    }
+  },
+  {
+    "id": "upcoming_card",
+    "parentId": "page_ai_assistant",
+    "sort": 3,
+    "type": "Container",
+    "name": "即将到来卡片",
+    "styleProps": {
+      "backgroundColor": "#fff",
+      "borderRadius": "16px",
+      "padding": "16px",
+      "border": "1px solid #f3f4f6"
+    }
+  },
+  {
+    "id": "upcoming_title",
+    "parentId": "upcoming_card",
+    "sort": 1,
+    "type": "Row",
+    "name": "标题行",
+    "styleProps": {
+      "display": "flex",
+      "alignItems": "center",
+      "gap": "8px",
+      "marginBottom": "16px"
+    }
+  },
+  {
+    "id": "upcoming_icon",
+    "parentId": "upcoming_title",
+    "sort": 1,
+    "type": "Text",
+    "name": "铃铛图标",
+    "basicProps": {
+      "content": "🔔",
+      "color": "#f97316",
+      "fontSize": "20px"
+    }
+  },
+  {
+    "id": "upcoming_text",
+    "parentId": "upcoming_title",
+    "sort": 2,
+    "type": "Text",
+    "name": "标题文案",
+    "basicProps": {
+      "content": "即将到来的提醒",
+      "fontWeight": "bold"
+    }
+  },
+  {
+    "id": "upcoming_list",
+    "parentId": "upcoming_card",
+    "sort": 2,
+    "type": "Container",
+    "name": "列表容器",
+    "styleProps": {
+      "display": "flex",
+      "flexDirection": "column",
+      "gap": "8px"
+    }
+  },
+  {
+    "id": "upcoming_item_1",
+    "parentId": "upcoming_list",
+    "sort": 1,
+    "type": "Container",
+    "name": "即将项1",
+    "styleProps": {
+      "display": "flex",
+      "justifyContent": "space-between",
+      "alignItems": "center",
+      "padding": "12px",
+      "backgroundColor": "#fff7ed",
+      "borderRadius": "8px",
+      "border": "1px solid #ffedd5"
+    }
+  },
+  {
+    "id": "up_left_1",
+    "parentId": "upcoming_item_1",
+    "sort": 1,
+    "type": "Container",
+    "name": "左侧信息",
+    "styleProps": {
+      "display": "flex",
+      "alignItems": "center",
+      "gap": "8px"
+    }
+  },
+  {
+    "id": "up_name_1",
+    "parentId": "up_left_1",
+    "sort": 1,
+    "type": "Text",
+    "name": "姓名",
+    "basicProps": {
+      "content": "李阿姨"
+    }
+  },
+  {
+    "id": "up_type_1",
+    "parentId": "up_left_1",
+    "sort": 2,
+    "type": "Text",
+    "name": "类型",
+    "basicProps": {
+      "content": "首诊",
+      "color": "#6b7280",
+      "fontSize": "12px"
+    }
+  },
+  {
+    "id": "up_date_1",
+    "parentId": "upcoming_item_1",
+    "sort": 2,
+    "type": "Text",
+    "name": "日期",
+    "basicProps": {
+      "content": "2025-12-18",
+      "color": "#ea580c",
+      "fontSize": "12px"
+    }
+  },
+  {
+    "id": "fab_add",
+    "parentId": "page_ai_assistant",
+    "sort": 4,
+    "type": "Button",
+    "name": "悬浮添加按钮",
+    "basicProps": {
+      "text": "+"
+    },
+    "styleProps": {
+      "position": "fixed",
+      "bottom": "80px",
+      "right": "16px",
+      "width": "56px",
+      "height": "56px",
+      "borderRadius": "50%",
+      "backgroundColor": "#3b82f6",
+      "color": "#fff",
+      "fontSize": "24px",
+      "border": "none",
+      "boxShadow": "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+      "cursor": "pointer",
+      "display": "flex",
+      "alignItems": "center",
+      "justifyContent": "center"
+    }
+  },
+  {
+    "id": "bottom_nav",
+    "parentId": "root",
+    "sort": 3,
+    "type": "Row",
+    "name": "底部导航栏",
+    "basicProps": {
+      "className": "bottom-nav",
+      "justify": "space-around",
+      "align": "center"
+    },
+    "styleProps": {
+      "position": "fixed",
+      "bottom": "0",
+      "left": "0",
+      "width": "100%",
+      "height": "56px",
+      "backgroundColor": "#fff",
+      "borderTop": "1px solid #eee",
+      "zIndex": "100",
+      "display": "flex",
+      "justifyContent": "space-around",
+      "alignItems": "center"
+    }
+  },
+  {
+    "id": "nav_ai",
+    "parentId": "bottom_nav",
+    "sort": 1,
+    "type": "Container",
+    "name": "导航-智能体",
+    "basicProps": {
+      "className": "nav-item active"
+    },
+    "styleProps": {
+      "display": "flex",
+      "flexDirection": "column",
+      "alignItems": "center",
+      "cursor": "pointer",
+      "color": "#1890ff"
+    }
+  },
+  {
+    "id": "nav_ai_icon",
+    "parentId": "nav_ai",
+    "sort": 1,
+    "type": "Text",
+    "name": "图标",
+    "basicProps": {
+      "content": "🤖",
+      "fontSize": "20px"
+    }
+  },
+  {
+    "id": "nav_ai_text",
+    "parentId": "nav_ai",
+    "sort": 2,
+    "type": "Text",
+    "name": "文字",
+    "basicProps": {
+      "content": "智能体",
+      "fontSize": "10px"
+    }
+  },
+  {
+    "id": "nav_patients",
+    "parentId": "bottom_nav",
+    "sort": 2,
+    "type": "Container",
+    "name": "导航-患者库",
+    "basicProps": {
+      "className": "nav-item"
+    },
+    "styleProps": {
+      "display": "flex",
+      "flexDirection": "column",
+      "alignItems": "center",
+      "cursor": "pointer",
+      "color": "#666"
+    }
+  },
+  {
+    "id": "nav_patients_icon",
+    "parentId": "nav_patients",
+    "sort": 1,
+    "type": "Text",
+    "name": "图标",
+    "basicProps": {
+      "content": "👥",
+      "fontSize": "20px"
+    }
+  },
+  {
+    "id": "nav_patients_text",
+    "parentId": "nav_patients",
+    "sort": 2,
+    "type": "Text",
+    "name": "文字",
+    "basicProps": {
+      "content": "患者库",
+      "fontSize": "10px"
+    }
+  },
+  {
+    "id": "nav_records",
+    "parentId": "bottom_nav",
+    "sort": 3,
+    "type": "Container",
+    "name": "导航-备忘录",
+    "basicProps": {
+      "className": "nav-item"
+    },
+    "styleProps": {
+      "display": "flex",
+      "flexDirection": "column",
+      "alignItems": "center",
+      "cursor": "pointer",
+      "color": "#666"
+    }
+  },
+  {
+    "id": "nav_records_icon",
+    "parentId": "nav_records",
+    "sort": 1,
+    "type": "Text",
+    "name": "图标",
+    "basicProps": {
+      "content": "📋",
+      "fontSize": "20px"
+    }
+  },
+  {
+    "id": "nav_records_text",
+    "parentId": "nav_records",
+    "sort": 2,
+    "type": "Text",
+    "name": "文字",
+    "basicProps": {
+      "content": "备忘录",
+      "fontSize": "10px"
+    }
+  },
+  {
+    "id": "nav_settings",
+    "parentId": "bottom_nav",
+    "sort": 4,
+    "type": "Container",
+    "name": "导航-设置",
+    "basicProps": {
+      "className": "nav-item"
+    },
+    "styleProps": {
+      "display": "flex",
+      "flexDirection": "column",
+      "alignItems": "center",
+      "cursor": "pointer",
+      "color": "#666"
+    }
+  },
+  {
+    "id": "nav_settings_icon",
+    "parentId": "nav_settings",
+    "sort": 1,
+    "type": "Text",
+    "name": "图标",
+    "basicProps": {
+      "content": "⚙️",
+      "fontSize": "20px"
+    }
+  },
+  {
+    "id": "nav_settings_text",
+    "parentId": "nav_settings",
+    "sort": 2,
+    "type": "Text",
+    "name": "文字",
+    "basicProps": {
+      "content": "设置",
+      "fontSize": "10px"
+    }
+  }
+]

@@ -1,0 +1,190 @@
+<view class="container">
+  <!-- 顶部沉浸式背景 -->
+  <view class="premium-header">
+    <view class="header-content">
+      <view class="back-btn" bindtap="goBack">
+        <icon type="cancel" size="20" color="#ffffff" />
+      </view>
+      <text class="header-title">确认订单</text>
+    </view>
+  </view>
+
+  <view class="content-body">
+    <!-- 订单状态提示 -->
+    <view class="order-status" wx:if="{{status === '正在发起支付...' || status === '支付成功' || status === '支付失败'}}">
+      <icon type="loading" size="20" color="#3b82f6" />
+      <text>{{status}}</text>
+    </view>
+
+    <!-- 会员卡片预览 -->
+    <view class="vip-card-preview {{productName.includes('年') ? 'gold' : productName.includes('季') ? 'silver' : 'bronze'}}">
+      <view class="card-glass"></view>
+      <view class="card-info">
+        <view class="card-top">
+          <view class="vip-tag">VIP MEMBER</view>
+          <view class="card-logo-text">沈仙子 AI</view>
+        </view>
+        <view class="card-middle">
+          <text class="card-product-name">{{productName}}</text>
+          <view class="card-price-row">
+            <text class="card-currency">¥</text>
+            <text class="card-amount">{{amount}}</text>
+          </view>
+        </view>
+        <view class="card-bottom">
+          <text class="card-expiry">有效期至: {{expiryDate}}</text>
+        </view>
+      </view>
+      <!-- 装饰元素 -->
+      <view class="card-decorator-1"></view>
+      <view class="card-decorator-2"></view>
+    </view>
+
+    <!-- 订单详情列表 -->
+    <view class="order-details">
+      <view class="section-title">订单明细</view>
+      <view class="detail-card">
+        <view class="detail-row">
+          <text class="label">订单编号</text>
+          <text class="value">{{orderId}}</text>
+        </view>
+        <view class="detail-row">
+          <text class="label">商品名称</text>
+          <text class="value">沈仙子 AI 尊享会员</text>
+        </view>
+        <view class="detail-row">
+          <text class="label">商品详情</text>
+          <text class="value">{{productName}}</text>
+        </view>
+        <view class="detail-row">
+          <text class="label">有效期</text>
+          <text class="value">{{validityPeriod}}</text>
+        </view>
+        <view class="detail-row">
+          <text class="label">支付方式</text>
+          <view class="value-with-icon">
+            <icon type="success" size="14" color="#07C160" />
+            <text>微信支付</text>
+          </view>
+        </view>
+        <view class="detail-row">
+          <text class="label">下单时间</text>
+          <text class="value">{{currentTime}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 价格明细 -->
+    <view class="price-details">
+      <view class="section-title">价格明细</view>
+      <view class="detail-card">
+        <view class="detail-row">
+          <text class="label">商品原价</text>
+          <text class="value">¥{{originalPrice}}</text>
+        </view>
+        <view class="detail-row">
+          <text class="label">优惠金额</text>
+          <text class="value discount">-¥{{discountAmount}}</text>
+        </view>
+        <view class="detail-row total">
+          <text class="label">实付金额</text>
+          <text class="value total-price">¥{{amount}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 会员权益简述 -->
+    <view class="benefits-section">
+      <view class="section-title">会员权益</view>
+      <view class="benefits-grid">
+        <view class="benefit-item">
+          <view class="benefit-icon-box blue">
+            <view class="css-icon ai"></view>
+          </view>
+          <text>无限次 AI 对话</text>
+        </view>
+        <view class="benefit-item">
+          <view class="benefit-icon-box gold">
+            <view class="css-icon speed"></view>
+          </view>
+          <text>极速响应优先</text>
+        </view>
+        <view class="benefit-item">
+          <view class="benefit-icon-box purple">
+            <view class="css-icon pro"></view>
+          </view>
+          <text>解锁高级模型</text>
+        </view>
+        <view class="benefit-item">
+          <view class="benefit-icon-box green">
+            <view class="css-icon support"></view>
+          </view>
+          <text>专属客户支持</text>
+        </view>
+        <view class="benefit-item">
+          <view class="benefit-icon-box orange">
+            <view class="css-icon data"></view>
+          </view>
+          <text>数据安全存储</text>
+        </view>
+        <view class="benefit-item">
+          <view class="benefit-icon-box pink">
+            <view class="css-icon access"></view>
+          </view>
+          <text>多设备访问</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 安全提示 -->
+    <view class="security-notice">
+      <icon type="info" size="12" color="#94a3b8" />
+      <text>支付成功后，会员权益将立即自动生效，可在我的页面查看</text>
+    </view>
+
+    <!-- 服务协议 -->
+    <view class="service-agreement">
+      <text class="agreement-text">
+        我已阅读并同意
+        <text class="agreement-link" bindtap="openAgreement">《会员服务协议》</text>
+        和
+        <text class="agreement-link" bindtap="openPrivacy">《隐私政策》</text>
+      </text>
+    </view>
+  </view>
+
+  <!-- 底部固定支付栏 -->
+  <view class="footer-bar">
+    <view class="footer-left">
+      <text class="total-label">实付款</text>
+      <view class="total-price">
+        <text class="symbol">¥</text>
+        <text class="amount">{{amount}}</text>
+      </view>
+    </view>
+    <view class="footer-right">
+      <button class="pay-btn {{loading ? 'loading' : ''}}" bindtap="initiatePayment" disabled="{{loading}}">
+        <block wx:if="{{!loading}}">
+          <text>立即支付</text>
+          <view class="btn-shine"></view>
+        </block>
+        <view wx:else class="btn-loading-spinner"></view>
+      </button>
+    </view>
+  </view>
+
+  <!-- 支付状态弹窗 -->
+  <view class="status-overlay" wx:if="{{showModal}}">
+    <view class="status-modal">
+      <icon type="{{modalType === 'success' ? 'success' : 'warn'}}"></icon>
+      <text class="modal-title">{{modalTitle}}</text>
+      <text class="modal-desc">{{modalDesc}}</text>
+      <view class="modal-btns">
+        <button class="btn-primary" bindtap="{{modalType === 'success' ? 'goToMyPage' : 'initiatePayment'}}">
+          {{modalType === 'success' ? '查看我的会员' : '重新支付'}}
+        </button>
+        <button class="btn-secondary" bindtap="closeModal">返回</button>
+      </view>
+    </view>
+  </view>
+</view>
