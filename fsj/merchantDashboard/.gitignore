@@ -1,0 +1,6 @@
+wechat-credentials.json
+.env
+.env.local
+node_modules/
+temp/
+output/*.zip

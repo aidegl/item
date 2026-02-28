@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <title>店铺资料</title>
+  <script>
+    (function () {
+      var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
+
+      var scripts = ['../mingdao/MingdaoArray.js', 'store.js'];
+      scripts.forEach(function (src) {
+        document.write('<script src="' + src + '?v=' + v + '"><\/script>');
+      });
+    })();
+  </script>
+  <style>
+    :root {
+      --primary-color: #0557e1ff;
+      --primary-hover: #044ac3;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-secondary: #64748b;
+      --border-radius: 12px;
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 24px;
+      line-height: 1.5;
+      caret-color: transparent;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid #e2e8f0;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 20px;
+      padding-bottom: 0;
+      border-bottom: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .section-title::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 18px;
+      background: var(--primary-color);
+      margin-right: 12px;
+      border-radius: 2px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .form-value {
+      font-size: 14px;
+      color: var(--text-secondary);
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      min-height: 40px;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+
+    .form-value:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(5, 87, 225, 0.1);
+    }
+
+    .form-textarea {
+      font-size: 14px;
+      color: var(--text-secondary);
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      min-height: 80px;
+      width: 100%;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(5, 87, 225, 0.1);
+    }
+
+    .logo-preview {
+      width: 100px;
+      height: 100px;
+      background: #e0e7ff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+      font-size: 24px;
+      font-weight: bold;
+      overflow: hidden;
+    }
+
+    .logo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .logo-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .background-preview {
+      width: 375px;
+      height: 125px;
+      background: #e0e7ff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+      font-size: 24px;
+      font-weight: bold;
+      overflow: hidden;
+    }
+
+    .background-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .company-info {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .edit-btn {
+      padding: 10px 32px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+      margin-top: 24px;
+      margin-bottom: 24px;
+      margin-left: auto;
+      display: block;
+    }
+
+    .edit-btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    @media (max-width: 768px) {
+      .company-info {
+        grid-template-columns: 1fr;
+      }
+
+      .background-preview {
+        width: 100%;
+        max-width: 375px;
+      }
+    }
+  </style>
+  <script>
+    window.addEventListener('load', function () {
+      var merchantData = localStorage.getItem('merchantData');
+      if (merchantData) {
+        try {
+          var data = JSON.parse(merchantData);
+          console.log('[localStorage] 加载成功:', data);
+
+          if (data.logo) {
+            var logoArray = JSON.parse(data.logo);
+            console.log('[localStorage] logo 数组:', logoArray);
+
+            if (logoArray && logoArray.length > 0) {
+              var logoPath = logoArray[0].large_thumbnail_full_path;
+              console.log('[localStorage] 图片路径:', logoPath);
+
+              var logoElement = document.querySelector('.logo-preview');
+              if (logoElement) {
+                logoElement.innerHTML = '<img src="' + logoPath + '" alt="店铺logo" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">';
+                console.log('[localStorage] logo已更新');
+              }
+            }
+          }
+
+          if (data.beijing) {
+            var noticeElement = document.getElementById('shopNotice');
+            if (noticeElement) {
+              noticeElement.value = data.beijing;
+            }
+          }
+
+          if (data.jieshao) {
+            var descElement = document.getElementById('shopDesc');
+            if (descElement) {
+              descElement.value = data.jieshao;
+            }
+          }
+
+          if (data.gongsimingcheng) {
+            var companyElement = document.getElementById('companyName');
+            if (companyElement) {
+              companyElement.value = data.gongsimingcheng;
+            }
+          }
+
+          if (data.qiyelianxiren) {
+            var contactElement = document.getElementById('contactPerson');
+            if (contactElement) {
+              contactElement.value = data.qiyelianxiren;
+            }
+          }
+
+          if (data.fuwudianhua) {
+            var phoneElement = document.getElementById('servicePhone');
+            if (phoneElement) {
+              phoneElement.value = data.fuwudianhua;
+            }
+          }
+
+          if (data.qiyedizhi) {
+            var addressElement = document.getElementById('companyAddress');
+            if (addressElement) {
+              addressElement.value = data.qiyedizhi;
+            }
+          }
+
+          if (data.youxiang) {
+            var emailElement = document.getElementById('email');
+            if (emailElement) {
+              emailElement.value = data.youxiang;
+            }
+          }
+
+          if (data.mingcheng) {
+            var nameElement = document.getElementById('shopName');
+            if (nameElement) {
+              nameElement.value = data.mingcheng;
+            }
+          }
+
+        } catch (error) {
+          console.error('[localStorage] 解析数据失败:', error);
+        }
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <button class="edit-btn" onclick="saveShopInfo()">保存</button>
+
+    <div class="section">
+      <div class="section-title">店铺信息</div>
+
+      <div class="form-group">
+        <label class="form-label">店铺名称</label>
+        <input type="text" class="form-value" id="shopName" value="蹦跶熊猫">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">店铺公告</label>
+        <textarea class="form-textarea" id="shopNotice">欢迎来到蹦跶熊猫的app商城</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">店铺介绍</label>
+        <textarea class="form-textarea" id="shopDesc">蹦跶熊猫的文创世界</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">店铺logo</label>
+        <div class="logo-preview">店</div>
+        <div class="logo-hint">建议长宽：100px*100px</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">店铺背景</label>
+        <div class="background-preview">背景</div>
+        <div class="logo-hint">建议尺寸：375px*125px</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">公司信息</div>
+      <div class="company-info">
+        <div class="form-group">
+          <label class="form-label">公司名称</label>
+          <input type="text" class="form-value" id="companyName" value="上海协顺广告有限公司">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">企业联系人</label>
+          <input type="text" class="form-value" id="contactPerson" value="林东城">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">商家服务电话</label>
+          <input type="text" class="form-value" id="servicePhone" value="18017043586">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">企业地址</label>
+          <input type="text" class="form-value" id="companyAddress" value="上海闵行区新镇路603弄">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">邮箱</label>
+          <input type="text" class="form-value" id="email" value="997399840@qq.com">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        userId: params.get('userId') || '',
+        mRowid: params.get('mRowid') || ''
+      };
+    }
+
+    function loadShopInfo() {
+      const params = getUrlParams();
+
+      console.log('获取商家id：?mRowid=' + params.mRowid + '；');
+
+      if (params.mRowid) {
+        loadShopData(params.mRowid);
+      } else {
+        console.warn('[store.html] 未获取到mRowid参数，使用默认数据');
+      }
+    }
+
+    function saveShopInfo() {
+      const shopData = {
+        mingcheng: document.getElementById('shopName').value,
+        beijing: document.getElementById('shopNotice').value,
+        jieshao: document.getElementById('shopDesc').value,
+        gongsimingcheng: document.getElementById('companyName').value,
+        qiyelianxiren: document.getElementById('contactPerson').value,
+        fuwudianhua: document.getElementById('servicePhone').value,
+        qiyedizhi: document.getElementById('companyAddress').value,
+        youxiang: document.getElementById('email').value
+      };
+
+      console.log('[store.html] 保存店铺资料:', shopData);
+      localStorage.setItem('merchantData', JSON.stringify(shopData));
+      console.log('[store.html] 数据已保存到 localStorage');
+
+      alert('保存成功！');
+    }
+
+    window.onload = function () {
+      loadShopInfo();
+    };
+  </script>
+</body>
+
+</html>

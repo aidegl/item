@@ -1,0 +1,2883 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>无代码平台 - React组件可视化</title>
+  <!-- 引入 SortableJS 用于拖拽排序 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f7;
+      box-sizing: border-box;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #toolbar {
+      display: none;
+    }
+
+    /* Position the dev mode button absolutely */
+    #toggle-dev-mode {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #json-input {
+      width: 40%;
+      min-height: 80px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    #toolbar button,
+    #toolbar input[type="file"] {
+      height: 32px;
+    }
+
+    #app {
+      display: flex;
+      /* gap: 20px; */
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .resizer {
+      width: 6px;
+      background: #e0e0e0;
+      cursor: col-resize;
+      flex: 0 0 auto;
+      transition: background 0.2s;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .resizer:hover, .resizer.resizing {
+      background: #1890ff;
+    }
+    
+    /* 防止拖动时选中文字 */
+    body.resizing {
+      cursor: col-resize;
+      user-select: none;
+    }
+    
+    body.resizing iframe {
+      pointer-events: none; /* 防止拖动时iframe捕获鼠标事件 */
+    }
+
+    #tree-container {
+      width: 320px;
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      overflow: auto;
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    .tree {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+    }
+
+    .tree-node {
+      margin: 2px 0;
+    }
+
+    .tree-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .tree-row:hover {
+      background: #f5f5f5;
+    }
+
+    .tree-row.selected {
+      background: #e6f7ff;
+      outline: 1px solid #1890ff;
+    }
+
+    .toggle {
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 16px;
+      cursor: default;
+    }
+
+    .toggle img {
+      width: 16px;
+      height: 16px;
+      display: block;
+      filter: brightness(0) saturate(100%);
+      cursor: default;
+    }
+
+    .children {
+      margin-left: 16px;
+      padding-left: 8px;
+      border-left: 1px dashed #ddd;
+      list-style: none;
+    }
+
+    .tree-node.collapsed>.children {
+      display: none;
+    }
+
+    .node-label {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .node-type {
+      font-size: 12px;
+      color: #888;
+    }
+
+    /* 渲染区域样式 */
+    #canvas-container {
+      flex: 1;
+      background: #f0f2f5;
+      padding: 0;
+      overflow: auto;
+      border-radius: 8px;
+      height: 100%;
+      position: relative; /* Ensure absolute positioning works inside */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #ai-input-container {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70%;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+    #ai-input {
+      flex: 1;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px 12px;
+      outline: none;
+      font-size: 14px;
+      resize: none;
+      height: 60px;
+      font-family: inherit;
+    }
+    #ai-send-btn {
+      background: #1890ff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0 16px;
+      cursor: pointer;
+      font-weight: 500;
+      height: auto; /* Allow button to stretch or center if needed, or fixed height */
+      align-self: flex-end; /* Align to bottom of textarea */
+      height: 32px;
+      margin-bottom: 2px;
+    }
+
+    /* Global Settings Panel Styles */
+    .global-section {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+    .global-section:last-child {
+      border-bottom: none;
+    }
+    .global-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .global-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .global-label {
+      color: #666;
+    }
+    .global-value {
+      color: #111;
+      font-weight: 500;
+    }
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .color-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .color-preview {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .color-name {
+      font-size: 10px;
+      color: #888;
+      text-align: center;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .route-tag {
+      display: inline-block;
+      padding: 2px 6px;
+      background: #f0f5ff;
+      color: #2f54eb;
+      border: 1px solid #adc6ff;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    #right-panel {
+      width: 360px;
+      background: #fff;
+      padding: 0; /* Remove padding to allow full-width tabs */
+      border-radius: 8px;
+      overflow: hidden; /* Prevent scroll on panel itself, use inner scroll */
+      display: flex;
+      flex-direction: column;
+      gap: 0; /* Manage gap internally */
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    #props-panel-content {
+      padding: 12px;
+      overflow: auto;
+      flex: 1;
+    }
+
+    #props-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    #props-header-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    #schema-status {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .props-card {
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .props-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 6px 10px;
+      font-size: 12px;
+      align-items: start;
+    }
+
+    .kv .k {
+      color: #666;
+    }
+
+    .kv .v {
+      color: #111;
+      word-break: break-all;
+    }
+
+    .props-pre {
+      background: #f8f8f8;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* 调试信息样式 */
+    #debug-info {
+      background: #fff;
+      font-size: 12px;
+      overflow: auto;
+      display: none;
+    }
+
+    /* 通用组件样式 */
+    .component-wrapper {
+      position: relative;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+
+    .component-wrapper.selected {
+      outline: 2px solid #1890ff;
+      z-index: 12;
+    }
+
+    /* 悬停效果，显示组件轮廓 */
+    .component-wrapper:hover {
+      outline: 2px dashed #1890ff;
+      z-index: 10;
+    }
+
+    .component-wrapper:hover::after {
+      content: attr(data-name) " (" attr(data-type) ")";
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: #1890ff;
+      color: white;
+      font-size: 10px;
+      padding: 2px 4px;
+      pointer-events: none;
+      z-index: 11;
+      white-space: nowrap;
+    }
+
+    /* 拖拽时的样式 */
+    .sortable-ghost {
+      opacity: 0.4;
+      background-color: #f0f0f0;
+      border: 2px dashed #999;
+    }
+
+    .sortable-drag {
+      cursor: grabbing;
+    }
+
+    /* 确保容器有最小高度以便可以拖入 */
+    .container-component {
+      min-height: 20px;
+      min-width: 50px;
+    }
+
+    /* React 组件模拟样式 */
+    .mock-card {
+      background: #fff;
+      border: 1px solid #f0f0f0;
+      border-radius: 2px;
+    }
+    .mock-card-head {
+      padding: 0 24px;
+      min-height: 48px;
+      font-weight: 500;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+    }
+    .mock-card-body {
+      padding: 24px;
+    }
+
+    .mock-input {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 4px 11px;
+      color: rgba(0, 0, 0, 0.85);
+      font-size: 14px;
+      line-height: 1.5715;
+      background-color: #fff;
+      background-image: none;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      transition: all 0.3s;
+      width: 100%;
+    }
+
+    .mock-btn {
+      line-height: 1.5715;
+      position: relative;
+      display: inline-block;
+      font-weight: 400;
+      white-space: nowrap;
+      text-align: center;
+      background-image: none;
+      border: 1px solid transparent;
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.015);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+      user-select: none;
+      touch-action: manipulation;
+      height: 32px;
+      padding: 4px 15px;
+      font-size: 14px;
+      border-radius: 2px;
+      color: rgba(0, 0, 0, 0.85);
+      background-color: #fff;
+      border-color: #d9d9d9;
+    }
+    .mock-btn-primary {
+      color: #fff;
+      background-color: #1890ff;
+      border-color: #1890ff;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.12);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.045);
+    }
+
+    .mock-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      border-radius: 2px 2px 0 0;
+    }
+    .mock-table thead th {
+      background: #fafafa;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 16px 16px;
+      font-weight: 500;
+    }
+    .mock-table tbody td {
+      border-bottom: 1px solid #f0f0f0;
+      padding: 16px 16px;
+    }
+
+    .mock-tag {
+      display: inline-block;
+      height: auto;
+      margin: 0 8px 0 0;
+      padding: 0 7px;
+      font-size: 12px;
+      line-height: 20px;
+      white-space: nowrap;
+      background: #fafafa;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      cursor: default;
+      opacity: 1;
+      transition: all 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+      color: rgba(0, 0, 0, 0.85);
+    }
+
+    /* 手机预览容器 */
+    .phone-preview-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: transparent;
+      padding: 40px 0;
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 667px;
+      background: #000;
+      border-radius: 40px;
+      padding: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      position: relative;
+      border: 4px solid #333;
+    }
+
+    /* 手机听筒 */
+    .phone-frame::before {
+      content: '';
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 5px;
+      background: #222;
+      border-radius: 10px;
+      z-index: 2;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 30px;
+      overflow: hidden;
+      border: none;
+    }
+
+    .phone-screen iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .tree-action-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      margin-left: auto;
+      cursor: pointer;
+      color: #999;
+      font-weight: bold;
+      font-family: serif;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .tree-action-icon:hover {
+      background-color: rgba(0,0,0,0.05);
+      color: #666;
+    }
+    .tree-action-icon.active {
+      background-color: #fff7e6;
+      color: #fa8c16;
+      border-color: #ffd591;
+      box-shadow: 0 0 0 1px rgba(250, 140, 22, 0.25);
+    }
+    .props-form-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .props-form-label {
+      width: 80px;
+      color: #666;
+      flex-shrink: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-right: 8px;
+    }
+    .props-form-input {
+      flex: 1;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+      transition: all 0.3s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .props-form-input:focus {
+      border-color: #40a9ff;
+      outline: 0;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+    .props-input-group {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .props-color-picker {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      background: none;
+      flex-shrink: 0;
+    }
+    .props-color-picker::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    .props-color-picker::-webkit-color-swatch {
+      border: none;
+      border-radius: 3px;
+    }
+    .panel-tabs {
+      display: flex;
+      background: #f0f0f0;
+      border-bottom: 1px solid #ddd;
+    }
+    .panel-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 4px;
+      font-size: 12px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: #666;
+      transition: all 0.2s;
+      box-sizing: border-box;
+    }
+    .panel-tab:hover {
+      background: #e6e6e6;
+    }
+    .panel-tab.active {
+      color: #1890ff;
+      border-bottom-color: #1890ff;
+      background: #fff;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+      flex: 1;
+      overflow: auto;
+      height: 100%;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    #tree-container {
+      display: flex;
+      flex-direction: column;
+      padding: 0; /* Override previous padding */
+    }
+
+    /* Filter Builder Styles */
+    .filter-builder {
+      border: 1px solid #e8e8e8;
+      border-radius: 4px;
+      padding: 10px;
+      background: #fafafa;
+      margin-top: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .filter-group {
+      border: 1px dashed #d9d9d9;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #fff;
+      border-radius: 4px;
+      position: relative;
+    }
+    .filter-item {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+      margin-bottom: 6px;
+      padding: 6px;
+      background: #f9f9f9;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+    .filter-group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: 6px;
+    }
+    .filter-select {
+      height: 24px;
+      padding: 0 2px;
+      font-size: 11px;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      background: #fff;
+    }
+    .filter-input {
+      height: 24px;
+      padding: 0 4px;
+      font-size: 11px;
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      flex: 1;
+      min-width: 60px;
+    }
+    .filter-btn-sm {
+      height: 22px;
+      padding: 0 6px;
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      border-radius: 2px;
+      line-height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .filter-btn-sm:hover {
+      color: #1890ff;
+      border-color: #1890ff;
+    }
+    .filter-btn-danger {
+      color: #ff4d4f;
+    }
+    .filter-btn-danger:hover {
+      background: #fff1f0;
+      border-color: #ffccc7;
+    }
+    .filter-splice-toggle {
+      background: #e6f7ff;
+      color: #1890ff;
+      border-color: #91d5ff;
+      font-weight: bold;
+      min-width: 40px;
+    }
+    .filter-group-actions {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="toolbar">
+    <!-- Items hidden via CSS, but we move the dev mode button out -->
+    <button id="toggle-debug">显示/隐藏数据</button>
+    <input type="file" id="file-input" accept=".json,application/json">
+    <button id="export-json-btn">导出JSON</button>
+    <button id="reset-btn">加载示例</button>
+    <textarea id="json-input" placeholder="在此粘贴JSON数组后点击下方导入"></textarea>
+    <button id="import-json-btn">导入JSON</button>
+  </div>
+
+  <!-- Moved out of toolbar to be positioned absolutely -->
+  <!-- Removed from here, moved into canvas-container -->
+
+  <div id="app">
+    <div id="tree-container">
+      <div class="panel-tabs">
+        <div class="panel-tab active" data-tab="page">页面</div>
+        <div class="panel-tab" data-tab="global">全局设置</div>
+        <div class="panel-tab" data-tab="data">数据</div>
+        <div class="panel-tab" data-tab="actions">动作组</div>
+      </div>
+      <div id="tab-page" class="tab-content active" style="padding: 10px;">
+        <ul id="layer-tree" class="tree" data-parent-id="null"></ul>
+      </div>
+      <div id="tab-global" class="tab-content" style="padding: 10px;">
+      </div>
+      <div id="tab-data" class="tab-content" style="padding: 10px;">
+        <div style="font-size:12px;color:#666;">数据模型内容（待开发）</div>
+      </div>
+      <div id="tab-actions" class="tab-content" style="padding: 10px;">
+        <div id="actions-logic-container"></div>
+      </div>
+    </div>
+    <div class="resizer" id="resizer-left"></div>
+    <div id="canvas-container">
+      <button id="toggle-dev-mode" style="padding: 4px 12px; border: none; border-radius: 4px; color: #fff; font-weight: bold; cursor: pointer; transition: all 0.3s; min-width: 120px;">加载中...</button>
+      
+      <div id="ai-input-container">
+        <textarea id="ai-input" placeholder="输入指令或自动生成..."></textarea>
+        <button id="ai-send-btn">复制</button>
+      </div>
+      <!-- 动态内容将渲染在这里 -->
+    </div>
+    <div class="resizer" id="resizer-right"></div>
+    <div id="right-panel">
+      <div class="panel-tabs" id="right-panel-tabs">
+        <div class="panel-tab active" data-tab="design">设计</div>
+        <div class="panel-tab" data-tab="data">数据</div>
+        <div class="panel-tab" data-tab="action">动作</div>
+      </div>
+      <div id="props-panel-content">
+        <!-- Dynamic content goes here -->
+      </div>
+      <div id="debug-info" class="props-card" style="margin: 12px;">
+        <div class="props-title">结构数据 (实时更新)</div>
+        <pre id="json-output" class="props-pre"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let defaultData = [
+      {
+        "id": "page_root",
+        "parentId": null,
+        "sort": 1,
+        "type": "Page",
+        "name": "页面根节点",
+        "basicProps": {
+          "padding": "0",
+          "backgroundColor": "transparent",
+          "height": "100%",
+          "display": "flex",
+          "justifyContent": "center",
+          "alignItems": "center"
+        }
+      },
+      {
+        "id": "mobile_preview",
+        "parentId": "page_root",
+        "sort": 1,
+        "type": "PhonePreview",
+        "name": "手机实时预览 (HTML)",
+        "basicProps": {
+          "url": "http://localhost:5500/webview0/index.html?dev=1"
+        }
+      },
+      {
+        "id": "mock_header",
+        "parentId": "page_root",
+        "sort": 2,
+        "type": "Header",
+        "name": "顶部导航栏",
+        "basicProps": { "height": "60px", "backgroundColor": "#fff" }
+      },
+      {
+        "id": "mock_content",
+        "parentId": "page_root",
+        "sort": 3,
+        "type": "Content",
+        "name": "内容区",
+        "basicProps": { "padding": "20px" }
+      },
+      {
+        "id": "mock_table",
+        "parentId": "mock_content",
+        "sort": 1,
+        "type": "Table",
+        "name": "数据表格",
+        "basicProps": { "columns": 5, "rows": 10 }
+      },
+      {
+        "id": "mock_footer",
+        "parentId": "page_root",
+        "sort": 4,
+        "type": "Footer",
+        "name": "底部版权信息",
+        "basicProps": { "height": "40px", "textAlign": "center" }
+      }
+    ];
+
+    let rawData = JSON.parse(JSON.stringify(defaultData));
+    let collapsedState = {};
+    let selectedId = null;
+    let currentRightTab = 'design'; // 'design', 'data', 'action'
+    let componentSchemaMap = {};
+    let schemaLoaded = false;
+    let isDevMode = false; // 全局开发模式状态
+    let actionModeId = null; // 当前处于动作编辑模式的节点ID
+    let actionsLogicCache = null;
+
+    function buildTree(items) {
+      const rootItems = [];
+      const lookup = {};
+      items.forEach(item => {
+        lookup[item.id] = { ...item, children: [] };
+      });
+      items.forEach(item => {
+        if (item.parentId === null) {
+          rootItems.push(lookup[item.id]);
+        } else {
+          if (lookup[item.parentId]) {
+            lookup[item.parentId].children.push(lookup[item.id]);
+          }
+        }
+      });
+      const sortChildren = (node) => {
+        if (node.children && node.children.length > 0) {
+          node.children.sort((a, b) => a.sort - b.sort);
+          node.children.forEach(sortChildren);
+        }
+      };
+      rootItems.sort((a, b) => a.sort - b.sort);
+      rootItems.forEach(sortChildren);
+      return rootItems;
+    }
+
+    function styleObjToString(style) {
+      if (!style) return '';
+      return Object.entries(style).map(([k, v]) => {
+        const key = k.replace(/([A-Z])/g, '-$1').toLowerCase();
+        if (key === 'position' && v === 'fixed') {
+          return 'position: absolute';
+        }
+        return `${key}: ${v}`;
+      }).join('; ');
+    }
+
+    function renderComponent(component) {
+      const el = document.createElement('div');
+      el.id = component.id;
+      el.className = 'component-wrapper';
+      
+      const type = component.type;
+      const props = component.basicProps || {};
+      const style = component.styleProps || {};
+
+      // 容器类组件标记
+      if (['Container', 'Page', 'Card', 'Form', 'FormItem', 'Row', 'Col', 'Layout', 'Header', 'Content', 'Footer', 'Sider', 'Space', 'Tabs', 'TabPane', 'Collapse', 'CollapsePanel', 'Drawer', 'Modal', 'ModalContent'].includes(type)) {
+        el.classList.add('container-component');
+      }
+      
+      if (selectedId === component.id) {
+        el.classList.add('selected');
+      }
+      
+      el.setAttribute('data-id', component.id);
+      el.setAttribute('data-name', component.name);
+      el.setAttribute('data-type', component.type);
+      el.addEventListener('click', (e) => {
+        e.stopPropagation(); // 阻止冒泡，避免选中父级
+        selectNode(component.id);
+      }, false); // useCapture false
+
+      // 合并样式
+      let combinedStyles = { ...style };
+      
+      // 特殊样式处理
+      if (type === 'Page') {
+        combinedStyles.minHeight = '100%';
+        if (props.backgroundColor) combinedStyles.backgroundColor = props.backgroundColor;
+        if (props.padding) combinedStyles.padding = props.padding;
+      }
+      
+      if (type === 'Card') {
+        el.classList.add('mock-card');
+        if (props.title) {
+          const head = document.createElement('div');
+          head.className = 'mock-card-head';
+          head.innerText = props.title;
+          el.appendChild(head);
+        }
+        const body = document.createElement('div');
+        body.className = 'mock-card-body';
+        // 如果有 marginBottom 等外部样式，应用到 wrapper
+        if (props.marginBottom) combinedStyles.marginBottom = props.marginBottom;
+        // 实际子元素应该渲染到 body 中
+        // 为了简化，我们把 body 设为子元素容器
+        body.setAttribute('data-container-for', component.id);
+        el.appendChild(body);
+        
+        // 稍后递归渲染时，子元素需要 append 到 body
+        // 这里做一个临时标记，让下面的 children 逻辑知道 append 到哪里
+        el._containerTarget = body;
+      }
+      
+      if (type === 'Row') {
+        combinedStyles.display = props.display || 'flex';
+        combinedStyles.flexWrap = 'wrap';
+        if (props.gap) combinedStyles.gap = props.gap;
+        if (props.justify) combinedStyles.justifyContent = props.justify;
+        if (props.align) combinedStyles.alignItems = props.align;
+      }
+      
+      if (type === 'Col') {
+        if (props.span) combinedStyles.width = (props.span / 24 * 100) + '%';
+        if (props.flex) combinedStyles.flex = props.flex;
+        if (props.width) combinedStyles.width = props.width;
+      }
+
+      // 具体组件渲染
+      if (type === 'Text') {
+        const span = document.createElement('span');
+        span.innerText = props.content || 'Text';
+        if (props.fontSize) span.style.fontSize = props.fontSize;
+        if (props.color) span.style.color = props.color;
+        if (props.fontWeight) span.style.fontWeight = props.fontWeight;
+        el.appendChild(span);
+      } else if (type === 'Button') {
+        const btn = document.createElement('button');
+        btn.innerText = props.text || 'Button';
+        btn.className = 'mock-btn ' + (props.type === 'primary' ? 'mock-btn-primary' : '');
+        el.appendChild(btn);
+      } else if (['Input', 'InputPassword', 'InputNumber', 'AutoComplete'].includes(type)) {
+        const input = document.createElement('input');
+        input.className = 'mock-input';
+        input.placeholder = props.placeholder || type;
+        el.appendChild(input);
+      } else if (type === 'InputTextArea') {
+        const area = document.createElement('textarea');
+        area.className = 'mock-input';
+        area.placeholder = props.placeholder || 'TextArea';
+        area.style.height = '80px';
+        el.appendChild(area);
+      } else if (['Image', 'Avatar'].includes(type)) {
+        const img = document.createElement('img');
+        img.src = props.src || 'https://via.placeholder.com/100';
+        img.style.width = props.width || (type === 'Avatar' ? (props.size || '40') + 'px' : '100px');
+        img.style.height = props.height || (type === 'Avatar' ? (props.size || '40') + 'px' : 'auto');
+        if (type === 'Avatar') img.style.borderRadius = '50%';
+        img.style.objectFit = 'cover';
+        el.appendChild(img);
+      } else if (type === 'Table') {
+         const table = document.createElement('table');
+         table.className = 'mock-table';
+         const thead = document.createElement('thead');
+         const tr = document.createElement('tr');
+         const columns = props.columns || [{title: 'Column 1'}, {title: 'Column 2'}];
+         columns.forEach(col => {
+           const th = document.createElement('th');
+           th.innerText = col.title || '';
+           tr.appendChild(th);
+         });
+         thead.appendChild(tr);
+         table.appendChild(thead);
+         const tbody = document.createElement('tbody');
+         // 模拟几行数据
+         for(let i=0; i<2; i++) {
+            const row = document.createElement('tr');
+            columns.forEach(() => {
+              const td = document.createElement('td');
+              td.innerText = '-';
+              row.appendChild(td);
+            });
+            tbody.appendChild(row);
+         }
+         table.appendChild(tbody);
+         el.appendChild(table);
+      } else if (type === 'Descriptions') {
+         // 简单模拟
+         el.innerHTML = '<div style="font-size:14px;color:#333;">Descriptions Component (Placeholder)</div>';
+      } else if (type === 'PhonePreview') {
+        // 渲染手机预览
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'phone-preview-container';
+        
+        const frame = document.createElement('div');
+        frame.className = 'phone-frame';
+        
+        const screen = document.createElement('div');
+        screen.className = 'phone-screen';
+        
+        const iframe = document.createElement('iframe');
+        // 默认加载 webview/index.html 并开启开发模式
+        iframe.src = props.url || 'http://localhost:5500/webview0/index.html?dev=1';
+        iframe.id = 'preview-iframe';
+        
+        screen.appendChild(iframe);
+        frame.appendChild(screen);
+        previewContainer.appendChild(frame);
+        el.appendChild(previewContainer);
+        
+        // 监听 iframe 消息
+        window.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'dev-class-selected') {
+            console.log('从 Iframe 收到选中类名:', event.data.className);
+          }
+        });
+
+        // 当 iframe 加载完成后，同步当前的开发模式状态
+        iframe.addEventListener('load', () => {
+          if (iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+              type: 'toggle-dev-mode',
+              active: isDevMode
+            }, '*');
+          }
+        });
+      }
+      // 对于其他组件，如果没有特殊处理且是容器，就默认渲染
+      // 如果不是容器且没有 children，显示一个占位符
+      else if (!component.children || component.children.length === 0) {
+         if (!['Container', 'Page', 'Row', 'Col', 'Space', 'Layout', 'Header', 'Content', 'Footer', 'Sider'].includes(type)) {
+            const placeholder = document.createElement('div');
+            placeholder.style.cssText = 'padding:8px;border:1px dashed #ccc;background:#f9f9f9;color:#999;font-size:12px;text-align:center;display:inline-block;min-width:60px;';
+            placeholder.innerText = type + (component.name ? ': ' + component.name : '');
+            el.appendChild(placeholder);
+         }
+      }
+
+      // 应用合并后的样式
+      el.style.cssText += styleObjToString(combinedStyles);
+
+      // 渲染子节点
+      if (component.children && component.children.length > 0) {
+        const targetContainer = el._containerTarget || el;
+        component.children.forEach(child => {
+          targetContainer.appendChild(renderComponent(child));
+        });
+      }
+
+      return el;
+    }
+
+    function handleAction(actionName) {
+      console.log('Action triggered:', actionName);
+    }
+
+    function setDebugOutput(data) {
+      const el = document.getElementById('json-output');
+      if (el) el.textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function loadSchemaFromUrl() {
+      try {
+        const res = await fetch('./ziduan.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('invalid schema');
+        componentSchemaMap = data.reduce((acc, cur) => {
+          if (cur && cur.name) acc[cur.name] = cur;
+          return acc;
+        }, {});
+        schemaLoaded = true;
+        // updateSchemaStatus(); // 状态栏已移除，不再调用
+        renderRightPanel();
+      } catch (e) {
+        schemaLoaded = false;
+        // updateSchemaStatus(); // 状态栏已移除，不再调用
+      }
+    }
+
+    function updateSchemaStatus() {
+      // 状态栏已移除，函数置空
+    }
+
+    function renderRightPanel() {
+      const container = document.getElementById('props-panel-content');
+      if (!container) return;
+      
+      // Sync tab UI (because currentRightTab might be changed programmatically)
+      const tabs = document.querySelectorAll('#right-panel-tabs .panel-tab');
+      tabs.forEach(tab => {
+        if (tab.getAttribute('data-tab') === currentRightTab) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+
+      const item = selectedId ? rawData.find(it => it.id === selectedId) : null;
+      
+      // Clear panel
+      container.innerHTML = '';
+
+      if (!item) {
+        container.innerHTML = '<div style="padding:10px; font-size:12px; color:#666;">请先选择一个组件以查看其配置。</div>';
+        return;
+      }
+
+      if (currentRightTab === 'design') {
+        renderPropertiesPanelContent(container, item);
+      } else if (currentRightTab === 'data') {
+        renderDataPanelContent(container, item);
+      } else if (currentRightTab === 'action') {
+        renderActionPanelContent(container, item);
+      }
+    }
+
+    function initRightPanelTabs() {
+      const tabs = document.querySelectorAll('#right-panel-tabs .panel-tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabId = tab.getAttribute('data-tab');
+          if (currentRightTab === tabId) return;
+
+          currentRightTab = tabId;
+          // Sync with actionModeId
+          if (currentRightTab === 'action' && selectedId) {
+            actionModeId = selectedId;
+          } else {
+            actionModeId = null;
+          }
+          
+          renderTree(); // Update icons (exclamation mark state)
+          renderRightPanel(); // Update panel content
+        });
+      });
+    }
+
+    function renderDataPanelContent(container, item) {
+      container.innerHTML = '';
+
+      const title = document.createElement('div');
+      title.className = 'props-title';
+      title.style.marginTop = '0';
+      title.textContent = '数据绑定: ' + (item.name || item.id);
+      container.appendChild(title);
+
+      const desc = document.createElement('div');
+      desc.style.fontSize = '12px';
+      desc.style.color = '#666';
+      desc.style.marginBottom = '10px';
+      desc.textContent = '配置当前组件与明道云数据表的增删改查行为。';
+      container.appendChild(desc);
+
+      const getCurrentDataProps = function (id) {
+        const current = rawData.find(function (n) { return n.id === id; });
+        return (current && current.dataProps) || {};
+      };
+
+      const createRow = function (parent, labelText, fieldEl) {
+        const row = document.createElement('div');
+        row.className = 'props-form-row';
+        const label = document.createElement('div');
+        label.className = 'props-form-label';
+        label.textContent = labelText;
+        row.appendChild(label);
+        row.appendChild(fieldEl);
+        parent.appendChild(row);
+      };
+
+      const requestBodyArea = document.createElement('textarea');
+      requestBodyArea.className = 'props-form-input';
+      requestBodyArea.placeholder = '请求体 JSON（自动根据上方配置生成，可直接复制调用 Mingdao 接口）';
+      requestBodyArea.style.height = '240px';
+      requestBodyArea.style.resize = 'vertical';
+
+      function refreshRequestBody() {
+        if (!requestBodyArea) return;
+        const dataProps = getCurrentDataProps(item.id);
+        const actionType = dataProps.actionType || actionSelect.value || '';
+        if (!actionType) return;
+        let body = null;
+        if (actionType === 'getObject') {
+          body = {
+            rowid: dataProps.rowid || '',
+            worksheetId: dataProps.worksheetId || ''
+          };
+        } else if (actionType === 'add') {
+          let controls = [];
+          if (dataProps.controlsJson) {
+            try {
+              controls = JSON.parse(dataProps.controlsJson);
+            } catch (e) {
+              controls = dataProps.controlsJson;
+            }
+          }
+          body = {
+            worksheetId: dataProps.worksheetId || '',
+            controls: controls
+          };
+        } else if (actionType === 'update') {
+          let controlsUpdate = [];
+          if (dataProps.controlsJson) {
+            try {
+              controlsUpdate = JSON.parse(dataProps.controlsJson);
+            } catch (e) {
+              controlsUpdate = dataProps.controlsJson;
+            }
+          }
+          body = {
+            rowid: dataProps.rowid || '',
+            worksheetId: dataProps.worksheetId || '',
+            controls: controlsUpdate
+          };
+        } else if (actionType === 'getArray') {
+          let filters = [];
+          if (dataProps.filtersJson) {
+            try {
+              filters = JSON.parse(dataProps.filtersJson);
+            } catch (e) {
+              filters = dataProps.filtersJson;
+            }
+          }
+          body = {
+            worksheetId: dataProps.worksheetId || '',
+            viewId: dataProps.viewId || '',
+            pageSize: 50,
+            pageIndex: 1,
+            filters: filters,
+            sortId: dataProps.sortId || '',
+            isAsc: dataProps.isAsc === 'true' || dataProps.isAsc === true,
+            notGetTotal: 'false',
+            useControlId: 'false',
+            getSystemControl: 'false'
+          };
+        } else if (actionType === 'delete') {
+          body = {
+            rowid: dataProps.rowid || '',
+            worksheetId: dataProps.worksheetId || '',
+            controls: [
+              {
+                controlId: 'del',
+                value: 1
+              }
+            ]
+          };
+        }
+        if (!body) return;
+        let json = '';
+        try {
+          json = JSON.stringify(body, null, 2);
+        } catch (e) {
+          return;
+        }
+        requestBodyArea.value = json;
+        const latest = getCurrentDataProps(item.id);
+        const next = Object.assign({}, latest, { requestBodyJson: json });
+        updateNodeProps(item.id, 'dataProps', next, true, 'requestBodyJson', json);
+      }
+
+      const aliasInput = document.createElement('input');
+      aliasInput.className = 'props-form-input';
+      aliasInput.placeholder = '请输入明道云表别名，例如 user, order';
+      aliasInput.value = (item.dataProps && item.dataProps.tableAlias) || '';
+      aliasInput.addEventListener('change', function (e) {
+        const val = e.target.value.trim();
+        const current = getCurrentDataProps(item.id);
+        const next = Object.assign({}, current, { tableAlias: val });
+        updateNodeProps(item.id, 'dataProps', next, true, 'tableAlias', val);
+      });
+      createRow(container, '表别名', aliasInput);
+
+      const actionSelect = document.createElement('select');
+      actionSelect.className = 'props-form-input';
+      var actions = [
+        { value: '', label: '请选择' },
+        { value: 'add', label: '增（新增数据）' },
+        { value: 'delete', label: '删（删除数据）' },
+        { value: 'update', label: '改（更新数据）' },
+        { value: 'getObject', label: '查对象（单条数据）' },
+        { value: 'getArray', label: '查数组（列表数据）' }
+      ];
+      actions.forEach(function (opt) {
+        const o = document.createElement('option');
+        o.value = opt.value;
+        o.textContent = opt.label;
+        actionSelect.appendChild(o);
+      });
+      actionSelect.value = (item.dataProps && item.dataProps.actionType) || '';
+      actionSelect.addEventListener('change', function (e) {
+        const val = e.target.value;
+        const current = getCurrentDataProps(item.id);
+        const next = Object.assign({}, current, { actionType: val });
+        updateNodeProps(item.id, 'dataProps', next, true, 'actionType', val);
+        renderDynamicFields();
+        refreshRequestBody();
+      });
+      createRow(container, '数据行为', actionSelect);
+
+      const dynamicWrapper = document.createElement('div');
+      container.appendChild(dynamicWrapper);
+
+      const getActionFieldConfigs = function (actionType) {
+        if (actionType === 'getObject') {
+          return [
+            { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
+            { key: 'rowid', label: 'rowid', placeholder: '行ID(rowid)' }
+          ];
+        }
+        if (actionType === 'getArray') {
+          return [
+            { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
+            { key: 'viewId', label: 'viewId', placeholder: '视图ID，可选' },
+            { key: 'sortId', label: 'sortId', placeholder: '排序字段ID，如 sortid' },
+            { key: 'isAsc', label: 'isAsc', placeholder: '是否升序 (true/false)' }
+          ];
+        }
+        if (actionType === 'add') {
+          return [
+            { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
+            { key: 'controlsJson', label: 'controls(新增字段 JSON 数组)', placeholder: '[{"id":"字段ID","value":"字段值"}]', textarea: true }
+          ];
+        }
+        if (actionType === 'update') {
+          return [
+            { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
+            { key: 'rowid', label: 'rowid', placeholder: '行ID(rowid)' },
+            { key: 'controlsJson', label: 'controls(更新字段 JSON 数组)', placeholder: '[{"controlId":"字段ID","value":"字段值"}]', textarea: true }
+          ];
+        }
+        if (actionType === 'delete') {
+          return [
+            { key: 'worksheetId', label: 'worksheetId', placeholder: '工作表ID' },
+            { key: 'rowid', label: 'rowid', placeholder: '行ID(rowid)' }
+          ];
+        }
+        return [];
+      };
+
+      const renderDynamicFields = function () {
+        dynamicWrapper.innerHTML = '';
+        const actionType = actionSelect.value;
+        if (!actionType) return;
+        const current = getCurrentDataProps(item.id);
+        const fields = getActionFieldConfigs(actionType);
+        fields.forEach(function (field) {
+          let input;
+          if (field.textarea) {
+            input = document.createElement('textarea');
+            input.style.height = '80px';
+            input.style.resize = 'vertical';
+          } else {
+            input = document.createElement('input');
+          }
+          input.className = 'props-form-input';
+          input.placeholder = field.placeholder || '';
+          input.value = current[field.key] || '';
+          input.addEventListener('input', function (e) {
+            const val = e.target.value.trim();
+            const latest = getCurrentDataProps(item.id);
+            const next = Object.assign({}, latest);
+            next[field.key] = val;
+            updateNodeProps(item.id, 'dataProps', next, true, field.key, val);
+            refreshRequestBody();
+          });
+          createRow(dynamicWrapper, field.label, input);
+        });
+      };
+
+      renderDynamicFields();
+
+      const DataTypeEnum = [
+        { value: 2, label: '文本' },
+        { value: 3, label: '电话 (手机)' },
+        { value: 4, label: '电话 (座机)' },
+        { value: 5, label: '邮箱' },
+        { value: 6, label: '数值' },
+        { value: 7, label: '证件' },
+        { value: 8, label: '金额' },
+        { value: 9, label: '单选 (平铺)' },
+        { value: 10, label: '多选' },
+        { value: 11, label: '单选 (下拉)' },
+        { value: 14, label: '附件' },
+        { value: 15, label: '日期' },
+        { value: 16, label: '日期时间' },
+        { value: 21, label: '自由连接' },
+        { value: 22, label: '分段' },
+        { value: 24, label: '地区' },
+        { value: 25, label: '大写金额' },
+        { value: 26, label: '成员' },
+        { value: 27, label: '部门' },
+        { value: 28, label: '等级' },
+        { value: 29, label: '关联记录' },
+        { value: 30, label: '他表字段' },
+        { value: 31, label: '公式 (数字)' },
+        { value: 32, label: '文本组合' },
+        { value: 33, label: '自动编号' },
+        { value: 34, label: '子表' },
+        { value: 35, label: '级联选择' },
+        { value: 36, label: '检查框' },
+        { value: 37, label: '汇总' },
+        { value: 38, label: '公式 (日期)' },
+        { value: 40, label: '定位' },
+        { value: 41, label: '富文本' },
+        { value: 42, label: '签名' },
+        { value: 45, label: '嵌入' },
+        { value: 46, label: '时间' },
+        { value: 47, label: '条码' },
+        { value: 48, label: '组织角色' },
+        { value: 49, label: 'API 查询' },
+        { value: 50, label: 'API 查询 (多结果)' },
+        { value: 51, label: '查询记录' },
+        { value: 10010, label: '备注' }
+      ];
+
+      const FilterTypeEnum = [
+        { value: 0, label: '默认筛选' },
+        { value: 1, label: '包含' },
+        { value: 2, label: '等于' },
+        { value: 3, label: '开头为' },
+        { value: 4, label: '结尾为' },
+        { value: 5, label: '不包含' },
+        { value: 6, label: '不等于' },
+        { value: 7, label: '为空' },
+        { value: 8, label: '不为空' },
+        { value: 11, label: '在范围内' },
+        { value: 12, label: '不在范围内' },
+        { value: 13, label: '大于' },
+        { value: 14, label: '大于等于' },
+        { value: 15, label: '小于' },
+        { value: 16, label: '小于等于' },
+        { value: 17, label: '日期是' },
+        { value: 18, label: '日期不是' },
+        { value: 21, label: '我拥有的' },
+        { value: 22, label: '未读' },
+        { value: 23, label: '下属' },
+        { value: 24, label: '关联控件是' },
+        { value: 25, label: '关联控件不是' },
+        { value: 26, label: '数组等于' },
+        { value: 27, label: '数组不等于' },
+        { value: 31, label: '在范围内 (日期)' },
+        { value: 32, label: '不在范围内 (日期)' },
+        { value: 33, label: '大于 (日期)' },
+        { value: 34, label: '大于等于 (日期)' },
+        { value: 35, label: '小于 (日期)' },
+        { value: 36, label: '小于等于 (日期)' },
+        { value: 41, label: '常规用户' },
+        { value: 42, label: '外部门户用户' }
+      ];
+
+      function renderFilterBuilder(filters, onChange) {
+        const builder = document.createElement('div');
+        builder.className = 'filter-builder';
+
+        function draw(parent, list, isRoot = false) {
+          parent.innerHTML = '';
+          list.forEach((item, index) => {
+            if (item.isGroup) {
+              const group = document.createElement('div');
+              group.className = 'filter-group';
+              
+              const head = document.createElement('div');
+              head.className = 'filter-group-header';
+              
+              const splice = document.createElement('button');
+              splice.className = 'filter-btn-sm filter-splice-toggle';
+              splice.textContent = item.spliceType === 2 ? '或' : '且';
+              splice.onclick = () => {
+                item.spliceType = item.spliceType === 2 ? 1 : 2;
+                onChange();
+                draw(parent, list, isRoot);
+              };
+              head.appendChild(splice);
+              
+              const label = document.createElement('span');
+              label.style.fontSize = '11px';
+              label.style.color = '#999';
+              label.textContent = item.spliceType === 2 ? '符合以下任一条件' : '符合以下所有条件';
+              head.appendChild(label);
+
+              const delGroup = document.createElement('button');
+              delGroup.className = 'filter-btn-sm filter-btn-danger';
+              delGroup.style.marginLeft = 'auto';
+              delGroup.textContent = '删除组';
+              delGroup.onclick = () => {
+                list.splice(index, 1);
+                onChange();
+                draw(parent, list, isRoot);
+              };
+              head.appendChild(delGroup);
+              group.appendChild(head);
+              
+              const sub = document.createElement('div');
+              draw(sub, item.groupFilters || []);
+              group.appendChild(sub);
+              
+              const acts = document.createElement('div');
+              acts.className = 'filter-group-actions';
+              
+              const addC = document.createElement('button');
+              addC.className = 'filter-btn-sm';
+              addC.textContent = '+ 条件';
+              addC.onclick = () => {
+                item.groupFilters = item.groupFilters || [];
+                item.groupFilters.push({ controlId: '', dataType: 2, spliceType: 1, filterType: 2, value: '' });
+                onChange();
+                draw(sub, item.groupFilters);
+              };
+              acts.appendChild(addC);
+              
+              const addG = document.createElement('button');
+              addG.className = 'filter-btn-sm';
+              addG.textContent = '+ 组';
+              addG.onclick = () => {
+                item.groupFilters = item.groupFilters || [];
+                item.groupFilters.push({ isGroup: true, spliceType: 1, groupFilters: [] });
+                onChange();
+                draw(sub, item.groupFilters);
+              };
+              acts.appendChild(addG);
+              group.appendChild(acts);
+              parent.appendChild(group);
+            } else {
+               const row = document.createElement('div');
+               row.className = 'filter-item';
+               
+               const prefix = document.createElement('span');
+               prefix.textContent = '当';
+               prefix.style.fontSize = '11px';
+               prefix.style.color = '#999';
+               prefix.style.marginRight = '2px';
+               row.appendChild(prefix);
+
+               const cid = document.createElement('input');
+               cid.className = 'filter-input';
+               cid.placeholder = '字段ID';
+               cid.value = item.controlId || '';
+               cid.oninput = (e) => { item.controlId = e.target.value; onChange(); };
+               row.appendChild(cid);
+               
+               const dt = document.createElement('select');
+               dt.className = 'filter-select';
+               dt.style.width = '70px';
+               DataTypeEnum.forEach(o => {
+                 const opt = document.createElement('option');
+                 opt.value = o.value;
+                 opt.textContent = o.label;
+                 if (item.dataType == o.value) opt.selected = true;
+                 dt.appendChild(opt);
+               });
+               dt.onchange = (e) => { item.dataType = parseInt(e.target.value); onChange(); };
+               row.appendChild(dt);
+               
+               const ft = document.createElement('select');
+               ft.className = 'filter-select';
+               ft.style.width = '80px';
+               FilterTypeEnum.forEach(o => {
+                 const opt = document.createElement('option');
+                 opt.value = o.value;
+                 opt.textContent = o.label;
+                 if (item.filterType == o.value) opt.selected = true;
+                 ft.appendChild(opt);
+               });
+               ft.onchange = (e) => { item.filterType = parseInt(e.target.value); onChange(); };
+               row.appendChild(ft);
+               
+               const val = document.createElement('input');
+               val.className = 'filter-input';
+               val.placeholder = '值';
+               val.value = item.value || '';
+               val.oninput = (e) => { item.value = e.target.value; onChange(); };
+               row.appendChild(val);
+               
+               const del = document.createElement('button');
+               del.className = 'filter-btn-sm filter-btn-danger';
+               del.textContent = '×';
+               del.onclick = () => {
+                 list.splice(index, 1);
+                 onChange();
+                 draw(parent, list, isRoot);
+               };
+               row.appendChild(del);
+               parent.appendChild(row);
+             }
+          });
+
+          if (isRoot) {
+            const rootActs = document.createElement('div');
+            rootActs.className = 'filter-group-actions';
+            rootActs.style.marginTop = '8px';
+            
+            const addC = document.createElement('button');
+            addC.className = 'filter-btn-sm';
+            addC.textContent = '+ 添加条件';
+            addC.onclick = () => {
+              list.push({ controlId: '', dataType: 2, spliceType: 1, filterType: 2, value: '' });
+              onChange();
+              draw(parent, list, true);
+            };
+            rootActs.appendChild(addC);
+            
+            const addG = document.createElement('button');
+             addG.className = 'filter-btn-sm';
+             addG.textContent = '+ 添加组';
+             addG.onclick = () => {
+               list.push({ isGroup: true, spliceType: 1, groupFilters: [] });
+               onChange();
+               draw(parent, list, true);
+             };
+             rootActs.appendChild(addG);
+            parent.appendChild(rootActs);
+          }
+        }
+
+        draw(builder, filters, true);
+        return builder;
+      }
+
+      const filterArea = document.createElement('textarea');
+      filterArea.className = 'props-form-input';
+      filterArea.style.height = '100px';
+      filterArea.style.resize = 'vertical';
+      filterArea.style.display = 'none'; // Hide the raw textarea by default
+      filterArea.placeholder = '过滤条件，JSON 数组格式';
+      filterArea.value = (item.dataProps && item.dataProps.filtersJson) || '';
+
+      let currentFilters = [];
+      try {
+        currentFilters = JSON.parse(filterArea.value || '[]');
+        if (!Array.isArray(currentFilters)) currentFilters = [];
+      } catch (e) {
+        currentFilters = [];
+      }
+
+      const onFiltersChange = () => {
+        const json = JSON.stringify(currentFilters);
+        filterArea.value = json;
+        const current = getCurrentDataProps(item.id);
+        const next = Object.assign({}, current, { filtersJson: json });
+        updateNodeProps(item.id, 'dataProps', next, true, 'filtersJson', json);
+        refreshRequestBody();
+      };
+
+      let builderEl = renderFilterBuilder(currentFilters, onFiltersChange);
+
+      const filterContainer = document.createElement('div');
+      filterContainer.appendChild(builderEl);
+      filterContainer.appendChild(filterArea);
+
+      // Add a toggle for raw mode
+      const toggleRaw = document.createElement('div');
+      toggleRaw.style.textAlign = 'right';
+      toggleRaw.style.marginTop = '4px';
+      const toggleBtn = document.createElement('span');
+      toggleBtn.style.fontSize = '10px';
+      toggleBtn.style.color = '#1890ff';
+      toggleBtn.style.cursor = 'pointer';
+      toggleBtn.textContent = '编辑 JSON';
+      toggleBtn.onclick = () => {
+        if (filterArea.style.display === 'none') {
+          filterArea.style.display = 'block';
+          builderEl.style.display = 'none';
+          toggleBtn.textContent = '返回可视化';
+        } else {
+          filterArea.style.display = 'none';
+          builderEl.style.display = 'block';
+          toggleBtn.textContent = '编辑 JSON';
+          try {
+            const newFilters = JSON.parse(filterArea.value || '[]');
+            currentFilters.length = 0;
+            newFilters.forEach(f => currentFilters.push(f));
+            // Re-render builder with new data
+            const newBuilder = renderFilterBuilder(currentFilters, onFiltersChange);
+            filterContainer.replaceChild(newBuilder, builderEl);
+            builderEl = newBuilder;
+          } catch (e) {}
+        }
+      };
+      toggleRaw.appendChild(toggleBtn);
+      filterContainer.appendChild(toggleRaw);
+
+      createRow(container, '过滤条件', filterContainer);
+
+      requestBodyArea.value = (item.dataProps && item.dataProps.requestBodyJson) || '';
+      requestBodyArea.addEventListener('change', function (e) {
+        const val = e.target.value.trim();
+        const current = getCurrentDataProps(item.id);
+        const next = Object.assign({}, current, { requestBodyJson: val });
+        updateNodeProps(item.id, 'dataProps', next, true, 'requestBodyJson', val);
+      });
+      createRow(container, '请求体', requestBodyArea);
+
+      const buttonRow = document.createElement('div');
+      buttonRow.style.marginTop = '10px';
+      buttonRow.style.textAlign = 'right';
+      const copyBodyBtn = document.createElement('button');
+      copyBodyBtn.className = 'mock-btn';
+      copyBodyBtn.textContent = '复制请求体';
+      copyBodyBtn.style.marginRight = '8px';
+      copyBodyBtn.addEventListener('click', function () {
+        refreshRequestBody();
+        const text = requestBodyArea.value || '';
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(function () {
+          const originalText = copyBodyBtn.textContent;
+          copyBodyBtn.textContent = '已复制';
+          setTimeout(function () {
+            copyBodyBtn.textContent = originalText;
+          }, 1500);
+        }).catch(function (err) {
+          console.error('复制请求体失败:', err);
+          alert('复制失败，请手动复制请求体');
+        });
+      });
+      const genBtn = document.createElement('button');
+      genBtn.className = 'mock-btn mock-btn-primary';
+      genBtn.textContent = '生成提示词在底部';
+      genBtn.addEventListener('click', function () {
+        const dataProps = getCurrentDataProps(item.id);
+        const actionType = dataProps.actionType || actionSelect.value || '';
+        const alias = dataProps.tableAlias || '';
+        const worksheetId = dataProps.worksheetId || '';
+        const rowid = dataProps.rowid || '';
+        const sortId = dataProps.sortId || dataProps.sortid || '';
+        const isAsc = dataProps.isAsc || '';
+        const filtersJson = dataProps.filtersJson || '';
+        const actionLabelMap = {
+          add: '增',
+          delete: '删',
+          update: '改',
+          getObject: '查对象',
+          getArray: '查数组'
+        };
+        const actionLabel = actionLabelMap[actionType] || actionType || '未选择';
+        const parts = [];
+        if (worksheetId) parts.push('worksheetId 为 ' + worksheetId);
+        if (rowid) parts.push('rowid 为 ' + rowid);
+        if (sortId) parts.push('sortId/排序字段为 ' + sortId);
+        if (isAsc) parts.push('isAsc 为 ' + isAsc);
+        if (filtersJson) parts.push('filters 为 ' + filtersJson);
+        const base = '为组件「' + (item.name || item.id) + '」配置明道云数据：表别名 ' + (alias || '未填') + '，行为 ' + actionLabel;
+        const detail = parts.length ? '，' + parts.join('，') + '。' : '。';
+        const prompt = base + detail;
+        const aiInput = document.getElementById('ai-input');
+        if (aiInput) {
+          const currentText = aiInput.value || '';
+          aiInput.value = (currentText ? currentText + '\n' : '') + prompt;
+        }
+      });
+      buttonRow.appendChild(copyBodyBtn);
+      buttonRow.appendChild(genBtn);
+      container.appendChild(buttonRow);
+
+      const tips = document.createElement('div');
+      tips.style.fontSize = '11px';
+      tips.style.color = '#999';
+      tips.style.marginTop = '6px';
+      tips.textContent = 'filters 参数格式请参考《明道云接口&数据字典文档》的示例，所有查询建议包含 del=0 条件。';
+      container.appendChild(tips);
+    }
+
+    function renderActionPanelContent(container, item) {
+      container.innerHTML = '';
+
+      const title = document.createElement('div');
+      title.className = 'props-title';
+      title.style.marginTop = '0';
+      title.textContent = `动作配置: ${item.name || item.id}`;
+      container.appendChild(title);
+      
+      const desc = document.createElement('div');
+      desc.style.fontSize = '12px';
+      desc.style.color = '#666';
+      desc.style.marginBottom = '10px';
+      desc.innerText = '当前组件的动作逻辑:';
+      container.appendChild(desc);
+
+      const logicBox = document.createElement('div');
+      logicBox.style.marginBottom = '12px';
+      container.appendChild(logicBox);
+
+      loadActionsLogic().then(data => {
+        renderActionLogicForItem(logicBox, item, data || []);
+      });
+    }
+
+    function eventAffectsItem(eventNode, itemId) {
+      const stack = [eventNode];
+      while (stack.length) {
+        const n = stack.pop();
+        const p = n && n.props ? n.props : {};
+        if (p.triggerComponent === itemId || p.target === itemId) {
+          return true;
+        }
+        if (n && n.children && n.children.length) {
+          n.children.forEach(child => stack.push(child));
+        }
+      }
+      return false;
+    }
+
+    function renderActionLogicForItem(container, item, data) {
+      container.innerHTML = '';
+      if (!data || !data.length) {
+        container.innerHTML = '<div style="font-size:12px;color:#999;">暂无动作逻辑配置</div>';
+        return;
+      }
+
+      const tree = buildLogicTree(data);
+      const events = [];
+      const collectEvents = nodes => {
+        nodes.forEach(n => {
+          if (n.type === 'Event') events.push(n);
+          if (n.children && n.children.length) collectEvents(n.children);
+        });
+      };
+      collectEvents(tree);
+
+      const related = events.filter(ev => eventAffectsItem(ev, item.id));
+
+      if (!related.length) {
+        container.innerHTML = '<div style="font-size:12px;color:#999;">当前组件未绑定动作逻辑，可在 actions_logic.json 中配置。</div>';
+        return;
+      }
+
+      related.forEach(ev => {
+        const root = tree.find(n => n.id === ev.id) || ev;
+        container.appendChild(renderEventCard(root));
+      });
+    }
+
+    function renderSimpleTreeNode(node) {
+      const li = document.createElement('li');
+      li.className = 'tree-node';
+      const row = document.createElement('div');
+      row.className = 'tree-row';
+      row.style.cursor = 'default';
+      
+      const label = document.createElement('span');
+      label.className = 'node-label';
+      label.textContent = node.name || node.id;
+      row.appendChild(label);
+      
+      const type = document.createElement('span');
+      type.className = 'node-type';
+      type.textContent = node.type;
+      type.style.marginLeft = '8px';
+      row.appendChild(type);
+
+      li.appendChild(row);
+      
+      if (node.children && node.children.length > 0) {
+        const ul = document.createElement('ul');
+        ul.className = 'children';
+        node.children.forEach(child => ul.appendChild(renderSimpleTreeNode(child)));
+        li.appendChild(ul);
+      }
+      return li;
+    }
+
+    const COMMON_STYLE_PROPS = [
+      'width', 'height', 'padding', 'margin', 
+      'display', 'flexDirection', 'justifyContent', 'alignItems', 
+      'backgroundColor', 'color', 'fontSize', 'fontWeight', 
+      'border', 'borderRadius', 'textAlign'
+    ];
+
+    function renderPropertiesPanelContent(container, item) {
+      container.innerHTML = `
+        <div class="props-title" style="margin-top:0;">基本属性 basicProps</div>
+        <div id="basic-props-form"></div>
+        <div class="props-title" style="margin-top:10px;">样式属性 styleProps</div>
+        <div id="style-props-form"></div>
+      `;
+
+      // 渲染基本属性表单
+      renderPropsForm(
+        container.querySelector('#basic-props-form'), 
+        item.basicProps || {}, 
+        (newProps, skipRefresh, key, val) => updateNodeProps(item.id, 'basicProps', newProps, skipRefresh, key, val)
+      );
+
+      // 渲染样式属性表单
+      renderPropsForm(
+        container.querySelector('#style-props-form'), 
+        item.styleProps || {}, 
+        (newProps, skipRefresh, key, val) => updateNodeProps(item.id, 'styleProps', newProps, skipRefresh, key, val),
+        COMMON_STYLE_PROPS
+      );
+    }
+
+    function renderPropsForm(container, currentProps, onUpdate, commonKeys = []) {
+      const existingKeys = Object.keys(currentProps);
+      const allKeys = Array.from(new Set([...existingKeys, ...commonKeys]));
+      
+      if (allKeys.length === 0) {
+        container.innerHTML = '<div style="font-size:12px;color:#999;padding:4px;">无属性</div>';
+        return;
+      }
+
+      const colorKeywords = ['color', 'background', 'fill', 'stroke'];
+
+      allKeys.forEach(key => {
+        const row = document.createElement('div');
+        row.className = 'props-form-row';
+        
+        const label = document.createElement('div');
+        label.className = 'props-form-label';
+        label.title = key;
+        label.textContent = key;
+        row.appendChild(label);
+        
+        const input = document.createElement('input');
+        input.className = 'props-form-input';
+        input.value = currentProps[key] || '';
+        input.placeholder = '空';
+        
+        const handleUpdate = (val, skipRefresh = false) => {
+          const newProps = { ...currentProps };
+          if (val === '') {
+            delete newProps[key];
+          } else {
+            newProps[key] = val;
+          }
+          onUpdate(newProps, skipRefresh, key, val);
+        };
+
+        input.addEventListener('change', (e) => handleUpdate(e.target.value.trim()));
+
+        // Check if it's a color property
+        const isColor = colorKeywords.some(k => key.toLowerCase().includes(k));
+
+        if (isColor) {
+          const group = document.createElement('div');
+          group.className = 'props-input-group';
+          
+          const picker = document.createElement('input');
+          picker.type = 'color';
+          picker.className = 'props-color-picker';
+          
+          // Initial value for picker
+          let initialColor = '#000000';
+          const val = currentProps[key];
+          if (val && val.startsWith('#') && (val.length === 7)) {
+            initialColor = val;
+          }
+          picker.value = initialColor;
+
+          // Picker updates input and triggers update
+          picker.addEventListener('input', (e) => {
+            input.value = e.target.value;
+            // Real-time update for better UX, skip panel refresh to prevent losing focus
+            handleUpdate(e.target.value, true);
+          });
+          picker.addEventListener('change', (e) => {
+            input.value = e.target.value;
+            handleUpdate(e.target.value, false);
+          });
+          
+          // Input updates picker
+          input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (val.startsWith('#') && val.length === 7) {
+              picker.value = val;
+            }
+          });
+
+          group.appendChild(input);
+          group.appendChild(picker);
+          row.appendChild(group);
+        } else {
+          row.appendChild(input);
+        }
+
+        container.appendChild(row);
+      });
+    }
+
+    function updateNodeProps(nodeId, propType, newProps, skipRefresh = false, changedKey = null, changedValue = null) {
+      rawData = rawData.map(node => {
+        if (node.id === nodeId) {
+          return { ...node, [propType]: newProps };
+        }
+        return node;
+      });
+
+      // Auto-generate AI prompt
+      if (changedKey !== null && !skipRefresh) {
+        const node = rawData.find(n => n.id === nodeId);
+        if (node) {
+            const prompt = `将${node.name || node.id}的${changedKey}改为${changedValue}`;
+            const aiInput = document.getElementById('ai-input');
+            if (aiInput) {
+                const currentVal = aiInput.value;
+                aiInput.value = (currentVal ? currentVal + '\n' : '') + prompt + '；';
+            }
+        }
+      }
+
+      // 重新渲染画布和属性面板（保持焦点）
+      renderCanvas();
+      // 这里不重新渲染整个属性面板，避免输入框失去焦点，但需要更新数据
+      // 实际应用中可能需要更精细的更新策略，这里简化处理，只更新画布
+      // 如果需要实时反馈，可以考虑 input 事件而不是 change
+      // 为了保持简单，暂时不重绘属性面板，因为输入框的值已经是最新的了
+      // 但是如果删除了属性，可能需要重绘？
+      // 现在的逻辑是 change 触发，已经失焦或回车了，所以重绘是可以的
+      if (!skipRefresh) {
+        renderPropertiesPanel();
+      }
+      setDebugOutput(rawData);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function refreshSelectionClasses() {
+      const treeRows = document.querySelectorAll('.tree-row');
+      treeRows.forEach(r => r.classList.remove('selected'));
+      if (selectedId) {
+        const row = document.querySelector(`.tree-node[data-id="${escapeCssValue(selectedId)}"] > .tree-row`);
+        if (row) row.classList.add('selected');
+      }
+      const wrappers = document.querySelectorAll('.component-wrapper');
+      wrappers.forEach(w => w.classList.remove('selected'));
+      if (selectedId) {
+        const el = document.querySelector(`.component-wrapper[data-id="${escapeCssValue(selectedId)}"]`);
+        if (el) el.classList.add('selected');
+      }
+    }
+
+    function escapeCssValue(value) {
+      if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(String(value));
+      return String(value).replace(/["\\]/g, '\\$&');
+    }
+
+    function selectNode(id) {
+      if (!id) return;
+      selectedId = id;
+      renderRightPanel();
+      refreshSelectionClasses();
+    }
+
+    function toggleActionMode(id) {
+      if (actionModeId === id) {
+        actionModeId = null;
+        currentRightTab = 'design';
+      } else {
+        actionModeId = id;
+        selectNode(id); // 确保选中
+        currentRightTab = 'action';
+      }
+      renderTree();
+      renderRightPanel();
+    }
+
+    function renderTree() {
+      const rootList = document.getElementById('layer-tree');
+      if (!rootList) return;
+      rootList.innerHTML = '';
+      const treeData = buildTree(rawData);
+      treeData.forEach(node => {
+        rootList.appendChild(renderTreeNode(node));
+      });
+      applySortableToTree(rootList);
+    }
+
+    function renderTreeNode(node) {
+      const li = document.createElement('li');
+      li.className = 'tree-node';
+      li.setAttribute('data-id', node.id);
+      if (collapsedState[node.id]) li.classList.add('collapsed');
+      const row = document.createElement('div');
+      row.className = 'tree-row';
+      if (selectedId === node.id) row.classList.add('selected');
+      const toggle = document.createElement('span');
+      toggle.className = 'toggle';
+      const icon = document.createElement('img');
+      icon.src = collapsedState[node.id] ? './assets/img/未展开.png' : './assets/img/展开.png';
+      icon.alt = collapsedState[node.id] ? '未展开' : '展开';
+      // 简单的 +/- 符号代替图片，如果没有图片资源的话
+      if (!icon.complete && icon.naturalHeight === 0) { 
+          icon.onerror = () => { icon.style.display='none'; toggle.innerText = collapsedState[node.id] ? '+' : '-'; }
+      }
+      toggle.appendChild(icon);
+      if (!node.children || node.children.length === 0) {
+        toggle.style.visibility = 'hidden';
+      }
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        collapsedState[node.id] = !collapsedState[node.id];
+        renderTree();
+      });
+      const label = document.createElement('span');
+      label.className = 'node-label';
+      label.textContent = node.name || node.id;
+      const type = document.createElement('span');
+      type.className = 'node-type';
+      type.textContent = node.type;
+      
+      const actionIcon = document.createElement('span');
+      actionIcon.className = 'tree-action-icon';
+      actionIcon.innerText = '!';
+      actionIcon.title = '配置动作';
+      actionIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleActionMode(node.id);
+      });
+
+      row.appendChild(toggle);
+      row.appendChild(label);
+      row.appendChild(type);
+      row.appendChild(actionIcon);
+      
+      row.addEventListener('click', () => selectNode(node.id));
+      li.appendChild(row);
+      const ul = document.createElement('ul');
+      ul.className = 'children';
+      ul.setAttribute('data-parent-id', node.id);
+      if (node.children && node.children.length > 0) {
+        node.children.forEach(child => {
+          ul.appendChild(renderTreeNode(child));
+        });
+      }
+      li.appendChild(ul);
+      return li;
+    }
+
+    function applySortableToTree(rootEl) {
+      new Sortable(rootEl, {
+        group: 'tree',
+        animation: 150,
+        fallbackOnBody: true,
+        swapThreshold: 0.65,
+        filter: '.toggle',
+        preventOnFilter: true,
+        onEnd: handleTreeDragEnd
+      });
+      const lists = rootEl.querySelectorAll('ul.children');
+      lists.forEach(ul => {
+        new Sortable(ul, {
+          group: 'tree',
+          animation: 150,
+          fallbackOnBody: true,
+          swapThreshold: 0.65,
+          filter: '.toggle',
+          preventOnFilter: true,
+          onEnd: handleTreeDragEnd
+        });
+      });
+    }
+
+    function getDescendantsIds(startId) {
+      const childrenMap = {};
+      rawData.forEach(it => {
+        if (!childrenMap[it.parentId || 'null']) childrenMap[it.parentId || 'null'] = [];
+        childrenMap[it.parentId || 'null'].push(it.id);
+      });
+      const result = [];
+      const stack = [startId];
+      while (stack.length) {
+        const cur = stack.pop();
+        const kids = childrenMap[cur] || [];
+        kids.forEach(k => {
+          result.push(k);
+          stack.push(k);
+        });
+      }
+      return result;
+    }
+
+    function handleTreeDragEnd(evt) {
+      const itemNode = evt.item.closest('.tree-node');
+      if (!itemNode) return;
+      const itemId = itemNode.getAttribute('data-id');
+      const toList = evt.to;
+      const newParentAttr = toList.getAttribute('data-parent-id');
+      const newParentId = newParentAttr === 'null' ? null : newParentAttr;
+      const fromList = evt.from;
+      const descendants = getDescendantsIds(itemId);
+      if (newParentId && (newParentId === itemId || descendants.includes(newParentId))) {
+        renderAll();
+        return;
+      }
+      rawData = rawData.map(it => it.id === itemId ? { ...it, parentId: newParentId } : it);
+      const toChildren = Array.from(toList.children).filter(c => c.classList.contains('tree-node'));
+      toChildren.forEach((li, idx) => {
+        const id = li.getAttribute('data-id');
+        rawData = rawData.map(it => it.id === id ? { ...it, sort: idx + 1 } : it);
+      });
+      if (fromList !== toList) {
+        const fromChildren = Array.from(fromList.children).filter(c => c.classList.contains('tree-node'));
+        fromChildren.forEach((li, idx) => {
+          const id = li.getAttribute('data-id');
+          rawData = rawData.map(it => it.id === id ? { ...it, sort: idx + 1 } : it);
+        });
+      }
+      renderAll();
+    }
+
+    function renderCanvas() {
+      const container = document.getElementById('canvas-container');
+      // Preserve the dev mode button if it exists
+      const devModeBtn = document.getElementById('toggle-dev-mode');
+      const aiInputContainer = document.getElementById('ai-input-container');
+      
+      container.innerHTML = '';
+      
+      if (devModeBtn) {
+        container.appendChild(devModeBtn);
+      }
+      if (aiInputContainer) {
+        container.appendChild(aiInputContainer);
+      }
+      
+      // 始终渲染手机预览组件，实现结构树与预览的完全分离
+      // 这里的配置是固定的，不受 webview_layout.json 变化的影响
+      const phonePreviewNode = {
+        "id": "mobile_preview",
+        "parentId": null,
+        "sort": 1,
+        "type": "PhonePreview",
+        "name": "手机实时预览 (HTML)",
+        "basicProps": {
+          "url": "http://localhost:5500/webview0/index.html?dev=1"
+        }
+      };
+
+      const dom = renderComponent({ ...phonePreviewNode, children: [] });
+      container.appendChild(dom);
+      
+      refreshSelectionClasses();
+    }
+
+    function renderAll() {
+      renderCanvas();
+      renderTree();
+      renderRightPanel();
+      setDebugOutput(rawData);
+    }
+
+    async function init() {
+      try {
+        const response = await fetch('./webview_layout.json');
+        if (response.ok) {
+          rawData = await response.json();
+          // Set default selection to "前台" (app_frontend)
+          const frontendNode = rawData.find(item => item.name === '前台' || item.id === 'app_frontend');
+          if (frontendNode) {
+            selectedId = frontendNode.id;
+          }
+        }
+      } catch (e) {
+        console.error('加载 webview_layout.json 失败:', e);
+      }
+      renderAll();
+    }
+
+    function applySortable(rootEl) {
+      new Sortable(rootEl, {
+        group: 'nested',
+        animation: 150,
+        fallbackOnBody: true,
+        swapThreshold: 0.65,
+        onEnd: handleDragEnd
+      });
+      const containers = rootEl.querySelectorAll('.container-component, .mock-card-body'); 
+      containers.forEach(el => {
+        new Sortable(el, {
+          group: 'nested',
+          animation: 150,
+          fallbackOnBody: true,
+          swapThreshold: 0.65,
+          onEnd: handleDragEnd
+        });
+      });
+    }
+
+    function handleDragEnd(evt) {
+      // 简单实现：拖拽后需要完全重新计算 parentId 和 sort
+      // 这里的逻辑需要根据 DOM 结构反向更新 rawData
+      // 这是一个复杂的操作，这里仅做示意，暂不实现完整的 Canvas 拖拽反向更新
+      // 建议主要通过左侧树进行结构调整，Canvas 仅用于预览和点击选择
+      console.log('Canvas drag ended - Data update logic needed here');
+      // updateDataFromDOM(); // 需要实现 robust 的 updateDataFromDOM
+    }
+
+    function bindToolbar() {
+      const importBtn = document.getElementById('import-json-btn');
+      const exportBtn = document.getElementById('export-json-btn');
+      const resetBtn = document.getElementById('reset-btn');
+      const toggleBtn = document.getElementById('toggle-debug');
+      const fileInput = document.getElementById('file-input');
+      const jsonInput = document.getElementById('json-input');
+      // 头部和状态栏已移除，不再绑定 loadSchemaBtn 等事件
+      
+      importBtn.addEventListener('click', () => {
+        const val = jsonInput.value.trim();
+        if (!val) return;
+        try {
+          const parsed = JSON.parse(val);
+          if (!Array.isArray(parsed)) return;
+          rawData = parsed;
+          renderAll();
+        } catch (e) { }
+      });
+      exportBtn.addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(rawData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'layout.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+      resetBtn.addEventListener('click', () => {
+        init(); // 重置按钮重新从 webview_layout.json 加载
+      });
+      
+      const devModeBtn = document.getElementById('toggle-dev-mode');
+      if (devModeBtn) {
+        // 初始化按钮样式
+        const updateBtnStyle = () => {
+          devModeBtn.innerText = `当前状态: ${isDevMode ? '编辑中' : '预览中'}`;
+          devModeBtn.style.backgroundColor = isDevMode ? '#ff4d4f' : '#52c41a';
+          devModeBtn.style.color = isDevMode ? '#fff' : '#333';
+        };
+        updateBtnStyle();
+
+        devModeBtn.addEventListener('click', () => {
+          isDevMode = !isDevMode;
+          updateBtnStyle();
+          
+          const iframe = document.getElementById('preview-iframe');
+          if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+              type: 'toggle-dev-mode',
+              active: isDevMode
+            }, '*');
+          }
+        });
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        const panel = document.getElementById('debug-info');
+        if (panel.style.display === 'none') {
+          panel.style.display = 'block';
+        } else {
+          panel.style.display = 'none';
+        }
+      });
+      fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        try {
+          const parsed = JSON.parse(text);
+          if (!Array.isArray(parsed)) return;
+          rawData = parsed;
+          renderAll();
+        } catch (e) { }
+        fileInput.value = '';
+      });
+      /* 移除 schema 加载相关事件绑定
+      loadSchemaBtn.addEventListener('click', () => {
+        schemaFileInput.click();
+      });
+      schemaFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        try {
+          const parsed = JSON.parse(text);
+          if (!Array.isArray(parsed)) return;
+          componentSchemaMap = parsed.reduce((acc, cur) => {
+            if (cur && cur.name) acc[cur.name] = cur;
+            return acc;
+          }, {});
+          schemaLoaded = true;
+          updateSchemaStatus();
+          renderRightPanel();
+        } catch (err) {
+          schemaLoaded = false;
+          updateSchemaStatus();
+        }
+        schemaFileInput.value = '';
+      });
+      */
+    }
+
+    // 启动
+    init();
+    bindToolbar();
+    // updateSchemaStatus(); // 状态栏已移除，不再调用
+    loadSchemaFromUrl();
+    
+    // ---------------------------------------------------------
+    // Global Settings (Webview Config)
+    // ---------------------------------------------------------
+    let webviewConfig = {};
+
+    async function loadWebviewConfig() {
+      try {
+        const response = await fetch('./webview_config.json');
+        if (!response.ok) {
+           // Fallback default config if file load fails
+           webviewConfig = {
+              "project": { "name": "Default Project", "version": "0.0.0", "description": "No config found" },
+              "theme": { "colors": {}, "typography": {}, "layout": {} },
+              "routes": []
+           };
+           return;
+        }
+        webviewConfig = await response.json();
+      } catch (error) {
+        console.error('Failed to load webview_config.json:', error);
+      }
+    }
+
+    // Call this before init
+    loadWebviewConfig().then(() => {
+        // Initial render if tab is already active (unlikely on load but good for reload)
+        const globalTab = document.getElementById('tab-global');
+        if (globalTab && globalTab.classList.contains('active')) {
+            renderGlobalSettings();
+        }
+    });
+
+    function renderGlobalSettings() {
+      const container = document.getElementById('tab-global');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      
+      // Project Info
+      const projectDiv = document.createElement('div');
+      projectDiv.className = 'global-section';
+      projectDiv.innerHTML = `
+        <div class="global-section-title">📦 项目信息</div>
+        <div class="global-row"><span class="global-label">名称</span><span class="global-value">${webviewConfig.project.name}</span></div>
+        <div class="global-row"><span class="global-label">版本</span><span class="global-value">${webviewConfig.project.version}</span></div>
+        <div class="global-row"><span class="global-label">描述</span><span class="global-value" style="font-size:10px;color:#999">${webviewConfig.project.description}</span></div>
+      `;
+      container.appendChild(projectDiv);
+
+      // Theme Colors
+      const themeDiv = document.createElement('div');
+      themeDiv.className = 'global-section';
+      themeDiv.innerHTML = `<div class="global-section-title">🎨 主题颜色</div>`;
+      
+      const grid = document.createElement('div');
+      grid.className = 'color-grid';
+      
+      Object.entries(webviewConfig.theme.colors).forEach(([key, val]) => {
+        const item = document.createElement('div');
+        item.className = 'color-item';
+        item.title = `${key}: ${val}`;
+        item.innerHTML = `
+          <div class="color-preview" style="background-color: ${val}"></div>
+          <div class="color-name">${key}</div>
+        `;
+        // Simple interactivity: click to copy
+        item.addEventListener('click', () => {
+             navigator.clipboard.writeText(val);
+             const originalText = item.querySelector('.color-name').innerText;
+             item.querySelector('.color-name').innerText = 'Copied';
+             setTimeout(() => item.querySelector('.color-name').innerText = originalText, 1000);
+        });
+        grid.appendChild(item);
+      });
+      themeDiv.appendChild(grid);
+      container.appendChild(themeDiv);
+
+      // Layout & Typo
+      const layoutDiv = document.createElement('div');
+      layoutDiv.className = 'global-section';
+      layoutDiv.innerHTML = `
+        <div class="global-section-title">📐 布局与排版</div>
+        <div class="global-row"><span class="global-label">圆角 (Radius)</span><span class="global-value">${webviewConfig.theme.layout.radius}</span></div>
+        <div class="global-row"><span class="global-label">容器宽度</span><span class="global-value">${webviewConfig.theme.layout.containerWidth}</span></div>
+        <div class="global-row"><span class="global-label">基准字号</span><span class="global-value">${webviewConfig.theme.typography.baseSize}</span></div>
+      `;
+      container.appendChild(layoutDiv);
+      
+      // Routes
+      const routeDiv = document.createElement('div');
+      routeDiv.className = 'global-section';
+      routeDiv.innerHTML = `<div class="global-section-title">🛣️ 页面路由</div>`;
+      const routesContainer = document.createElement('div');
+      webviewConfig.routes.forEach(r => {
+          const tag = document.createElement('span');
+          tag.className = 'route-tag';
+          tag.innerText = `${r.name} (${r.path})`;
+          routesContainer.appendChild(tag);
+      });
+      routeDiv.appendChild(routesContainer);
+      container.appendChild(routeDiv);
+    }
+
+    // ---------------------------------------------------------
+    // Left Panel Tabs
+    // ---------------------------------------------------------
+    async function loadActionsLogic() {
+      try {
+        if (actionsLogicCache) return actionsLogicCache;
+        const response = await fetch('./actions_logic.json');
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (!Array.isArray(data)) return null;
+        actionsLogicCache = data;
+        return data;
+      } catch (e) {
+        console.error('加载 actions_logic.json 失败:', e);
+        return null;
+      }
+    }
+
+    function buildLogicTree(nodes) {
+      const root = [];
+      const map = {};
+      nodes.forEach(n => {
+        map[n.id] = { ...n, children: [] };
+      });
+      nodes.forEach(n => {
+        const node = map[n.id];
+        if (!n.parentId) {
+          root.push(node);
+        } else if (map[n.parentId]) {
+          map[n.parentId].children.push(node);
+        }
+      });
+      const sortRecursive = list => {
+        list.sort((a, b) => (a.sort || 0) - (b.sort || 0));
+        list.forEach(n => {
+          if (n.children && n.children.length) sortRecursive(n.children);
+        });
+      };
+      sortRecursive(root);
+      return root;
+    }
+
+    function renderActionsLogicView(data) {
+      const container = document.getElementById('actions-logic-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!data || !data.length) {
+        container.innerHTML = '<div style="font-size:12px;color:#666;">暂无动作逻辑配置</div>';
+        return;
+      }
+
+      const tree = buildLogicTree(data);
+      tree.forEach(node => {
+        if (node.type === 'Event') {
+          container.appendChild(renderEventCard(node));
+        }
+      });
+    }
+
+    function renderEventCard(eventNode) {
+      const card = document.createElement('div');
+      card.className = 'global-section';
+
+      const title = document.createElement('div');
+      title.className = 'global-section-title';
+      const icon = eventNode.styleProps && eventNode.styleProps.icon ? eventNode.styleProps.icon : '⚡';
+      title.innerHTML = icon + ' ' + (eventNode.name || eventNode.id);
+      card.appendChild(title);
+
+      const metaRow = document.createElement('div');
+      metaRow.className = 'global-row';
+      const label = document.createElement('span');
+      label.className = 'global-label';
+      label.textContent = '触发';
+      const value = document.createElement('span');
+      value.className = 'global-value';
+      const t = eventNode.props || {};
+      value.textContent = (t.triggerComponent || '') + ' · ' + (t.eventType || '');
+      metaRow.appendChild(label);
+      metaRow.appendChild(value);
+      card.appendChild(metaRow);
+
+      if (t.description) {
+        const descRow = document.createElement('div');
+        descRow.className = 'global-row';
+        const dl = document.createElement('span');
+        dl.className = 'global-label';
+        dl.textContent = '说明';
+        const dv = document.createElement('span');
+        dv.className = 'global-value';
+        dv.style.fontSize = '10px';
+        dv.style.color = '#999';
+        dv.textContent = t.description;
+        descRow.appendChild(dl);
+        descRow.appendChild(dv);
+        card.appendChild(descRow);
+      }
+
+      if (eventNode.children && eventNode.children.length) {
+        const flow = document.createElement('div');
+        flow.style.marginTop = '8px';
+        flow.style.fontSize = '12px';
+        eventNode.children.forEach(child => {
+          flow.appendChild(renderActionFlowNode(child, 0));
+        });
+        card.appendChild(flow);
+      }
+
+      return card;
+    }
+
+    function renderActionFlowNode(node, level) {
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.alignItems = 'flex-start';
+      row.style.marginBottom = '4px';
+
+      const indent = document.createElement('div');
+      indent.style.width = (level * 12) + 'px';
+      row.appendChild(indent);
+
+      const bullet = document.createElement('div');
+      bullet.style.width = '6px';
+      bullet.style.height = '6px';
+      bullet.style.borderRadius = '50%';
+      bullet.style.marginTop = '6px';
+      bullet.style.marginRight = '6px';
+      bullet.style.backgroundColor = node.type === 'Action' ? '#2f54eb' : '#999';
+      row.appendChild(bullet);
+
+      const content = document.createElement('div');
+      const name = document.createElement('div');
+      name.style.fontWeight = '500';
+      name.style.color = '#111';
+      name.textContent = node.name || node.id;
+      const meta = document.createElement('div');
+      meta.style.fontSize = '11px';
+      meta.style.color = '#666';
+      const p = node.props || {};
+      const typeLabel = node.type === 'Action' ? (p.actionType || node.category || '') : (node.type || '');
+      const targetLabel = p.target ? ` · 目标: ${p.target}` : '';
+      meta.textContent = typeLabel + targetLabel;
+      content.appendChild(name);
+      content.appendChild(meta);
+      row.appendChild(content);
+
+      const wrapper = document.createElement('div');
+      wrapper.appendChild(row);
+
+      if (node.children && node.children.length) {
+        node.children.forEach(child => {
+          wrapper.appendChild(renderActionFlowNode(child, level + 1));
+        });
+      }
+
+      return wrapper;
+    }
+
+    function initLeftPanelTabs() {
+      const tabs = document.querySelectorAll('#tree-container .panel-tab');
+      const contents = document.querySelectorAll('.tab-content');
+
+      // Initial Render if global is default (it's not, but good practice)
+      // renderGlobalSettings(); 
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs and contents
+          tabs.forEach(t => t.classList.remove('active'));
+          contents.forEach(c => c.classList.remove('active'));
+
+          // Add active class to clicked tab
+          tab.classList.add('active');
+
+          // Show corresponding content
+          const tabId = tab.getAttribute('data-tab');
+          const content = document.getElementById(`tab-${tabId}`);
+          if (content) {
+            content.classList.add('active');
+          }
+          
+          if (tabId === 'global') {
+            renderGlobalSettings();
+          } else if (tabId === 'actions') {
+            loadActionsLogic().then(data => {
+              renderActionsLogicView(data || []);
+            });
+          }
+        });
+      });
+    }
+
+    // ---------------------------------------------------------
+    // Resizers
+    // ---------------------------------------------------------
+    function initResizers() {
+      const resizerLeft = document.getElementById('resizer-left');
+      const resizerRight = document.getElementById('resizer-right');
+      const leftPanel = document.getElementById('tree-container');
+      const rightPanel = document.getElementById('right-panel');
+
+      function handleResize(resizer, targetPanel, isLeft) {
+        if (!resizer || !targetPanel) return;
+
+        resizer.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          
+          const startX = e.clientX;
+          const startWidth = targetPanel.getBoundingClientRect().width;
+          
+          document.body.classList.add('resizing');
+          resizer.classList.add('resizing');
+
+          function onMouseMove(e) {
+            let newWidth;
+            if (isLeft) {
+              // 左侧面板：鼠标向右移动增加宽度
+              newWidth = startWidth + (e.clientX - startX);
+            } else {
+              // 右侧面板：鼠标向左移动增加宽度
+              newWidth = startWidth - (e.clientX - startX);
+            }
+            
+            // 限制宽度范围
+            if (newWidth < 200) newWidth = 200;
+            if (newWidth > 800) newWidth = 800;
+            
+            targetPanel.style.width = newWidth + 'px';
+          }
+
+          function onMouseUp() {
+            document.body.classList.remove('resizing');
+            resizer.classList.remove('resizing');
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          }
+
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+      }
+
+      handleResize(resizerLeft, leftPanel, true);
+      handleResize(resizerRight, rightPanel, false);
+    }
+
+    // AI Prompt Copy Functionality
+    const aiCopyBtn = document.getElementById('ai-send-btn');
+    const aiInput = document.getElementById('ai-input');
+    
+    if (aiCopyBtn && aiInput) {
+      aiCopyBtn.addEventListener('click', () => {
+        const text = aiInput.value;
+        if (!text) return;
+        
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = aiCopyBtn.innerText;
+          aiCopyBtn.innerText = '已复制';
+          aiCopyBtn.style.background = '#52c41a';
+          setTimeout(() => {
+            aiCopyBtn.innerText = originalText;
+            aiCopyBtn.style.background = '#1890ff'; // Reset to original blue
+          }, 2000);
+        }).catch(err => {
+          console.error('Failed to copy:', err);
+          alert('复制失败，请手动复制');
+        });
+      });
+    }
+    
+    initResizers();
+    initLeftPanelTabs();
+    initRightPanelTabs();
+
+  </script>
+</body>
+
+</html>

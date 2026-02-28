@@ -1,0 +1,3733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <title>门店装修</title>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var hasV = params.has('v');
+      var alreadyRedirected = sessionStorage.getItem('decoration_v_redirected') === '1';
+      if (!hasV && !alreadyRedirected) {
+        params.set('v', Date.now().toString());
+        sessionStorage.setItem('decoration_v_redirected', '1');
+        window.location.replace(window.location.pathname + '?' + params.toString());
+        return;
+      }
+    })();
+  </script>
+  <script>
+    (function () {
+      var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
+
+      console.log('[decoration.html] 资源版本号:', v);
+
+      var scripts = ['../mingdao/MingdaoArray.js', 'decoration.js'];
+      scripts.forEach(function (src) {
+        document.write('<script src="' + src + '?v=' + v + '"><\/script>');
+      });
+    })();
+  </script>
+  <style>
+    :root {
+      --primary-color: #0557e1ff;
+      --primary-hover: #044ac3;
+      --admin-primary-color: #0557e1ff;
+      --admin-primary-hover: #044ac3;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --border-radius: 8px;
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      caret-color: transparent;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 8px 20px;
+      background: var(--admin-primary-color);
+      color: #fff;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn:hover {
+      background: var(--admin-primary-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+    }
+
+    .main-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      gap: 0;
+    }
+
+    .left-panel {
+      width: 280px;
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .sidebar {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-header {
+      height: 56px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
+
+    .sidebar-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-dropdown {
+      position: relative;
+    }
+
+    .dropdown-trigger {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .dropdown-trigger:hover {
+      background: var(--bg-color);
+    }
+
+    .dropdown-trigger span:first-child {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .dropdown-arrow {
+      font-size: 10px;
+      color: var(--text-secondary);
+      transition: transform 0.2s;
+    }
+
+    .sidebar-dropdown.open .dropdown-arrow {
+      transform: rotate(180deg);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 4px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      min-width: 140px;
+      z-index: 1000;
+      display: none;
+    }
+
+    .sidebar-dropdown.open .dropdown-menu {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+
+    .dropdown-item:hover {
+      background: var(--admin-primary-color);
+      color: #fff;
+    }
+
+    .dropdown-item:first-child {
+      border-radius: 8px 8px 0 0;
+    }
+
+    .dropdown-item:last-child {
+      border-radius: 0 0 8px 8px;
+    }
+
+    .sidebar-header .btn-add {
+      padding: 7px 11px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .page-tree {
+      height: 250px;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .page-item {
+      padding: 12px 16px;
+      margin-bottom: 4px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+
+    .page-item-content {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      gap: 8px;
+    }
+
+    .page-item .toggle-arrow {
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+
+    .page-item .toggle-arrow.expanded {
+      transform: rotate(90deg);
+    }
+
+    .page-item .toggle-arrow.hidden {
+      visibility: hidden;
+    }
+
+    .page-item .page-name {
+      font-size: 14px;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .page-item:hover {
+      background: #f1f5f9;
+    }
+
+    .page-item.active {
+      background: #e0e7ff;
+      color: var(--admin-primary-color);
+    }
+
+    .page-item.active .toggle-arrow {
+      color: var(--admin-primary-color);
+    }
+
+    .page-children {
+      margin-left: 24px;
+      padding-left: 12px;
+      border-left: 1px solid var(--border-color);
+      display: none;
+    }
+
+    .page-children.expanded {
+      display: block;
+    }
+
+    .page-child-item {
+      padding: 8px 12px;
+      margin-bottom: 2px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+
+    .page-child-item.dragging {
+      opacity: 0.5;
+      background: #e0e7ff;
+    }
+
+    .page-child-item.drag-over {
+      border-top: 2px solid var(--admin-primary-color);
+    }
+
+    .page-child-item:hover {
+      background: #f1f5f9;
+    }
+
+    .page-child-item.selected {
+      background: #e0e7ff;
+      color: var(--admin-primary-color);
+    }
+
+    .page-child-item .child-icon {
+      font-size: 14px;
+    }
+
+    .page-child-item .drag-handle {
+      cursor: grab;
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin-right: 4px;
+    }
+
+    .page-child-item .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .page-item .page-actions {
+      display: none;
+      gap: 8px;
+    }
+
+    .page-item:hover .page-actions {
+      display: flex;
+    }
+
+    .page-item .page-action-btn {
+      padding: 4px 8px;
+      font-size: 12px;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .page-item .page-action-btn:hover {
+      background: var(--admin-primary-color);
+      color: #fff;
+    }
+
+    .component-library-content {
+      min-height: 120px;
+    }
+    .component-library-empty {
+      padding: 16px;
+      text-align: center;
+      color: var(--text-muted, #999);
+      font-size: 13px;
+    }
+    .component-library {
+      flex: 1;
+      background: var(--bg-color);
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .component-section {
+      margin-bottom: 20px;
+    }
+
+    .component-section h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+    }
+
+    .component-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 6px 14px;
+      text-align: center;
+      cursor: grab;
+      transition: all 0.2s;
+    }
+
+    .component-item:hover {
+      border-color: var(--admin-primary-color);
+      transform: translateY(-2px);
+    }
+
+    .component-item:active {
+      cursor: grabbing;
+    }
+
+    .component-item .component-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .component-item .component-name {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .properties-panel {
+      width: 320px;
+      background: var(--card-bg);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: visible;
+      flex-shrink: 0;
+    }
+
+    .properties-header {
+      height: 56px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
+
+    .properties-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .properties-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .properties-actions .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .properties-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .property-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .color-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .color-input-row .color-text-input {
+      flex: 1;
+    }
+
+    .page-select {
+      position: relative;
+      width: 100%;
+    }
+
+    .select-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 42px;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      background: #fff;
+      font-size: 14px;
+      color: var(--text-main);
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .select-arrow {
+      font-size: 10px;
+      color: var(--text-secondary);
+      transition: transform 0.2s;
+    }
+
+    .page-select.open .select-arrow {
+      transform: rotate(180deg);
+    }
+
+    .select-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      display: none;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .page-select.open .select-menu {
+      display: block;
+    }
+
+    .select-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+
+    .select-item:hover {
+      background: var(--admin-primary-color);
+      color: #fff;
+    }
+
+    .theme-token-btn {
+      margin-top: 0;
+      height: 42px;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      background: #fff;
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 20px;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .theme-token-btn:hover {
+      color: #fff;
+      background: var(--admin-primary-color);
+      border-color: var(--admin-primary-color);
+    }
+
+    .property-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .property-group input,
+    .property-group select,
+    .property-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      color: var(--text-main);
+      transition: border-color 0.2s;
+      height: 42px;
+      box-sizing: border-box;
+    }
+
+    .property-group input:focus,
+    .property-group select:focus,
+    .property-group textarea:focus {
+      outline: none;
+      border-color: var(--admin-primary-color);
+      box-shadow: 0 0 0 3px rgba(5, 87, 225, 0.1);
+    }
+
+    .property-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .data-binding-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .data-binding-row .data-binding-select {
+      flex: 1;
+    }
+
+    .property-group .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .property-group .color-picker input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      border-radius: 4px;
+    }
+
+    .property-group .color-picker-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .color-picker-preview {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .color-text-input {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 14px;
+      color: var(--text-main);
+      font-family: monospace;
+    }
+
+    .color-text-input:focus {
+      outline: none;
+      border-color: var(--admin-primary-color);
+    }
+
+    .color-picker-popup {
+      position: fixed;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+      z-index: 1000;
+      min-width: 300px;
+    }
+
+    .color-picker-popup-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .color-picker-popup-body {
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .popup-color-input {
+      width: 100%;
+      height: 150px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .color-picker-popup-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .color-picker-popup-footer .btn {
+      padding: 6px 16px;
+      font-size: 13px;
+    }
+
+    .color-picker-popup-footer .btn-cancel {
+      background: var(--bg-color);
+      color: var(--text-secondary);
+    }
+
+    .color-picker-popup-footer .btn-cancel:hover {
+      background: var(--border-color);
+    }
+
+    .color-picker-popup-footer .btn-confirm {
+      background: var(--admin-primary-color);
+      color: white;
+    }
+
+    .color-picker-popup-footer .btn-confirm:hover {
+      background: var(--admin-primary-hover);
+    }
+
+    .color-picker-container {
+      position: relative;
+      width: 36px;
+      height: 36px;
+    }
+
+    .color-picker-input-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 42px;
+      opacity: 0;
+      cursor: pointer;
+      padding: 0;
+      border: none;
+      margin: 0;
+      pointer-events: auto;
+    }
+
+    .image-picker {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 1000;
+      margin-top: 5px;
+    }
+
+    .image-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .image-item:hover {
+      background-color: var(--bg-color);
+    }
+
+    .image-item.selected {
+      background-color: var(--bg-color);
+    }
+
+    .image-item img {
+      width: 25px;
+      height: 25px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-right: 12px;
+    }
+
+    .image-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .image-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .image-category {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: none;
+    }
+
+    .no-images {
+      padding: 20px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .preview-area {
+      flex: 1;
+      background: #e5e5e5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+      min-width: 0;
+      position: relative;
+    }
+
+    .preview-header {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .preview-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .preview-header .device-select {
+      padding: 6px 12px;
+      font-size: 13px;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+    }
+
+    .phone-preview {
+      width: 375px;
+      height: 667px;
+      background: #fff;
+      border-radius: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-status-bar {
+      height: 44px;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #000;
+    }
+
+    .phone-status-bar .status-left {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .phone-status-bar .status-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .phone-capsule {
+      width: 87px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .phone-capsule .capsule-dots {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .phone-capsule .capsule-dot {
+      width: 4px;
+      height: 4px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    .phone-capsule .capsule-circle {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .phone-capsule .capsule-circle-dot {
+      width: 6px;
+      height: 6px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    .phone-navbar {
+      height: 44px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      padding: 0 4px;
+      position: absolute;
+      top: 44px;
+      left: 0;
+      right: 0;
+      z-index: 99;
+    }
+
+    .phone-navbar .navbar-back {
+      width: 87px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      cursor: pointer;
+      color: #181818;
+      padding-left: 4px;
+    }
+
+    .phone-navbar .navbar-back svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .phone-navbar .navbar-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #181818;
+      flex: 1;
+      text-align: center;
+    }
+
+    .phone-screen {
+      height: calc(100% - 60px - 44px);
+      overflow-y: auto;
+      background: #f5f5f5;
+      padding-top: 44px;
+    }
+
+    .phone-screen .page-canvas {
+      min-height: 100%;
+      padding: 0;
+    }
+
+    /* 我的页面顶部用户信息栏：固定显示，不可拖拽、不可删除 */
+    .my-page-user-bar {
+      background: linear-gradient(135deg, var(--admin-primary-color, #0557e1) 0%, #0d47a1 100%);
+      color: #fff;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 0 0 12px 12px;
+      margin-bottom: 12px;
+      user-select: none;
+      pointer-events: none;
+    }
+    .my-page-user-bar .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .my-page-user-bar .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .my-page-user-bar .user-nickname {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .my-page-user-bar .user-id {
+      font-size: 12px;
+      opacity: 0.9;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .phone-screen .component-wrapper {
+      border: 2px dashed transparent;
+      padding: 5px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 4px;
+    }
+
+    .phone-screen .component-wrapper:hover {
+      border-color: var(--primary-color);
+      background: rgba(5, 87, 225, 0.05);
+    }
+
+    .phone-screen .component-wrapper.selected {
+      border-color: var(--primary-color);
+      background: rgba(5, 87, 225, 0.1);
+    }
+
+    .phone-screen .component-placeholder {
+      background: #f1f5f9;
+      border: 2px dashed #cbd5e1;
+      border-radius: 4px;
+      padding: 20px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .tab-bar {
+      height: 60px;
+      background: #fff;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+    }
+
+    .tab-bar.classic {
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .tab-bar.modern {
+      border-top: none;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-item.active {
+      color: var(--primary-color);
+    }
+
+    .tab-item .tab-icon {
+      font-size: 20px;
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tab-icon-img {
+      width: 24px;
+      height: 24px;
+      display: inline-block;
+      border-radius: 4px;
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-position: center;
+      background-color: currentColor;
+    }
+
+    .tab-bar.classic .tab-item {
+      color: #999999;
+    }
+
+    .tab-bar.classic .tab-item.active {
+      color: #667eea;
+    }
+
+    .tab-bar.modern .tab-item {
+      color: #6c757d;
+    }
+
+    .tab-bar.modern .tab-item.active {
+      color: #007bff;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state .empty-text {
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>门店装修</h1>
+    <div class="header-actions">
+      <button class="btn" onclick="saveConfig()">保存配置</button>
+      <button class="btn" onclick="publishCode()">发布新版本</button>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="left-panel">
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title-group">
+            <div class="sidebar-dropdown" id="sidebarDropdown">
+              <div class="dropdown-trigger" onclick="toggleDropdown()">
+                <span id="sidebarTitle">页面</span>
+                <span class="dropdown-arrow">▼</span>
+              </div>
+              <div class="dropdown-menu" id="dropdownMenu">
+                <div class="dropdown-item" onclick="selectView('pages', event)">页面</div>
+                <div class="dropdown-item" onclick="selectView('tabbar', event)">底部导航栏</div>
+                <div class="dropdown-item" onclick="selectView('global', event)">全局设置</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-add" onclick="addPage()">+</button>
+        </div>
+        <div class="page-tree" id="pageTree">
+        </div>
+      </div>
+
+      <div class="component-library">
+        <div id="componentLibraryContent" class="component-library-content">
+          <!-- 组件库根据当前选中的页面动态渲染 -->
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-area">
+      <div class="preview-header">
+        <h3>预览</h3>
+        <select class="device-select" id="deviceSelect" onchange="changeDevice()">
+          <option value="iphone">iPhone (375×667)</option>
+          <option value="android">Android (360×640)</option>
+          <option value="ipad">iPad (768×1024)</option>
+        </select>
+      </div>
+      <div class="phone-preview" id="phonePreview">
+        <div class="phone-status-bar">
+          <div class="status-left">
+            <span>12:00</span>
+          </div>
+          <div class="status-right">
+            <span>📶</span>
+            <span>🔋</span>
+          </div>
+        </div>
+        <div class="phone-navbar" id="phoneNavbar">
+          <div class="navbar-back" id="navbarBack">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 18L9 12L15 6" stroke="black" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div class="navbar-title" id="navbarTitle">页面标题</div>
+          <div class="phone-capsule">
+            <div class="capsule-dots">
+              <div class="capsule-dot"></div>
+              <div class="capsule-dot"></div>
+              <div class="capsule-dot"></div>
+            </div>
+            <div class="capsule-circle">
+              <div class="capsule-circle-dot"></div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-screen" id="phoneScreen">
+          <div class="page-canvas" id="pageCanvas" onclick="handlePageCanvasClick()">
+          </div>
+        </div>
+        <div class="tab-bar classic" id="tabBar">
+        </div>
+      </div>
+    </div>
+
+    <div class="properties-panel">
+      <div class="properties-header">
+        <h2>设置</h2>
+        <div class="properties-actions">
+          <button class="btn btn-small" id="copyButton" onclick="copySelected()">复制</button>
+          <button class="btn btn-small btn-danger" id="deleteButton" onclick="deleteSelected()">删除</button>
+        </div>
+      </div>
+      <div class="properties-content" id="propertiesContent">
+        <div class="empty-state">
+          <div class="empty-icon">🎯</div>
+          <div class="empty-text">请选择一个组件进行编辑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = null;
+    let selectedComponent = null;
+    let pages = [
+      {
+        pageId: 'default-page-1',
+        pageName: '首页',
+        pageType: 'home',
+        components: []
+      },
+      {
+        pageId: 'default-page-2',
+        pageName: '我的',
+        pageType: 'my',
+        components: []
+      }
+    ];
+    currentPage = pages[0];
+    let globalConfig = {
+      style: 'classic',
+      themeColor: '#0557e1',
+      /** 登录接口URL，用于 wx.login 的 code 换取 openId。留空且配置了小程序密钥则使用本服务内置接口 */
+      loginApiUrl: '',
+      /** 小程序 AppID（配置后使用本服务换取 openId） */
+      wechatAppId: '',
+      /** 小程序 AppSecret（配置后使用本服务换取 openId，请妥善保管） */
+      wechatAppSecret: '',
+      /** 手机号登录接口（一键登录、验证码登录共用），可复用 loginApiUrl */
+      phoneLoginApiUrl: '',
+      userAgreementUrl: '',
+      privacyPolicyUrl: '',
+      navigationBar: {
+        backgroundColor: '#ffffff',
+        textColor: '#181818'
+      }
+    };
+    let tabBarConfig = {
+      style: 'classic',
+      backgroundColor: '#ffffff',
+      selectedColor: '{主题色}',
+      unselectedColor: '#999999',
+      list: [
+        {
+          name: '首页',
+          selectedIcon: '',
+          selectedIconRowid: '4c661940-1d8d-4f95-a6ab-4661effea87c',
+          unselectedIcon: '',
+          unselectedIconRowid: '5f96392a-bd0e-4d78-a14c-803493ddf484',
+          pageId: 'default-page-1'
+        },
+        {
+          name: '我的',
+          selectedIcon: '',
+          selectedIconRowid: '67467570-f4ec-4aad-a374-dbbeecd43d22',
+          unselectedIcon: '',
+          unselectedIconRowid: '736e427c-e162-4e98-b5dd-a877c70b6c3d',
+          pageId: 'default-page-2'
+        }
+      ]
+    };
+
+    let sidebarView = 'pages';
+    let selectedTabBarItem = 0;
+
+    // 组件库配置：relatedPage 标识组件属于哪个页面（home=首页/分类等, my=我的）
+    const COMPONENT_CONFIG = [
+      { type: 'carousel', name: '轮播图', icon: '🖼️', relatedPage: 'home', section: '基础组件' },
+      { type: 'function-list', name: '功能列表', icon: '📋', relatedPage: 'home', section: '基础组件' },
+      { type: 'image', name: '图片', icon: '🖼️', relatedPage: 'home', section: '基础组件' },
+      { type: 'text', name: '文本', icon: '📝', relatedPage: 'home', section: '基础组件' },
+      { type: 'product-grid', name: '商品网格', icon: '🛍️', relatedPage: 'home', section: '商品组件' },
+      { type: 'product-list', name: '商品列表', icon: '📦', relatedPage: 'home', section: '商品组件' },
+      { type: 'notice', name: '公告', icon: '📢', relatedPage: 'home', section: '内容组件' },
+      { type: 'tabs', name: '标签页面', icon: '📑', relatedPage: 'home', section: '内容组件' },
+      { type: 'content-list', name: '内容列表', icon: '📄', relatedPage: 'home', section: '内容组件' },
+      { type: 'my-orders', name: '我的订单', icon: '📋', relatedPage: 'my', section: '我的页面' },
+      { type: 'member-benefits', name: '会员权益消耗明细', icon: '🎁', relatedPage: 'my', section: '我的页面' },
+      { type: 'user-agreement', name: '登录用户协议', icon: '📜', relatedPage: 'my', section: '我的页面' },
+      { type: 'newbie-guide', name: '新手引导', icon: '✨', relatedPage: 'my', section: '我的页面' },
+      { type: 'settings', name: '设置', icon: '⚙️', relatedPage: 'my', section: '我的页面' }
+    ];
+
+    function getCurrentPageType() {
+      if (!currentPage) return 'home';
+      return currentPage.pageType || (currentPage.pageName === '我的' ? 'my' : 'home');
+    }
+
+    function renderComponentLibrary() {
+      const pageType = getCurrentPageType();
+      const container = document.getElementById('componentLibraryContent');
+      if (!container) return;
+
+      const filtered = COMPONENT_CONFIG.filter(c => c.relatedPage === pageType);
+      const bySection = {};
+      filtered.forEach(c => {
+        if (!bySection[c.section]) bySection[c.section] = [];
+        bySection[c.section].push(c);
+      });
+
+      let html = '';
+      Object.keys(bySection).forEach(sectionName => {
+        html += `<div class="component-section"><h3>${sectionName}</h3><div class="component-grid">`;
+        bySection[sectionName].forEach(c => {
+          html += `<div class="component-item" draggable="true" data-component="${c.type}">
+            <div class="component-icon">${c.icon}</div>
+            <div class="component-name">${c.name}</div>
+          </div>`;
+        });
+        html += '</div></div>';
+      });
+      container.innerHTML = html || '<p class="component-library-empty">当前页面无可用组件</p>';
+
+      container.querySelectorAll('.component-item').forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+      });
+    }
+
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        userId: params.get('userId') || '',
+        mRowid: params.get('mRowid') || ''
+      };
+    }
+
+    function parseMerchantId(raw) {
+      if (!raw) {
+        return '';
+      }
+      let value = raw.replace(/%23/g, '#');
+      if (value.includes('#')) {
+        const parts = value.split('#');
+        return parts[parts.length - 1];
+      }
+      if (value.length > 2) {
+        return value.substring(2);
+      }
+      return value;
+    }
+
+    function toggleDropdown() {
+      const dropdown = document.getElementById('sidebarDropdown');
+      dropdown.classList.toggle('open');
+    }
+
+    function toggleTabBarPageDropdown(event) {
+      if (event) {
+        event.stopPropagation();
+      }
+      const dropdown = document.getElementById('tabBarPageSelect');
+      if (dropdown) {
+        dropdown.classList.toggle('open');
+      }
+    }
+
+    function selectTabBarPageIdFromEvent(event) {
+      event.stopPropagation();
+      const target = event.currentTarget;
+      if (!target) {
+        return;
+      }
+      const pageId = target.getAttribute('data-page-id') || '';
+      const pageName = target.getAttribute('data-page-name') || '未选择';
+      updateTabBarItemProperty('pageId', pageId);
+      const label = document.getElementById('tabBarPageSelectLabel');
+      if (label) {
+        label.textContent = pageName;
+      }
+      const dropdown = document.getElementById('tabBarPageSelect');
+      if (dropdown) {
+        dropdown.classList.remove('open');
+      }
+    }
+
+    function selectTabBarItem(index) {
+      console.log('[底部导航] selectTabBarItem 被调用, index:', index);
+      selectedTabBarItem = index;
+      console.log('[底部导航] selectedTabBarItem 已更新为:', selectedTabBarItem);
+      const tab = tabBarConfig.list[index];
+      if (tab && tab.pageId) {
+        const page = pages.find(p => p.pageId === tab.pageId);
+        if (page) {
+          currentPage = page;
+        }
+      }
+      renderTabBarList();
+      console.log('[底部导航] renderTabBarList 已调用');
+      renderTabBarProperties();
+      console.log('[底部导航] renderTabBarProperties 已调用');
+      renderTabBar();
+      console.log('[底部导航] renderTabBar 已调用');
+      if (sidebarView === 'pages') {
+        renderPageTree();
+      }
+      renderPreview();
+      updateActionButtonsVisibility();
+    }
+
+    function renderTabBarProperties() {
+      const propertiesContent = document.getElementById('propertiesContent');
+
+      if (selectedTabBarItem === null || !tabBarConfig.list[selectedTabBarItem]) {
+        propertiesContent.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🎯</div>
+            <div class="empty-text">请选择一个导航项进行编辑</div>
+          </div>
+        `;
+        return;
+      }
+
+      const tab = tabBarConfig.list[selectedTabBarItem];
+      const selectedPage = pages.find(p => p.pageId === tab.pageId);
+      const selectedPageName = selectedPage ? selectedPage.pageName : '未选择';
+
+      const selectedIconName = tab.selectedIcon || (tab.selectedIconRowid ? getImageNameByRowid(tab.selectedIconRowid) : '');
+      const unselectedIconName = tab.unselectedIcon || (tab.unselectedIconRowid ? getImageNameByRowid(tab.unselectedIconRowid) : '');
+
+      propertiesContent.innerHTML = `
+        <div class="property-group">
+          <label>导航项名称</label>
+          <input type="text" value="${tab.name}" onchange="updateTabBarItemProperty('name', this.value)" />
+        </div>
+        <div class="property-group">
+          <label>选中图标</label>
+          <input type="text" value="${selectedIconName}" onchange="updateTabBarItemProperty('selectedIcon', this.value)" onfocus="showImagePicker('selectedIcon', this)" oninput="filterImageList(this.value, 'selectedIcon')">
+          <div id="selectedIcon-imageList" class="image-picker" style="display: none;"></div>
+        </div>
+        <div class="property-group">
+          <label>未选中图标</label>
+          <input type="text" value="${unselectedIconName}" onchange="updateTabBarItemProperty('unselectedIcon', this.value)" onfocus="showImagePicker('unselectedIcon', this)" oninput="filterImageList(this.value, 'unselectedIcon')">
+          <div id="unselectedIcon-imageList" class="image-picker" style="display: none;"></div>
+        </div>
+        <div class="property-group">
+          <label>关联页面</label>
+          <div class="page-select" id="tabBarPageSelect">
+            <div class="select-trigger" onclick="toggleTabBarPageDropdown(event)">
+              <span id="tabBarPageSelectLabel">${selectedPageName}</span>
+              <span class="select-arrow">▼</span>
+            </div>
+            <div class="select-menu">
+              <div class="select-item" data-page-id="" data-page-name="未选择" onclick="selectTabBarPageIdFromEvent(event)">未选择</div>
+              ${pages.map(p => `
+                <div class="select-item" data-page-id="${p.pageId}" data-page-name="${p.pageName}" onclick="selectTabBarPageIdFromEvent(event)">${p.pageName}</div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function getImageNameByRowid(rowid) {
+      if (!rowid || !window.userImages || window.userImages.length === 0) {
+        return '';
+      }
+
+      const image = window.userImages.find(img => img.rowid === rowid);
+      return image ? image.mingcheng : '';
+    }
+
+    function renderGlobalProperties() {
+      const propertiesContent = document.getElementById('propertiesContent');
+      propertiesContent.innerHTML = `
+        <div class="property-group">
+          <label>登录接口URL</label>
+          <input type="text" value="${(globalConfig.loginApiUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('loginApiUrl', this.value)" placeholder="留空则使用本服务（需配置下方AppID/AppSecret）">
+        </div>
+        <div class="property-group">
+          <label>小程序 AppID</label>
+          <input type="text" value="${(globalConfig.wechatAppId || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('wechatAppId', this.value)" placeholder="wx开头的AppID">
+        </div>
+        <div class="property-group">
+          <label>小程序 AppSecret</label>
+          <input type="password" value="${(globalConfig.wechatAppSecret || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('wechatAppSecret', this.value)" placeholder="小程序密钥（请妥善保管）">
+        </div>
+        <div class="property-group">
+          <label>手机号登录接口</label>
+          <input type="text" value="${(globalConfig.phoneLoginApiUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('phoneLoginApiUrl', this.value)" placeholder="用于一键登录/验证码登录，可同登录接口URL">
+        </div>
+        <div class="property-group">
+          <label>用户服务协议URL</label>
+          <input type="text" value="${(globalConfig.userAgreementUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('userAgreementUrl', this.value)" placeholder="https://xxx.com/agreement">
+        </div>
+        <div class="property-group">
+          <label>隐私政策URL</label>
+          <input type="text" value="${(globalConfig.privacyPolicyUrl || '').replace(/"/g, '&quot;')}" onchange="updateGlobalProperty('privacyPolicyUrl', this.value)" placeholder="https://xxx.com/privacy">
+        </div>
+        <div class="property-group">
+          <label>主题色</label>
+          <div class="color-picker-wrapper">
+            <div class="color-picker-container">
+              <div class="color-picker-preview" data-color-key="themeColor" style="background-color: ${globalConfig.themeColor}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-themeColor" data-color-key="themeColor" value="${globalConfig.themeColor}" oninput="updateGlobalProperty('themeColor', this.value)" onchange="updateGlobalProperty('themeColor', this.value)" class="color-picker-input-overlay" />
+            </div>
+            <input type="text" data-color-key="themeColor" value="${globalConfig.themeColor}" oninput="updateGlobalProperty('themeColor', this.value)" onchange="updateGlobalProperty('themeColor', this.value)" onkeypress="handleColorInputKeypress(event, 'themeColor', this.value)" class="color-text-input" placeholder="#000000" />
+          </div>
+        </div>
+        <div class="property-group">
+          <label>导航栏背景色</label>
+          <div class="color-picker-wrapper">
+            <div class="color-picker-container">
+              <div class="color-picker-preview" data-color-key="navigationBar.backgroundColor" style="background-color: ${resolveThemeColor(globalConfig.navigationBar.backgroundColor)}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-navigationBar.backgroundColor" data-color-key="navigationBar.backgroundColor" value="${resolveThemeColor(globalConfig.navigationBar.backgroundColor)}" oninput="updateGlobalProperty('navigationBar.backgroundColor', this.value)" onchange="updateGlobalProperty('navigationBar.backgroundColor', this.value)" class="color-picker-input-overlay" />
+            </div>
+            <div class="color-input-row">
+              <input type="text" data-color-key="navigationBar.backgroundColor" value="${globalConfig.navigationBar.backgroundColor}" oninput="updateGlobalProperty('navigationBar.backgroundColor', this.value)" onchange="updateGlobalProperty('navigationBar.backgroundColor', this.value)" onkeypress="handleColorInputKeypress(event, 'navigationBar.backgroundColor', this.value)" class="color-text-input" placeholder="#000000" />
+              <button class="theme-token-btn" type="button" onclick="setThemeTokenForGlobal('navigationBar.backgroundColor')">主题色</button>
+            </div>
+          </div>
+        </div>
+        <div class="property-group">
+          <label>导航栏文字色</label>
+          <div class="color-picker-wrapper">
+            <div class="color-picker-container">
+              <div class="color-picker-preview" data-color-key="navigationBar.textColor" style="background-color: ${resolveThemeColor(globalConfig.navigationBar.textColor)}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-navigationBar.textColor" data-color-key="navigationBar.textColor" value="${resolveThemeColor(globalConfig.navigationBar.textColor)}" oninput="updateGlobalProperty('navigationBar.textColor', this.value)" onchange="updateGlobalProperty('navigationBar.textColor', this.value)" class="color-picker-input-overlay" />
+            </div>
+            <div class="color-input-row">
+              <input type="text" data-color-key="navigationBar.textColor" value="${globalConfig.navigationBar.textColor}" oninput="updateGlobalProperty('navigationBar.textColor', this.value)" onchange="updateGlobalProperty('navigationBar.textColor', this.value)" onkeypress="handleColorInputKeypress(event, 'navigationBar.textColor', this.value)" class="color-text-input" placeholder="#000000" />
+              <button class="theme-token-btn" type="button" onclick="setThemeTokenForGlobal('navigationBar.textColor')">主题色</button>
+            </div>
+          </div>
+        </div>
+        <div class="property-group">
+          <label>底部导航栏背景色</label>
+          <div class="color-picker-wrapper">
+            <div class="color-picker-container">
+              <div class="color-picker-preview" data-color-key="backgroundColor" style="background-color: ${resolveThemeColor(tabBarConfig.backgroundColor)}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-tabBar.backgroundColor" data-color-key="backgroundColor" value="${resolveThemeColor(tabBarConfig.backgroundColor)}" oninput="updateTabBarProperty('backgroundColor', this.value)" onchange="updateTabBarProperty('backgroundColor', this.value)" class="color-picker-input-overlay" />
+            </div>
+            <div class="color-input-row">
+              <input type="text" data-color-key="backgroundColor" value="${tabBarConfig.backgroundColor}" oninput="updateTabBarProperty('backgroundColor', this.value)" onchange="updateTabBarProperty('backgroundColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'backgroundColor', this.value)" class="color-text-input" placeholder="#000000" />
+              <button class="theme-token-btn" type="button" onclick="setThemeTokenForTabBar('backgroundColor')">主题色</button>
+            </div>
+          </div>
+        </div>
+        <div class="property-group">
+          <label>底部导航栏选中色</label>
+          <div class="color-picker-wrapper">
+            <div class="color-picker-container">
+              <div class="color-picker-preview" data-color-key="selectedColor" style="background-color: ${resolveThemeColor(tabBarConfig.selectedColor)}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-tabBar.selectedColor" data-color-key="selectedColor" value="${resolveThemeColor(tabBarConfig.selectedColor)}" oninput="updateTabBarProperty('selectedColor', this.value)" onchange="updateTabBarProperty('selectedColor', this.value)" class="color-picker-input-overlay" />
+            </div>
+            <div class="color-input-row">
+              <input type="text" data-color-key="selectedColor" value="${tabBarConfig.selectedColor}" oninput="updateTabBarProperty('selectedColor', this.value)" onchange="updateTabBarProperty('selectedColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'selectedColor', this.value)" class="color-text-input" placeholder="#000000" />
+              <button class="theme-token-btn" type="button" onclick="setThemeTokenForTabBar('selectedColor')">主题色</button>
+            </div>
+          </div>
+        </div>
+        <div class="property-group">
+          <label>底部导航栏未选中色</label>
+          <div class="color-picker-wrapper">
+            <div class="color-picker-container">
+              <div class="color-picker-preview" data-color-key="unselectedColor" style="background-color: ${resolveThemeColor(tabBarConfig.unselectedColor)}; width: 100%; height: 100%;"></div>
+              <input type="color" id="colorPicker-tabBar.unselectedColor" data-color-key="unselectedColor" value="${resolveThemeColor(tabBarConfig.unselectedColor)}" oninput="updateTabBarProperty('unselectedColor', this.value)" onchange="updateTabBarProperty('unselectedColor', this.value)" class="color-picker-input-overlay" />
+            </div>
+            <div class="color-input-row">
+              <input type="text" data-color-key="unselectedColor" value="${tabBarConfig.unselectedColor}" oninput="updateTabBarProperty('unselectedColor', this.value)" onchange="updateTabBarProperty('unselectedColor', this.value)" onkeypress="handleTabBarColorInputKeypress(event, 'unselectedColor', this.value)" class="color-text-input" placeholder="#000000" />
+              <button class="theme-token-btn" type="button" onclick="setThemeTokenForTabBar('unselectedColor')">主题色</button>
+            </div>
+          </div>
+        </div>
+      `;
+      syncColorInputs();
+      applyGlobalStyles();
+      renderTabBar();
+    }
+
+    function toggleColorPicker(event, key, currentValue) {
+      const pickerId = 'colorPicker-' + key;
+      const picker = document.getElementById(pickerId);
+      if (picker) {
+        picker.click();
+      }
+    }
+
+    function handleColorInputKeypress(event, key, value) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        updateGlobalProperty(key, value);
+      }
+    }
+
+    function handleTabBarColorInputKeypress(event, key, value) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        updateTabBarProperty(key, value);
+      }
+    }
+
+    function isValidColor(color) {
+      const s = new Option().style;
+      s.color = color;
+      return s.color !== '';
+    }
+
+    function resolveThemeColor(value) {
+      return value === '{主题色}' ? globalConfig.themeColor : value;
+    }
+
+    function setThemeTokenForGlobal(key) {
+      updateGlobalProperty(key, '{主题色}');
+    }
+
+    function setThemeTokenForTabBar(key) {
+      updateTabBarProperty(key, '{主题色}');
+    }
+
+    function setThemeTokenForContentListTab(key) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        selectedComponent.properties[key] = '{主题色}';
+
+        const resolvedThemeColor = resolveThemeColor('{主题色}') || '#667eea';
+        const preview = document.querySelector(`.color-picker-preview[data-color-key="${key}"]`);
+        const textInput = document.querySelector(`.color-text-input[data-color-key="${key}"]`);
+        const picker = document.querySelector(`.color-picker-input-overlay[data-color-key="${key}"]`);
+
+        if (preview) preview.style.backgroundColor = resolvedThemeColor;
+        if (textInput) textInput.value = '{主题色}';
+        if (picker) picker.value = resolvedThemeColor;
+
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateGlobalProperty(key, value) {
+      const isThemeToken = value === '{主题色}';
+      if (!isThemeToken && !isValidColor(value)) {
+        console.warn('无效的颜色值:', value);
+        return;
+      }
+
+      if (key.includes('.')) {
+        const [parent, child] = key.split('.');
+        if (!globalConfig[parent]) {
+          globalConfig[parent] = {};
+        }
+        globalConfig[parent][child] = value;
+      } else {
+        globalConfig[key] = value;
+      }
+      saveConfig();
+
+      // 更新预览块、输入框和颜色选择器
+      let picker = document.querySelector(`.color-picker-input-overlay[data-color-key="${key}"]`);
+      let preview = document.querySelector(`.color-picker-preview[data-color-key="${key}"]`);
+      let textInput = document.querySelector(`.color-text-input[data-color-key="${key}"]`);
+
+      if (!picker) {
+        picker = document.getElementById(`colorPicker-${key}`);
+        if (picker) {
+          picker.setAttribute('data-color-key', key);
+        }
+      }
+      if (!preview && picker) {
+        const wrapper = picker.closest('.color-picker-wrapper');
+        if (wrapper) {
+          preview = wrapper.querySelector('.color-picker-preview');
+          if (preview) {
+            preview.setAttribute('data-color-key', key);
+          }
+        }
+      }
+      if (!textInput && picker) {
+        const wrapper = picker.closest('.color-picker-wrapper');
+        if (wrapper) {
+          textInput = wrapper.querySelector('.color-text-input');
+          if (textInput) {
+            textInput.setAttribute('data-color-key', key);
+          }
+        }
+      }
+
+      console.log('[颜色更新] global', key, value, {
+        picker: !!picker,
+        preview: !!preview,
+        textInput: !!textInput
+      });
+
+      const resolvedValue = isThemeToken ? resolveThemeColor(value) : value;
+      if (picker) picker.value = resolvedValue;
+      if (preview) preview.style.backgroundColor = resolvedValue;
+      if (textInput) textInput.value = value;
+
+      applyGlobalStyles();
+      renderTabBar();
+      if (key === 'themeColor') {
+        syncColorInputs();
+      }
+    }
+
+    function updateTabBarProperty(key, value) {
+      const isThemeToken = value === '{主题色}';
+      if (!isThemeToken && !isValidColor(value)) {
+        console.warn('无效的颜色值:', value);
+        return;
+      }
+
+      tabBarConfig[key] = value;
+      saveConfig();
+
+      // 更新预览块、输入框和颜色选择器
+      let picker = document.querySelector(`.color-picker-input-overlay[data-color-key="${key}"]`);
+      let preview = document.querySelector(`.color-picker-preview[data-color-key="${key}"]`);
+      let textInput = document.querySelector(`.color-text-input[data-color-key="${key}"]`);
+
+      if (!picker) {
+        picker = document.getElementById(`colorPicker-tabBar.${key}`);
+        if (picker) {
+          picker.setAttribute('data-color-key', key);
+        }
+      }
+      if (!preview && picker) {
+        const wrapper = picker.closest('.color-picker-wrapper');
+        if (wrapper) {
+          preview = wrapper.querySelector('.color-picker-preview');
+          if (preview) {
+            preview.setAttribute('data-color-key', key);
+          }
+        }
+      }
+      if (!textInput && picker) {
+        const wrapper = picker.closest('.color-picker-wrapper');
+        if (wrapper) {
+          textInput = wrapper.querySelector('.color-text-input');
+          if (textInput) {
+            textInput.setAttribute('data-color-key', key);
+          }
+        }
+      }
+
+      console.log('[颜色更新] tabbar', key, value, {
+        picker: !!picker,
+        preview: !!preview,
+        textInput: !!textInput
+      });
+
+      const resolvedValue = isThemeToken ? resolveThemeColor(value) : value;
+      if (picker) picker.value = resolvedValue;
+      if (preview) preview.style.backgroundColor = resolvedValue;
+      if (textInput) textInput.value = value;
+
+      applyGlobalStyles();
+      renderTabBar();
+    }
+
+    function applyGlobalStyles() {
+      const root = document.documentElement;
+      if (globalConfig && globalConfig.themeColor) {
+        root.style.setProperty('--primary-color', globalConfig.themeColor);
+        root.style.setProperty('--primary-hover', globalConfig.themeColor);
+      }
+
+      const navbar = document.getElementById('phoneNavbar');
+      const navbarTitle = document.getElementById('navbarTitle');
+      const navbarBack = document.getElementById('navbarBack');
+      const statusBar = document.querySelector('.phone-status-bar');
+      if (navbar && globalConfig && globalConfig.navigationBar) {
+        navbar.style.backgroundColor = resolveThemeColor(globalConfig.navigationBar.backgroundColor);
+      }
+      if (navbarTitle && globalConfig && globalConfig.navigationBar) {
+        navbarTitle.style.color = resolveThemeColor(globalConfig.navigationBar.textColor);
+      }
+      if (navbarBack && globalConfig && globalConfig.navigationBar) {
+        navbarBack.style.color = resolveThemeColor(globalConfig.navigationBar.textColor);
+        const path = navbarBack.querySelector('path');
+        if (path) {
+          path.setAttribute('stroke', resolveThemeColor(globalConfig.navigationBar.textColor));
+        }
+      }
+      if (statusBar && globalConfig && globalConfig.navigationBar) {
+        statusBar.style.backgroundColor = resolveThemeColor(globalConfig.navigationBar.backgroundColor);
+        statusBar.style.color = resolveThemeColor(globalConfig.navigationBar.textColor);
+      }
+
+      const tabBar = document.getElementById('tabBar');
+      if (tabBar && tabBarConfig) {
+        tabBar.style.backgroundColor = resolveThemeColor(tabBarConfig.backgroundColor);
+      }
+    }
+
+    function syncColorInputs() {
+      const globalKeys = [
+        'themeColor',
+        'navigationBar.backgroundColor',
+        'navigationBar.textColor'
+      ];
+      const tabBarKeys = [
+        'backgroundColor',
+        'selectedColor',
+        'unselectedColor'
+      ];
+
+      globalKeys.forEach(key => {
+        let value = '';
+        if (key.includes('.')) {
+          const parts = key.split('.');
+          let obj = globalConfig;
+          for (let i = 0; i < parts.length; i++) {
+            obj = obj ? obj[parts[i]] : '';
+          }
+          value = obj || '';
+        } else {
+          value = globalConfig ? globalConfig[key] : '';
+        }
+
+        const picker = document.querySelector(`.color-picker-input-overlay[data-color-key="${key}"]`);
+        const preview = document.querySelector(`.color-picker-preview[data-color-key="${key}"]`);
+        const textInput = document.querySelector(`.color-text-input[data-color-key="${key}"]`);
+        const resolvedValue = resolveThemeColor(value);
+
+        if (picker && resolvedValue) {
+          picker.value = resolvedValue;
+        }
+        if (preview && resolvedValue) {
+          preview.style.backgroundColor = resolvedValue;
+        }
+        if (textInput && value) {
+          textInput.value = value;
+        }
+      });
+
+      tabBarKeys.forEach(key => {
+        const value = tabBarConfig ? tabBarConfig[key] : '';
+        const resolvedValue = resolveThemeColor(value);
+        const picker = document.querySelector(`.color-picker-input-overlay[data-color-key="${key}"]`);
+        const preview = document.querySelector(`.color-picker-preview[data-color-key="${key}"]`);
+        const textInput = document.querySelector(`.color-text-input[data-color-key="${key}"]`);
+
+        if (picker && resolvedValue) {
+          picker.value = resolvedValue;
+        }
+        if (preview && resolvedValue) {
+          preview.style.backgroundColor = resolvedValue;
+        }
+        if (textInput && value) {
+          textInput.value = value;
+        }
+      });
+    }
+
+    function updateTabBarItemProperty(key, value) {
+      if (selectedTabBarItem !== null && tabBarConfig.list[selectedTabBarItem]) {
+        tabBarConfig.list[selectedTabBarItem][key] = value;
+        renderTabBarList();
+        renderTabBar();
+        saveConfig();
+      }
+    }
+
+    function showImagePicker(inputId, inputElement) {
+      console.log('[图片选择器] 显示图片列表, inputId:', inputId);
+      console.log('[图片选择器] window.userImages:', window.userImages);
+
+      const imageListDiv = document.getElementById(inputId + '-imageList');
+
+      if (!imageListDiv) {
+        console.error('[图片选择器] 找不到图片列表容器:', inputId + '-imageList');
+        return;
+      }
+
+      if (!window.userImages || window.userImages.length === 0) {
+        console.warn('[图片选择器] 没有用户图片数据');
+        imageListDiv.innerHTML = '<div class="no-images">暂无图片数据</div>';
+        imageListDiv.style.display = 'block';
+        return;
+      }
+
+      console.log('[图片选择器] 开始渲染', window.userImages.length, '张图片');
+
+      const currentTab = tabBarConfig.list[selectedTabBarItem] || null;
+
+      imageListDiv.innerHTML = window.userImages.map(img => {
+        const isSelected =
+          currentTab &&
+          (
+            (inputId === 'selectedIcon' && img.rowid === currentTab.selectedIconRowid) ||
+            (inputId === 'unselectedIcon' && img.rowid === currentTab.unselectedIconRowid)
+          );
+        const selectedClass = isSelected ? ' selected' : '';
+
+        return `
+        <div class="image-item${selectedClass}" onclick="selectImage('${inputId}', '${img.rowid}', '${img.mingcheng}', '${img.url}')" data-rowid="${img.rowid}">
+          <img src="${img.url}" alt="${img.mingcheng}" />
+          <div class="image-info">
+            <div class="image-name">${img.mingcheng}</div>
+            <div class="image-category">${img.leibie || ''}</div>
+          </div>
+        </div>
+        `;
+      }).join('');
+
+      console.log('[图片选择器] 渲染完成，显示图片列表');
+      imageListDiv.style.display = 'block';
+    }
+
+    function filterImageList(keyword, inputId) {
+      console.log('[图片选择器] 过滤图片, keyword:', keyword);
+
+      const imageListDiv = document.getElementById(inputId + '-imageList');
+
+      if (!keyword) {
+        imageListDiv.querySelectorAll('.image-item').forEach(item => {
+          item.style.display = 'flex';
+        });
+        return;
+      }
+
+      const lowerKeyword = keyword.toLowerCase();
+      imageListDiv.querySelectorAll('.image-item').forEach(item => {
+        const name = item.querySelector('.image-name').textContent.toLowerCase();
+        const category = item.querySelector('.image-category').textContent.toLowerCase();
+
+        if (name.includes(lowerKeyword) || category.includes(lowerKeyword)) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    function selectImage(inputId, rowid, name, url) {
+      console.log('[图片选择器] 选择图片, inputId:', inputId, 'rowid:', rowid, 'name:', name);
+
+      const inputElement = document.querySelector(`input[onfocus*="showImagePicker('${inputId}'"]`);
+
+      if (inputElement) {
+        inputElement.value = name;
+        updateTabBarItemProperty(inputId, name);
+
+        const tab = tabBarConfig.list[selectedTabBarItem];
+        tab[inputId + 'Rowid'] = rowid;
+
+        console.log('[图片选择器] 更新tab配置:', JSON.stringify(tab, null, 2));
+
+        renderTabBarList();
+        renderTabBar();
+        saveConfig();
+
+        const imageListDiv = document.getElementById(inputId + '-imageList');
+        imageListDiv.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.property-group')) {
+        document.querySelectorAll('.image-picker').forEach(picker => {
+          picker.style.display = 'none';
+        });
+      }
+    });
+
+    function copySelected() {
+      if (sidebarView === 'pages' && currentPage) {
+        copyPage(currentPage.pageId);
+      } else if (sidebarView === 'tabbar' && selectedTabBarItem !== null) {
+        copyTabBarItem(selectedTabBarItem);
+      }
+      updateActionButtonsVisibility();
+    }
+
+    function deleteSelected() {
+      if (sidebarView === 'pages' && currentPage) {
+        deletePage(currentPage.pageId);
+      } else if (sidebarView === 'tabbar' && selectedTabBarItem !== null) {
+        deleteTabBarItem(selectedTabBarItem);
+      }
+      updateActionButtonsVisibility();
+    }
+
+    function copyTabBarItem(index) {
+      const tab = tabBarConfig.list[index];
+      const newTab = {
+        name: tab.name + ' 副本',
+        selectedIcon: tab.selectedIcon,
+        unselectedIcon: tab.unselectedIcon,
+        pageId: tab.pageId
+      };
+      tabBarConfig.list.splice(index + 1, 0, newTab);
+      renderTabBarList();
+      renderTabBar();
+      saveConfig();
+    }
+
+    function selectView(view, event) {
+      console.log('selectView called:', view);
+      if (event) {
+        event.stopPropagation();
+        console.log('Event stopped');
+      }
+
+      const dropdown = document.getElementById('sidebarDropdown');
+      if (dropdown) {
+        dropdown.classList.remove('open');
+        console.log('Dropdown closed immediately');
+      }
+
+      sidebarView = view;
+      updateSidebarView();
+      updateActionButtonsVisibility();
+    }
+
+    function updateSidebarView() {
+      console.log('updateSidebarView called, sidebarView:', sidebarView);
+      const title = document.getElementById('sidebarTitle');
+      const pageTree = document.getElementById('pageTree');
+      const addButton = document.querySelector('.btn-add');
+
+      if (sidebarView === 'pages') {
+        console.log('Switching to pages view');
+        title.textContent = '页面';
+        pageTree.style.display = 'block';
+        pageTree.style.visibility = 'visible';
+        pageTree.style.pointerEvents = 'auto';
+        pageTree.innerHTML = '';
+        if (tabBarConfig.list.length > 0) {
+          if (selectedTabBarItem === null) {
+            selectedTabBarItem = 0;
+          }
+          const selectedTab = tabBarConfig.list[selectedTabBarItem];
+          if (selectedTab && selectedTab.pageId) {
+            const targetPage = pages.find(p => p.pageId === selectedTab.pageId);
+            if (targetPage) {
+              currentPage = targetPage;
+            }
+          }
+        }
+        renderPageTree();
+        renderComponentLibrary();
+        addButton.style.display = 'block';
+        addButton.onclick = addPage;
+        renderProperties();
+      } else if (sidebarView === 'tabbar') {
+        console.log('Switching to tabbar view');
+        title.textContent = '底部导航栏';
+        pageTree.style.display = 'block';
+        pageTree.style.visibility = 'visible';
+        pageTree.style.pointerEvents = 'auto';
+        pageTree.innerHTML = '';
+        renderTabBarList();
+        addButton.style.display = 'block';
+        addButton.onclick = addTabBarItem;
+        currentPage = null;
+        selectedComponent = null;
+
+        if (tabBarConfig.list.length > 0 && selectedTabBarItem === null) {
+          selectedTabBarItem = 0;
+          renderTabBarList();
+          renderTabBarProperties();
+        } else {
+          renderTabBarProperties();
+        }
+      } else if (sidebarView === 'global') {
+        console.log('Switching to global view');
+        title.textContent = '全局设置';
+        pageTree.style.display = 'block';
+        pageTree.style.visibility = 'hidden';
+        pageTree.style.pointerEvents = 'none';
+        addButton.style.display = 'none';
+        if (!currentPage && pages.length > 0) {
+          currentPage = pages[0];
+        }
+        renderGlobalProperties();
+        renderTabBar();
+      }
+
+      console.log('updateSidebarView completed');
+    }
+
+    document.addEventListener('click', function (event) {
+      const dropdown = document.getElementById('sidebarDropdown');
+      if (dropdown && !dropdown.contains(event.target)) {
+        dropdown.classList.remove('open');
+      }
+      const pageSelect = document.getElementById('tabBarPageSelect');
+      if (pageSelect && !pageSelect.contains(event.target)) {
+        pageSelect.classList.remove('open');
+      }
+    });
+
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0,
+          v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    function renderPageTree() {
+      const pageTree = document.getElementById('pageTree');
+      pageTree.innerHTML = '';
+
+      pages.forEach((page, index) => {
+        const hasChildren = page.components && page.components.length > 0;
+        const isExpanded = page.expanded !== false;
+
+        const pageItem = document.createElement('div');
+        pageItem.className = 'page-item' + (currentPage && currentPage.pageId === page.pageId ? ' active' : '');
+        pageItem.innerHTML = `
+          <div class="page-item-content">
+            <span class="toggle-arrow ${isExpanded ? 'expanded' : ''} ${hasChildren ? '' : 'hidden'}" onclick="event.stopPropagation(); togglePageExpand('${page.pageId}')">▶</span>
+            <span class="page-name">${page.pageName}</span>
+          </div>
+        `;
+        pageItem.onclick = () => selectPage(page);
+        pageItem.ondblclick = (e) => editPageName(page.pageId, e);
+        pageTree.appendChild(pageItem);
+
+        if (hasChildren && isExpanded) {
+          const childrenContainer = document.createElement('div');
+          childrenContainer.className = 'page-children expanded';
+          childrenContainer.id = `page-children-${page.pageId}`;
+
+          page.components.forEach((component, compIndex) => {
+            const childItem = document.createElement('div');
+            childItem.className = 'page-child-item' + (selectedComponent && selectedComponent.componentId === component.componentId ? ' selected' : '');
+            childItem.draggable = true;
+            childItem.dataset.componentId = component.componentId;
+            childItem.dataset.pageId = page.pageId;
+            childItem.dataset.index = compIndex;
+            childItem.innerHTML = `
+              <span class="drag-handle">⋮⋮</span>
+              <span class="child-icon">${getComponentIcon(component.componentName)}</span>
+              <span>${component.componentName}</span>
+            `;
+
+            childItem.onclick = (e) => {
+              if (!e.target.classList.contains('drag-handle')) {
+                selectComponent(component);
+              }
+            };
+
+            childItem.ondragstart = (e) => handleChildDragStart(e, page.pageId, compIndex);
+            childItem.ondragover = (e) => handleChildDragOver(e);
+            childItem.ondragleave = (e) => handleChildDragLeave(e);
+            childItem.ondrop = (e) => handleChildDrop(e, page.pageId, compIndex);
+            childItem.ondragend = (e) => handleChildDragEnd(e);
+
+            childrenContainer.appendChild(childItem);
+          });
+
+          pageTree.appendChild(childrenContainer);
+        }
+      });
+    }
+
+    function getComponentIcon(componentName) {
+      const iconMap = {
+        '轮播图': '🎠',
+        '功能列表': '📋',
+        '图片': '🖼️',
+        '文本': '📝',
+        '商品网格': '🛍️',
+        '商品列表': '📦',
+        '公告': '📢',
+        '标签页面': '📑',
+        '内容列表': '📄',
+        '我的订单': '📋',
+        '会员权益消耗明细': '🎁',
+        '登录用户协议': '📜',
+        '新手引导': '✨',
+        '设置': '⚙️'
+      };
+      return iconMap[componentName] || '📄';
+    }
+
+    function togglePageExpand(pageId) {
+      const page = pages.find(p => p.pageId === pageId);
+      if (page) {
+        page.expanded = page.expanded === false ? true : false;
+        renderPageTree();
+      }
+    }
+
+    let draggedComponent = null;
+    let draggedPageIndex = null;
+
+    function handleChildDragStart(e, pageId, index) {
+      draggedComponent = e.target.dataset.componentId;
+      draggedPageIndex = index;
+      e.target.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleChildDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const target = e.target.closest('.page-child-item');
+      if (target && target.dataset.componentId !== draggedComponent) {
+        target.classList.add('drag-over');
+      }
+    }
+
+    function handleChildDragLeave(e) {
+      const target = e.target.closest('.page-child-item');
+      if (target) {
+        target.classList.remove('drag-over');
+      }
+    }
+
+    function handleChildDrop(e, pageId, targetIndex) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const target = e.target.closest('.page-child-item');
+      if (target) {
+        target.classList.remove('drag-over');
+      }
+
+      if (draggedComponent === null || draggedPageIndex === null) {
+        return;
+      }
+
+      const page = pages.find(p => p.pageId === pageId);
+      if (!page || draggedPageIndex === targetIndex) {
+        return;
+      }
+
+      const componentToMove = page.components[draggedPageIndex];
+      page.components.splice(draggedPageIndex, 1);
+      page.components.splice(targetIndex, 0, componentToMove);
+
+      draggedComponent = null;
+      draggedPageIndex = null;
+
+      renderPageTree();
+      renderPreview();
+    }
+
+    function handleChildDragEnd(e) {
+      e.target.classList.remove('dragging');
+      const dragOverItems = document.querySelectorAll('.page-child-item.drag-over');
+      dragOverItems.forEach(item => item.classList.remove('drag-over'));
+      draggedComponent = null;
+      draggedPageIndex = null;
+    }
+
+    function selectPage(page) {
+      currentPage = page;
+      selectedComponent = null; // 只选中页面，不选中组件，支持页面级参数设计
+      renderPageTree();
+      renderComponentLibrary();
+      renderPreview();
+      renderProperties();
+      renderTabBar();
+      updateActionButtonsVisibility();
+    }
+
+    function addPage() {
+      const newPage = {
+        pageId: generateUUID(),
+        pageName: '新页面 ' + (pages.length + 1),
+        pageType: 'home',
+        components: []
+      };
+      pages.push(newPage);
+      selectPage(newPage);
+      renderPageTree();
+    }
+
+    function copyPage(pageId) {
+      const page = pages.find(p => p.pageId === pageId);
+      if (page) {
+        const newPage = {
+          pageId: generateUUID(),
+          pageName: page.pageName + ' (副本)',
+          pageType: page.pageType || 'home',
+          components: JSON.parse(JSON.stringify(page.components))
+        };
+        pages.push(newPage);
+        renderPageTree();
+      }
+    }
+
+    function deletePage(pageId) {
+      if (confirm('确定要删除这个页面吗？')) {
+        pages = pages.filter(p => p.pageId !== pageId);
+        if (currentPage && currentPage.pageId === pageId) {
+          currentPage = pages.length > 0 ? pages[0] : null;
+        }
+        renderPageTree();
+        if (currentPage) {
+          renderPreview();
+        } else {
+          document.getElementById('pageCanvas').innerHTML = '';
+        }
+      }
+    }
+
+    function renderPreview() {
+      const pageCanvas = document.getElementById('pageCanvas');
+      pageCanvas.innerHTML = '';
+
+      const navbarTitle = document.getElementById('navbarTitle');
+      const navbarBack = document.getElementById('navbarBack');
+
+      if (currentPage) {
+        navbarTitle.textContent = currentPage.pageName;
+        const isHomePage = tabBarConfig.list.some(tab => tab.pageId === currentPage.pageId);
+        navbarBack.style.visibility = isHomePage ? 'hidden' : 'visible';
+      } else {
+        navbarTitle.textContent = '页面标题';
+        navbarBack.style.visibility = 'hidden';
+      }
+
+      const isMyPage = currentPage && (currentPage.pageType === 'my' || currentPage.pageName === '我的');
+
+      // 「我的」页面顶部固定用户信息栏：必须显示，不可拖拽、不可删除
+      if (isMyPage) {
+        const userBar = document.createElement('div');
+        userBar.className = 'my-page-user-bar';
+        const barBg = currentPage.userInfoBarBackground ?? '{主题色}';
+        const barBgResolved = resolveThemeColor(barBg) || '#0557e1';
+        userBar.style.background = barBgResolved;
+        const avatarUrl = globalConfig.myPageUserAvatar || '';
+        const avatarHtml = avatarUrl
+          ? `<img src="${avatarUrl}" alt="头像" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
+          : '👤';
+        userBar.innerHTML = `
+          <div class="user-avatar">${avatarHtml}</div>
+          <div class="user-info">
+            <div class="user-nickname">${(globalConfig.myPageUserNickname || '用户昵称').replace(/</g, '&lt;')}</div>
+            <div class="user-id">ID: ${(globalConfig.myPageUserId || '--').replace(/</g, '&lt;')}</div>
+          </div>
+        `;
+        pageCanvas.appendChild(userBar);
+      }
+
+      if (!currentPage || currentPage.components.length === 0) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'component-placeholder';
+        placeholder.textContent = '拖拽组件到此处开始设计页面';
+        pageCanvas.appendChild(placeholder);
+        renderTabBar();
+        return;
+      }
+
+      currentPage.components.forEach((component, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'component-wrapper' + (selectedComponent && selectedComponent.componentId === component.componentId ? ' selected' : '');
+        wrapper.dataset.componentId = component.componentId;
+        wrapper.onclick = () => selectComponent(component);
+        wrapper.innerHTML = renderComponentPreview(component);
+        pageCanvas.appendChild(wrapper);
+      });
+
+      renderTabBar();
+    }
+
+    function renderComponentPreview(component) {
+      switch (component.componentName) {
+        case '轮播图':
+          return `
+            <div style="background: #f0f0f0; height: ${component.properties.height || 200}px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;">
+              🖼️ 轮播图 (${component.componentItems.length}张)
+            </div>
+          `;
+        case '功能列表':
+          return `
+            <div style="background: #fff; padding: 10px; border-radius: 8px;">
+              <div style="display: grid; grid-template-columns: repeat(${component.properties.columns || 3}, 1fr); gap: 10px;">
+                ${component.componentItems.map(item => `
+                  <div style="text-align: center; padding: 10px;">
+                    <div style="font-size: 24px;">📱</div>
+                    <div style="font-size: 12px; color: #666;">${item}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case '图片':
+          return `
+            <div style="background: #f0f0f0; height: ${component.properties.height || 'auto'}; border-radius: ${component.properties.borderRadius || 0}px; display: flex; align-items: center; justify-content: center; color: #999;">
+              🖼️ 图片
+            </div>
+          `;
+        case '文本':
+          return `
+            <div style="font-size: ${component.properties.fontSize || 16}px; color: ${component.properties.color || '#333'}; text-align: ${component.properties.textAlign || 'left'}; padding: 10px;">
+              ${component.componentItems[0] || '文本内容'}
+            </div>
+          `;
+        case '商品网格':
+          return `
+            <div style="background: #fff; padding: 10px; border-radius: 8px;">
+              <div style="display: grid; grid-template-columns: repeat(${component.properties.columns || 2}, 1fr); gap: 10px;">
+                ${[1, 2, 3, 4].map(i => `
+                  <div style="background: #f9f9f9; border-radius: 8px; overflow: hidden;">
+                    <div style="height: 80px; background: #e0e0e0; display: flex; align-items: center; justify-content: center; color: #999;">商品${i}</div>
+                    <div style="padding: 8px;">
+                      <div style="font-size: 12px; color: #333; margin-bottom: 4px;">商品名称${i}</div>
+                      ${component.properties.showPrice ? '<div style="font-size: 14px; color: #ff4400; font-weight: bold;">¥99.00</div>' : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case '公告':
+          return `
+            <div style="background: ${component.properties.backgroundColor || '#fff7e6'}; color: ${component.properties.textColor || '#ff6b00'}; padding: 10px; border-radius: 8px; display: flex; align-items: center;">
+              <span style="margin-right: 8px;">${component.properties.icon || '📢'}</span>
+              <span>${component.componentItems[0] || '公告内容'}</span>
+            </div>
+          `;
+        case '标签页面':
+          return `
+            <div style="background: #fff; padding: 10px; border-radius: 8px;">
+              <div style="display: flex; gap: 10px; border-bottom: 1px solid #e0e0e0;">
+                ${component.componentItems.map((item, i) => `
+                  <div style="padding: 8px 16px; cursor: pointer; ${i === 0 ? 'color: #667eea; border-bottom: 2px solid #667eea;' : ''}">${item}</div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        case '内容列表':
+          const contentTabs = component.properties.enableTabs ? component.properties.tabs : [];
+          const contentThemeColor = resolveThemeColor(component.properties.tabThemeColor) || '#667eea';
+          const allTabExists = contentTabs.find(t => t.label === '全部');
+          const displayTabs = contentTabs.length > 0 ? [{ label: '全部', field: '', value: '' }, ...contentTabs] : [];
+          return `
+            <div style="background: #fff; padding: 10px; border-radius: 8px;">
+              ${component.properties.enableTabs && displayTabs.length > 0 ? `
+                <div style="display: flex; gap: 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 10px; overflow-x: auto;">
+                  ${displayTabs.map((tab, idx) => `
+                    <span style="padding: 6px 12px; font-size: 14px; color: ${idx === 0 ? contentThemeColor : '#666'}; border-bottom: 2px solid ${idx === 0 ? contentThemeColor : 'transparent'}; white-space: nowrap;">${tab.label}</span>
+                  `).join('')}
+                </div>
+              ` : ''}
+              ${component.componentItems.length > 0 ? component.componentItems.map(item => `
+                <div style="padding: 12px; border-bottom: 1px solid #f0f0f0; display: flex; gap: 10px;">
+                  <div style="width: 60px; height: 60px; background: #e0e0e0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;">图</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 14px; color: #333; margin-bottom: 4px;">${item.title || '标题'}</div>
+                    <div style="font-size: 12px; color: #666;">${item.desc || '描述'}</div>
+                  </div>
+                </div>
+              `).join('') : '<div style="padding: 20px; text-align: center; color: #999;">暂无内容</div>'}
+            </div>
+          `;
+        case '我的订单':
+          return `<div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;"><div style="font-size: 14px; color: #333;">📋 ${component.properties.title || '我的订单'}</div><div style="font-size: 12px; color: #999; margin-top: 8px;">订单列表占位</div></div>`;
+        case '会员权益消耗明细':
+          return `<div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;"><div style="font-size: 14px; color: #333;">🎁 ${component.properties.title || '会员权益消耗明细'}</div></div>`;
+        case '登录用户协议':
+          return `<div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;"><div style="font-size: 14px; color: #333;">📜 ${component.properties.title || '登录用户协议'}</div></div>`;
+        case '新手引导':
+          return `<div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;"><div style="font-size: 14px; color: #333;">✨ ${component.properties.title || '新手引导'}</div></div>`;
+        case '设置':
+          return `<div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;"><div style="font-size: 14px; color: #333;">⚙️ ${component.properties.title || '设置'}</div><div style="font-size: 12px; color: #999; margin-top: 8px;">设置项占位</div></div>`;
+        default:
+          return `<div style="padding: 20px; text-align: center; color: #999;">${component.componentName}</div>`;
+      }
+    }
+
+    function renderTabBar() {
+      const tabBar = document.getElementById('tabBar');
+      tabBar.className = 'tab-bar ' + tabBarConfig.style;
+      tabBar.style.backgroundColor = resolveThemeColor(tabBarConfig.backgroundColor);
+      const activeColor = resolveThemeColor(tabBarConfig.selectedColor || '#667eea');
+      const inactiveColor = resolveThemeColor(tabBarConfig.unselectedColor || '#999999');
+      tabBar.innerHTML = tabBarConfig.list.map((tab, index) => {
+        const selectedIconUrl = getImageUrlByRowid(tab.selectedIconRowid);
+        const unselectedIconUrl = getImageUrlByRowid(tab.unselectedIconRowid);
+        const isActive = currentPage && currentPage.pageId === tab.pageId;
+        const iconUrl = isActive ? selectedIconUrl : unselectedIconUrl;
+        const defaultIcon = tab.name === '首页' ? '🏠' : tab.name === '分类' ? '📂' : '👤';
+        const textColor = isActive ? activeColor : inactiveColor;
+        const iconStyle = iconUrl ? `style="color: ${textColor}; -webkit-mask-image: url('${iconUrl}'); mask-image: url('${iconUrl}');"` : '';
+
+        return `
+        <div class="tab-item ${isActive ? 'active' : ''}" style="color: ${textColor};" onclick="selectTabBarItemFromPreview(${index})">
+          <div class="tab-icon">${iconUrl ? `<span class="tab-icon-img" ${iconStyle}></span>` : defaultIcon}</div>
+          <div>${tab.name}</div>
+        </div>
+        `;
+      }).join('');
+    }
+
+    function getImageUrlByRowid(rowid) {
+      if (!rowid || !window.userImages || window.userImages.length === 0) {
+        return null;
+      }
+
+      const image = window.userImages.find(img => img.rowid === rowid);
+      return image ? image.url : null;
+    }
+
+    function selectTabBarItemFromPreview(index) {
+      console.log('[底部导航] 点击预览区底部导航项, index:', index);
+      selectedTabBarItem = index;
+      const tab = tabBarConfig.list[index];
+      if (tab && tab.pageId) {
+        const page = pages.find(p => p.pageId === tab.pageId);
+        if (page) {
+          currentPage = page;
+          selectedComponent = null;
+          console.log('[底部导航] 已切换为页面:', page.pageName);
+        }
+      }
+      // 保持或切回「页面」视图，并同步页面树、组件库、预览，避免预览与左侧选中页不一致
+      if (sidebarView !== 'pages') {
+        selectView('pages');
+      } else {
+        renderPageTree();
+        renderComponentLibrary();
+        renderPreview();
+        renderProperties();
+      }
+      renderTabBar();
+      updateActionButtonsVisibility();
+    }
+
+    function handlePageCanvasClick() {
+      if (sidebarView === 'tabbar' && selectedTabBarItem !== null) {
+        const tab = tabBarConfig.list[selectedTabBarItem];
+        if (tab && tab.pageId) {
+          const page = pages.find(p => p.pageId === tab.pageId);
+          if (page) {
+            selectView('pages');
+            selectPage(page);
+          }
+        }
+      }
+    }
+
+    function renderTabBarList() {
+      console.log('[底部导航] renderTabBarList 被调用');
+      console.log('[底部导航] tabBarConfig.list:', tabBarConfig.list);
+      console.log('[底部导航] selectedTabBarItem:', selectedTabBarItem);
+      const tabBarList = document.getElementById('pageTree');
+      tabBarList.innerHTML = tabBarConfig.list.map((tab, index) => {
+        const isActive = selectedTabBarItem === index;
+        console.log(`[底部导航] 渲染导航项 ${index}: ${tab.name}, active: ${isActive}`);
+        return `
+        <div class="page-item ${isActive ? 'active' : ''}" onclick="selectTabBarItem(${index})" ondblclick="editTabBarItemName(${index}, event)">
+          <div class="page-item-content">
+            <span class="page-name">${tab.name}</span>
+          </div>
+        </div>
+        `;
+      }).join('');
+      console.log('[底部导航] renderTabBarList 完成');
+    }
+
+    function editTabBarItemName(index, event) {
+      event.stopPropagation();
+      const tab = tabBarConfig.list[index];
+      const pageItem = event.currentTarget;
+      const nameSpan = pageItem.querySelector('.page-name');
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = tab.name;
+      input.className = 'page-name-input';
+      input.style.cssText = 'font-size: 14px; font-weight: 500; color: var(--text-main); border: 1px solid var(--admin-primary-color); border-radius: 4px; padding: 4px 8px; width: 100%; box-sizing: border-box;';
+
+      const saveName = () => {
+        const newName = input.value.trim();
+        if (newName && newName !== tab.name) {
+          tab.name = newName;
+          renderTabBarList();
+          renderTabBar();
+          saveConfig();
+        } else {
+          renderTabBarList();
+        }
+      };
+
+      input.addEventListener('blur', saveName);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveName();
+        } else if (e.key === 'Escape') {
+          renderTabBarList();
+        }
+      });
+
+      nameSpan.replaceWith(input);
+      input.focus();
+      input.select();
+    }
+
+    function addTabBarItem() {
+      console.log('addTabBarItem called');
+      console.log('tabBarConfig.list:', tabBarConfig.list);
+
+      if (tabBarConfig.list.length >= 6) {
+        alert('最多只能创建6个导航项！');
+        return;
+      }
+
+      const newTab = {
+        name: `导航项 ${tabBarConfig.list.length + 1}`,
+        selectedIcon: 'home-active.png',
+        unselectedIcon: 'home.png',
+        pageId: null
+      };
+
+      console.log('newTab:', newTab);
+      tabBarConfig.list.push(newTab);
+      console.log('tabBarConfig.list after push:', tabBarConfig.list);
+
+      selectedTabBarItem = tabBarConfig.list.length - 1;
+      renderTabBarList();
+      renderTabBar();
+      renderTabBarProperties();
+      saveConfig();
+    }
+
+    function deleteTabBarItem(index) {
+      if (!confirm('确定要删除这个导航项吗？')) return;
+
+      tabBarConfig.list.splice(index, 1);
+      selectedTabBarItem = null;
+      renderTabBarList();
+      renderTabBar();
+      renderTabBarProperties();
+      saveConfig();
+    }
+
+    function updateActionButtonsVisibility() {
+      const copyButton = document.getElementById('copyButton');
+      const deleteButton = document.getElementById('deleteButton');
+      if (!copyButton || !deleteButton) return;
+
+      if (sidebarView === 'pages') {
+        if (!currentPage) {
+          copyButton.style.display = 'none';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        if (currentPage.pageId === 'default-page-1') {
+          copyButton.style.display = 'inline-block';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        if (currentPage.pageId === 'default-page-2') {
+          copyButton.style.display = 'none';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        copyButton.style.display = 'inline-block';
+        deleteButton.style.display = 'inline-block';
+        return;
+      }
+
+      if (sidebarView === 'tabbar') {
+        if (selectedTabBarItem === null || !tabBarConfig.list[selectedTabBarItem]) {
+          copyButton.style.display = 'none';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        const tab = tabBarConfig.list[selectedTabBarItem];
+
+        if (tab.pageId === 'default-page-1' || tab.name === '首页') {
+          copyButton.style.display = 'inline-block';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        if (tab.pageId === 'default-page-2' || tab.name === '我的') {
+          copyButton.style.display = 'none';
+          deleteButton.style.display = 'none';
+          return;
+        }
+
+        copyButton.style.display = 'inline-block';
+        deleteButton.style.display = 'inline-block';
+      }
+    }
+
+    function editPageName(pageId, event) {
+      event.stopPropagation();
+      const page = pages.find(p => p.pageId === pageId);
+      if (!page) return;
+
+      const pageItem = event.currentTarget;
+      const nameSpan = pageItem.querySelector('.page-name');
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = page.pageName;
+      input.className = 'page-name-input';
+      input.style.cssText = 'font-size: 14px; font-weight: 500; color: var(--text-main); border: 1px solid var(--admin-primary-color); border-radius: 4px; padding: 4px 8px; width: 100%; box-sizing: border-box;';
+
+      const saveName = () => {
+        const newName = input.value.trim();
+        if (newName && newName !== page.pageName) {
+          page.pageName = newName;
+          renderPageTree();
+          renderPreview();
+          saveConfig();
+        } else {
+          renderPageTree();
+        }
+      };
+
+      input.addEventListener('blur', saveName);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveName();
+        } else if (e.key === 'Escape') {
+          renderPageTree();
+        }
+      });
+
+      nameSpan.replaceWith(input);
+      input.focus();
+      input.select();
+    }
+
+    function selectComponent(component) {
+      selectedComponent = component;
+      renderPageTree();
+      renderPreview();
+      renderProperties();
+    }
+
+    function renderProperties() {
+      const propertiesContent = document.getElementById('propertiesContent');
+
+      if (currentPage && !selectedComponent) {
+        const isMyPage = currentPage.pageType === 'my' || currentPage.pageName === '我的';
+        let pagePropsHtml = `
+          <div class="property-group">
+            <label>页面名称</label>
+            <input type="text" value="${(currentPage.pageName || '').replace(/"/g, '&quot;')}" onchange="updatePageProperty('pageName', this.value)">
+          </div>
+        `;
+        if (isMyPage) {
+          const barBg = currentPage.userInfoBarBackground ?? '{主题色}';
+          const barBgResolved = resolveThemeColor(barBg) || '#0557e1';
+          pagePropsHtml += `
+          <div class="property-group">
+            <label>用户信息栏背景色</label>
+            <div class="color-picker-wrapper">
+              <div class="color-picker-container">
+                <div class="color-picker-preview" data-color-key="page-userBarBg" style="background-color: ${barBgResolved}; width: 100%; height: 100%;"></div>
+                <input type="color" id="colorPicker-userBarBg" data-color-key="page-userBarBg" value="${barBgResolved}" oninput="updateMyPageUserBarBackground(this.value)" onchange="updateMyPageUserBarBackground(this.value)" class="color-picker-input-overlay">
+              </div>
+              <div class="color-input-row">
+                <input type="text" data-color-key="page-userBarBg" value="${(barBg || '').replace(/"/g, '&quot;')}" oninput="updateMyPageUserBarBackground(this.value)" onchange="updateMyPageUserBarBackground(this.value)" class="color-text-input" placeholder="#0557e1 或 {主题色}">
+                <button class="theme-token-btn" type="button" onclick="setThemeTokenForMyPageUserBar()">主题色</button>
+              </div>
+            </div>
+          </div>
+        `;
+        }
+        propertiesContent.innerHTML = pagePropsHtml;
+        return;
+      }
+
+      if (!selectedComponent) {
+        propertiesContent.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🎯</div>
+            <div class="empty-text">请选择一个组件进行编辑</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = `
+        <div class="property-group">
+          <label>组件名称</label>
+          <input type="text" value="${selectedComponent.componentName}" readonly>
+        </div>
+      `;
+
+      Object.keys(selectedComponent.properties || {}).forEach(key => {
+        const value = selectedComponent.properties[key];
+        const label = getPropertyLabel(key);
+
+        if (selectedComponent.componentName === '内容列表' && key === 'enableTabs') {
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <select onchange="updateContentListTabs(this.value)">
+                <option value="false" ${!value ? 'selected' : ''}>否</option>
+                <option value="true" ${value ? 'selected' : ''}>是</option>
+              </select>
+            </div>
+          `;
+        } else if (selectedComponent.componentName === '内容列表' && key === 'tabThemeColor') {
+          const themeColor = resolveThemeColor(selectedComponent.properties.tabThemeColor) || '#667eea';
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <div class="color-picker-wrapper">
+                <div class="color-picker-container">
+                  <div class="color-picker-preview" data-color-key="tabThemeColor" style="background-color: ${themeColor}; width: 100%; height: 100%;"></div>
+                  <input type="color" id="colorPicker-tabThemeColor" data-color-key="tabThemeColor" value="${themeColor}" oninput="updateContentListTabThemeColor(this.value)" onchange="updateContentListTabThemeColor(this.value)" class="color-picker-input-overlay">
+                </div>
+                <div class="color-input-row">
+                  <input type="text" data-color-key="tabThemeColor" value="${selectedComponent.properties.tabThemeColor || ''}" oninput="updateContentListTabThemeColor(this.value)" onchange="updateContentListTabThemeColor(this.value)" onkeypress="handleColorInputKeypress(event, 'tabThemeColor', this.value)" class="color-text-input" placeholder="#000000">
+                  <button class="theme-token-btn" type="button" onclick="setThemeTokenForContentListTab('tabThemeColor')">主题色</button>
+                </div>
+              </div>
+            </div>
+          `;
+        } else if (selectedComponent.componentName === '内容列表' && key === 'tabs') {
+          const tabs = selectedComponent.properties.tabs || [];
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <div id="tabsConfigContainer" style="margin-top: 8px;">
+                ${tabs.map((tab, index) => `
+                  <div class="tab-config-item" style="padding: 12px; border: 1px solid #e8e8e8; border-radius: 6px; margin-bottom: 10px; background: #fafafa;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                      <span style="font-size: 12px; color: #999; font-weight: 500;">标签 ${index + 1}</span>
+                      <button onclick="removeTab(${index})" style="padding: 2px 8px; background: #ff4d4f; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">删除</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: #666; width: 50px; flex-shrink: 0;">名称</span>
+                        <input type="text" value="${tab.label || ''}" placeholder="如：推荐" onchange="updateTabLabel(${index}, this.value)" style="flex: 1; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px;">
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: #666; width: 50px; flex-shrink: 0;">字段</span>
+                        <input type="text" value="${tab.field || ''}" placeholder="如：leixing" onchange="updateTabField(${index}, this.value)" style="flex: 1; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px;">
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: #666; width: 50px; flex-shrink: 0;">值</span>
+                        <input type="text" value="${tab.value || ''}" placeholder="如：recommended" onchange="updateTabValue(${index}, this.value)" style="flex: 1; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px;">
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+                <button onclick="addNewTab()" style="width: 100%; padding: 10px; background: #1890ff; color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-top: 8px; font-size: 14px; font-weight: 500;">+ 添加标签</button>
+              </div>
+            </div>
+          `;
+        } else if (typeof value === 'boolean') {
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <select onchange="updateProperty('${key}', this.value === 'true')">
+                <option value="true" ${value ? 'selected' : ''}>是</option>
+                <option value="false" ${!value ? 'selected' : ''}>否</option>
+              </select>
+            </div>
+          `;
+        } else if (typeof value === 'number') {
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <input type="number" value="${value}" onchange="updateProperty('${key}', Number(this.value))">
+            </div>
+          `;
+        } else if (key.includes('Color') || key.includes('color')) {
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <div class="color-picker">
+                <input type="color" value="${value}" onchange="updateProperty('${key}', this.value)">
+                <input type="text" value="${value}" onchange="updateProperty('${key}', this.value)">
+              </div>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="property-group">
+              <label>${label}</label>
+              <input type="text" value="${value}" onchange="updateProperty('${key}', this.value)">
+            </div>
+          `;
+        }
+      });
+
+      html += `
+        <div class="property-group">
+          <label>数据绑定</label>
+          <div class="data-binding-row">
+            <select class="data-binding-select" onchange="updateComponentDataSourceType(this.value)">
+              <option value="common" ${(selectedComponent.dataSourceType || 'common') === 'common' ? 'selected' : ''}>通用</option>
+              <option value="custom" ${selectedComponent.dataSourceType === 'custom' ? 'selected' : ''}>自定义</option>
+            </select>
+            <select class="data-binding-select" onchange="updateComponentDataSourceKey(this.value)">
+              ${getDataSourceOptionsHtml(selectedComponent)}
+            </select>
+          </div>
+        </div>
+        <div class="property-group">
+          <label>排序规则</label>
+          <select class="data-binding-select" onchange="updateComponentSorting(this.value)">
+            ${getSortingOptionsHtml(selectedComponent)}
+          </select>
+        </div>
+        <div class="property-group">
+          <button class="btn" style="width: 100%; background: #ff4d4f;" onclick="deleteComponent()">删除组件</button>
+        </div>
+      `;
+
+      propertiesContent.innerHTML = html;
+    }
+
+    function getDataSourceOptionsHtml(component) {
+      const type = component.dataSourceType || 'common';
+      const currentKey = component.dataSourceKey || 'product';
+      const commonOptions = [
+        { value: 'product', label: '商品' },
+        { value: 'article', label: '文章' },
+        { value: 'knowledge', label: '知识库' }
+      ];
+
+      if (type === 'common') {
+        return commonOptions.map(opt => {
+          const selected = currentKey === opt.value ? 'selected' : '';
+          return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+        }).join('');
+      }
+
+      const customOptions = [
+        { value: 'custom', label: '自定义数据' }
+      ];
+
+      return customOptions.map(opt => {
+        const selected = currentKey === opt.value ? 'selected' : '';
+        return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+      }).join('');
+    }
+
+    function getSortingOptionsHtml(component) {
+      const type = component.dataSourceType || 'common';
+      const currentSorting = component.sorting || 'weight';
+
+      if (type === 'common') {
+        const commonSortingOptions = [
+          { value: 'weight', label: '权重' },
+          { value: 'publishTimeAsc', label: '发布时间正序' },
+          { value: 'publishTimeDesc', label: '发布时间倒序' },
+          { value: 'updateTimeAsc', label: '更新时间正序' },
+          { value: 'updateTimeDesc', label: '更新时间倒序' }
+        ];
+
+        return commonSortingOptions.map(opt => {
+          const selected = currentSorting === opt.value ? 'selected' : '';
+          return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+        }).join('');
+      } else {
+        const customSortingOptions = [
+          { value: 'algorithm', label: '算法推荐' }
+        ];
+
+        return customSortingOptions.map(opt => {
+          const selected = currentSorting === opt.value ? 'selected' : '';
+          return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+        }).join('');
+      }
+    }
+
+    function getPropertyLabel(key) {
+      const labels = {
+        'height': '高度',
+        'autoplay': '自动播放',
+        'interval': '间隔时间(ms)',
+        'columns': '列数',
+        'iconSize': '图标大小',
+        'width': '宽度',
+        'borderRadius': '圆角',
+        'fontSize': '字体大小',
+        'color': '颜色',
+        'textAlign': '对齐方式',
+        'showPrice': '显示价格',
+        'showSales': '显示销量',
+        'backgroundColor': '背景色',
+        'textColor': '文字颜色',
+        'icon': '图标',
+        'showImage': '显示封面',
+        'showDesc': '显示描述',
+        'enableTabs': '开启标签页',
+        'tabThemeColor': '标签主题色',
+        'tabs': '标签配置'
+      };
+      return labels[key] || key;
+    }
+
+    function updateProperty(key, value) {
+      if (selectedComponent) {
+        selectedComponent.properties[key] = value;
+        renderPreview();
+      }
+    }
+
+    function updateContentListTabs(value) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        selectedComponent.properties.enableTabs = value === 'true';
+        renderProperties();
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateContentListTabThemeColor(value) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        selectedComponent.properties.tabThemeColor = value;
+
+        const resolvedColor = resolveThemeColor(value) || value;
+        const preview = document.querySelector(`.color-picker-preview[data-color-key="tabThemeColor"]`);
+        const textInput = document.querySelector(`.color-text-input[data-color-key="tabThemeColor"]`);
+        const picker = document.querySelector(`.color-picker-input-overlay[data-color-key="tabThemeColor"]`);
+
+        if (preview) preview.style.backgroundColor = resolvedColor;
+        if (textInput) textInput.value = value;
+        if (picker) picker.value = resolvedColor;
+
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateTabLabel(index, value) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        if (!selectedComponent.properties.tabs) selectedComponent.properties.tabs = [];
+        selectedComponent.properties.tabs[index] = selectedComponent.properties.tabs[index] || {};
+        selectedComponent.properties.tabs[index].label = value;
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateTabField(index, value) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        if (!selectedComponent.properties.tabs) selectedComponent.properties.tabs = [];
+        selectedComponent.properties.tabs[index] = selectedComponent.properties.tabs[index] || {};
+        selectedComponent.properties.tabs[index].field = value;
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateTabValue(index, value) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        if (!selectedComponent.properties.tabs) selectedComponent.properties.tabs = [];
+        selectedComponent.properties.tabs[index] = selectedComponent.properties.tabs[index] || {};
+        selectedComponent.properties.tabs[index].value = value;
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function addNewTab() {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        if (!selectedComponent.properties.tabs) selectedComponent.properties.tabs = [];
+        selectedComponent.properties.tabs.push({ label: '', field: '', value: '' });
+        renderProperties();
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function removeTab(index) {
+      if (selectedComponent && selectedComponent.componentName === '内容列表') {
+        if (selectedComponent.properties.tabs) {
+          selectedComponent.properties.tabs.splice(index, 1);
+          renderProperties();
+          renderPreview();
+          saveConfig();
+        }
+      }
+    }
+
+    function updatePageProperty(key, value) {
+      if (currentPage) {
+        currentPage[key] = value;
+        renderPageTree();
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateMyPageUserBarBackground(value) {
+      if (currentPage && (currentPage.pageType === 'my' || currentPage.pageName === '我的')) {
+        currentPage.userInfoBarBackground = value;
+        renderPreview();
+        renderProperties();
+        saveConfig();
+      }
+    }
+
+    function setThemeTokenForMyPageUserBar() {
+      updateMyPageUserBarBackground('{主题色}');
+    }
+
+    function updateComponentDataSourceType(value) {
+      if (selectedComponent) {
+        selectedComponent.dataSourceType = value;
+        if (!selectedComponent.dataSourceKey) {
+          selectedComponent.dataSourceKey = value === 'common' ? 'product' : 'custom';
+        }
+        renderProperties();
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateComponentDataSourceKey(value) {
+      if (selectedComponent) {
+        selectedComponent.dataSourceKey = value;
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function updateComponentSorting(value) {
+      if (selectedComponent) {
+        selectedComponent.sorting = value;
+        renderPreview();
+        saveConfig();
+      }
+    }
+
+    function deleteComponent() {
+      if (selectedComponent && currentPage) {
+        if (confirm('确定要删除这个组件吗？')) {
+          currentPage.components = currentPage.components.filter(c => c.componentId !== selectedComponent.componentId);
+          selectedComponent = null;
+          renderPageTree();
+          renderPreview();
+          renderProperties();
+        }
+      }
+    }
+
+    function changeDevice() {
+      const device = document.getElementById('deviceSelect').value;
+      const phonePreview = document.getElementById('phonePreview');
+
+      switch (device) {
+        case 'iphone':
+          phonePreview.style.width = '375px';
+          phonePreview.style.height = '667px';
+          break;
+        case 'android':
+          phonePreview.style.width = '360px';
+          phonePreview.style.height = '640px';
+          break;
+        case 'ipad':
+          phonePreview.style.width = '768px';
+          phonePreview.style.height = '1024px';
+          break;
+      }
+    }
+
+    function saveConfig() {
+      const config = {
+        globalConfig: globalConfig,
+        tabBarConfig: tabBarConfig,
+        pages: pages
+      };
+
+      console.log('[decoration.html] 保存配置:', config);
+      localStorage.setItem('decorationConfig', JSON.stringify(config));
+    }
+
+    function loadConfig() {
+      const config = localStorage.getItem('decorationConfig');
+      if (config) {
+        try {
+          const data = JSON.parse(config);
+          globalConfig = data.globalConfig || globalConfig;
+          tabBarConfig = data.tabBarConfig || tabBarConfig;
+          pages = (data.pages || []).map(p => ({
+            ...p,
+            pageType: p.pageType || (p.pageName === '我的' ? 'my' : 'home')
+          }));
+
+          if (pages.length === 0) {
+            pages = [
+              { pageId: 'default-page-1', pageName: '首页', pageType: 'home', components: [] },
+              { pageId: 'default-page-2', pageName: '我的', pageType: 'my', components: [] }
+            ];
+
+            if (!tabBarConfig || !Array.isArray(tabBarConfig.list)) {
+              tabBarConfig = {
+                style: 'classic',
+                backgroundColor: '#ffffff',
+                selectedColor: '#667eea',
+                unselectedColor: '#999999',
+                list: []
+              };
+            }
+
+            if (!tabBarConfig.list || tabBarConfig.list.length === 0) {
+              tabBarConfig.list = [
+                {
+                  name: '首页',
+                  selectedIcon: '',
+                  selectedIconRowid: '4c661940-1d8d-4f95-a6ab-4661effea87c',
+                  unselectedIcon: '',
+                  unselectedIconRowid: '5f96392a-bd0e-4d78-a14c-803493ddf484',
+                  pageId: 'default-page-1'
+                },
+                {
+                  name: '我的',
+                  selectedIcon: '',
+                  selectedIconRowid: '67467570-f4ec-4aad-a374-dbbeecd43d22',
+                  unselectedIcon: '',
+                  unselectedIconRowid: '736e427c-e162-4e98-b5dd-a877c70b6c3d',
+                  pageId: 'default-page-2'
+                }
+              ];
+            } else {
+              if (tabBarConfig.list[0]) {
+                tabBarConfig.list[0].pageId = 'default-page-1';
+                tabBarConfig.list[0].name = tabBarConfig.list[0].name || '首页';
+              }
+              if (tabBarConfig.list[1]) {
+                tabBarConfig.list[1].pageId = 'default-page-2';
+                tabBarConfig.list[1].name = tabBarConfig.list[1].name || '我的';
+              }
+            }
+          }
+
+          if (pages.length > 0) {
+            currentPage = pages[0];
+          }
+
+          renderPageTree();
+          renderPreview();
+          renderTabBar();
+          renderTabBarList();
+          alert('配置已加载！');
+        } catch (e) {
+          console.error('[decoration.html] 加载配置失败:', e);
+          alert('加载配置失败！');
+        }
+      } else {
+        alert('没有找到保存的配置');
+      }
+    }
+
+    async function publishCode() {
+      // 发布前确保每个页面有 pageType，便于服务端生成「我的」页用户信息栏
+      const pagesToSend = pages.map(p => ({
+        ...p,
+        pageType: p.pageType || (p.pageName === '我的' ? 'my' : 'home')
+      }));
+      const config = {
+        merchantId: window.merchantId || localStorage.getItem('merchantId') || '',
+        globalConfig: globalConfig,
+        tabBarConfig: tabBarConfig,
+        pages: pagesToSend,
+        userImages: window.userImages || []
+      };
+
+      console.log('[decoration.html] 发布代码:', config);
+      console.log('[decoration.html] 我的页面 pageType:', pagesToSend.filter(p => p.pageName === '我的').map(p => p.pageType));
+      console.log('[decoration.html] 当前商家ID:', config.merchantId);
+      console.log('[decoration.html] 用户图片数量:', config.userImages.length);
+
+      pages.forEach((page, pageIdx) => {
+        page.components.forEach((comp, compIdx) => {
+          if (comp.componentName === '内容列表') {
+            console.log(`[decoration.html] 页面${pageIdx} 内容列表组件${compIdx}:`, JSON.stringify(comp.properties, null, 2));
+          }
+        });
+      });
+
+      try {
+        const response = await fetch('/api/generate-miniprogram', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(config)
+        });
+
+        console.log('[decoration.html] 响应状态:', response.status, response.statusText);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[decoration.html] 错误响应:', errorText);
+          alert(`请求失败 (${response.status}): ${errorText}`);
+          return;
+        }
+
+        const result = await response.json();
+        console.log('[decoration.html] 响应结果:', result);
+
+        if (result.success) {
+          alert('代码生成成功！正在下载...');
+          window.location.href = result.downloadUrl;
+        } else {
+          alert('生成失败: ' + result.message);
+        }
+      } catch (error) {
+        console.error('[decoration.html] 请求异常:', error);
+        alert('请求失败: ' + error.message);
+      }
+    }
+
+    // 组件库为动态渲染，拖拽事件在 renderComponentLibrary() 中绑定
+
+    const pageCanvas = document.getElementById('pageCanvas');
+    pageCanvas.addEventListener('dragover', handleDragOver);
+    pageCanvas.addEventListener('drop', handleDrop);
+
+    function handleDragStart(e) {
+      e.dataTransfer.setData('componentType', e.target.dataset.component);
+      e.target.style.opacity = '0.5';
+    }
+
+    function handleDragEnd(e) {
+      e.target.style.opacity = '1';
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      const componentType = e.dataTransfer.getData('componentType');
+
+      if (componentType && currentPage) {
+        const component = {
+          componentName: getComponentName(componentType),
+          componentId: generateUUID(),
+          componentItems: getDefaultItems(componentType),
+          properties: getDefaultProperties(componentType)
+        };
+
+        currentPage.components.push(component);
+        currentPage.expanded = true;
+        renderPageTree();
+        renderPreview();
+        selectComponent(component);
+      }
+    }
+
+    function getComponentName(type) {
+      const names = {
+        'carousel': '轮播图',
+        'function-list': '功能列表',
+        'image': '图片',
+        'text': '文本',
+        'product-grid': '商品网格',
+        'product-list': '商品列表',
+        'notice': '公告',
+        'tabs': '标签页面',
+        'content-list': '内容列表',
+        'my-orders': '我的订单',
+        'member-benefits': '会员权益消耗明细',
+        'user-agreement': '登录用户协议',
+        'newbie-guide': '新手引导',
+        'settings': '设置'
+      };
+      return names[type] || type;
+    }
+
+    function getDefaultItems(type) {
+      const defaults = {
+        'carousel': ['image1.png', 'image2.png', 'image3.png'],
+        'function-list': ['圈子', '想法', '团送'],
+        'image': ['https://example.com/image.png'],
+        'text': ['请输入文本内容'],
+        'product-grid': [],
+        'product-list': [],
+        'notice': ['欢迎使用本小程序'],
+        'tabs': ['标签1', '标签2', '标签3'],
+        'content-list': [],
+        'my-orders': [],
+        'member-benefits': [],
+        'user-agreement': [],
+        'newbie-guide': [],
+        'settings': []
+      };
+      return defaults[type] || [];
+    }
+
+    function getDefaultProperties(type) {
+      const properties = {
+        'carousel': {
+          height: 200,
+          autoplay: true,
+          interval: 3000
+        },
+        'function-list': {
+          columns: 3,
+          iconSize: 48
+        },
+        'image': {
+          width: '100%',
+          height: 'auto',
+          borderRadius: 0
+        },
+        'text': {
+          fontSize: 16,
+          color: '#333333',
+          textAlign: 'left'
+        },
+        'product-grid': {
+          columns: 2,
+          showPrice: true,
+          showSales: true
+        },
+        'product-list': {
+          showPrice: true,
+          showSales: true
+        },
+        'notice': {
+          backgroundColor: '#fff7e6',
+          textColor: '#ff6b00',
+          icon: '📢'
+        },
+        'tabs': {
+          activeColor: '#667eea',
+          inactiveColor: '#999999'
+        },
+        'content-list': {
+          showImage: true,
+          showDesc: true,
+          enableTabs: false,
+          tabThemeColor: '{主题色}',
+          tabs: []
+        },
+        'my-orders': { title: '我的订单', showStatus: true },
+        'member-benefits': { title: '会员权益消耗明细' },
+        'user-agreement': { title: '登录用户协议', url: '' },
+        'newbie-guide': { title: '新手引导', steps: [] },
+        'settings': { title: '设置', items: [] }
+      };
+      return properties[type] || {};
+    }
+
+    window.onload = function () {
+      const params = getUrlParams();
+      if (params.mRowid) {
+        const parsedId = parseMerchantId(params.mRowid);
+        window.merchantId = parsedId;
+        localStorage.setItem('merchantId', parsedId);
+        console.log('[decoration.html] 商家ID原始值:', params.mRowid);
+        console.log('[decoration.html] 商家ID解析后:', window.merchantId);
+      } else {
+        const storedMerchantId = localStorage.getItem('merchantId') || '';
+        if (storedMerchantId) {
+          window.merchantId = storedMerchantId;
+          console.log('[decoration.html] 从localStorage恢复商家ID:', window.merchantId);
+        } else {
+          console.warn('[decoration.html] 未获取到商家ID');
+        }
+      }
+
+      if (pages.length === 0) {
+        addPage();
+      }
+      renderPageTree();
+      renderComponentLibrary();
+      renderPreview();
+      renderTabBar();
+
+      loadUserImages();
+      updateActionButtonsVisibility();
+    };
+
+    async function loadUserImages() {
+      console.log('[图片导入] 开始加载用户上传的图片');
+
+      const api = new MingDaoYunArrayAPI();
+
+      const filters = [
+        {
+          'controlId': 'mid',
+          'dataType': 2,
+          'spliceType': 2,
+          'filterType': 2,
+          'value': window.merchantId
+        },
+        {
+          'controlId': 'shangjia',
+          'dataType': 2,
+          'spliceType': 2,
+          'filterType': 24,
+          'value': 'e26e5792-65c6-483e-8dde-fb7c0a667f84'
+        }
+      ];
+
+      const requestParams = {
+        worksheetId: 'scgl',
+        filters: filters,
+        pageSize: 50,
+        pageIndex: 1
+      };
+
+      console.log('[图片导入] 请求参数:', JSON.stringify(requestParams, null, 2));
+      console.log('[图片导入] 请求体:', JSON.stringify({
+        appKey: api.appKey,
+        sign: api.sign,
+        worksheetId: 'scgl',
+        filters: filters,
+        pageSize: 50,
+        pageIndex: 1
+      }, null, 2));
+
+      try {
+        const result = await api.getData(requestParams);
+
+        console.log('[图片导入] API返回结果:', JSON.stringify(result, null, 2));
+
+        if (result.success && result.data && result.data.rows) {
+          console.log('[图片导入] 成功获取', result.data.rows.length, '条记录');
+
+          const processedImages = result.data.rows.map(row => {
+            const imgArray = JSON.parse(row.img);
+            const firstImage = imgArray[0];
+            const url = firstImage.large_thumbnail_full_path;
+
+            return {
+              mingcheng: row.mingcheng || '',
+              leibie: row.leibie || '',
+              rowid: row.rowid || '',
+              url: url || ''
+            };
+          });
+
+          window.userImages = processedImages;
+          console.log('[图片导入] 处理后的用户图片数据:', JSON.stringify(window.userImages, null, 2));
+
+          console.log('[图片导入] 全局数据:', JSON.stringify({
+            merchantId: window.merchantId,
+            userImages: window.userImages
+          }, null, 2));
+
+          renderUserImages();
+          renderTabBar();
+          renderTabBarProperties();
+        } else {
+          console.error('[图片导入] 获取图片失败:', result.error_msg);
+        }
+      } catch (error) {
+        console.error('[图片导入] 调用异常:', error);
+      }
+    }
+
+    function renderUserImages() {
+      console.log('[图片导入] 开始渲染用户图片');
+
+      if (!window.userImages || window.userImages.length === 0) {
+        console.warn('[图片导入] 没有用户图片数据');
+        return;
+      }
+
+      window.userImages.forEach((image, index) => {
+        console.log('[图片导入] 图片', index + 1, ':', image.mingcheng, image.rowid, image.url);
+      });
+    }
+
+    // 自定义颜色选择器弹窗
+    let currentColorPickerKey = null;
+    let currentColorPickerValue = '';
+    let currentPreviewElement = null;
+
+    function showColorPickerPopup(event, key, currentValue) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      currentColorPickerKey = key;
+      currentColorPickerValue = currentValue;
+      currentPreviewElement = event.target;
+
+      const popup = document.getElementById('colorPickerPopup');
+      const colorInput = document.getElementById('popupColorInput');
+
+      colorInput.value = currentValue;
+
+      // 计算弹窗位置
+      const rect = event.target.getBoundingClientRect();
+      const popupWidth = 300;
+      const popupHeight = 150;
+
+      let left = rect.left;
+      let top = rect.bottom + 5;
+
+      // 确保不超出屏幕右侧
+      if (left + popupWidth > window.innerWidth) {
+        left = window.innerWidth - popupWidth - 10;
+      }
+
+      // 确保不超出屏幕底部
+      if (top + popupHeight > window.innerHeight) {
+        top = rect.top - popupHeight - 5;
+      }
+
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
+      popup.style.display = 'block';
+
+      // 点击外部关闭弹窗
+      setTimeout(() => {
+        document.addEventListener('click', hideColorPickerPopupOutside);
+      }, 0);
+    }
+
+    function hideColorPickerPopupOutside(event) {
+      const popup = document.getElementById('colorPickerPopup');
+      if (!popup.contains(event.target) && !event.target.classList.contains('color-picker-preview')) {
+        hideColorPickerPopup();
+      }
+    }
+
+    function hideColorPickerPopup() {
+      const popup = document.getElementById('colorPickerPopup');
+      popup.style.display = 'none';
+      document.removeEventListener('click', hideColorPickerPopupOutside);
+    }
+
+    function applyColorPickerValue(value) {
+      if (!currentColorPickerKey) {
+        return;
+      }
+
+      if (currentColorPickerKey.startsWith('tabBar.')) {
+        const key = currentColorPickerKey.replace('tabBar.', '');
+        updateTabBarProperty(key, value);
+      } else {
+        updateGlobalProperty(currentColorPickerKey, value);
+      }
+    }
+
+    function confirmColorPicker() {
+      const colorInput = document.getElementById('popupColorInput');
+      const value = colorInput.value;
+
+      applyColorPickerValue(value);
+
+      hideColorPickerPopup();
+    }
+
+    function onColorInputInput(event) {
+      const value = event.target.value;
+      applyColorPickerValue(value);
+    }
+
+    function onColorInputChange(event) {
+      const value = event.target.value;
+      applyColorPickerValue(value);
+    }
+  </script>
+
+  <!-- 自定义颜色选择器弹窗 -->
+  <div id="colorPickerPopup" class="color-picker-popup" style="display: none;">
+    <div class="color-picker-popup-header">
+      <span>选择颜色</span>
+    </div>
+    <div class="color-picker-popup-body">
+      <input type="color" id="popupColorInput" class="popup-color-input" oninput="onColorInputInput(event)"
+        onchange="onColorInputChange(event)" />
+    </div>
+    <div class="color-picker-popup-footer">
+      <button class="btn btn-cancel" onclick="hideColorPickerPopup()">取消</button>
+      <button class="btn btn-confirm" onclick="confirmColorPicker()">确定</button>
+    </div>
+  </div>
+</body>
+
+</html>

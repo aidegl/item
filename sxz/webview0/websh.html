@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="version" content="3">
+    <title>陪诊服务介绍 - 陪诊助手</title>
+    <!-- 防缓存 Meta 标签 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            padding-bottom: 80px;
+        }
+
+        /* 移除容器限制，让内容全屏显示 */
+        .page-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 80px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-bottom: 20px;
+            font-size: 22px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #7f8c8d;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        p {
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .service-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .service-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #fff;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+        }
+
+        .process-steps {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .process-steps li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 15px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .process-steps li:before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 24px;
+            height: 24px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .note-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .note-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .note-box ul {
+            padding-left: 20px;
+            color: #856404;
+        }
+
+        .note-box li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .contact-info {
+            text-align: center;
+            padding: 20px;
+            background-color: #e8f4fc;
+            border-radius: 8px;
+            margin-top: 40px;
+        }
+
+        .contact-info p {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .version-info {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* 底部菜单样式 */
+        .bottom-menu {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .menu-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            flex: 1;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .menu-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .menu-item.active {
+            background-color: #e8f4fc;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .menu-item i {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .menu-item span {
+            font-size: 14px;
+        }
+
+        /* 页面容器样式 */
+        .page-container {
+            display: none;
+        }
+
+        .page-container.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 陪诊工具页面 -->
+    <div class="page-container active" id="tools-page">
+
+        <!-- 医院数据库 -->
+        <div class="service-section">
+            <h2>🏥 医院数据库</h2>
+            <div class="service-item">
+                <p>收录北上广深公立医院的详细信息，方便您快速了解医院情况：</p>
+
+                <!-- 搜索筛选表单 -->
+                <div class="search-form"
+                    style="margin: 20px 0; padding: 20px; background-color: #f0f8ff; border-radius: 8px;">
+                    <h3>🔍 医院搜索</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px; margin: 15px 0;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">城市</label>
+                            <select id="city-select"
+                                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                <option value="">全部城市</option>
+                                <option value="北京">北京</option>
+                                <option value="上海">上海</option>
+                                <option value="广州">广州</option>
+                                <option value="深圳">深圳</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">区域</label>
+                            <select id="district-select"
+                                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                <option value="">全部区域</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">科室</label>
+                            <select id="department-select"
+                                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                <option value="">全部科室</option>
+                                <option value="内科">内科</option>
+                                <option value="外科">外科</option>
+                                <option value="妇产科">妇产科</option>
+                                <option value="儿科">儿科</option>
+                                <option value="眼科">眼科</option>
+                                <option value="耳鼻喉科">耳鼻喉科</option>
+                                <option value="口腔科">口腔科</option>
+                                <option value="皮肤科">皮肤科</option>
+                                <option value="神经内科">神经内科</option>
+                                <option value="神经外科">神经外科</option>
+                                <option value="心血管内科">心血管内科</option>
+                                <option value="骨科">骨科</option>
+                                <option value="肿瘤科">肿瘤科</option>
+                                <option value="呼吸内科">呼吸内科</option>
+                                <option value="内分泌科">内分泌科</option>
+                                <option value="血液科">血液科</option>
+                                <option value="肾脏科">肾脏科</option>
+                                <option value="消化内科">消化内科</option>
+                                <option value="感染科">感染科</option>
+                                <option value="风湿免疫科">风湿免疫科</option>
+                                <option value="泌尿科">泌尿科</option>
+                                <option value="胃肠外科">胃肠外科</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="search-btn"
+                        style="padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        搜索医院
+                    </button>
+                    <button id="reset-btn"
+                        style="padding: 10px 20px; background-color: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px;">
+                        重置
+                    </button>
+                </div>
+
+                <!-- 医院列表 -->
+                <div id="hospital-list" style="margin-top: 20px;">
+                    <p>正在加载医院数据...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 就医常识科普 -->
+        <div class="service-section">
+            <h2>📚 就医常识科普</h2>
+
+            <!-- 门诊就诊流程 -->
+            <div class="service-item">
+                <h3>🏥 门诊就诊全流程</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; margin: 15px 0;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <ol style="list-style: none; padding-left: 0;">
+                            <li style="position: relative; padding-left: 40px; margin-bottom: 15px; line-height: 1.6;">
+                                <div
+                                    style="position: absolute; left: 0; top: 0; width: 30px; height: 30px; background-color: #3498db; color: white; border-radius: 50%; text-align: center; line-height: 30px; font-weight: bold;">
+                                    1</div>
+                                <strong>预约挂号</strong><br>
+                                通过医院官网、微信公众号或电话预约合适的科室和医生，记得携带身份证和医保卡。
+                            </li>
+                            <li style="position: relative; padding-left: 40px; margin-bottom: 15px; line-height: 1.6;">
+                                <div
+                                    style="position: absolute; left: 0; top: 0; width: 30px; height: 30px; background-color: #3498db; color: white; border-radius: 50%; text-align: center; line-height: 30px; font-weight: bold;">
+                                    2</div>
+                                <strong>报到候诊</strong><br>
+                                到达医院后，先在自助机或窗口报到，然后在指定区域等待叫号。
+                            </li>
+                            <li style="position: relative; padding-left: 40px; margin-bottom: 15px; line-height: 1.6;">
+                                <div
+                                    style="position: absolute; left: 0; top: 0; width: 30px; height: 30px; background-color: #3498db; color: white; border-radius: 50%; text-align: center; line-height: 30px; font-weight: bold;">
+                                    3</div>
+                                <strong>医生问诊</strong><br>
+                                进入诊室后，详细向医生描述症状，回答医生的问题，有任何疑问及时提出。
+                            </li>
+                            <li style="position: relative; padding-left: 40px; margin-bottom: 15px; line-height: 1.6;">
+                                <div
+                                    style="position: absolute; left: 0; top: 0; width: 30px; height: 30px; background-color: #3498db; color: white; border-radius: 50%; text-align: center; line-height: 30px; font-weight: bold;">
+                                    4</div>
+                                <strong>检查缴费</strong><br>
+                                根据医生的建议，在自助机或窗口缴纳检查费用，然后前往相应科室进行检查。
+                            </li>
+                            <li style="position: relative; padding-left: 40px; margin-bottom: 15px; line-height: 1.6;">
+                                <div
+                                    style="position: absolute; left: 0; top: 0; width: 30px; height: 30px; background-color: #3498db; color: white; border-radius: 50%; text-align: center; line-height: 30px; font-weight: bold;">
+                                    5</div>
+                                <strong>取药/治疗</strong><br>
+                                检查完成后，回到医生处复诊，然后凭处方到药房取药，或按照医生的建议进行后续治疗。
+                            </li>
+                        </ol>
+                    </div>
+                    <div style="flex: 1; min-width: 300px;">
+                        <div style="background-color: #f0f8ff; padding: 20px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 80px; margin-bottom: 10px;">📋</div>
+                            <p style="font-size: 16px; line-height: 1.6;">
+                                <strong>小提示：</strong><br>
+                                建议提前15分钟到达医院<br>
+                                记录好需要咨询的问题<br>
+                                检查结果妥善保存<br>
+                                按时复诊很重要
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 检查项目注意事项 -->
+            <div class="service-item">
+                <h3>🔬 检查项目注意事项</h3>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 15px 0;">
+                    <div
+                        style="background-color: #fff9e6; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <h4 style="color: #856404; margin-bottom: 10px;">🩸 血液检查</h4>
+                        <ul style="padding-left: 20px;">
+                            <li>检查前8-12小时需空腹，可少量饮水</li>
+                            <li>检查前3天避免油腻食物和饮酒</li>
+                            <li>避免剧烈运动和情绪激动</li>
+                            <li>一般1-2小时出结果</li>
+                        </ul>
+                    </div>
+                    <div
+                        style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 4px solid #2196f3;">
+                        <h4 style="color: #1565c0; margin-bottom: 10px;">📷 影像学检查 (CT/MRI)</h4>
+                        <ul style="padding-left: 20px;">
+                            <li>CT检查前去除金属物品，孕妇需告知医生</li>
+                            <li>MRI检查前需去除所有金属物品，包括假牙、项链等</li>
+                            <li>有金属植入物（如心脏起搏器）需提前告知</li>
+                            <li>CT一般1-2天出结果，MRI 2-3天出结果</li>
+                        </ul>
+                    </div>
+                    <div
+                        style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                        <h4 style="color: #2e7d32; margin-bottom: 10px;">🩺 超声检查</h4>
+                        <ul style="padding-left: 20px;">
+                            <li>腹部超声需空腹8-12小时</li>
+                            <li>妇科超声需憋尿（经腹部）或无需憋尿（经阴道）</li>
+                            <li>心脏超声无需特殊准备</li>
+                            <li>一般检查后30分钟-1小时出结果</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 医保报销基础规则 -->
+            <div class="service-item">
+                <h3>💳 医保报销基础规则</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; margin: 15px 0;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h4 style="margin-bottom: 10px;">🏥 本地医保</h4>
+                        <ul style="padding-left: 20px;">
+                            <li><strong>门诊报销：</strong>起付线1800元，报销比例50%-70%</li>
+                            <li><strong>住院报销：</strong>起付线1300元，报销比例70%-90%</li>
+                            <li>超过起付线部分才能报销</li>
+                            <li>不同医院级别报销比例不同</li>
+                        </ul>
+                    </div>
+                    <div style="flex: 1; min-width: 300px;">
+                        <h4 style="margin-bottom: 10px;">🌍 异地就医</h4>
+                        <ul style="padding-left: 20px;">
+                            <li><strong>备案流程：</strong>在参保地医保部门或APP办理备案</li>
+                            <li><strong>报销比例：</strong>一般比本地低5%-10%</li>
+                            <li>急诊可先就医后补办备案</li>
+                            <li>记得携带医保卡和身份证</li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    <strong>💡 报销小贴士：</strong><br>
+                    1. 保留好所有医疗票据和处方<br>
+                    2. 检查项目是否在医保目录内<br>
+                    3. 了解医院的医保定点等级<br>
+                    4. 特殊病种可申请门诊特殊病待遇
+                </div>
+            </div>
+        </div>
+
+        <!-- 陪诊服务说明 -->
+        <div class="service-section">
+            <h2>💼 陪诊服务说明</h2>
+            <div class="service-item">
+                <h3>具体服务内容</h3>
+                <ul>
+                    <li>📋 代排队取号</li>
+                    <li>📄 协助打印和取报告</li>
+                    <li>💰 协助缴费、取药</li>
+                    <li>👨‍⚕️ 陪同就诊并记录医嘱</li>
+                    <li>🗺️ 医院内部引导</li>
+                </ul>
+            </div>
+            <div class="service-item">
+                <h3>服务范围</h3>
+                <p>覆盖本地所有公立医院，支持市区内各区域的陪诊服务需求。</p>
+            </div>
+            <div class="service-item">
+                <h3>收费标准</h3>
+                <p>根据服务时长和内容，提供透明合理的收费标准，无额外隐藏费用。</p>
+            </div>
+        </div>
+
+        <!-- 联系我们 -->
+        <div class="contact-info">
+            <h2>📞 联系我们</h2>
+            <p>如果您有任何疑问或需要预约陪诊服务，请随时联系我们：</p>
+            <p>客服电话：13116223139</p>
+            <p>工作时间：周一至周日 8:00-20:00</p>
+        </div>
+
+        <!-- 版本信息 -->
+        <div class="version-info">
+            <p>陪诊助手 - 版本 3</p>
+            <p>© 2026 沈仙子陪诊助手. 保留所有权利.</p>
+        </div>
+    </div>
+
+    <!-- 陪诊介绍页面 -->
+    <div class="page-container" id="intro-page">
+
+        <!-- 服务介绍 -->
+        <div class="service-section">
+            <h2>🔍 陪诊服务介绍</h2>
+            <p>沈仙子陪诊助手致力于为患者提供专业、贴心的陪诊服务，解决您在就医过程中的各种困扰。我们的陪诊人员均经过专业培训，熟悉医院流程，能够为您提供全方位的就医协助。</p>
+
+            <div class="service-item">
+                <h3>📋 服务内容</h3>
+                <p>• 提前了解医院流程和科室分布</p>
+                <p>• 协助预约挂号、取号</p>
+                <p>• 陪同就诊，记录医生诊断和建议</p>
+                <p>• 协助缴费、取药</p>
+                <p>• 解读检查报告</p>
+                <p>• 提供就医建议和指导</p>
+            </div>
+
+            <div class="service-item">
+                <h3>🎯 服务优势</h3>
+                <p>• 专业陪诊人员，熟悉医院流程</p>
+                <p>• 全程贴心陪同，减少就医压力</p>
+                <p>• 详细记录医嘱，避免遗漏重要信息</p>
+                <p>• 灵活预约，满足不同需求</p>
+                <p>• 合理收费，透明服务</p>
+            </div>
+        </div>
+
+        <!-- 服务流程 -->
+        <div class="service-section">
+            <h2>📌 陪诊服务流程</h2>
+            <ol class="process-steps">
+                <li>客户预约：通过小程序或电话预约陪诊服务，提供患者基本信息和就医需求</li>
+                <li>前期准备：陪诊人员了解就医详情，熟悉医院和科室情况</li>
+                <li>就医陪同：按照约定时间在医院等候，全程陪同完成就医流程</li>
+                <li>服务完成：向客户反馈就医情况，提供后续建议</li>
+                <li>满意度调查：收集客户反馈，不断提升服务质量</li>
+            </ol>
+        </div>
+
+        <!-- 注意事项 -->
+        <div class="service-section">
+            <h2>⚠️ 就医注意事项</h2>
+            <div class="note-box">
+                <h4>📋 就诊前准备</h4>
+                <ul>
+                    <li>携带有效身份证件和医保卡</li>
+                    <li>准备好既往病历和检查报告</li>
+                    <li>记录需要咨询医生的问题</li>
+                    <li>穿着舒适，便于检查</li>
+                </ul>
+            </div>
+
+            <div class="note-box">
+                <h4>👨‍⚕️ 就诊过程中</h4>
+                <ul>
+                    <li>如实向医生描述病情和症状</li>
+                    <li>认真听取医生的诊断和建议</li>
+                    <li>如有疑问，及时向医生咨询</li>
+                    <li>配合医生进行各项检查</li>
+                </ul>
+            </div>
+
+            <div class="note-box">
+                <h4>💊 就诊后</h4>
+                <ul>
+                    <li>按照医嘱按时服药</li>
+                    <li>注意休息，保持良好的生活习惯</li>
+                    <li>定期复诊，关注病情变化</li>
+                    <li>如有不适，及时就医</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 联系我们 -->
+        <div class="contact-info">
+            <h2>📞 联系我们</h2>
+            <p>如果您有任何疑问或需要预约陪诊服务，请随时联系我们：</p>
+            <p>客服电话：13116223139</p>
+            <p>工作时间：周一至周日 8:00-20:00</p>
+        </div>
+
+        <!-- 版本信息 -->
+        <div class="version-info">
+            <p>陪诊助手 - 版本 3</p>
+            <p>© 2026 沈仙子陪诊助手. 保留所有权利.</p>
+        </div>
+    </div>
+
+    <!-- 底部菜单 -->
+    <div class="bottom-menu">
+        <div class="menu-item active" onclick="switchPage('tools-page', this)">
+            <i>🔧</i>
+            <span>陪诊工具</span>
+        </div>
+        <div class="menu-item" onclick="switchPage('intro-page', this)">
+            <i>📋</i>
+            <span>陪诊介绍</span>
+        </div>
+    </div>
+
+    <script>
+        // 页面切换功能
+        function switchPage(pageId, menuItem) {
+            // 隐藏所有页面
+            const pages = document.querySelectorAll('.page-container');
+            pages.forEach(page => page.classList.remove('active'));
+
+            // 显示选中页面
+            document.getElementById(pageId).classList.add('active');
+
+            // 更新菜单状态
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => item.classList.remove('active'));
+            menuItem.classList.add('active');
+        }
+
+        // 医院数据库功能
+        document.addEventListener('DOMContentLoaded', function () {
+            let hospitals = [];
+            const citySelect = document.getElementById('city-select');
+            const districtSelect = document.getElementById('district-select');
+            const departmentSelect = document.getElementById('department-select');
+            const searchBtn = document.getElementById('search-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const hospitalList = document.getElementById('hospital-list');
+
+            // 加载医院数据
+            fetch('yiyuan.json')
+                .then(response => response.json())
+                .then(data => {
+                    hospitals = data;
+                    renderHospitals(hospitals);
+                })
+                .catch(error => {
+                    hospitalList.innerHTML = `<p style="color: red;">加载医院数据失败: ${error.message}</p>`;
+                });
+
+            // 城市选择变化时更新区域选项
+            citySelect.addEventListener('change', function () {
+                const selectedCity = this.value;
+                const districts = new Set();
+
+                // 清空区域选项
+                districtSelect.innerHTML = '<option value="">全部区域</option>';
+
+                if (selectedCity) {
+                    // 获取选中城市的所有区域
+                    hospitals.forEach(hospital => {
+                        if (hospital.city === selectedCity) {
+                            districts.add(hospital.district);
+                        }
+                    });
+
+                    // 添加区域选项
+                    districts.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district;
+                        option.textContent = district;
+                        districtSelect.appendChild(option);
+                    });
+                }
+            });
+
+            // 搜索按钮点击事件
+            searchBtn.addEventListener('click', function () {
+                const city = citySelect.value;
+                const district = districtSelect.value;
+                const department = departmentSelect.value;
+
+                let filtered = hospitals;
+
+                // 按条件筛选
+                if (city) {
+                    filtered = filtered.filter(h => h.city === city);
+                }
+                if (district) {
+                    filtered = filtered.filter(h => h.district === district);
+                }
+                if (department) {
+                    filtered = filtered.filter(h => h.departments.includes(department));
+                }
+
+                renderHospitals(filtered);
+            });
+
+            // 重置按钮点击事件
+            resetBtn.addEventListener('click', function () {
+                citySelect.value = '';
+                districtSelect.innerHTML = '<option value="">全部区域</option>';
+                departmentSelect.value = '';
+                renderHospitals(hospitals);
+            });
+
+            // 渲染医院列表
+            function renderHospitals(hospitals) {
+                if (hospitals.length === 0) {
+                    hospitalList.innerHTML = '<p>没有找到符合条件的医院</p>';
+                    return;
+                }
+
+                let html = '';
+                hospitals.forEach(hospital => {
+                    html += `
+                        <div style="margin-bottom: 20px; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                            <h3 style="color: #3498db; margin-bottom: 10px;">${hospital.name}</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                                <div>
+                                    <strong>🏙️ 城市/区域:</strong> ${hospital.city} ${hospital.district}
+                                </div>
+                                <div>
+                                    <strong>📍 地址:</strong> ${hospital.address}
+                                </div>
+                                <div>
+                                    <strong>📞 电话:</strong> ${hospital.phone}
+                                </div>
+                                <div>
+                                    <strong>🌐 官网:</strong> <a href="${hospital.website}" target="_blank">点击访问</a>
+                                </div>
+                            </div>
+                            
+                            <div style="background-color: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                                <strong>🏥 特色科室:</strong> ${hospital.features.specialties.join(', ')}
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 10px;">
+                                <div>
+                                    <strong>⏰ 就诊高峰:</strong> ${hospital.features.peak_hours}
+                                </div>
+                                <div>
+                                    <strong>🅿️ 停车:</strong> ${hospital.facilities.parking.location} (${hospital.facilities.parking.fee})
+                                </div>
+                            </div>
+                            
+                            <div style="background-color: #e8f4fc; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                                <strong>💡 提示:</strong> ${hospital.features.note}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                hospitalList.innerHTML = html;
+            }
+        });
+    </script>
+</body>
+
+</html>

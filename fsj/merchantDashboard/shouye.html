@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <title>商家后台首页</title>
+  <script>
+    (function () {
+      var v = new URLSearchParams(window.location.search).get('v') || new Date().getTime();
+
+      var scripts = ['../mingdao/MingdaoArray.js', 'shouye.js'];
+      scripts.forEach(function (src) {
+        document.write('<script src="' + src + '?v=' + v + '"><\/script>');
+      });
+    })();
+  </script>
+  <script>
+    window.addEventListener('load', function () {
+      var merchantData = localStorage.getItem('merchantData');
+      if (merchantData) {
+        try {
+          var data = JSON.parse(merchantData);
+          console.log('[localStorage] 加载成功:', data);
+
+          if (data.logo) {
+            var logoArray = JSON.parse(data.logo);
+            console.log('[localStorage] logo 数组:', logoArray);
+
+            if (logoArray && logoArray.length > 0) {
+              var logoPath = logoArray[0].large_thumbnail_full_path;
+              console.log('[localStorage] 图片路径:', logoPath);
+
+              var avatarElement = document.querySelector('.shop-avatar');
+              if (avatarElement) {
+                avatarElement.innerHTML = '<img src="' + logoPath + '" alt="店铺头像" style="width: 100%; height: 100%; object-fit: cover;">';
+                console.log('[localStorage] 头像元素已更新');
+              }
+            } else {
+              console.error('[localStorage] logo 数组为空');
+            }
+          } else {
+            console.error('[localStorage] logo 字段不存在');
+          }
+        } catch (error) {
+          console.error('[localStorage] 解析数据失败:', error);
+        }
+      } else {
+        console.warn('[localStorage] merchantData 不存在，等待数据加载');
+      }
+    });
+  </script>
+  <style>
+    :root {
+      --primary-color: #0557e1ff;
+      /* 新主题色 */
+      --primary-hover: #044ac3;
+      /* 主色深一点 */
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-secondary: #64748b;
+      --border-radius: 12px;
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid #e2e8f0;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 20px;
+      padding-bottom: 0;
+      border-bottom: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .section-title::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 18px;
+      background: var(--primary-color);
+      margin-right: 12px;
+      border-radius: 2px;
+    }
+
+    /* Shop Info */
+    .shop-info {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .shop-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 16px;
+      background: #e0e7ff;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: bold;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .shop-details {
+      flex: 1;
+    }
+
+    .shop-name {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    .shop-meta {
+      color: var(--text-secondary);
+      font-size: 14px;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .shop-status {
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    /* Buttons */
+    .guide-btn,
+    .publish-btn {
+      padding: 10px 24px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .guide-btn:hover,
+    .publish-btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Data Cards */
+    .data-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .data-card {
+      background: #fff;
+      border-radius: var(--border-radius);
+      padding: 24px;
+      border: 1px solid #f1f5f9;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .data-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: #cbd5e1;
+    }
+
+    /* Top colored accent line */
+    .data-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--primary-color);
+      opacity: 0.8;
+    }
+
+    .data-card:nth-child(2)::after {
+      background: #ec4899;
+    }
+
+    .data-card:nth-child(3)::after {
+      background: #10b981;
+    }
+
+    .data-card:nth-child(4)::after {
+      background: #f59e0b;
+    }
+
+    .data-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+
+    .data-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Function Grid */
+    .function-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 20px;
+    }
+
+    .function-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 10px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fff;
+      border: 1px solid #f1f5f9;
+    }
+
+    .function-item:hover {
+      background: #f8fafc;
+      border-color: var(--primary-color);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-2px);
+    }
+
+    .function-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 12px;
+      background: #f1f5f9;
+      /* 淡灰底 */
+    }
+
+    /* Override specific icon backgrounds for subtlety if needed, or keep inline styles but tone them down? 
+       For now, let's keep inline styles as they provide variety, but we might want to ensure they look good.
+       The inline styles in HTML are like #e6f7ff which is fine. 
+    */
+
+    .function-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+      text-align: center;
+    }
+
+    /* Marketing Grid */
+    .marketing-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .marketing-item {
+      background: #fff;
+      border-radius: var(--border-radius);
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid #f1f5f9;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .marketing-item:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary-color);
+    }
+
+    .marketing-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .marketing-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* Code Publish */
+    .code-publish {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      padding: 24px;
+      border-radius: var(--border-radius);
+      border: 1px dashed #cbd5e1;
+    }
+
+    .code-info {
+      flex: 1;
+    }
+
+    .code-version {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .code-status {
+      color: #64748b;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .code-status::before {
+      content: '';
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #10b981;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .data-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .function-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .marketing-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .shop-info {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .data-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .function-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .marketing-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .code-publish {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .publish-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="section">
+      <div class="section-title">店铺信息</div>
+      <div class="shop-info">
+        <div class="shop-avatar">店</div>
+        <div class="shop-details">
+          <div class="shop-name" id="shopName">加载中...</div>
+          <div class="shop-meta">
+            <span id="expireTime">到期时间: --</span>
+            <span id="shopType">店铺类型: --</span>
+            <span class="shop-status" id="shopStatus">营业中</span>
+          </div>
+        </div>
+        <button class="guide-btn" onclick="showGuide()">新手指引</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">运营数据</div>
+      <div class="data-cards">
+        <div class="data-card">
+          <div class="data-value" id="userCount">--</div>
+          <div class="data-label">用户数量</div>
+        </div>
+        <div class="data-card">
+          <div class="data-value" id="orderCount">--</div>
+          <div class="data-label">订单数量</div>
+        </div>
+        <div class="data-card">
+          <div class="data-value" id="deliveryCount">--</div>
+          <div class="data-label">配送数量</div>
+        </div>
+        <div class="data-card">
+          <div class="data-value" id="memberCount">--</div>
+          <div class="data-label">会员数量</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">常用功能</div>
+      <div class="function-grid">
+        <div class="function-item">
+          <div class="function-icon" style="background: #e6f7ff;">📦</div>
+          <div class="function-name">商品管理</div>
+        </div>
+        <div class="function-item">
+          <div class="function-icon" style="background: #fff7e6;">📋</div>
+          <div class="function-name">订单管理</div>
+        </div>
+        <div class="function-item">
+          <div class="function-icon" style="background: #f6ffed;">🚚</div>
+          <div class="function-name">配送管理</div>
+        </div>
+        <div class="function-item">
+          <div class="function-icon" style="background: #fff0f6;">👥</div>
+          <div class="function-name">会员管理</div>
+        </div>
+        <div class="function-item">
+          <div class="function-icon" style="background: #f9f0ff;">🏪</div>
+          <div class="function-name">门店管理</div>
+        </div>
+        <div class="function-item">
+          <div class="function-icon" style="background: #fffbe6;">⚙️</div>
+          <div class="function-name">系统设置</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">营销功能</div>
+      <div class="marketing-grid">
+        <div class="marketing-item">
+          <div class="marketing-title">优惠券</div>
+          <div class="marketing-desc">创建和管理各类优惠券活动</div>
+        </div>
+        <div class="marketing-item">
+          <div class="marketing-title">满减活动</div>
+          <div class="marketing-desc">设置满额减免促销活动</div>
+        </div>
+        <div class="marketing-item">
+          <div class="marketing-title">秒杀活动</div>
+          <div class="marketing-desc">限时秒杀商品设置</div>
+        </div>
+        <div class="marketing-item">
+          <div class="marketing-title">会员积分</div>
+          <div class="marketing-desc">会员积分规则设置</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">代码发布</div>
+      <div class="code-publish">
+        <div class="code-info">
+          <div class="code-version" id="codeVersion">版本: v1.0.0</div>
+          <div class="code-status" id="codeStatus">当前版本运行正常</div>
+        </div>
+        <button class="publish-btn" onclick="publishCode()">发布新版本</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        userId: params.get('userId') || '',
+        mRowid: params.get('mRowid') || ''
+      };
+    }
+
+    function loadShopInfo() {
+      const params = getUrlParams();
+
+      console.log('获取商家id：?mRowid=' + params.mRowid + '；');
+
+      if (params.mRowid) {
+        loadShopData(params.mRowid);
+      } else {
+        console.warn('[shouye.html] 未获取到mRowid参数，使用默认数据');
+      }
+    }
+
+    function publishCode() {
+      alert('代码发布功能开发中...');
+    }
+
+    function showGuide() {
+      alert('新手指引功能开发中...');
+    }
+
+    window.onload = function () {
+      loadShopInfo();
+    };
+  </script>
+</body>
+
+</html>

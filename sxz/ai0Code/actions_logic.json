@@ -1,0 +1,212 @@
+[
+  {
+    "id": "event_app_start",
+    "parentId": null,
+    "sort": 1,
+    "type": "Event",
+    "name": "应用启动",
+    "category": "onLoad",
+    "props": {
+      "description": "页面加载后初始化应用状态并检查新手引导",
+      "triggerComponent": "document",
+      "eventType": "onLoad"
+    },
+    "styleProps": {
+      "icon": "🚀"
+    }
+  },
+  {
+    "id": "action_init_state",
+    "parentId": "event_app_start",
+    "sort": 1,
+    "type": "Action",
+    "name": "初始化应用状态",
+    "category": "init",
+    "props": {
+      "actionType": "init",
+      "target": "AppState",
+      "description": "从本地存储加载患者、就诊记录、提醒等数据"
+    },
+    "styleProps": {
+      "icon": "📦"
+    }
+  },
+  {
+    "id": "action_check_onboarding",
+    "parentId": "event_app_start",
+    "sort": 2,
+    "type": "Action",
+    "name": "检查新手引导状态",
+    "category": "onboarding",
+    "props": {
+      "actionType": "show",
+      "target": "onboarding_modal",
+      "description": "如果用户未看过新手引导则展示引导弹窗"
+    },
+    "styleProps": {
+      "icon": "✨"
+    }
+  },
+  {
+    "id": "event_switch_tab_ai",
+    "parentId": null,
+    "sort": 2,
+    "type": "Event",
+    "name": "切换到智能体 tab",
+    "category": "onClick",
+    "props": {
+      "triggerComponent": "nav_ai",
+      "eventType": "onClick",
+      "description": "用户点击底部导航智能体按钮"
+    },
+    "styleProps": {
+      "icon": "🤖"
+    }
+  },
+  {
+    "id": "action_switch_tab_ai",
+    "parentId": "event_switch_tab_ai",
+    "sort": 1,
+    "type": "Action",
+    "name": "更新当前 tab 为 ai",
+    "category": "navigation",
+    "props": {
+      "actionType": "setValue",
+      "target": "AppState.currentTab",
+      "value": "ai"
+    },
+    "styleProps": {
+      "icon": "➡️"
+    }
+  },
+  {
+    "id": "action_reset_ai_quick_questions",
+    "parentId": "event_switch_tab_ai",
+    "sort": 2,
+    "type": "Action",
+    "name": "重置智能体快捷问题展示",
+    "category": "ui",
+    "props": {
+      "actionType": "setValue",
+      "target": "AppState.aiQuickQuestionsHidden",
+      "value": false
+    },
+    "styleProps": {
+      "icon": "💡"
+    }
+  },
+  {
+    "id": "event_switch_tab_patients",
+    "parentId": null,
+    "sort": 3,
+    "type": "Event",
+    "name": "切换到患者库 tab",
+    "category": "onClick",
+    "props": {
+      "triggerComponent": "nav_patients",
+      "eventType": "onClick",
+      "description": "用户点击底部导航患者库按钮"
+    },
+    "styleProps": {
+      "icon": "👥"
+    }
+  },
+  {
+    "id": "action_switch_tab_patients",
+    "parentId": "event_switch_tab_patients",
+    "sort": 1,
+    "type": "Action",
+    "name": "更新当前 tab 为 patients",
+    "category": "navigation",
+    "props": {
+      "actionType": "setValue",
+      "target": "AppState.currentTab",
+      "value": "patients"
+    },
+    "styleProps": {
+      "icon": "➡️"
+    }
+  },
+  {
+    "id": "event_ai_quick_question_click",
+    "parentId": null,
+    "sort": 4,
+    "type": "Event",
+    "name": "点击 AI 快捷问题",
+    "category": "onClick",
+    "props": {
+      "triggerComponent": "quick_question_btn",
+      "eventType": "onClick",
+      "description": "用户选择预置问题触发 askQuestion 调用"
+    },
+    "styleProps": {
+      "icon": "❓"
+    }
+  },
+  {
+    "id": "action_append_user_message",
+    "parentId": "event_ai_quick_question_click",
+    "sort": 1,
+    "type": "Action",
+    "name": "添加用户问题到对话列表",
+    "category": "message",
+    "props": {
+      "actionType": "append",
+      "target": "AppState.chatMessages",
+      "description": "将用户选择的问题加入对话消息列表"
+    },
+    "styleProps": {
+      "icon": "💬"
+    }
+  },
+  {
+    "id": "action_call_ai_api",
+    "parentId": "event_ai_quick_question_click",
+    "sort": 2,
+    "type": "Action",
+    "name": "调用 AI 接口",
+    "category": "api",
+    "props": {
+      "actionType": "api",
+      "method": "POST",
+      "url": "/api/ai/chat",
+      "description": "向后端发送问题并等待 AI 回复"
+    },
+    "styleProps": {
+      "icon": "📡"
+    }
+  },
+  {
+    "id": "event_test_payment",
+    "parentId": null,
+    "sort": 5,
+    "type": "Event",
+    "name": "测试支付跳转",
+    "category": "onClick",
+    "props": {
+      "triggerComponent": "btn_test_payment",
+      "eventType": "onClick",
+      "description": "调用 window.testPayment 触发微信小程序支付页跳转"
+    },
+    "styleProps": {
+      "icon": "💳"
+    }
+  },
+  {
+    "id": "action_navigate_miniprogram_payment",
+    "parentId": "event_test_payment",
+    "sort": 1,
+    "type": "Action",
+    "name": "跳转微信小程序支付页",
+    "category": "navigate",
+    "props": {
+      "actionType": "navigate",
+      "target": "wx.miniProgram",
+      "url": "/pages/payment/index?type=test_payment&amount=0.01&timestamp=${now}"
+    },
+    "styleProps": {
+      "icon": "➡️"
+    }
+  }
+]
+

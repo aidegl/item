@@ -1,0 +1,141 @@
+[Deprecation] SharedArrayBuffer will require cross-origin isolation as of M92, around July 2021. See https://developer.chrome.com/blog/enabling-shared-array-buffer/ for more details.
+[system] WeChatLib: 3.14.2 (2026.2.10 20:21:14)
+[system] Subpackages: N/A
+[system] LazyCodeLoading: false
+Sun Feb 22 2026 08:45:55 GMT+0800 (中国标准时间) 文章推荐
+getSystemInfo API 提示
+小程序基础库从 3.7.0 起正式支持 HarmonyOS 平台，开发者可通过 wx.getDeviceInfo() 判断平台进行兼容处理，让小程序在 HarmonyOS 也获得最佳体验，查看指引[https://developers.weixin.qq.com/community/develop/doc/00008e041106f0259bb33530164409]
+关于上述警告，点击查看更多信息：https://developers.weixin.qq.com/community/develop/doc/00008e041106f0259bb33530164409]
+app.js? [sm]:3 小程序启动
+app.js? [sm]:4 小程序版本: 1.1.0
+app.js? [sm]:5 商家ID: 698826f3b35652a8d4f60e21
+app.js? [sm]:9 小程序显示
+index.js? [sm]:7 首页页面加载 {}
+index.js? [sm]:10 商家ID: 698826f3b35652a8d4f60e21
+index.js? [sm]:11 小程序版本: 1.1.0
+MingdaoYunArrayAPI.js? [sm]:28 [组件日志] 动作名称：调用明道云getFilterRows接口，接收的worksheetId值： shangjia
+MingdaoYunArrayAPI.js? [sm]:29 [组件日志] 接收的filters值： [{…}]
+MingdaoYunArrayAPI.js? [sm]:30 [执行日志] 2026/2/22上午8:45:55 - 执行了getData函数，入参： {worksheetId: "shangjia", filters: Array(1), pageSize: 1, pageIndex: 1}
+MingdaoYunArrayAPI.js? [sm]:54 [组件日志] 准备调用明道云接口，请求体： {appKey: "b37a969f03b3cf0b", sign: "MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==", worksheetId: "shangjia", viewId: "", pageSize: 1, …}
+Sun Feb 22 2026 08:45:55 GMT+0800 (中国标准时间) 配置中关闭合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书检查
+MingdaoYunArrayAPI.js? [sm]:56 工具未校验合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书。
+(anonymous) @ MingdaoYunArrayAPI.js? [sm]:56
+_callee$ @ MingdaoYunArrayAPI.js? [sm]:34
+s @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+getData @ MingdaoYunArrayAPI.js? [sm]:110
+_callee2$ @ index.js? [sm]:35
+s @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+initShangjiaRowid @ index.js? [sm]:53
+_callee$ @ index.js? [sm]:13
+s @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+onLoad @ index.js? [sm]:17
+index.js? [sm]:62 页面显示
+index.js? [sm]:58 页面渲染完成
+[system] Launch Time: 3346 ms
+MingdaoYunArrayAPI.js? [sm]:64 [组件日志] 明道云接口原始返回结果： {data: {…}, success: true, error_code: 1}
+MingdaoYunArrayAPI.js? [sm]:80 [组件日志] 组件出参data： {rows: Array(1), total: 1}
+MingdaoYunArrayAPI.js? [sm]:81 [执行日志] 2026/2/22上午8:45:55 - 执行了getData函数，返回数据： {success: true, error_code: 1, error_msg: ""}
+index.js? [sm]:42 === 查询shangjia表返回结果 ===
+index.js? [sm]:43 {
+  "success": true,
+  "data": {
+    "rows": [
+      {
+        "_id": "698826f8ac5b063f0d2c94c8",
+        "rowid": "64818489-0805-4ddf-a33e-d4a17a71167f",
+        "ctime": "2026-02-08 14:02:32",
+        "caid": {
+          "accountId": "a#698826f3b35652a8d4f60e21",
+          "fullname": "7654",
+          "avatar": "https://p1.mingdaoyun.cn/UserAvatar/default.png?watermark/2/text/Nw==/font/5oCd5rqQ6buR5L2T/fontsize/1000/fill/d2hpdGU=/dissolve/100/gravity/Center/dx/0/dy/0/fontstyle/Ym9sZA==%7CimageView2/1/w/48/h/48/q/90",
+          "isPortal": false,
+          "status": 1
+        },
+        "uaid": {
+          "accountId": "ae75cf2e-0f73-4137-9e99-116d92c45a47",
+          "fullname": "林东城",
+          "avatar": "https://p1.mingdaoyun.cn/UserAvatar/default2.png?watermark/2/text/5Lic5Z-O/font/5oCd5rqQ6buR5L2T/fontsize/700/fill/d2hpdGU=/dissolve/100/gravity/Center/dx/0/dy/0/fontstyle/Ym9sZA==%7CimageView2/1/w/48/h/48/q/90",
+          "isPortal": false,
+          "status": 1
+        },
+        "ownerid": {
+          "accountId": "a#698826f3b35652a8d4f60e21",
+          "fullname": "7654",
+          "avatar": "https://p1.mingdaoyun.cn/UserAvatar/default.png?watermark/2/text/Nw==/font/5oCd5rqQ6buR5L2T/fontsize/1000/fill/d2hpdGU=/dissolve/100/gravity/Center/dx/0/dy/0/fontstyle/Ym9sZA==%7CimageView2/1/w/48/h/48/q/90",
+          "isPortal": false,
+          "status": 1
+        },
+        "utime": "2026-02-08 15:15:35",
+        "dqsj": "2027-02-28",
+        "6987e1eb3f0d80c09a4c9d4e": "7654",
+        "autoid": 0,
+        "logo": "[{\"file_id\":\"c579af46-ea43-4d4d-b7a7-17480bef1c15\",\"thumbnail_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/\",\"thumbnail_name\":\"fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png?imageView2/1/w/200/h/118\",\"large_thumbnail_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/\",\"large_thumbnail_name\":\"fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png?imageView2/2/w/1280/h/800\",\"file_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/\",\"file_name\":\"fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png\",\"file_size\":12732,\"is_delete\":false,\"file_type\":1,\"original_file_name\":\"d1bcb0c3-fa9c-4dff-8b6d-f80578e0785e.png\",\"allow_down\":true,\"large_thumbnail_full_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png?imageView2/2/w/1280/h/800\",\"thumbnail_full_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png?imageView2/1/w/200/h/118\",\"original_file_full_path\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png\",\"origin_link_url\":null,\"short_link_url\":null,\"share_folder_url\":null,\"is_knowledge\":false,\"node_id\":\"\",\"allow_view\":true,\"width\":0,\"height\":0,\"duration\":0.0,\"allow_edit\":false,\"DownloadUrl\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png\",\"WaterMarkInfo\":null,\"preview_url\":\"https://p1.mingdaoyun.cn/6a2818ed-3c2b-4263-b804-397d3d00e3d7/8103711c-6313-48eb-8400-2902fdc20fa1/6987e1eb3f0d80c09a4c9d4c/20260208/fs7pf21wcKdUbDck9C31cGfseZ656c5s0t7Ldn0uem58aZbl6w7a2e507GbufZbz.png?e=1771807556&token=mN_sp-Y4_5zePppXZC8fTktRmKMNiYlC8jl_yeGZ:JA8vP4bduJ2iTugMif-4MncugAo=\",\"createTime\":\"2026-02-08 15:13:42\"}]",
+        "mRowid": "698826f3b35652a8d4f60e21",
+        "698855faff3b8781d456c504": "",
+        "698856125d44d1f34810ae31": "",
+        "mingcheng": "有趣channel"
+      }
+    ],
+    "total": 1
+  },
+  "error_msg": "",
+  "error_code": 1
+}
+index.js? [sm]:47 商家rowid: 64818489-0805-4ddf-a33e-d4a17a71167f
+index.js? [sm]:53 查询shangjia表失败: ReferenceError: app is not defined
+    at _callee2$ (index.js? [sm]:48)
+    at s (regeneratorRuntime.js?forceSync=true:1)
+    at Generator.<anonymous> (regeneratorRuntime.js?forceSync=true:1)
+    at Generator.next (regeneratorRuntime.js?forceSync=true:1)
+    at asyncGeneratorStep (asyncToGenerator.js?forceSync=true:1)
+    at c (asyncToGenerator.js?forceSync=true:1)(env: Windows,mp,2.01.2510260; lib: 3.14.2)
+_callee2$ @ index.js? [sm]:53
+s @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+Promise.then (async)
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+initShangjiaRowid @ index.js? [sm]:53
+_callee$ @ index.js? [sm]:13
+s @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+(anonymous) @ regeneratorRuntime.js?forceSync=true:1
+asyncGeneratorStep @ asyncToGenerator.js?forceSync=true:1
+c @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+(anonymous) @ asyncToGenerator.js?forceSync=true:1
+onLoad @ index.js? [sm]:17
+index.js? [sm]:15 === 开始加载组件数据 ===
+index.js? [sm]:75 开始加载轮播图数据...
+MingdaoYunArrayAPI.js? [sm]:28 [组件日志] 动作名称：调用明道云getFilterRows接口，接收的worksheetId值： lunbotu
+MingdaoYunArrayAPI.js? [sm]:29 [组件日志] 接收的filters值： []
+MingdaoYunArrayAPI.js? [sm]:30 [执行日志] 2026/2/22上午8:45:55 - 执行了getData函数，入参： {worksheetId: "lunbotu", filters: Array(0), pageSize: 50, pageIndex: 1}
+MingdaoYunArrayAPI.js? [sm]:54 [组件日志] 准备调用明道云接口，请求体： {appKey: "b37a969f03b3cf0b", sign: "MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==", worksheetId: "lunbotu", viewId: "", pageSize: 50, …}
+index.js? [sm]:17 === 组件数据加载结束 ===
+MingdaoYunArrayAPI.js? [sm]:64 [组件日志] 明道云接口原始返回结果： {data: {…}, success: true, error_code: 1}
+MingdaoYunArrayAPI.js? [sm]:80 [组件日志] 组件出参data： {rows: Array(3), total: 3}
+MingdaoYunArrayAPI.js? [sm]:81 [执行日志] 2026/2/22上午8:45:55 - 执行了getData函数，返回数据： {success: true, error_code: 1, error_msg: ""}
+index.js? [sm]:80 轮播图数据加载成功: (3) [{…}, {…}, {…}]

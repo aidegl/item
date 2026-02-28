@@ -1,0 +1,22 @@
+<!-- web-view 组件：使用 key 属性强制刷新 -->
+<web-view id="webview" src="{{url}}" key="{{webviewKey}}" bindmessage="onMessage"></web-view>
+
+<!-- 原生录音悬浮窗 -->
+<view class="recording-overlay" wx:if="{{isRecording}}">
+  <view class="recording-card">
+    <view class="audio-waves">
+      <view class="wave-bar bar-1"></view>
+      <view class="wave-bar bar-2"></view>
+      <view class="wave-bar bar-3"></view>
+      <view class="wave-bar bar-4"></view>
+      <view class="wave-bar bar-5"></view>
+      <view class="wave-bar bar-6"></view>
+    </view>
+    <view class="recording-status">正在录音...</view>
+    <view class="recording-hint">请说出您想转换的文字</view>
+    <button class="stop-btn" bindtap="handleStopRecording">
+      <view class="stop-icon"></view>
+      停止录音
+    </button>
+  </view>
+</view>
