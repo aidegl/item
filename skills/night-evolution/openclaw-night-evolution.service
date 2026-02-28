@@ -1,0 +1,27 @@
+[Unit]
+Description=OpenClaw Night Autonomous Evolution System
+After=network.target openclaw-gateway.service
+
+[Service]
+Type=simple
+User=admin
+WorkingDirectory=/home/admin/openclaw/workspace/skills/night-evolution
+ExecStart=/usr/bin/node --expose-gc night-evolution.js daemon
+Restart=always
+RestartSec=5
+
+# 资源限制
+MemoryLimit=512M
+CPUQuota=50%
+
+# 日志
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=night-evolution
+
+# 环境
+Environment=NODE_ENV=production
+Environment=NODE_OPTIONS=--max-old-space-size=512
+
+[Install]
+WantedBy=multi-user.target
