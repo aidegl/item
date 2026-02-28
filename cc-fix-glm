@@ -1,0 +1,4 @@
+#!/bin/bash
+export ANTHROPIC_BASE_URL="https://open.bigmodel.cn/api/paas/v4"
+export ANTHROPIC_API_KEY="f9ddbbc622fa4f6a837515bcded4dd34.Iu4ZAKCp9jSTg156"
+exec /usr/bin/claude -p --model glm4.7 "$@"

@@ -1,0 +1,12 @@
+#!/bin/bash
+# Claude CLI 包装脚本 - 使用 GLM 代理
+# 用法：cc-glm -p "你的提示词"
+
+export ANTHROPIC_BASE_URL="http://127.0.0.1:15721"
+export ANTHROPIC_API_KEY="glm-proxy-key"
+export ANTHROPIC_AUTH_TOKEN="glm-proxy-key"
+
+# 清除可能干扰的 OAuth 配置
+export CLAUDE_USE_OAUTH="0"
+
+exec /usr/bin/claude "$@"

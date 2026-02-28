@@ -1,0 +1,36 @@
+# OpenClaw 工作空间忽略文件
+
+# 子模块（单独管理）
+KnowledgeBase/
+hap-skills-collection/
+item-repo/
+
+# 运行时文件
+.openclaw/
+*.pid
+*.log
+
+# 临时文件
+tmp/
+*.tmp
+
+# 备份文件
+*.bak
+
+# Node.js
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
