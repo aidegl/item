@@ -1,63 +1,100 @@
 # MingDaoYun Chat Skill - 明道云对话记录
 
 ## 功能
-将 OpenClaw 对话自动记录到明道云对话系统
+将 OpenClaw 对话自动备份到明道云，支持：
+- ✅ 用户消息自动记录
+- ✅ AI 回复自动记录
+- ✅ 完整对话历史保存
+
+## 架构
+```
+OpenClaw 会话文件 → auto-record-daemon.js → auto-hook.js → 明道云 API
+```
+
+## 核心文件
+| 文件 | 作用 |
+|------|------|
+| `auto-hook.js` | 明道云 API 封装（创建对话、消息） |
+| `auto-record-daemon.js` | 会话监控守护进程（自动记录） |
+| `index.js` | 手动发送消息接口 |
 
 ## 配置
 ```javascript
 const CONFIG = {
   appkey: 'b37a969f03b3cf0b',
   sign: 'MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==',
-  dialogWorksheet: '68da90934256d51497bb9ff8',
-  messageWorksheet: '68da906bd34347b006235da4',
-  userWorksheet: '68534cf5750002dbcc681334',
-  defaultLocation: 'a5dd767b-a5f3-4cd7-9357-455b5f3c175d',
-  defaultOrg: 'ec2b4b92-23f5-4a0c-8498-1e0cb3f916ce'
+  dialogWorksheet: '68da90934256d51497bb9ff8',      // 对话工作表
+  messageWorksheet: '68da906bd34347b006235da4'     // 消息工作表
 };
 ```
 
 ## 用户映射
 | 角色 | RowID |
 |------|-------|
-| 小粽 | `7548a483-2b5b-4de0-be06-63b318ca52c4` |
+| 小粽 (AI) | `7548a483-2b5b-4de0-be06-63b318ca52c4` |
 | 风 | `adde88c8-de91-4484-9a5e-070f50079ed8` |
 | 主人 | `ff074b4e-92ad-466e-9018-d3a7d150e8ee` |
 
 ## 使用方法
 
-### 记录单条消息
-```javascript
-const { recordMessage } = require('./index.js');
+### 自动记录（默认）
+守护进程自动运行，无需手动操作：
+```bash
+# 启动守护进程
+cd /home/admin/openclaw/workspace/skills/mingdao-chat
+node auto-record-daemon.js > daemon.log 2>&1 &
+```
 
-await recordMessage({
-  sender: 'xiaozong',  // 或 'feng', 'master'
+### 手动发送消息
+```javascript
+const { sendMessage } = require('./index.js');
+
+await sendMessage({
+  sender: 'xiaozong',
   receiver: 'master',
-  content: '消息内容',
-  timestamp: Date.now()  // 可选，默认当前时间
+  content: '消息内容'
 });
 ```
 
-### 记录完整对话
-```javascript
-const { recordConversation } = require('./index.js');
+## 明道云工作表结构
 
-await recordConversation({
-  participants: ['xiaozong', 'master'],
-  messages: [
-    { sender: 'master', content: '你好', timestamp: 1772275200000 },
-    { sender: 'xiaozong', content: '你好！', timestamp: 1772275260000 }
-  ]
-});
-```
+### 对话工作表 (68da90934256d51497bb9ff8)
+| 字段 | ID | 说明 |
+|------|------|------|
+| 内容 | `68da90934256d51497bb9ff9` | 第一条消息内容 |
+| 发起人 | `68da90c3432b11f7ba68cb6c` | 对话发起人 |
+| 接收人 | `692bfbb1e22247ab9a654f3d` | 对话接收人 |
+| 类型 | `692bb183e22247ab9a64a383` | 固定填 "AI" |
+| 日期 | `692cf82fe22247ab9a67d78d` | 创建时间戳 |
 
-## API 端点
-- 创建对话：`POST /v3/app/worksheets/68da90934256d51497bb9ff8/rows`
-- 创建消息：`POST /v3/app/worksheets/68da906bd34347b006235da4/rows`
-- 查询对话：`POST /v3/app/worksheets/68da90934256d51497bb9ff8/filter`
-- 查询消息：`POST /v3/app/worksheets/68da906bd34347b006235da4/filter`
+### 消息工作表 (68da906bd34347b006235da4)
+| 字段 | ID | 说明 |
+|------|------|------|
+| 内容 | `68da906bd34347b006235da5` | 消息完整内容 |
+| 对话 | `68da9105d34347b006235df6` | 关联对话 ID |
+| 用户 | `692d147433260875c1970b8a` | 发送者 ID |
+| 日期 | `692d166992609b5d9de82b58` | 消息时间戳 |
 
 ## 注意事项
-1. 对话唯一性：两人之间只有一条对话（双向查询）
-2. 消息完整性：每条消息单独创建，不摘要不删减
-3. 类型字段：固定填 "AI"
-4. 逻辑删除：使用 `del` 字段，不是物理删除
+1. **字段 ID**：必须使用实际字段 ID，不是别名
+2. **消息完整性**：保留 Markdown 格式，不摘要不删减
+3. **对话唯一性**：两人之间只有一条对话，消息多条
+4. **守护进程**：建议开机自启，保持常驻
+
+## 调试命令
+```bash
+# 查看守护进程状态
+ps aux | grep auto-record-daemon
+
+# 查看实时日志
+tail -f /home/admin/openclaw/workspace/skills/mingdao-chat/daemon.log
+
+# 重启守护进程
+pkill -9 -f auto-record-daemon
+cd /home/admin/openclaw/workspace/skills/mingdao-chat
+node auto-record-daemon.js > daemon.log 2>&1 &
+```
+
+---
+
+**最后更新**: 2026-03-01 20:08

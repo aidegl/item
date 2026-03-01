@@ -17,7 +17,23 @@ const CONFIG = {
   appkey: 'b37a969f03b3cf0b',
   sign: 'MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==',
   dialogWorksheet: '68da90934256d51497bb9ff8',
-  messageWorksheet: '68da906bd34347b006235da4'
+  messageWorksheet: '68da906bd34347b006235da4',
+  // 字段 ID（实际 ID，不是别名）
+  fields: {
+    dialog: {
+      neirong: '68da90934256d51497bb9ff9',      // 内容
+      faqiren: '68da90c3432b11f7ba68cb6c',     // 发起人/咨询人
+      jieshouren: '692bfbb1e22247ab9a654f3d',  // 接收人/服务者
+      leixing: '692bb183e22247ab9a64a383',     // 类型
+      riqi: '692cf82fe22247ab9a67d78d'         // 日期
+    },
+    message: {
+      neirong: '68da906bd34347b006235da5',     // 内容
+      duihua: '68da9105d34347b006235df6',      // 对话
+      yonghu: '692d147433260875c1970b8a',      // 用户
+      riqi: '692d166992609b5d9de82b58'         // 日期
+    }
+  }
 };
 
 const USERS = {
@@ -27,8 +43,15 @@ const USERS = {
 };
 
 // 对话缓存
-let dialogCache = null;
+let dialogCache = {};
 const CACHE_FILE = path.join(__dirname, '.dialog-cache.json');
+
+// 确保缓存总是对象
+function ensureCache() {
+  if (!dialogCache || typeof dialogCache !== 'object') {
+    dialogCache = {};
+  }
+}
 
 // ============ 工具函数 ============
 
@@ -69,10 +92,13 @@ function apiCall(method, endpoint, data) {
 // ============ 缓存管理 ============
 
 function loadCache() {
+  ensureCache();
   if (fs.existsSync(CACHE_FILE)) {
-    dialogCache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8'));
-  } else {
-    dialogCache = {};
+    try {
+      dialogCache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8'));
+    } catch (e) {
+      dialogCache = {};
+    }
   }
   return dialogCache;
 }
@@ -93,11 +119,11 @@ function getDialogKey(participants) {
 async function createDialog(initiator, receivers, firstMessage) {
   const data = {
     fields: [
-      { id: 'neirong', value: firstMessage },
-      { id: 'faqiren', value: [initiator] },
-      { id: 'jieshouren', value: receivers },
-      { id: 'leixing', value: 'AI' },
-      { id: 'riqi', value: Date.now() }
+      { id: CONFIG.fields.dialog.neirong, value: firstMessage },
+      { id: CONFIG.fields.dialog.faqiren, value: [initiator] },
+      { id: CONFIG.fields.dialog.jieshouren, value: receivers },
+      { id: CONFIG.fields.dialog.leixing, value: 'AI' },
+      { id: CONFIG.fields.dialog.riqi, value: Date.now() }
     ]
   };
   
@@ -111,10 +137,10 @@ async function createDialog(initiator, receivers, firstMessage) {
 async function createMessage(content, dialogId, senderId) {
   const data = {
     fields: [
-      { id: 'neirong', value: content },  // 完整原文，不处理
-      { id: 'duihua', value: [dialogId] },
-      { id: 'yonghu', value: [senderId] },
-      { id: 'riqi', value: Date.now() }
+      { id: CONFIG.fields.message.neirong, value: content },  // 完整原文，不处理
+      { id: CONFIG.fields.message.duihua, value: [dialogId] },
+      { id: CONFIG.fields.message.yonghu, value: [senderId] },
+      { id: CONFIG.fields.message.riqi, value: Date.now() }
     ]
   };
   
@@ -129,6 +155,9 @@ async function createMessage(content, dialogId, senderId) {
  * 记录消息（自动创建或复用对话）
  */
 async function recordMessage(sender, receiver, content) {
+  // 确保缓存已加载
+  ensureCache();
+  
   const senderId = USERS[sender] || sender;
   const receivers = (Array.isArray(receiver) ? receiver : [receiver]).map(r => USERS[r] || r);
   
