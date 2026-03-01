@@ -1952,6 +1952,7 @@ registerComponent('商品网格', require('./components/product-grid'));
 registerComponent('公告', require('./components/notice'));
 registerComponent('标签页面', require('./components/tabs'));
 registerComponent('内容列表', require('./components/content-list'));
+registerComponent('店铺信息', require('./components/shop-info'));
 
 console.log('组件注册完成');
 
