@@ -8,8 +8,9 @@
 
 module.exports = {
   name: '店铺信息',
-  type: '商家端专属组件',
+  type: '基础组件',
   relatedPage: 'home',
+  category: '基础组件',  // 组件分类：基础组件/商品组件/内容组件
   
   // ========== 默认属性配置 ==========
   getDefaultProperties() {
