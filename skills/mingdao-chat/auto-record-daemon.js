@@ -125,31 +125,39 @@ function watchSessionFile(filePath) {
       }
     });
   } catch (error) {
-    // 忽略
+    console.error(`❌ 读取 ${sessionKey} 失败：${error.message}`);
   }
   
-  // 监控文件变化
-  fs.watch(filePath, (eventType) => {
-    if (eventType !== 'change') return;
-    
-    try {
-      const content = fs.readFileSync(filePath, 'utf-8');
-      const lines = content.split('\n').filter(line => line.trim());
-      
-      // 只处理最后一条消息
-      const lastLine = lines[lines.length - 1];
-      if (!lastLine) return;
+  // 监控文件变化（添加错误处理）
+  try {
+    const watcher = fs.watch(filePath, { persistent: true }, (eventType) => {
+      if (eventType !== 'change') return;
       
       try {
-        const message = JSON.parse(lastLine);
-        processMessage(message, sessionKey);
-      } catch (e) {
-        // 忽略
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const lines = content.split('\n').filter(line => line.trim());
+        
+        // 只处理最后一条消息
+        const lastLine = lines[lines.length - 1];
+        if (!lastLine) return;
+        
+        try {
+          const message = JSON.parse(lastLine);
+          processMessage(message, sessionKey);
+        } catch (e) {
+          // 忽略
+        }
+      } catch (error) {
+        console.error(`❌ 处理 ${sessionKey} 变化失败：${error.message}`);
       }
-    } catch (error) {
-      // 忽略
-    }
-  });
+    });
+    
+    watcher.on('error', (err) => {
+      console.error(`❌ 监控 ${sessionKey} 出错：${err.message}`);
+    });
+  } catch (error) {
+    console.error(`❌ 无法监控 ${sessionKey}: ${error.message}`);
+  }
   
   console.log(`✅ 开始监控：${sessionKey}`);
 }
@@ -157,6 +165,18 @@ function watchSessionFile(filePath) {
 // ============ 主程序 ============
 async function main() {
   console.log('🚀 明道云自动记录守护进程（修复版）启动...\n');
+  
+  // 全局错误处理
+  process.on('uncaughtException', (err) => {
+    console.error(`❌ 未捕获异常：${err.message}`);
+    console.error(err.stack);
+    // 不退出进程，继续运行
+  });
+  
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error(`❌ 未处理的 Promise 拒绝：${reason}`);
+    // 不退出进程，继续运行
+  });
   
   // 加载缓存
   loadCache();
@@ -186,7 +206,18 @@ async function main() {
     process.exit();
   });
   
+  process.on('SIGTERM', () => {
+    console.log('\n👋 收到 SIGTERM，优雅退出');
+    saveCache();
+    process.exit();
+  });
+  
   console.log('\n✅ 守护进程运行中，按 Ctrl+C 停止\n');
+  
+  // 定期健康检查（每 5 分钟）
+  setInterval(() => {
+    console.log(`💓 心跳 - 已记录 ${recordedMessages.size} 条消息`);
+  }, 300000);
 }
 
 main();

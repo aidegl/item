@@ -1,5 +1,11 @@
 # HEARTBEAT.md
 
-# Keep this file empty (or with only comments) to skip heartbeat API calls.
+**保持空文件以跳过心跳 API 调用**
 
-# Add tasks below when you want the agent to check something periodically.
+# 需要时再添加任务
+
+## 最新检查记录
+
+- **时间**: 2026-03-02 22:26
+- **任务**: 检查明道云新消息
+- **结果**: 无新消息 (已处理 30 条)

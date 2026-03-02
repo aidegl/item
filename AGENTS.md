@@ -14,8 +14,11 @@ Before doing anything else:
 2. Read `USER.md` — this is who you're helping
 3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
 4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+5. **Read `KnowledgeBase/CODING-EXPERIENCE-*.md`** — avoid repeating mistakes! ⭐
 
 Don't ask permission. Just do it.
+
+> **⚠️ 经验教训**: 不读经验文件 = 重复踩坑！每次会话必读！
 
 ## Memory
 
