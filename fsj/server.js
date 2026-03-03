@@ -57,20 +57,3 @@ server.listen(PORT, '0.0.0.0', () => {
 });
 EOF
 
-# 3. 初始化 npm（如果还没有 package.json）
-npm init - y
-
-# 4. 安装 ws 库
-npm install ws
-
-# 5. 创建日志目录
-mkdir - p logs
-
-# 6. 启动服务（PM2）
-pm2 start server.js--name = "ws-bridge-3011" --output = "logs/out.log" --error = "logs/error.log"
-
-# 7. 持久化 PM2 配置
-pm2 save
-
-# 8. 查看日志（实时）
-tail - f logs / out.log
