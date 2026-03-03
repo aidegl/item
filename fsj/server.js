@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 const WebSocket = require('ws');
 const http = require('http');
 
@@ -29,7 +28,6 @@ wss.on('connection', (ws, req) => {
     const message = data.toString();
     console.log(`[${new Date().toISOString()}] 📬 [${clientId}] 收到：${message.substring(0, 200)}`);
 
-    // 广播给其他客户端
     clients.forEach((client, id) => {
       if (id !== clientId && client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify({
@@ -55,5 +53,3 @@ wss.on('connection', (ws, req) => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 WebSocket 服务已启动，端口：${PORT}`);
 });
-EOF
-
