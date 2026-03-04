@@ -1,186 +1,200 @@
-# MingDaoYun Chat Skill
+# 明道云对话记录 - 使用指南
 
-> 将 OpenClaw 对话自动记录到明道云对话系统
-
-## 📦 安装
-
-已预装在：`/home/admin/openclaw/workspace/skills/mingdao-chat/`
-
-## 🚀 快速开始
-
-### 方法 1: 直接调用函数
-
-```javascript
-const chat = require('/home/admin/openclaw/workspace/skills/mingdao-chat/index.js');
-
-// 记录单条消息
-await chat.recordMessage({
-  sender: 'xiaozong',
-  receiver: 'master',
-  content: '主人，任务完成了！'
-});
-```
-
-### 方法 2: 使用自动记录器
-
-```javascript
-const recorder = require('/home/admin/openclaw/workspace/skills/mingdao-chat/auto-record.js');
-
-// 自动管理对话 ID
-await recorder.record('xiaozong', 'master', '你好！');
-await recorder.record('master', 'xiaozong', '你好！');  // 自动使用同一个对话
-```
-
-### 方法 3: CLI 命令行
-
-```bash
-cd /home/admin/openclaw/workspace/skills/mingdao-chat
-node auto-record.js xiaozong master "你好，主人！"
-```
-
-### 方法 4: 当前会话自动记录（推荐）⭐
-
-```javascript
-const integration = require('/home/admin/openclaw/workspace/skills/mingdao-chat/integration.js');
-
-// 启用自动记录（所有消息自动记录）
-integration.enable('master');
-
-// 之后所有消息都会自动记录，无需手动调用
-// ... 正常对话 ...
-
-// 禁用时保存缓存
-integration.disable();
-```
-
-## 📖 功能
-
-### 1. 记录单条消息
-
-```javascript
-await chat.recordMessage({
-  sender: 'xiaozong',           // 发送者
-  receiver: 'master',           // 接收者（可以是数组）
-  content: '消息内容',           // 完整消息
-  dialogId: 'xxx',             // 可选，对话 ID
-  timestamp: Date.now()         // 可选，时间戳
-});
-```
-
-### 2. 记录完整对话
-
-```javascript
-await chat.recordConversation({
-  initiator: 'master',
-  receivers: ['xiaozong'],
-  messages: [
-    { sender: 'master', content: '你好', timestamp: 1772275200000 },
-    { sender: 'xiaozong', content: '主人好', timestamp: 1772275260000 }
-  ]
-});
-```
-
-### 3. 群聊支持
-
-```javascript
-await chat.recordMessage({
-  sender: 'master',
-  receiver: ['xiaozong', 'feng'],  // 多个接收人
-  content: '大家注意，开会了！'
-});
-```
-
-## 👥 用户映射
-
-| 用户名 | RowID | 说明 |
-|--------|-------|------|
-| `xiaozong` | `7548a483-2b5b-4de0-be06-63b318ca52c4` | 小粽（我） |
-| `feng` | `adde88c8-de91-4484-9a5e-070f50079ed8` | 风（6c42） |
-| `master` | `ff074b4e-92ad-466e-9018-d3a7d150e8ee` | 主人（林东城） |
-
-## 📊 明道云配置
-
-| 配置项 | 值 |
-|--------|-----|
-| AppKey | `b37a969f03b3cf0b` |
-| Sign | `MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==` |
-| 对话表 | `68da90934256d51497bb9ff8` |
-| 对话消息表 | `68da906bd34347b006235da4` |
-| 用户表 | `68534cf5750002dbcc681334` |
-
-## ✅ 特性
-
-1. **完整记录** - 每条消息完整记录，不摘要不删减
-2. **自动关联** - 自动管理对话 ID，同一对话自动关联
-3. **群聊支持** - 支持多人对话
-4. **时间戳** - 支持自定义时间戳
-5. **批量导入** - 支持批量导入历史对话
-
-## 🧪 测试
-
-```bash
-cd /home/admin/openclaw/workspace/skills/mingdao-chat
-node test.js
-```
-
-## 📁 文件结构
-
-```
-mingdao-chat/
-├── SKILL.md          # 技能说明
-├── index.js          # 核心功能
-├── auto-record.js    # 自动记录器
-├── test.js           # 测试脚本
-├── USAGE.md          # 使用文档
-└── README.md         # 本文件
-```
-
-## 🔧 集成到 OpenClaw
-
-在 OpenClaw 的消息处理中添加：
-
-```javascript
-const recorder = require('/home/admin/openclaw/workspace/skills/mingdao-chat/auto-record.js');
-
-// 用户发消息
-async function onUserMessage(user, message) {
-  await recorder.record(user, 'xiaozong', message);
-  // ... 处理消息
-}
-
-// AI 回复
-async function onAIReply(user, reply) {
-  await recorder.record('xiaozong', user, reply);
-  // ... 发送回复
-}
-```
-
-## ⚠️ 注意事项
-
-1. **对话唯一性**：目前需要手动管理对话 ID（未来版本会自动查找现有对话）
-2. **消息完整性**：每条消息完整记录，不要传摘要
-3. **类型字段**：固定填 "AI"
-4. **逻辑删除**：使用 `del` 字段，不是物理删除
-
-## 📝 示例输出
-
-```json
-{
-  "dialogId": "e6c4a566-1df8-47b3-bd28-c1c53271d2f6",
-  "messageId": "a2821774-f53b-4515-bff6-e90df96cce34",
-  "success": true
-}
-```
-
-## 🎯 下一步
-
-- [ ] 实现对话自动查找（双向查询）
-- [ ] 添加消息已读标记功能
-- [ ] 添加未读消息查询功能
-- [ ] 集成 Webhook 自动接收
+## 🎯 功能
+自动将 OpenClaw 对话备份到明道云，包括：
+- ✅ 用户发送的消息
+- ✅ AI 回复的消息
+- ✅ 完整对话历史
 
 ---
 
-**版本**: 1.0  
-**作者**: 小粽  
-**创建时间**: 2026-02-28
+## ⚠️ 其他用户安装必读
+
+**如果你不是小粽（当前配置所有者），请先阅读：**
+
+1. 📦 `INSTALL.md` - 详细安装指南
+2. 📝 `config.example.js` - 配置模板
+3. 🔍 运行 `node check-config.js` 检查配置
+
+**不要直接使用当前配置！** 否则消息会记录到别人的明道云账号！
+
+---
+
+## 🚀 快速开始（当前配置）
+
+### 1. 启动守护进程
+```bash
+cd /home/admin/openclaw/workspace/skills/mingdao-chat
+node auto-record-daemon.js > daemon.log 2>&1 &
+```
+
+### 2. 验证运行
+```bash
+ps aux | grep auto-record-daemon
+tail -f daemon.log
+```
+
+### 3. 测试
+在 OpenClaw WebUI 发送消息，然后去明道云查看。
+
+---
+
+## 📊 架构
+
+```
+┌─────────────────┐
+│ OpenClaw 会话    │
+│ (.jsonl 文件)    │
+└────────┬────────┘
+         │ 监控文件变化
+         ↓
+┌─────────────────┐
+│ auto-record-    │
+│ daemon.js       │
+└────────┬────────┘
+         │ 调用
+         ↓
+┌─────────────────┐
+│ auto-hook.js    │
+└────────┬────────┘
+         │ API 请求
+         ↓
+┌─────────────────┐
+│ 明道云          │
+└─────────────────┘
+```
+
+---
+
+## 📁 文件说明
+
+| 文件 | 作用 |
+|------|------|
+| `auto-hook.js` | 明道云 API 封装 |
+| `auto-record-daemon.js` | 会话监控守护进程 |
+| `index.js` | 手动发送消息接口 |
+| `SKILL.md` | 技术文档 |
+| `USAGE.md` | 详细使用说明 |
+
+---
+
+## 🔧 配置
+
+修改 `auto-hook.js` 中的配置：
+
+```javascript
+const CONFIG = {
+  appkey: '你的明道云 AppKey',
+  sign: '你的签名',
+  dialogWorksheet: '对话工作表 ID',
+  messageWorksheet: '消息工作表 ID'
+};
+```
+
+---
+
+## 📍 明道云工作表结构
+
+### 对话表 (`68da90934256d51497bb9ff8`)
+
+| 字段名 | 字段 ID | 类型 | 说明 |
+|--------|---------|------|------|
+| **内容** | `68da90934256d51497bb9ff9` | Text | 对话内容（必填） |
+| 发起人/咨询人 | `68da90c3432b11f7ba68cb6c` | Relation | 群主或 1v1 发起方 |
+| 消息 | `68da9105d34347b006235df5` | Relation | 关联消息记录 |
+| 类型 | `692bb183e22247ab9a64a383` | Dropdown | 场景对话 / 非场景对话 |
+| 接收人/服务者 | `692bfbb1e22247ab9a654f3d` | Relation | 群成员或 1v1 接收方 |
+| 组织/圈子 | `69a0bf195025a37110682373` | Relation | 所在机构 |
+| 地点 | `69a0bf195025a37110682371` | Relation | 具体地点（会议室等） |
+| 状态 | `692ceedce22247ab9a67a58a` | Dropdown | 对话状态 |
+| 日期 | `692cf82fe22247ab9a67d78d` | DateTime | 对话时间 |
+
+### 消息表 (`68da906bd34347b006235da4`)
+
+| 字段名 | 字段 ID | 类型 | 说明 |
+|--------|---------|------|------|
+| 内容 | `68da906bd34347b006235da5` | Text | 消息内容 |
+| 对话 | `68da9105d34347b006235df6` | Relation | 关联对话 |
+| 发送者 | `692d147433260875c1970b8a` | Relation | 发送人 ID |
+| 时间戳 | `692d166992609b5d9de82b58` | DateTime | 发送时间 |
+
+---
+
+## 🏢 组织机构配置
+
+### 组织/圈子（所在机构）
+- **名称**: 璟滔文化科技
+- **ID**: `ec2b4b92-23f5-4a0c-8498-1e0cb3f916ce`
+
+### 地点（组织下属地点）
+- **总经理办公室**: `a5dd767b-a5f3-4cd7-9357-455b5f3c175d`
+- **会议室**: 待配置
+- **工作厅**: 待配置
+
+> 💡 地点信息由前端 JSON 提供，根据实际场景动态设置
+
+---
+
+## 💬 对话类型说明
+
+### 场景对话 vs 非场景对话
+
+| 类型 | 组织信息 | 地点信息 | 说明 |
+|------|----------|----------|------|
+| **场景对话** | ✅ 有 | ✅ 有 | 有具体地点的对话（如会议室、办公室） |
+| **非场景对话** | ✅ 有 | ❌ 无 | 只有组织信息，无具体地点 |
+
+### 群对话 vs 1 对 1 对话
+
+| 类型 | 发起人/咨询人 | 接收人/服务者 |
+|------|---------------|---------------|
+| **群对话** | 群主 | 群成员 |
+| **1 对 1** | 发起方 | 接收方 |
+
+---
+
+## 📖 数据流程
+
+```
+前端 JSON
+   │
+   ├─→ 组织 ID (ec2b4b92-...)
+   │
+   ├─→ 地点 ID (a5dd767b-...) [场景对话才有]
+   │
+   └─→ 对话内容
+         │
+         ↓
+   明道云对话表
+```
+
+---
+
+## ⚠️ 常见问题
+
+### Q: 消息没有记录到明道云？
+A: 检查守护进程是否运行：
+```bash
+ps aux | grep auto-record-daemon
+```
+
+### Q: 明道云看不到消息？
+A: 检查工作表 ID 是否正确，字段 ID 是否匹配。
+
+### Q: 如何重启守护进程？
+A: 
+```bash
+pkill -9 -f auto-record-daemon
+node auto-record-daemon.js > daemon.log 2>&1 &
+```
+
+---
+
+## 📖 详细文档
+
+- `SKILL.md` - 技术实现细节
+- `USAGE.md` - 完整使用说明
+
+---
+
+**最后更新**: 2026-03-05 01:04
