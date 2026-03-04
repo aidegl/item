@@ -15,8 +15,15 @@
 1. 📦 `INSTALL.md` - 详细安装指南
 2. 📝 `config.example.js` - 配置模板
 3. 🔍 运行 `node check-config.js` 检查配置
+4. 👤 运行 `node get-user-info.js` 获取你的用户 RowID ⭐
 
 **不要直接使用当前配置！** 否则消息会记录到别人的明道云账号！
+
+### 🔑 必须修改的配置
+
+1. **明道云凭证** - AppKey 和 Sign
+2. **明道云工作表 ID** - 对话和消息工作表
+3. **用户 RowID 映射** - ⚠️ **这个最重要！**
 
 ---
 
