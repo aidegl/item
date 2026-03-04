@@ -13,7 +13,8 @@ const CONFIG = {
   sign: 'MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==',
   dialogWorksheet: '68da90934256d51497bb9ff8',
   messageWorksheet: '68da906bd34347b006235da4',
-  userWorksheet: '68534cf5750002dbcc681334'
+  userWorksheet: '68534cf5750002dbcc681334',
+  lastCheckFile: '/home/admin/openclaw/workspace/skills/mingdao-chat/.last-check.json'
 };
 
 // ============ 用户映射 ============
@@ -51,6 +52,113 @@ function apiCall(method, path, data) {
     if (body) req.write(body);
     req.end();
   });
+}
+
+// ============ API 工具函数 ============
+
+/**
+ * 分页获取消息记录
+ */
+async function getMessagesByPage({ dialogId = null, lastUpdateAfter = null, page = 1, pageSize = 50 } = {}) {
+  const params = new URLSearchParams({
+    pageIndex: page,
+    pageSize: pageSize,
+    fields: 'neirong,duihua,yonghu,riqi'
+  });
+  
+  // 合并 filter，用 AND 连接
+  const filters = [];
+  if (dialogId) {
+    filters.push(`duihua="${dialogId}"`);
+  }
+  if (lastUpdateAfter) {
+    filters.push(`riqi>${lastUpdateAfter}`);
+  }
+  
+  if (filters.length > 0) {
+    params.append('filter', filters.join(' AND '));
+  }
+  
+  const path = `/v3/app/worksheets/${CONFIG.messageWorksheet}/rows?${params.toString()}`;
+  
+  return new Promise((resolve, reject) => {
+    const req = https.request(`https://api.mingdao.com${path}`, {
+      method: 'GET',
+      headers: {
+        'HAP-Appkey': CONFIG.appkey,
+        'HAP-Sign': CONFIG.sign
+      }
+    }, res => {
+      let resp = '';
+      res.on('data', chunk => resp += chunk);
+      res.on('end', () => {
+        try {
+          const result = resp ? JSON.parse(resp) : { success: true };
+          resolve(result);
+        } catch (e) {
+          resolve({ success: true, raw: resp });
+        }
+      });
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+/**
+ * 获取指定对话的所有消息
+ */
+async function getMessages(dialogId) {
+  const allMessages = [];
+  let page = 1;
+  
+  while (true) {
+    const result = await getMessagesByPage({ dialogId, page, pageSize: 50 });
+    const messages = result.data?.rows || [];
+    
+    if (messages.length === 0) break;
+    
+    allMessages.push(...messages);
+    page++;
+    
+    // 如果返回的消息少于 pageSize，说明已经到最后一页
+    if (messages.length < pageSize) break;
+  }
+  
+  return allMessages;
+}
+
+/**
+ * 获取最新消息（按时间戳过滤）
+ */
+async function getNewMessages(lastCheckTime) {
+  const allMessages = [];
+  let page = 1;
+  
+  while (true) {
+    const result = await getMessagesByPage({ 
+      lastUpdateAfter: lastCheckTime,
+      page, 
+      pageSize: 50 
+    });
+    
+    const messages = result.data?.rows || [];
+    
+    if (messages.length === 0) break;
+    
+    // 过滤出比 lastCheckTime 新的消息
+    const newMessages = messages.filter(msg => {
+      const msgTime = msg.fields?.riqi?.value || msg.fields?.riqi;
+      return msgTime > lastCheckTime;
+    });
+    
+    allMessages.push(...newMessages);
+    page++;
+    
+    if (messages.length < pageSize) break;
+  }
+  
+  return allMessages;
 }
 
 // ============ 核心功能 ============
@@ -160,6 +268,11 @@ module.exports = {
   recordConversation,
   createMessage,
   createDialog,
+  
+  // 获取消息
+  getMessages,
+  getNewMessages,
+  getMessagesByPage,
   
   // 配置和用户映射
   CONFIG,
