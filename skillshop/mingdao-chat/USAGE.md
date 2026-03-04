@@ -138,3 +138,7 @@ const USERS = {
 cd /home/admin/openclaw/workspace/skills/mingdao-chat
 node test.js
 ```
+
+---
+
+**最后更新**: 2026-03-01 20:08
