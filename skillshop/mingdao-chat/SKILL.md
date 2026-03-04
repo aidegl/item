@@ -13,7 +13,8 @@
 其他用户安装前必须修改配置文件，否则消息会记录到别人的明道云账号！
 
 👉 **安装指南**: 见 `INSTALL.md`  
-👉 **配置模板**: 见 `config.example.js`
+👉 **配置模板**: 见 `config.example.js`  
+👉 **获取用户 RowID**: 运行 `node get-user-info.js` ⭐
 
 ## 架构
 ```
