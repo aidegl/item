@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>明道云消息队列 - WebUI 演示</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .header h1 { font-size: 24px; margin-bottom: 8px; }
+    .header p { opacity: 0.9; font-size: 14px; }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ccc;
+    }
+    .status-dot.connected { background: #10b981; }
+    .status-dot.disconnected { background: #ef4444; }
+    .message-list {
+      max-height: 500px;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .message {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .message-content {
+      flex: 1;
+      background: #f8f9fa;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border-top-left-radius: 4px;
+    }
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .message-sender { font-weight: 600; color: #1f2937; }
+    .message-time { font-size: 12px; color: #9ca3af; }
+    .message-text { color: #374151; line-height: 1.5; }
+    .message-meta {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9ca3af;
+    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+    .controls {
+      padding: 16px 20px;
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+    .btn-secondary:hover { background: #e5e7eb; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💬 明道云消息队列</h1>
+      <p>实时消息订阅 - WebUI 演示</p>
+    </div>
+    
+    <div class="status">
+      <div class="status-badge">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">连接中...</span>
+      </div>
+      <div id="messageCount">0 条消息</div>
+    </div>
+    
+    <div class="message-list" id="messageList">
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div>等待消息...</div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn btn-secondary" onclick="clearMessages()">清空消息</button>
+      <button class="btn btn-primary" onclick="sendTestMessage()">发送测试消息</button>
+    </div>
+  </div>
+
+  <script>
+    let ws = null;
+    let messages = [];
+
+    // 连接 WebSocket
+    function connect() {
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+      
+      statusDot.className = 'status-dot';
+      statusText.textContent = '连接中...';
+      
+      // 连接到消息队列 WebSocket 服务器
+      ws = new WebSocket('ws://localhost:3012');
+      
+      ws.onopen = () => {
+        console.log('✅ WebSocket 已连接');
+        statusDot.className = 'status-dot connected';
+        statusText.textContent = '已连接';
+      };
+      
+      ws.onclose = () => {
+        console.log('❌ WebSocket 已断开');
+        statusDot.className = 'status-dot disconnected';
+        statusText.textContent = '已断开';
+        
+        // 5 秒后重连
+        setTimeout(connect, 5000);
+      };
+      
+      ws.onerror = (err) => {
+        console.error('❌ WebSocket 错误:', err);
+      };
+      
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'history') {
+          // 加载历史消息
+          messages = data.messages;
+          renderMessages();
+        } else if (data.type === 'new_message') {
+          // 新消息
+          messages.push(data.message);
+          renderMessages();
+        }
+      };
+    }
+    
+    // 渲染消息列表
+    function renderMessages() {
+      const messageList = document.getElementById('messageList');
+      const messageCount = document.getElementById('messageCount');
+      
+      messageCount.textContent = `${messages.length} 条消息`;
+      
+      if (messages.length === 0) {
+        messageList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div>等待消息...</div>
+          </div>
+        `;
+        return;
+      }
+      
+      messageList.innerHTML = messages.map(msg => {
+        const time = new Date(msg.createdAt).toLocaleString('zh-CN');
+        const avatar = (msg.from || 'U').charAt(0).toUpperCase();
+        
+        return `
+          <div class="message">
+            <div class="message-avatar">${avatar}</div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-sender">${msg.from || 'Unknown'}</span>
+                <span class="message-time">${time}</span>
+              </div>
+              <div class="message-text">${escapeHtml(msg.content || '')}</div>
+              <div class="message-meta">
+                发送给：${msg.to || 'Unknown'} • 
+                对话 ID: ${msg.dialogId || 'N/A'} •
+                状态：${msg.status || 'unknown'}
+              </div>
+            </div>
+          </div>
+        `;
+      }).reverse().join('');
+      
+      // 滚动到底部
+      messageList.scrollTop = messageList.scrollHeight;
+    }
+    
+    // HTML 转义
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // 清空消息
+    function clearMessages() {
+      messages = [];
+      renderMessages();
+    }
+    
+    // 发送测试消息
+    function sendTestMessage() {
+      const testMessages = [
+        '你好，这是测试消息！',
+        '今天天气不错 🌤️',
+        '任务已完成，请查收',
+        '收到请回复，谢谢！',
+        '会议改到下午 3 点'
+      ];
+      
+      const randomMsg = testMessages[Math.floor(Math.random() * testMessages.length)];
+      
+      // 通过 HTTP API 发送测试消息
+      fetch('http://localhost:3012/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: 'webui',
+          to: 'feng',
+          content: randomMsg
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log('✅ 测试消息已发送:', data);
+      })
+      .catch(err => {
+        console.error('❌ 发送失败:', err);
+        alert('发送失败，请确保消息队列服务已启动');
+      });
+    }
+    
+    // 启动连接
+    connect();
+  </script>
+</body>
+</html>

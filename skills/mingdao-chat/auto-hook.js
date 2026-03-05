@@ -11,6 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const messageQueue = require('./message-queue.js');
 
 // ============ 配置 ============
 const CONFIG = {
@@ -153,7 +154,10 @@ async function createMessage(content, dialogId, senderId) {
 
 /**
  * 记录消息（自动创建或复用对话）
- * 同时发送到明道云（备份）和 WebSocket（实时通知）
+ * 三重发送：
+ * 1. 本地消息队列（WebUI 显示）⭐ 新增
+ * 2. 明道云 API（备份）
+ * 3. WebSocket（实时通知）
  */
 async function recordMessage(sender, receiver, content) {
   // 确保缓存已加载
@@ -181,11 +185,21 @@ async function recordMessage(sender, receiver, content) {
     console.log(`📝 创建新对话：${dialogId}`);
   }
   
-  // 创建消息（明道云备份）
+  // 1️⃣ 添加到本地消息队列（WebUI 显示）⭐
+  const queueMessage = messageQueue.add({
+    type: 'chat',
+    from: sender,
+    to: Array.isArray(receiver) ? receiver[0] : receiver,
+    content: content,
+    dialogId: dialogId,
+    status: 'sent'
+  });
+  
+  // 2️⃣ 创建消息（明道云备份）
   const messageId = await createMessage(content, dialogId, senderId);
   console.log(`✅ 已记录：${sender} → ${receiver} (消息 ID: ${messageId})`);
   
-  // 同时通过 WebSocket 发送（实时通知）
+  // 3️⃣ 同时通过 WebSocket 发送（实时通知）
   // 如果 receiver 是 feng 或 master，同时发送 WebSocket 通知
   try {
     const wsSender = require('./ws-sender.js');
@@ -213,7 +227,7 @@ async function recordMessage(sender, receiver, content) {
     console.log(`ℹ️  WebSocket 发送不可用：${e.message}`);
   }
   
-  return { dialogId, messageId };
+  return { dialogId, messageId, queueMessage };
 }
 
 /**

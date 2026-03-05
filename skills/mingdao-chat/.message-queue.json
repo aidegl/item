@@ -298,5 +298,15 @@
     "sender": "林东城",
     "content": "Sender (untrusted metadata):\n```json\n{\n  \"label\": \"openclaw-control-ui\",\n  \"id\": \"openclaw-control-ui\"\n}\n```\n\n[Thu 2026-03-05 06:56 GMT+8] 你让风给你发一条消息，我看一下接受信息功能是否还正常",
     "injected": true
+  },
+  {
+    "id": "msg_1772676924702_io9ad0wfy",
+    "timestamp": 1772676924702,
+    "createdAt": "2026-03-05T02:15:24.702Z",
+    "type": "chat",
+    "from": "xiaozong",
+    "to": "feng",
+    "content": "🎉 WebUI 消息队列测试成功！",
+    "status": "sent"
   }
 ]
