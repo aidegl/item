@@ -15,8 +15,15 @@
 1. 📦 `INSTALL.md` - 详细安装指南
 2. 📝 `config.example.js` - 配置模板
 3. 🔍 运行 `node check-config.js` 检查配置
+4. 👤 运行 `node get-user-info.js` 获取你的用户 RowID ⭐
 
 **不要直接使用当前配置！** 否则消息会记录到别人的明道云账号！
+
+### 🔑 必须修改的配置
+
+1. **明道云凭证** - AppKey 和 Sign
+2. **明道云工作表 ID** - 对话和消息工作表
+3. **用户 RowID 映射** - ⚠️ **这个最重要！**
 
 ---
 
@@ -36,6 +43,40 @@ tail -f daemon.log
 
 ### 3. 测试
 在 OpenClaw WebUI 发送消息，然后去明道云查看。
+
+---
+
+## 📡 WebSocket 消息接收（可选）⭐
+
+**如果你想接收其他客户端发送的实时消息**（如风的 WebSocket 消息）：
+
+### 1. 配置 WebSocket 服务器
+
+编辑 `config.js`：
+
+```javascript
+const WS_CONFIG = {
+  WS_URL: 'ws://你的服务器 IP/ws?client=你的客户端 ID',
+  RECONNECT_INTERVAL: 5000
+};
+```
+
+### 2. 启动 WebSocket 客户端
+
+```bash
+# 后台运行
+nohup node ws-bridge-client.js > ws-bridge.log 2>&1 &
+
+# 验证
+ps aux | grep ws-bridge-client
+tail -f ws-bridge.log
+```
+
+### 3. 测试
+
+让其他客户端发送 WebSocket 消息，查看日志和明道云。
+
+**详细部署指南**: 见 `WEBSOCKET-DEPLOY.md`
 
 ---
 
@@ -197,4 +238,4 @@ node auto-record-daemon.js > daemon.log 2>&1 &
 
 ---
 
-**最后更新**: 2026-03-05 01:04
+**最后更新**: 2026-03-05 08:52
