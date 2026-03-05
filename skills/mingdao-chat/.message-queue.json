@@ -307,6 +307,7 @@
     "from": "xiaozong",
     "to": "feng",
     "content": "🎉 WebUI 消息队列测试成功！",
-    "status": "sent"
+    "status": "sent",
+    "injected": true
   }
 ]
