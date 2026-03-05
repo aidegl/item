@@ -46,6 +46,40 @@ tail -f daemon.log
 
 ---
 
+## 📡 WebSocket 消息接收（可选）⭐
+
+**如果你想接收其他客户端发送的实时消息**（如风的 WebSocket 消息）：
+
+### 1. 配置 WebSocket 服务器
+
+编辑 `config.js`：
+
+```javascript
+const WS_CONFIG = {
+  WS_URL: 'ws://你的服务器 IP/ws?client=你的客户端 ID',
+  RECONNECT_INTERVAL: 5000
+};
+```
+
+### 2. 启动 WebSocket 客户端
+
+```bash
+# 后台运行
+nohup node ws-bridge-client.js > ws-bridge.log 2>&1 &
+
+# 验证
+ps aux | grep ws-bridge-client
+tail -f ws-bridge.log
+```
+
+### 3. 测试
+
+让其他客户端发送 WebSocket 消息，查看日志和明道云。
+
+**详细部署指南**: 见 `WEBSOCKET-DEPLOY.md`
+
+---
+
 ## 📊 架构
 
 ```
@@ -204,4 +238,4 @@ node auto-record-daemon.js > daemon.log 2>&1 &
 
 ---
 
-**最后更新**: 2026-03-05 01:04
+**最后更新**: 2026-03-05 08:52
