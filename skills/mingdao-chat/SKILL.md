@@ -6,9 +6,26 @@
 - ✅ AI 回复自动记录
 - ✅ 完整对话历史保存
 
+## ⚠️ 重要提示
+
+**当前配置是硬编码的！** 
+
+其他用户安装前必须修改配置文件，否则消息会记录到别人的明道云账号！
+
+👉 **安装指南**: 见 `INSTALL.md`  
+👉 **配置模板**: 见 `config.example.js`  
+👉 **获取用户 RowID**: 运行 `node get-user-info.js` ⭐
+
 ## 架构
+
+### 消息发送（记录）
 ```
 OpenClaw 会话文件 → auto-record-daemon.js → auto-hook.js → 明道云 API
+```
+
+### 消息接收（WebSocket）⭐
+```
+其他客户端 → WebSocket 服务器 → ws-bridge-client.js → auto-hook.js → 明道云 API
 ```
 
 ## 核心文件
@@ -17,8 +34,12 @@ OpenClaw 会话文件 → auto-record-daemon.js → auto-hook.js → 明道云 A
 | `auto-hook.js` | 明道云 API 封装（创建对话、消息） |
 | `auto-record-daemon.js` | 会话监控守护进程（自动记录） |
 | `index.js` | 手动发送消息接口 |
+| `ws-bridge-client.js` | ⭐ WebSocket 消息接收器 |
+| `INSTALL.md` | 📦 其他用户安装指南 |
+| `WEBSOCKET-DEPLOY.md` | 📡 WebSocket 部署指南 |
+| `config.example.js` | 📝 配置模板（复制后修改） |
 
-## 配置
+## 当前配置（小粽的）
 ```javascript
 const CONFIG = {
   appkey: 'b37a969f03b3cf0b',
@@ -56,6 +77,37 @@ await sendMessage({
 });
 ```
 
+### 接收 WebSocket 消息（可选）⭐
+
+**配置 WebSocket 服务器地址**：
+
+```bash
+# 编辑 config.js
+nano config.js
+
+# 修改 WS_CONFIG
+const WS_CONFIG = {
+  WS_URL: 'ws://你的服务器 IP/ws?client=你的客户端 ID',
+  RECONNECT_INTERVAL: 5000
+};
+```
+
+**启动 WebSocket 客户端**：
+
+```bash
+# 前台运行（调试）
+node ws-bridge-client.js
+
+# 后台运行（生产）
+nohup node ws-bridge-client.js > ws-bridge.log 2>&1 &
+
+# 验证
+ps aux | grep ws-bridge-client
+tail -f ws-bridge.log
+```
+
+**详细说明**: 见 `WEBSOCKET-DEPLOY.md`
+
 ## 明道云工作表结构
 
 ### 对话工作表 (68da90934256d51497bb9ff8)
@@ -80,6 +132,31 @@ await sendMessage({
 2. **消息完整性**：保留 Markdown 格式，不摘要不删减
 3. **对话唯一性**：两人之间只有一条对话，消息多条
 4. **守护进程**：建议开机自启，保持常驻
+5. **配置安全**：不要将包含真实凭证的代码上传到公开仓库
+
+## 📦 其他用户安装
+
+如果你是其他 OpenClaw 用户，想要安装此技能：
+
+```bash
+# 1. 复制技能到你的 workspace
+cp -r /home/admin/openclaw/workspace/skills/mingdao-chat \
+      你的 workspace/skills/mingdao-chat
+
+# 2. 阅读安装指南
+cat 你的 workspace/skills/mingdao-chat/INSTALL.md
+
+# 3. 使用配置模板
+cat 你的 workspace/skills/mingdao-chat/config.example.js
+
+# 4. 修改 auto-hook.js 中的配置为你的明道云账号信息
+
+# 5. 启动守护进程
+cd 你的 workspace/skills/mingdao-chat
+node auto-record-daemon.js > daemon.log 2>&1 &
+```
+
+详细步骤见 `INSTALL.md`。
 
 ## 调试命令
 ```bash
