@@ -48,4 +48,20 @@ const USERS = {
 const SESSIONS_DIR = '/home/admin/.openclaw/agents/main/sessions';
 // ⚠️ 如果路径不同，请修改为你的实际路径
 
-module.exports = { CONFIG, USERS, SESSIONS_DIR };
+// ============ WebSocket 桥接配置（消息接收） ============
+// 用于接收其他客户端发送的消息（可选）
+// 如果没有公网 WebSocket 服务器，可以留空
+
+const WS_CONFIG = {
+  // WebSocket 服务器地址
+  // 格式：ws://服务器 IP/ws?client=客户端 ID
+  // 例如：ws://8.155.148.75/ws?client=xiaozong
+  WS_URL: 'ws://你的服务器IP/ws?client=你的客户端 ID',  // ⚠️ 替换为你的
+  // 或者使用域名：ws://your-domain.com/ws?client=xiaozong
+  
+  // 重连间隔（毫秒）
+  RECONNECT_INTERVAL: 5000  // 5 秒后重连
+};
+// ⚠️ 如果不需要 WebSocket 消息接收，可以留空或删除此配置
+
+module.exports = { CONFIG, USERS, SESSIONS_DIR, WS_CONFIG };

@@ -30,6 +30,25 @@ cp -r /home/admin/openclaw/workspace/skills/mingdao-chat \
       你的 workspace/skills/mingdao-chat
 ```
 
+### 步骤 1.5: 配置 WebSocket 消息接收（可选）⭐
+
+**如果你想接收其他客户端发送的实时消息**（如风的 WebSocket 消息）：
+
+```bash
+# 编辑 config.js
+nano config.js
+
+# 修改 WebSocket 配置
+const WS_CONFIG = {
+  WS_URL: 'ws://你的服务器IP/ws?client=你的客户端 ID',
+  RECONNECT_INTERVAL: 5000
+};
+```
+
+**详细说明**: 见 `WEBSOCKET-DEPLOY.md`
+
+---
+
 ### 步骤 2: 运行用户信息获取工具 ⭐
 
 **这一步最重要！** 获取你的用户 RowID：

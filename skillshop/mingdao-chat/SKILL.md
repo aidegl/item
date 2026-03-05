@@ -17,8 +17,15 @@
 👉 **获取用户 RowID**: 运行 `node get-user-info.js` ⭐
 
 ## 架构
+
+### 消息发送（记录）
 ```
 OpenClaw 会话文件 → auto-record-daemon.js → auto-hook.js → 明道云 API
+```
+
+### 消息接收（WebSocket）⭐
+```
+其他客户端 → WebSocket 服务器 → ws-bridge-client.js → auto-hook.js → 明道云 API
 ```
 
 ## 核心文件
@@ -27,7 +34,9 @@ OpenClaw 会话文件 → auto-record-daemon.js → auto-hook.js → 明道云 A
 | `auto-hook.js` | 明道云 API 封装（创建对话、消息） |
 | `auto-record-daemon.js` | 会话监控守护进程（自动记录） |
 | `index.js` | 手动发送消息接口 |
+| `ws-bridge-client.js` | ⭐ WebSocket 消息接收器 |
 | `INSTALL.md` | 📦 其他用户安装指南 |
+| `WEBSOCKET-DEPLOY.md` | 📡 WebSocket 部署指南 |
 | `config.example.js` | 📝 配置模板（复制后修改） |
 
 ## 当前配置（小粽的）
@@ -67,6 +76,37 @@ await sendMessage({
   content: '消息内容'
 });
 ```
+
+### 接收 WebSocket 消息（可选）⭐
+
+**配置 WebSocket 服务器地址**：
+
+```bash
+# 编辑 config.js
+nano config.js
+
+# 修改 WS_CONFIG
+const WS_CONFIG = {
+  WS_URL: 'ws://你的服务器 IP/ws?client=你的客户端 ID',
+  RECONNECT_INTERVAL: 5000
+};
+```
+
+**启动 WebSocket 客户端**：
+
+```bash
+# 前台运行（调试）
+node ws-bridge-client.js
+
+# 后台运行（生产）
+nohup node ws-bridge-client.js > ws-bridge.log 2>&1 &
+
+# 验证
+ps aux | grep ws-bridge-client
+tail -f ws-bridge.log
+```
+
+**详细说明**: 见 `WEBSOCKET-DEPLOY.md`
 
 ## 明道云工作表结构
 
