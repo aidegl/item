@@ -54,6 +54,23 @@ cp -r /home/admin/openclaw/workspace/skills/mingdao-chat \
 cat /目标用户/workspace/skills/mingdao-chat/INSTALL.md
 ```
 
+### 步骤 2.5: 获取你的用户 RowID ⭐
+
+**这一步最重要！**
+
+```bash
+node get-user-info.js
+```
+
+脚本会详细指导你：
+1. 如何获取 OpenClaw 会话中的用户信息
+2. 如何获取明道云用户 RowID
+3. 如何修改配置文件
+
+**必须获取的 RowID：**
+- AI 助手的 RowID（对应 `xiaozong`）
+- 你的 RowID（对应 `master` 或 `feng`）
+
 ### 步骤 3: 检查配置
 ```bash
 cd /目标用户/workspace/skills/mingdao-chat
