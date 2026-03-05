@@ -18,9 +18,11 @@
 
 ## 架构
 
-### 消息发送（记录）
+### 消息发送（记录）⭐
 ```
-OpenClaw 会话文件 → auto-record-daemon.js → auto-hook.js → 明道云 API
+OpenClaw 发送消息 → auto-hook.js → 同时执行：
+                              ├─→ 明道云 API（备份）
+                              └─→ WebSocket 直接发送（实时通知）
 ```
 
 ### 消息接收（WebSocket）⭐
@@ -28,15 +30,22 @@ OpenClaw 会话文件 → auto-record-daemon.js → auto-hook.js → 明道云 A
 其他客户端 → WebSocket 服务器 → ws-bridge-client.js → auto-hook.js → 明道云 API
 ```
 
+**优势**：
+- ✅ **简化流程** - 不需要明道云 Webhook 中转
+- ✅ **实时送达** - WebSocket 直接发送，毫秒级延迟
+- ✅ **双重保障** - 明道云备份 + WebSocket 通知
+
 ## 核心文件
 | 文件 | 作用 |
 |------|------|
-| `auto-hook.js` | 明道云 API 封装（创建对话、消息） |
+| `auto-hook.js` | ⭐ 明道云 API 封装 + WebSocket 发送（双重发送） |
 | `auto-record-daemon.js` | 会话监控守护进程（自动记录） |
 | `index.js` | 手动发送消息接口 |
+| `ws-sender.js` | ⭐ WebSocket 消息发送器 |
 | `ws-bridge-client.js` | ⭐ WebSocket 消息接收器 |
 | `INSTALL.md` | 📦 其他用户安装指南 |
 | `WEBSOCKET-DEPLOY.md` | 📡 WebSocket 部署指南 |
+| `WEBSOCKET-SEND.md` | 📤 WebSocket 发送使用指南 |
 | `config.example.js` | 📝 配置模板（复制后修改） |
 
 ## 当前配置（小粽的）

@@ -1,9 +1,0 @@
-{
-  "lastCheck": 1772608620000,
-  "status": "no_new_messages",
-  "messageCount": 0,
-  "targetSession": "f3dc9156-004e-4f88-a9cc-f58ddc91253f",
-  "targetSessionStatus": "checked",
-  "note": "API query returns {success:true} with no data/rows. Poller cache: 30 messages processed. No new external messages to inject. Cron check at 5:17 PM.",
-  "cronRun": "2026-03-02T17:17:00+08:00"
-}

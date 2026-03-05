@@ -153,15 +153,24 @@ async function createMessage(content, dialogId, senderId) {
 
 /**
  * 记录消息（自动创建或复用对话）
+ * 同时发送到明道云（备份）和 WebSocket（实时通知）
  */
 async function recordMessage(sender, receiver, content) {
   // 确保缓存已加载
   ensureCache();
   
+  // 支持通配符 sender（记录实际 sender）
   const senderId = USERS[sender] || sender;
   const receivers = (Array.isArray(receiver) ? receiver : [receiver]).map(r => USERS[r] || r);
   
-  // 获取或创建对话 ID
+  // 如果是通配符记录，.senderId 通常是 'openclaw-control-ui' 或其他非标准 ID
+  // 这时需要映射到明道云的用户 ID（使用默认映射）
+  if (!USERS[sender] && sender !== 'xiaozong' && sender !== 'feng' && sender !== 'master') {
+    // 自动映射未知 sender 到明道云 API（通过 API 调用）
+    // 临时方案：使用 senderId 直接作为用户 ID（明道云 API 会验证）
+    console.log(`⚠️ 未知用户 ${sender}，使用原始 ID`);
+  }
+  
   const key = getDialogKey([sender, ...receivers]);
   let dialogId = dialogCache[key];
   
@@ -172,9 +181,37 @@ async function recordMessage(sender, receiver, content) {
     console.log(`📝 创建新对话：${dialogId}`);
   }
   
-  // 创建消息
+  // 创建消息（明道云备份）
   const messageId = await createMessage(content, dialogId, senderId);
   console.log(`✅ 已记录：${sender} → ${receiver} (消息 ID: ${messageId})`);
+  
+  // 同时通过 WebSocket 发送（实时通知）
+  // 如果 receiver 是 feng 或 master，同时发送 WebSocket 通知
+  try {
+    const wsSender = require('./ws-sender.js');
+    const receiverId = Array.isArray(receiver) ? receiver[0] : receiver;
+    
+    // 只发送给特定的接收者（feng, master）
+    if (receiverId === 'feng' || receiverId === 'master') {
+      console.log(`📡 正在通过 WebSocket 通知 ${receiverId}...`);
+      
+      // 异步发送，不阻塞主流程
+      wsSender.send(receiverId, content, sender)
+        .then(success => {
+          if (success) {
+            console.log(`✅ WebSocket 通知成功：${receiverId}`);
+          } else {
+            console.log(`⚠️ WebSocket 通知失败：${receiverId}`);
+          }
+        })
+        .catch(err => {
+          console.error(`❌ WebSocket 发送错误：${err.message}`);
+        });
+    }
+  } catch (e) {
+    // WebSocket 模块可能不存在，忽略错误
+    console.log(`ℹ️  WebSocket 发送不可用：${e.message}`);
+  }
   
   return { dialogId, messageId };
 }
@@ -212,14 +249,22 @@ const originalSendFunctions = [];
  * 启用自动记录
  * 
  * 调用后，所有 recordReply() 调用都会自动记录到明道云
+ * 
+ * 支持多 sender：
+ * - enable() 或 enable('*') → 所有消息都记录（不限制 sender）
+ * - enable('master') → 仅 master 消息
+ * - enable('master', 'openclaw-control-ui') → 仅这些 sender
  */
-function enable(userId = 'master') {
+function enable(...users) {
   autoRecordEnabled = true;
   loadCache();
+  
+  const targetUsers = users.length > 0 && users[0] !== '*' ? users : ['*'];
+  
   console.log('📝 自动记录已启用');
-  console.log(`   用户：${userId}`);
+  console.log(`   用户：${targetUsers.join(', ')}`);
   console.log(`   缓存：${Object.keys(dialogCache).length} 个对话`);
-  return userId;
+  return targetUsers;
 }
 
 /**

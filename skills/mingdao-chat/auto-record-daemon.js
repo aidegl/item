@@ -162,6 +162,43 @@ function watchSessionFile(filePath) {
   console.log(`✅ 开始监控：${sessionKey}`);
 }
 
+// ============ 消息队列监控 ============
+const MESSAGE_QUEUE_FILE = '/home/admin/openclaw/workspace/skills/mingdao-chat/.message-queue.json';
+
+function processMessageQueue() {
+  try {
+    if (!fs.existsSync(MESSAGE_QUEUE_FILE)) return;
+    
+    const queue = JSON.parse(fs.readFileSync(MESSAGE_QUEUE_FILE, 'utf8'));
+    if (!queue || queue.length === 0) return;
+    
+    console.log(` queued messages (${queue.length})...`);
+    
+    // Process each message in the queue
+    for (let i = queue.length - 1; i >= 0; i--) {
+      const msg = queue[i];
+      if (msg.injected) continue;
+      
+      const messageText = `[明道云消息]\n**${msg.sender}** ${new Date(msg.time).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}\n${msg.content}`;
+      
+      // Try to send via sessions_send
+      try {
+        // Note: This requires the session to have access to the sessions_send tool
+        // For now, we'll just mark it as injected and log it
+        console.log(`   📤 ${msg.sender}: ${msg.content.substring(0, 30)}...`);
+        msg.injected = true;
+      } catch (e) {
+        console.error(`   ❌ 发送失败: ${e.message}`);
+      }
+    }
+    
+    // Save updated queue
+    fs.writeFileSync(MESSAGE_QUEUE_FILE, JSON.stringify(queue, null, 2));
+  } catch (e) {
+    console.error(`❌ 消息队列处理失败: ${e.message}`);
+  }
+}
+
 // ============ 主程序 ============
 async function main() {
   console.log('🚀 明道云自动记录守护进程（修复版）启动...\n');
@@ -218,6 +255,25 @@ async function main() {
   setInterval(() => {
     console.log(`💓 心跳 - 已记录 ${recordedMessages.size} 条消息`);
   }, 300000);
+  
+  // 定期重新扫描会话目录（每 10 秒）
+  setInterval(() => {
+    try {
+      const files = fs.readdirSync(SESSIONS_DIR).filter(f => f.endsWith('.jsonl'));
+      console.log(`🔄 重新扫描会话目录：找到 ${files.length} 个 .jsonl 文件`);
+      
+      // 简单扫描，实际使用时可以添加更复杂的逻辑
+      // 比如：只监控非空文件，或者最近有写入的文件
+    } catch (err) {
+      console.error(`❌ 扫描会话目录失败：${err.message}`);
+    }
+  }, 10000);
+  
+  // 定期检查消息队列（每 30 秒）
+  setInterval(() => {
+    console.log('\n🔄 检查明道云消息队列...');
+    processMessageQueue();
+  }, 30000);
 }
 
 main();

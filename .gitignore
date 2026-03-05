@@ -16,6 +16,7 @@ tmp/
 KnowledgeBase/
 hap-skills-collection/
 item-repo/
+!item-repo/skillshop/mingdao-chat/
 
 # Node.js
 node_modules/
@@ -34,3 +35,4 @@ __pycache__/
 # 系统文件
 .DS_Store
 Thumbs.db
+!item-repo/skillshop/mingdao-chat/
