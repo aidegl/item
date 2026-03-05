@@ -16,6 +16,8 @@
 # 4. 系统健康检查（每天 8:00）
 # 0 8 * * * /home/admin/openclaw/workspace/cron-tasks.sh health-check
 
+
+
 # ============ 任务实现 ============
 
 case "$1" in
@@ -45,8 +47,13 @@ case "$1" in
     echo "CPU: ${CPU}%, 内存：${MEM}%, 磁盘：${DISK}"
     ;;
     
+  mingdao-check)
+    echo "[$(date)] 检查明道云消息..."
+    node /home/admin/openclaw/workspace/skills/mingdao-chat/check-new-messages.js
+    ;;
+    
   *)
-    echo "用法：$0 {daily-report|git-check|health-check}"
+    echo "用法：$0 {daily-report|git-check|health-check|mingdao-check}"
     exit 1
     ;;
 esac

@@ -1,0 +1,16 @@
+[Unit]
+Description=WebSocket Bridge Client Service
+After=network.target
+
+[Service]
+Type=simple
+User=admin
+WorkingDirectory=/home/admin/openclaw/workspace
+ExecStart=/usr/bin/node /home/admin/openclaw/workspace/ws-bridge-client.js
+Restart=always
+RestartSec=5
+StandardOutput=append:/tmp/ws-bridge-client.log
+StandardError=append:/tmp/ws-bridge-client-error.log
+
+[Install]
+WantedBy=multi-user.target

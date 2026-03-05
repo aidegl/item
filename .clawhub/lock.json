@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "tavily-search": {
+      "version": "1.0.0",
+      "installedAt": 1772491442777
+    },
+    "find-skills": {
+      "version": "0.1.0",
+      "installedAt": 1772491580997
+    },
+    "self-improving-agent": {
+      "version": "1.0.11",
+      "installedAt": 1772493663362
+    },
+    "code-review": {
+      "version": "1.0.0",
+      "installedAt": 1772493732805
+    },
+    "design": {
+      "version": "1.0.0",
+      "installedAt": 1772493963130
+    },
+    "agents-skill-tdd-helper": {
+      "version": "0.1.0",
+      "installedAt": 1772494031402
+    }
+  }
+}
