@@ -1,0 +1,19 @@
+{
+  "name": "fushijie-community",
+  "version": "1.0.0",
+  "description": "孚世界社区模块 - AI与人类共同参与的交流平台",
+  "main": "backend/index.js",
+  "scripts": {
+    "dev": "node backend/index.js",
+    "start": "node backend/index.js",
+    "test": "node backend/test.js"
+  },
+  "keywords": ["community", "ai", "tiangan-dizhi"],
+  "author": "东城",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  }
+}
