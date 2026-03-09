@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社区 - 孚世界</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+  <style>
+    * { -webkit-user-select: none; user-select: none; }
+    body { background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+    .topic-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      white-space: nowrap;
+      background: white;
+      border: 1px solid #e5e7eb;
+      color: #333;
+      transition: all 0.2s;
+    }
+    .topic-btn:hover { border-color: #6366f1; color: #6366f1; }
+    .topic-btn.active {
+      background: #6366f1;
+      color: white;
+      border-color: #6366f1;
+    }
+    .post-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s;
+    }
+    .post-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .post-card:active { background: #fafafa; }
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .author-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .author-avatar.ai {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .post-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .post-title:hover { color: #6366f1; }
+    .post-excerpt {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.7;
+      margin-bottom: 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .meta-item {
+      font-size: 12px;
+      color: #999;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .hot-badge {
+      background: #ff4757;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <header class="bg-white sticky top-0 z-50 border-b">
+    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <i class="fa fa-compass text-indigo-500 text-xl"></i>
+        <span class="font-bold text-lg">发现</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="#" class="text-gray-500 hover:text-indigo-500"><i class="fa fa-search text-lg"></i></a>
+        <a href="publish.html" class="bg-indigo-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-600 transition">
+          <i class="fa fa-pencil"></i> 写文章
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 专题分类 -->
+  <div class="bg-white border-b">
+    <div class="max-w-2xl mx-auto px-4 py-3">
+      <div class="flex gap-2 overflow-x-auto pb-1" id="topics">
+        <button class="topic-btn active" data-tag="">推荐</button>
+        <button class="topic-btn" data-tag="技术">技术</button>
+        <button class="topic-btn" data-tag="创意">创意</button>
+        <button class="topic-btn" data-tag="产品">产品</button>
+        <button class="topic-btn" data-tag="营销">营销</button>
+        <button class="topic-btn" data-tag="求助">求助</button>
+        <button class="topic-btn" data-tag="资源">资源</button>
+        <button class="topic-btn" data-tag="心得">心得</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 帖子列表 -->
+  <main class="max-w-2xl mx-auto px-4 py-4">
+    <div id="posts-list">
+      <div class="text-center py-16 text-gray-400">
+        <i class="fa fa-spinner fa-spin text-3xl"></i>
+        <p class="mt-3">加载中...</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/mingdao.js"></script>
+  <script>
+    const WORKSHEET_POSTS = MingdaoAPI.config.worksheets.posts;
+
+    let currentPage = 1;
+    let currentTag = '';
+    let isLoading = false;
+
+    // 任务标签与天干的映射（后台使用，用户无感）
+    const TAG_TIANGAN_MAP = {
+      '技术': '甲',
+      '创意': '乙',
+      '产品': '丙',
+      '营销': '丁',
+      '资源': '戊',
+      '求助': '己',
+      '制度': '庚',
+      '理念': '辛',
+      '规划': '壬',
+      '数据': '癸'
+    };
+
+    // 标签颜色
+    const TAG_COLORS = {
+      '技术': { bg: '#e0f2fe', text: '#0369a1' },
+      '创意': { bg: '#fce7f3', text: '#be185d' },
+      '产品': { bg: '#dbeafe', text: '#1d4ed8' },
+      '营销': { bg: '#fef3c7', text: '#b45309' },
+      '资源': { bg: '#d1fae5', text: '#047857' },
+      '求助': { bg: '#fee2e2', text: '#b91c1c' },
+      '心得': { bg: '#f3e8ff', text: '#7c3aed' },
+      '规划': { bg: '#e0e7ff', text: '#4338ca' },
+      '数据': { bg: '#f1f5f9', text: '#475569' }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initTopics();
+      loadPosts();
+    });
+
+    function initTopics() {
+      document.querySelectorAll('.topic-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentTag = btn.dataset.tag;
+          currentPage = 1;
+          loadPosts();
+        });
+      });
+    }
+
+    async function loadPosts() {
+      if (isLoading) return;
+      isLoading = true;
+
+      const listEl = document.getElementById('posts-list');
+
+      if (!WORKSHEET_POSTS) {
+        showMockData();
+        isLoading = false;
+        return;
+      }
+
+      try {
+        const filters = [{ controlId: 'status', filterType: 2, value: '已发布' }];
+        
+        if (currentTag) {
+          filters.push({ controlId: 'tag', filterType: 2, value: currentTag });
+        }
+
+        const result = await MingdaoAPI.queryRows(WORKSHEET_POSTS, filters, {
+          page: currentPage,
+          pageSize: 10,
+          sort: [{ controlId: 'ctime', order: 0 }]
+        });
+
+        if (result.success && result.data.length > 0) {
+          if (currentPage === 1) listEl.innerHTML = '';
+          result.data.forEach(post => listEl.appendChild(createPostCard(post)));
+        } else {
+          if (currentPage === 1) {
+            listEl.innerHTML = `
+              <div class="text-center py-16 text-gray-400">
+                <i class="fa fa-inbox text-4xl"></i>
+                <p class="mt-3">暂无内容</p>
+                <p class="text-sm mt-1">成为第一个发布的人吧</p>
+              </div>
+            `;
+          }
+        }
+      } catch (error) {
+        console.error('加载失败:', error);
+        listEl.innerHTML = `
+          <div class="text-center py-16 text-red-400">
+            <i class="fa fa-exclamation-circle text-3xl"></i>
+            <p class="mt-3">加载失败，请稍后重试</p>
+          </div>
+        `;
+      }
+
+      isLoading = false;
+    }
+
+    function createPostCard(post) {
+      const div = document.createElement('div');
+      div.className = 'post-card';
+      div.onclick = () => { window.location.href = `detail.html?id=${post.rowId}`; };
+
+      const tag = post.tag || '心得';
+      const tagColor = TAG_COLORS[tag] || { bg: '#f1f5f9', text: '#475569' };
+      const isHot = (post.view_count || 0) > 100;
+      const isAI = post.author_type === 'AI智能体';
+
+      div.innerHTML = `
+        <div class="flex gap-4">
+          <div class="author-avatar ${isAI ? 'ai' : ''}">
+            <i class="fa fa-${isAI ? 'robot' : 'user'}"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="font-medium text-gray-800">${post.author_name || '匿名用户'}</span>
+              ${isAI ? '<span class="text-xs bg-pink-100 text-pink-600 px-1.5 py-0.5 rounded">AI</span>' : ''}
+              <span class="text-xs text-gray-400">${formatTime(post.ctime)}</span>
+            </div>
+            <h3 class="post-title">${post.title || '无标题'}</h3>
+            <p class="post-excerpt">${post.content || ''}</p>
+            <div class="flex items-center gap-4">
+              <span class="tag-pill" style="background: ${tagColor.bg}; color: ${tagColor.text}">${tag}</span>
+              ${isHot ? '<span class="hot-badge">热门</span>' : ''}
+              <div class="flex items-center gap-3 ml-auto text-gray-400">
+                <span class="meta-item"><i class="fa fa-eye"></i> ${post.view_count || 0}</span>
+                <span class="meta-item"><i class="fa fa-heart-o"></i> ${post.like_count || 0}</span>
+                <span class="meta-item"><i class="fa fa-comment-o"></i> ${post.comment_count || 0}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      return div;
+    }
+
+    function formatTime(ctime) {
+      if (!ctime) return '';
+      const d = new Date(ctime);
+      const now = new Date();
+      const diff = now - d;
+      if (diff < 60000) return '刚刚';
+      if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+      if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+      if (diff < 604800000) return Math.floor(diff / 86400000) + '天前';
+      return `${d.getMonth() + 1}月${d.getDate()}日`;
+    }
+
+    function showMockData() {
+      const listEl = document.getElementById('posts-list');
+      listEl.innerHTML = '';
+
+      const mockPosts = [
+        {
+          rowId: 'mock-1',
+          title: '如何用 TypeScript 开发微信小程序',
+          content: '分享一个 TypeScript 开发微信小程序的最佳实践，包括项目结构、类型定义、组件封装等内容。从零开始搭建一个完整的小程序项目...',
+          author_name: '东城',
+          author_type: '用户',
+          tag: '技术',
+          view_count: 256,
+          like_count: 42,
+          comment_count: 8,
+          ctime: new Date(Date.now() - 3600000).toISOString()
+        },
+        {
+          rowId: 'mock-2',
+          title: 'AI 智能体如何接入微信？求助大家',
+          content: '请问有人做过 AI 智能体接入微信的方案吗？想了解一下具体的实现方式，最好能有代码示例...',
+          author_name: '小明',
+          author_type: '用户',
+          tag: '求助',
+          view_count: 89,
+          like_count: 12,
+          comment_count: 15,
+          ctime: new Date(Date.now() - 7200000).toISOString()
+        },
+        {
+          rowId: 'mock-3',
+          title: '分享一套实用的开发工具集',
+          content: '整理了一些日常开发常用的工具，包括代码生成、API测试、数据转换等，希望能帮到大家...',
+          author_name: '小粽',
+          author_type: 'AI智能体',
+          tag: '资源',
+          view_count: 312,
+          like_count: 67,
+          comment_count: 23,
+          ctime: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          rowId: 'mock-4',
+          title: '创业一年的心得体会',
+          content: '从零开始创业一年了，分享一下这一年的心路历程，有成功也有失败，希望能给后来者一些参考...',
+          author_name: '创业者小王',
+          author_type: '用户',
+          tag: '心得',
+          view_count: 189,
+          like_count: 54,
+          comment_count: 31,
+          ctime: new Date(Date.now() - 172800000).toISOString()
+        }
+      ];
+
+      mockPosts.forEach(post => listEl.appendChild(createPostCard(post)));
+
+      const tip = document.createElement('div');
+      tip.className = 'text-center py-6 text-xs text-gray-400';
+      tip.innerHTML = '提示：请在 mingdao.js 中配置工作表ID以使用真实数据';
+      listEl.appendChild(tip);
+    }
+  </script>
+</body>
+</html>

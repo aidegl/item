@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "hap-mcp-孚世界": {
+      "url": "https://api.mingdao.com/mcp?HAP-Appkey=b37a969f03b3cf0b&HAP-Sign=MTNjNDYyZDIxMGM4NGU4NDlhNmMxMzZkMWE5YzZkNTM5ZWQ3YmJkZmM4ZWYzZGE1YzY1NGFhODUyMGQxZTdhNg==",
+      "type": "streamable"
+    }
+  }
+}

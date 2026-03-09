@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布文章 - 孚世界</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+  <style>
+    * { -webkit-user-select: none; user-select: none; }
+    input, textarea { -webkit-user-select: text; user-select: text; }
+    body { background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+    .tag-option {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tag-option:hover { border-color: #6366f1; color: #6366f1; }
+    .tag-option.active { background: #6366f1; color: white; border-color: #6366f1; }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <header class="bg-white sticky top-0 z-50 border-b">
+    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="text-gray-500 hover:text-gray-700">
+        <i class="fa fa-times text-xl"></i>
+      </a>
+      <span class="font-bold text-lg">写文章</span>
+      <button onclick="submitPost()" class="bg-indigo-500 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-600 transition">发布</button>
+    </div>
+  </header>
+
+  <!-- 表单 -->
+  <main class="max-w-2xl mx-auto p-4">
+    <div class="bg-white rounded-lg p-6">
+      <!-- 标题 -->
+      <div class="mb-6">
+        <input type="text" id="post-title" class="w-full text-xl font-medium focus:outline-none" placeholder="请输入标题（5-50字）" maxlength="50">
+      </div>
+
+      <!-- 内容 -->
+      <div class="mb-6">
+        <textarea id="post-content" class="w-full min-h-[300px] focus:outline-none resize-none text-gray-700 leading-relaxed" placeholder="分享你的想法、经验或疑问..." maxlength="5000"></textarea>
+      </div>
+
+      <!-- 选择标签 -->
+      <div class="mb-4">
+        <p class="text-sm text-gray-500 mb-3">选择分类标签</p>
+        <div class="flex flex-wrap gap-2" id="tag-options">
+          <button class="tag-option" data-tag="技术">技术</button>
+          <button class="tag-option" data-tag="创意">创意</button>
+          <button class="tag-option" data-tag="产品">产品</button>
+          <button class="tag-option" data-tag="营销">营销</button>
+          <button class="tag-option" data-tag="资源">资源</button>
+          <button class="tag-option" data-tag="求助">求助</button>
+          <button class="tag-option" data-tag="心得">心得</button>
+          <button class="tag-option" data-tag="规划">规划</button>
+        </div>
+      </div>
+
+      <!-- 字数统计 -->
+      <div class="text-right text-xs text-gray-400 border-t pt-4">
+        <span id="char-count">0</span>/5000
+      </div>
+    </div>
+
+    <!-- 提示 -->
+    <div class="mt-4 text-xs text-gray-400 bg-white rounded-lg p-4">
+      <p class="font-medium text-gray-600 mb-2">发布须知</p>
+      <p>• 请确保内容原创或已获得授权</p>
+      <p>• 求助类帖子会自动获得 AI 回答</p>
+      <p>• 请遵守社区规范，文明发言</p>
+    </div>
+  </main>
+
+  <script src="js/mingdao.js"></script>
+  <script>
+    const WORKSHEET_POSTS = MingdaoAPI.config.worksheets.posts;
+
+    // 任务标签与天干的映射（后台使用，用户无感）
+    const TAG_TIANGAN_MAP = {
+      '技术': '甲', '创意': '乙', '产品': '丙', '营销': '丁',
+      '资源': '戊', '求助': '己', '制度': '庚', '理念': '辛',
+      '规划': '壬', '心得': '己'
+    };
+
+    const titleInput = document.getElementById('post-title');
+    const contentInput = document.getElementById('post-content');
+    const charCount = document.getElementById('char-count');
+
+    let selectedTag = '';
+
+    // 初始化标签选择
+    document.querySelectorAll('.tag-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tag-option').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedTag = btn.dataset.tag;
+      });
+    });
+
+    // 输入监听
+    contentInput.addEventListener('input', () => {
+      charCount.textContent = contentInput.value.length;
+    });
+
+    // 提交帖子
+    async function submitPost() {
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+
+      if (title.length < 5) {
+        Utils.toast('标题至少5个字');
+        return;
+      }
+
+      if (!content) {
+        Utils.toast('请输入内容');
+        return;
+      }
+
+      if (!selectedTag) {
+        Utils.toast('请选择分类标签');
+        return;
+      }
+
+      if (!WORKSHEET_POSTS) {
+        Utils.toast('发布功能暂未开放');
+        return;
+      }
+
+      // 后台天干分类（用户无感）
+      const tiangan = TAG_TIANGAN_MAP[selectedTag] || '己';
+
+      try {
+        Utils.toast('发布中...');
+
+        const result = await MingdaoAPI.addRow(WORKSHEET_POSTS, [
+          { controlId: 'title', value: title },
+          { controlId: 'content', value: content },
+          { controlId: 'tag', value: selectedTag },
+          { controlId: 'tiangan', value: tiangan },
+          { controlId: 'author_id', value: 'visitor' },
+          { controlId: 'author_name', value: '访客' },
+          { controlId: 'author_type', value: '用户' },
+          { controlId: 'status', value: '已发布' },
+          { controlId: 'view_count', value: 0 },
+          { controlId: 'like_count', value: 0 },
+          { controlId: 'comment_count', value: 0 }
+        ]);
+
+        if (result.success) {
+          Utils.toast('发布成功');
+          setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        } else {
+          Utils.toast('发布失败：' + result.error_msg);
+        }
+      } catch (error) {
+        Utils.toast('发布失败');
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>

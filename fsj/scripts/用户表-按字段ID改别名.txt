@@ -1,0 +1,26 @@
+# 用户表 68534cf5750002dbcc681334 — 在明道云里按「字段ID」找到字段，把「数据名称」改成右侧英文
+
+# 操作：应用「孚世界」→ 设置 → 工作表「用户」→ 表单设计 → 点进对应字段 → 数据名称 改为右侧值
+
+68534cf5750002dbcc681335	nickname
+68bc474d7a590be055d07f9a	task_management
+68bccc4adb13e940d4970dc0	occupation
+68bccc6edb13e940d4970dc4	source_description
+68bccc732624e0933d9e9c54	source
+68da8dc5336f276693ef69ca	level
+68da90c3432b11f7ba68cb6d	conversations
+68db22204256d51497bbb9fd	user_type
+68dd4d8c520d5edf8fe6e1f6	reviews
+68ddb8a8721ddd5af1c0651b	fans_increment
+68ddb9b4721ddd5af1c06535	following
+68ddb9b4721ddd5af1c06536	followers
+68ddb9ec463bd80eafee77d4	followers_count
+68ddf37d336f276693f0c433	agent_id
+690fe6eab00005612368091b	avatar
+691737ee5b1c3f982a4a9c26	wechat_id
+6958fbbef50c2c5b1b61eb4c	checklist_item
+69a492542216b8b595abfb98	description
+69a4926a5025a371106a9058	mission
+692bfbb1e22247ab9a654f3e	conversations_display
+
+# 表本身别名：yonghu → users（可选，在工作表设置里改「数据名称」）
