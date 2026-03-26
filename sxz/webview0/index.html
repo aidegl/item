@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- 优化缓存策略：允许协商缓存，去除 no-store -->
+  <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>沈仙子陪诊助手</title>
+
+  <!-- 调试与依赖 -->
+  <!-- 使用本地库文件替代 CDN，提高加载速度和稳定性 -->
+  <script src="./js/lib/vconsole.min.js"></script>
+  <script>
+    // 仅在 URL 包含 debug 参数或开发环境开启 vConsole
+    if (new URLSearchParams(window.location.search).get('debug')) {
+      var vConsole = new VConsole();
+    }
+  </script>
+
+  <script src="./js/lib/marked.min.js"></script>
+  <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+
+  <script>
+    (function () {
+      // 动态资源版本化 (Cache Busting)
+      // 使用 URL 参数中的版本号，或者默认版本号，避免无意义的强制刷新
+      var v = new URLSearchParams(window.location.search).get('v') || '20260202';
+      console.log('[Webview] CSS资源版本号:', v);
+
+      // 通过 DOM 操作动态加载 CSS，避免 document.write 阻塞
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = './styles.css?v=' + v;
+      document.head.appendChild(link);
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="app" class="app-container">
+    <!-- 新手引导 -->
+    <section id="onboarding" class="onboarding-modal hidden" role="dialog" aria-modal="true"
+      aria-labelledby="onboarding-title">
+      <div class="onboarding-content">
+        <header class="onboarding-header">
+          <h2 id="onboarding-title">欢迎使用陪诊助手</h2>
+          <button class="close-btn" type="button" onclick="closeOnboarding()" aria-label="关闭新手引导">&times;</button>
+        </header>
+        <div class="onboarding-body">
+          <div class="onboarding-step" data-step="1">
+            <div class="step-icon">🤖</div>
+            <h3>智能AI助手</h3>
+            <p>随时为您解答陪诊相关问题，提供专业建议和话术指导</p>
+          </div>
+          <div class="onboarding-step hidden" data-step="2">
+            <div class="step-icon">👥</div>
+            <h3>患者管理</h3>
+            <p>记录患者信息，管理陪诊记录，一键生成诊后报告</p>
+          </div>
+          <div class="onboarding-step hidden" data-step="3">
+            <div class="step-icon">📋</div>
+            <h3>备忘录</h3>
+            <p>设置提醒，管理待办事项，不错过任何重要安排</p>
+          </div>
+          <div class="onboarding-step hidden" data-step="4">
+            <div class="step-icon">⚙️</div>
+            <h3>个性化设置</h3>
+            <p>自定义您的使用体验，让工作更高效</p>
+          </div>
+        </div>
+        <footer class="onboarding-footer">
+          <div class="step-indicators" role="tablist" aria-label="新手引导步骤">
+            <span class="indicator active" data-step="1"></span>
+            <span class="indicator" data-step="2"></span>
+            <span class="indicator" data-step="3"></span>
+            <span class="indicator" data-step="4"></span>
+          </div>
+          <button class="btn btn-primary" type="button" onclick="nextOnboardingStep()">下一步</button>
+        </footer>
+      </div>
+    </section>
+
+    <!-- 主内容区域 -->
+    <main id="main-content" class="main-content" role="main" aria-label="陪诊助手主要内容">
+      <!-- 页面内容将由 app.js 动态渲染 -->
+    </main>
+
+    <!-- 底部导航 -->
+    <nav class="bottom-nav" role="navigation" aria-label="主导航">
+      <button class="nav-item active" type="button" data-tab="ai" onclick="switchTab('ai')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg>
+        <span>智能体</span>
+      </button>
+      <button class="nav-item" type="button" data-tab="patients" onclick="switchTab('patients')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <span>患者库</span>
+      </button>
+      <button class="nav-item" type="button" data-tab="records" onclick="switchTab('records')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        <span>备忘录</span>
+      </button>
+      <button class="nav-item" type="button" data-tab="settings" onclick="switchTab('settings')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+        <span>设置</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    (function () {
+      // 动态资源版本化：确保所有 JS 脚本都使用版本号
+      // 从 URL 获取版本号，如果未指定则使用默认版本号（允许缓存），而不是每次都使用当前时间戳
+      var v = new URLSearchParams(window.location.search).get('v') || '20260202';
+      console.log('[Webview] 动态加载脚本，版本号:', v);
+
+      // 动态注入所有 JS 脚本，确保版本号透传到所有资源层级
+      var scripts = [
+        '../mingdao/MingdaoQuery.js',
+        '../mingdao/MingdaoAdd.js',
+        '../mingdao/MingdaoUpdate.js',
+        '../mingdao/MingdaoArray.js',
+        './js/WechatLogin.js',
+        './js/coze.js',
+        './js/CozeWorkflow.js',
+        './js/fetchUserRecords.js',
+        './js/app-core.js'
+      ];
+
+      // 使用 DOM 操作加载脚本，避免 document.write 阻塞
+      // async = false 确保脚本按顺序执行
+      scripts.forEach(function (src) {
+        var script = document.createElement('script');
+        script.src = src + '?v=' + v;
+        script.async = false;
+        document.body.appendChild(script);
+      });
+    })();
+  </script>
+</body>
+
+</html>
