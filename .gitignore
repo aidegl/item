@@ -6,3 +6,8 @@ logs/
 .DS_Store
 dist/
 build/
+
+# Unity 大文件
+*.assets.resS
+*.assets
+*_Data/
