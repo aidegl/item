@@ -1,0 +1,25 @@
+/* 全局重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Rem适配：750px对应屏幕100%宽度，1rem=100px */
+html {
+    font-size: 100px;
+}
+
+body {
+    width: 100%;
+    height: 100vh;
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    overflow: hidden;
+}
+
+/* SPA容器 */
+#app {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}

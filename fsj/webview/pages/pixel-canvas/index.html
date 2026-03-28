@@ -1,0 +1,39 @@
+<!-- 像素Canvas页面 -->
+<section class="pixel-canvas-page" role="region" aria-label="像素角色展示">
+    <div class="canvas-container">
+        <canvas id="pixelCanvas" role="img" aria-label="像素角色" tabindex="0"></canvas>
+        
+        <!-- 信息框（系统级分辨率：屏幕宽/120） -->
+        <div class="info-box" id="infoBox">
+            <!-- 信息框图片 -->
+            <img src="./assets/isPixel/xinxikuang.png" alt="信息框" class="info-box-image" id="infoBoxImage">
+            <!-- 等级背景 -->
+            <img src="./assets/isPixel/等级背景.png" alt="等级背景" class="level-background" id="levelBackground">
+            <!-- 经验背景 -->
+            <img src="./assets/isPixel/jingyanbeijing.png" alt="经验背景" class="exp-background" id="expBackground">
+            <!-- 地图 -->
+            <img src="./assets/isPixel/ditu.png" alt="地图" class="ditu" id="ditu">
+            <!-- 经验条格子 -->
+            <div class="exp-bar-grid" id="expBarGrid">
+                <div class="exp-bar-segment exp-bar-segment-1"></div>
+                <div class="exp-bar-segment exp-bar-segment-2"></div>
+                <div class="exp-bar-segment exp-bar-segment-3"></div>
+                <div class="exp-bar-segment exp-bar-segment-4"></div>
+            </div>
+            <!-- 等级文字 -->
+            <div class="level-text" id="levelText">LV 01</div>
+            <!-- 经验值文字 -->
+            <div class="exp-text" id="expText">经验值：0/20</div>
+        </div>
+    </div>
+    
+    <!-- 功能组 - 左上角 -->
+    <div class="function-group function-group-leftTop"></div>
+    
+    <!-- 功能组 - 右上角 -->
+    <div class="function-group function-group-rightTop"></div>
+    
+    <div class="chat-box" id="chatBox" role="dialog" aria-label="角色对话" aria-hidden="true">
+        <p class="chat-message">你好，我叫阿兰，你找我有事吗？</p>
+    </div>
+</section>
